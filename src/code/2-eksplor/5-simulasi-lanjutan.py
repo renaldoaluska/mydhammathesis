@@ -5,7 +5,7 @@ Berdasarkan laporan dari 4-simulasi-chunk.py, script ini menginspeksi file-file
 yang memiliki chunk > 5000 karakter. Script ini menguji tiga strategi pemotongan:
 1. Double <br> (default praproses)
 2. Marker PTS (<a class="ref pts...">)
-3. Marker Slash ( / <br>)
+3. Marker etc
 
 Hasilnya akan digenerate ke chunk_rules.json untuk dipakai oleh 1-chunk.py.
 """
