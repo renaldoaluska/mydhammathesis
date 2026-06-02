@@ -1,0 +1,40 @@
+# === myDhamma — dependencies ===
+# Catatan: install torch manual sesuai CUDA, mis.
+#   pip install torch --index-url https://download.pytorch.org/whl/cu121
+
+# --- Deep learning / GPU ---
+torch
+
+# --- NLP & embeddings (dense retrieval + GPL) ---
+sentence-transformers
+transformers==4.57.6
+datasets
+sentencepiece
+tokenizers
+
+# --- Training optimization ---
+accelerate
+bitsandbytes
+packaging
+
+# --- Retrieval (lexical baseline BM25) ---
+rank-bm25
+
+# --- Utilities ---
+huggingface_hub
+numpy
+scipy
+scikit-learn
+tqdm
+
+# --- HTML parsing (chunking + sutta viewer) ---
+beautifulsoup4
+lxml          # parser spec-compliant: auto-close <p> tak tertutup spt browser
+
+# --- Statistik / eksplorasi ---
+pandas
+matplotlib
+seaborn
+
+# --- Web ---
+flask

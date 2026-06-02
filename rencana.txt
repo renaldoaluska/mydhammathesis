@@ -1,0 +1,296 @@
+============================================================
+RENCANA PENELITIAN — myDhamma (REVISI METODE / TAHAP 2)
+============================================================
+Disusun   : 2026-06-02
+Deadline  : 2026-07-31 (sidang) — ~8 minggu
+STATUS    : DRAFT. WAJIB di-ACC Bu Renny sebelum dieksekusi.
+            Kueri WAJIB di-approve pakar SEBELUM lihat hasil (anti cherry-pick).
+
+------------------------------------------------------------
+LATAR REVISI - MENGAPA PENDEKATAN LAMA BERMASALAH
+------------------------------------------------------------
+Ditulis jujur sebagai dasar revisi (bukan menutupi). Inilah kelemahan desain
+tahap 1 yang teridentifikasi dan memotivasi seluruh rencana tahap 2:
+
+(1) MENCAMPUR KATEGORI MODEL TANPA LANDASAN.
+    Tahap 1 menempatkan 4 jenis model yang TUJUAN PELATIHANNYA BERBEDA seolah
+    setara (apple-to-apple), padahal fungsinya tidak sebanding:
+      - retrieval-native (e5)        : memang dilatih untuk ranking retrieval.
+      - STS/paraphrase (paraphrase-mpnet, paraphrase-xlm-r): dilatih untuk
+        semantic textual similarity / NLI - BUKAN retrieval relevance.
+      - raw BERT (indobert)          : tidak punya sentence embedding sama sekali.
+      - bitext-mining (LaBSE = buddhist-sentence-similarity): dilatih untuk
+        ALIGNMENT lintas bahasa, bukan peringkat relevansi dokumen.
+    Membandingkan "efektivitas metode" lintas kategori ini lemah: baselinenya
+    tidak sefungsi. Inilah sumber rasa "justifikasi tidak nyambung".
+
+(2) PEMILIHAN MODEL TIDAK BERLANDASKAN BENCHMARK IR.
+    Tidak ada rujukan MTEB / BEIR / MIRACL. Model dipilih ad-hoc ("yang bagus
+    per bahasa"), bukan dari leaderboard retrieval. Pertanyaan penguji "kenapa
+    model ini?" sulit dijawab. -> Tahap 2 pakai landasan benchmark eksplisit.
+
+(3) METODE (TSDAE) TIDAK COCOK DENGAN TUJUAN (RETRIEVAL).
+    TSDAE = denoising auto-encoder (rekonstruksi unsupervised), tidak langsung
+    mengoptimasi sinyal retrieval. Pada model yang sudah supervised-mature malah
+    CATASTROPHIC FORGETTING (terbukti di eval-1). Metode tidak selaras objektif.
+    -> Diganti GPL yang memang untuk domain adaptation dense retrieval.
+
+(4) KUERI KURANG BERLANDASKAN & TERLALU KEYWORD-LIKE.
+    Kueri spt "empat kebenaran mulia" adalah NAMA KONSEP (keyword), bukan kueri
+    semantik natural; pemilihannya disetujui sendiri tanpa protokol kuat.
+    -> Tahap 2: kueri di-approve pakar dulu, + tambah kueri yang lebih natural.
+
+(5) METRIK UTAMA GOYAH KARENA HEADING CONTAMINATION.
+    Sebagian nDCG awal adalah artefak kecocokan leksikal HEADING (judul seksi),
+    bukan relevansi konten -> peringkat model bias. (Sudah ditangani via flag
+    `heading` di praproses tahap 2.)
+
+(6) RUANG EKSPERIMEN MEMBENGKAK JADI 29 KONDISI.
+    Mayoritas adalah varian TSDAE yang ternyata tidak relevan, membuat beban
+    asesmen meledak (1 pakar menilai 1000+ pasase) TANPA menambah nilai ilmiah.
+    -> Tahap 2 diciutkan ke 6 sistem (3 model + BM25), beban manusiawi + IAA.
+
+KESIMPULAN LATAR: yang bermasalah adalah DESAIN & FRAMING (kategori model,
+landasan, metode, kueri), BUKAN datanya. Korpus, asesmen 1 pakar, dan temuan
+tahap 1 tetap bernilai sebagai PILOT yang mengarahkan tahap 2.
+
+------------------------------------------------------------
+0. RINGKASAN KEPUTUSAN (TL;DR)
+------------------------------------------------------------
+- Metode final  : GPL (Generative Pseudo-Labeling), MENGGANTIKAN TSDAE.
+- Model         : 2 backbone retrieval-native di-GPL + 2 baseline (3 model + BM25).
+- Korpus latih  : EN + ID (PLI TIDAK di-GPL; ikut via cross-lingual transfer + indeks).
+- Bahasa kueri  : INDONESIA murni (tanpa codeswitch). PLI bukan bahasa kueri.
+- Target dinilai: korpus ID + EN (pakar). PLI = intrinsik saja.
+- Kueri         : 30 (25 Sutta anchor lama + 5 Vinaya/Abhidhamma baru).
+- Kedalaman     : pool top-10 -> metrik utama nDCG@10.
+- Skala         : graded relevance 0-3 (Jarvelin-Kekalainen 2002 + TREC DL Track).
+
+------------------------------------------------------------
+1. NARASI / FRAMING (tahap 1 -> tahap 2)
+------------------------------------------------------------
+Bukan "mengulang dari nol", melainkan ITERASI metodologis (lazim di paper IR:
+pilot study -> identified limitations -> improved methodology).
+
+- TAHAP 1 = STUDI SELEKSI / PILOT (sudah berjalan).
+  * 7 model x s/d 6 kondisi (base, TSDAE, +PLI, contrastive...), korpus Sutta, praproses-1.
+  * eval-1: 1 pakar (Aryanto), 25 kueri, korpus ID, ~3.124 pasase unik (post-dedup).
+  * Temuan yang MEMOTIVASI tahap 2 (ditulis sebagai kontribusi, bukan disembunyikan):
+      (a) TSDAE menurunkan performa sentence-transformer mature (catastrophic forgetting).
+      (b) Heading section bocor jadi kandidat retrieval -> ketangkap mata pakar,
+          BUKAN metrik otomatis (justru menegaskan nilai human-in-the-loop).
+      (c) Cakupan Sutta-saja kurang -> pakar minta seluruh Tipitaka.
+      (d) Pemilihan model & kueri awal kurang berlandaskan literatur IR terkini.
+
+- TAHAP 2 = METODE FINAL (principled, ini rencana).
+  * Model dipilih berdasar benchmark IR (MTEB/MIRACL/BEIR), retrieval-native.
+  * GPL sebagai domain adaptation yang sesuai untuk dense retrieval.
+  * Korpus full Tipitaka, chunk diperbaiki (heading-tagged, lxml, junk dibuang).
+
+CATATAN APPLE-TO-APPLE: hanya wajib DI DALAM satu tahap, bukan antar-tahap.
+DILARANG klaim "nDCG tahap-2 > tahap-1" (beda data + beda kueri = confounded).
+
+------------------------------------------------------------
+2. MODEL (SHORTLIST FINAL + PAPER + ALASAN)
+------------------------------------------------------------
+Akar masalah pilihan lama: mencampur 4 kategori model beda tujuan tanpa alasan
+eksplisit (retrieval-native vs STS/paraphrase vs raw BERT vs bitext-mining).
+Tahap 2 dibatasi ke RETRIEVAL-NATIVE + baseline yang jelas perannya.
+
+LANDASAN PEMILIHAN (tulis di metodologi):
+"Model dipilih dari peringkat teratas MTEB (retrieval task) & MIRACL (multilingual
+retrieval), dibatasi arsitektur retrieval-native kelas base agar muat di GPU 12GB.
+Domain Pali bersifat zero-shot/out-of-domain (lih. BEIR) sehingga butuh domain
+adaptation."
+
+CORE (di-GPL: base vs GPL-adapted):
+  1. multilingual-e5-base   (278M) - backbone utama, PROVEN muat di A2000.
+       Wang et al. 2024, "Multilingual E5 Text Embeddings: A Technical Report".
+  2. gte-multilingual-base  (305M) - pembanding retrieval-native, family beda.
+       Zhang et al. 2024, "mGTE: Generalized Long-Context Text Representation
+       and Reranking Models for Multilingual Text Retrieval".
+
+BASELINE (encode-only / tidak di-train):
+  3. LaBSE                   (471M) - baseline cross-lingual; menunjukkan
+       bitext-mining != retrieval. Feng et al. 2022, "Language-agnostic BERT
+       Sentence Embedding".
+  4. BM25 (lexical/sparse)         - baseline WAJIB di IR; tanpa GPU.
+       Robertson & Zaragoza 2009, "The Probabilistic Relevance Framework: BM25
+       and Beyond".
+
+=> 6 SISTEM total: BM25, LaBSE, e5-base, e5-GPL, gte-base, gte-GPL.
+
+(Sitasi benchmark: Muennighoff et al. 2023 MTEB; Thakur et al. 2021 BEIR;
+ Zhang et al. 2023 MIRACL.)
+
+CATATAN BGE-M3: secara paper paling kuat (Chen et al. 2024) TAPI single-size
+~568M (XLM-R large), multi-functionality penuh (dense+sparse+ColBERT) TIDAK
+feasible di 12GB. Tidak dipakai. Tidak ada versi kecil multilingual.
+
+------------------------------------------------------------
+3. FEASIBILITY GPU (NVIDIA RTX A2000 12GB)
+------------------------------------------------------------
+Fine-tune (MarginMSE GPL):
+  - e5-base 278M  : OK (proven, auto-retry batch 16->1).
+  - gte-base 305M : OK (setara e5-base).
+  - e5-large 560M / BGE-M3 568M : borderline/berat -> TIDAK dipakai.
+Komponen GPL berjalan SEKUENSIAL (tidak semua di VRAM bareng):
+  - query-gen mT5-base (~580M)        : inference only, 440k x 3 = lama (batch-able).
+  - cross-encoder mmarco-mMiniLMv2 (~118M): inference only, ringan.
+Pakai pola auto-retry OOM (turun batch, naik grad-accum). Seed 42.
+
+------------------------------------------------------------
+4. METODE: GPL (Generative Pseudo-Labeling)
+------------------------------------------------------------
+Wang, Thakur, Reimers, Gurevych - NAACL 2022, "GPL: Generative Pseudo Labeling
+for Unsupervised Domain Adaptation of Dense Retrieval". (Lab UKP, sama dgn TSDAE.)
+SOTA untuk unsupervised domain adaptation dense retrieval. Tetap "domain
+adaptation" -> sesuai judul TA. (Alternatif sezaman: Promptagator/Dai 2023,
+InPars/Bonifacio 2022 - butuh LLM besar, kurang pas A2000.)
+
+PIPELINE 4 LANGKAH:
+  (1) QUERY GENERATION  - mT5 query-gen, ~3 kueri sintetis/pasase -> (q, P+)
+  (2) HARD NEGATIVE MINING - dense retriever, top-neg per q       -> (q, P+, P-)
+  (3) PSEUDO LABELING - cross-encoder, margin = CE(q,P+) - CE(q,P-)
+  (4) TRAINING - MarginMSE: MSE( BE(q,P+)-BE(q,P-) , margin )
+
+SCOPE TRAINING vs INDEKS:
+  - TRAINING (GPL) = SUTTA saja (kueri eval di Sutta, terukur, lebih murah).
+  - INDEKS/TARGET  = FULL TIPITAKA (Sutta+Vinaya+Abhidhamma) - penuhi minta pakar.
+  - AMAN karena dense retrieval domain-agnostic saat inference: model bisa encode
+    Vinaya/Abhidhamma walau tak dilihat saat training (Sutta tertajam, non-Sutta
+    = kemampuan base, good enough).
+
+------------------------------------------------------------
+5. KORPUS TRAINING: ID + EN (PLI TIDAK DI-GPL)  [JAWABAN PERTANYAAN 1]
+------------------------------------------------------------
+JUJUR: PLI JANGAN di-GPL langsung. Alasan teknis:
+  - GPL butuh query-gen + cross-encoder. Untuk PLI keduanya ~TIDAK ADA
+    (tak ada model query-gen / cross-encoder berbahasa Pali yang layak).
+  - Memaksakan = kueri sintetis & pseudo-label berkualitas buruk -> merusak sinyal.
+
+MAKA:
+  - GPL TRAIN di EN + ID:
+      * EN  : mulus, komponen default (T5/cross-encoder MS MARCO).
+      * ID  : komponen multilingual (query-gen mT5 + cross-encoder mmarco-mMiniLMv2).
+  - PLI ikut lewat 2 jalur, BUKAN di-GPL:
+      * (a) CROSS-LINGUAL TRANSFER: e5/gte/LaBSE multilingual -> embedding space
+            SHARED, kemampuan PLI ter-transfer dari pretraining.
+      * (b) ALIGNMENT PLI<->EN (sentence-aligned per segment id) bisa dimanfaatkan
+            sebagai sinyal tambahan (generate kueri di sisi EN, target PLI via
+            alignment) - OPSIONAL/advanced, kalau waktu cukup.
+  - PLI TETAP DI-INDEKS & bisa dicari (encode + cosine). Tidak dibuang.
+
+CATATAN: ID tidak sentence-aligned dgn PLI/EN di level chunk -> hanya PLI<->EN
+yang aligned. Ini batasan yang sudah diketahui (tulis di Limitasi).
+
+------------------------------------------------------------
+6. DESAIN EVALUASI  [JAWABAN PERTANYAAN 2 & 3: BAHASA KUERI & MATRIKS SILANG]
+------------------------------------------------------------
+MASALAH: matriks silang penuh = {ID,EN,PLI} kueri x {ID,EN,PLI} target = 9 sel.
+TIDAK MUNGKIN semua diuji pakar dari 30 kueri. Harus direduksi by USE CASE + biaya.
+
+REDUKSI JUJUR:
+  - KUERI PLI DI-DROP. Tidak realistis: ~tak ada pengguna mengetik kueri dalam
+    bahasa Pali (bahasa liturgi, bukan sehari-hari). PLI = TARGET, bukan SOURCE.
+  - KUERI = INDONESIA murni (tanpa codeswitch). Alasan:
+      * Use case utama myDhamma = pengguna Indonesia.
+      * Nyambung & bisa dibandingkan dengan tahap 1 (anchor).
+      * Mengisolasi kemampuan CROSS-LINGUAL (kueri ID sehari-hari -> teks ID/EN/PLI).
+  - CODESWITCH DITOLAK dari set utama: mencampur bahasa = confound (tak bisa pisah
+    efek codeswitch vs efek model). Boleh sebagai ANALISIS KUALITATIF terpisah,
+    bukan bagian metrik utama.
+
+SEL YANG DIUJI:
+  PAKAR (graded 0-3):
+    * Kueri ID -> Target ID  : core use case (anchor tahap 1). WAJIB.
+    * Kueri ID -> Target EN  : cross-lingual, INI selling point model multilingual
+                               (banyak teks hanya ada di EN). WAJIB.
+  INTRINSIK SAJA (otomatis, tanpa pakar):
+    * Kueri ID -> Target PLI : tahap 1 sudah tunjukkan retrieval ID->PLI buruk &
+                               pakar nilai tak informatif -> cukup gap cosine
+                               intra/inter (juga dipakai sbg DEV SET tuning GPL).
+    * (opsional) EN->EN / EN->PLI : kalau ada pakar EN / untuk pelengkap.
+
+KUERI:
+  - 30 kueri Indonesia = 25 Sutta (anchor lama, beku) + 5 baru (Vinaya/Abhidhamma).
+  - Kueri sama dipakai untuk target ID dan EN (yang beda korpus targetnya).
+  - Tetapkan & approve pakar SEBELUM lihat hasil.
+
+KEDALAMAN & METRIK:
+  - POOL top-10 (bukan top-5) -> bisa lapor nDCG@10.
+  - UTAMA   : nDCG@10 (nyambung BEIR/GPL).
+  - PELENGKAP: nDCG@5, MRR@10, P@10 (relevan = grade >= 2, TULIS EKSPLISIT).
+  - DEV/INTRINSIK: gap cosine intra/inter (tuning GPL TANPA sentuh test set pakar).
+  - HINDARI : Recall@k (pool dangkal -> tak terhitung jujur).
+  - Spearman: SEKUNDER (kalibrasi cosine<->grade), bukan headline.
+
+PROTOKOL BLIND (lanjut dari tahap 1): pooling+dedup per (kueri,korpus),
+anonimisasi model, randomisasi urutan, filter heading via flag `heading`.
+
+------------------------------------------------------------
+7. BEBAN ANOTASI + IAA
+------------------------------------------------------------
+6 sistem x top-10 = 60 naif/kueri/korpus. base vs GPL (model sama) overlap tinggi
+di top-10 -> dedup banyak -> ~35 unik/kueri/korpus.
+  - Korpus ID: 30 kueri x ~35 = ~1.050 pasase unik (mirip tahap 1: 963).
+  - Korpus EN: ~serupa.
+BEDA PENTING dari tahap 1: sekarang DIBAGI 2-3 PAKAR -> ~350-500/pakar (manusiawi),
+DAN memungkinkan IAA (semua pakar nilai irisan/set yang sama).
+
+REDUKSI bila pakar mepet: fokus korpus ID dulu; EN menyusul/opsional. Atau 25 kueri.
+eval-2/3 = ronde pakar baru; IAA dihitung (tahap 1 gagal IAA krn irisan < 5 / Amita
+baru 2 kueri).
+
+------------------------------------------------------------
+8. SKALA RELEVANSI + SITASI
+------------------------------------------------------------
+Graded relevance 0-3 (SUDAH benar, hanya rapikan sitasi):
+  0 = Tidak relevan
+  1 = Terkait, tidak menjawab
+  2 = Sebagian jawaban (mungkin tersembunyi di info ekstra)
+  3 = Menjawab sempurna
+SITASI:
+  - nDCG + graded relevance : Jarvelin & Kekalainen 2002, "Cumulated Gain-Based
+    Evaluation of IR Techniques" (ACM TOIS). WAJIB (asal nDCG).
+  - Definisi label 0-3      : Craswell et al. 2020, "Overview of the TREC 2019
+    Deep Learning Track" (MS MARCO-based; nyambung BEIR/GPL).
+JANGAN campur TREC Web Track (skala Nav/Key/HRel/Rel/Non/Junk - beda).
+Konsisten: binarization P@k (relevan=grade>=2) ditulis eksplisit; skala 0-3
+dipertahankan dari tahap 1 ke tahap 2.
+
+------------------------------------------------------------
+9. BASELINE / KLAIM (OPEN DECISION - belum diputus)
+------------------------------------------------------------
+- Opsi A: GPL = sistem final SAJA. Klaim metode (treatment vs base) selesai di
+  tahap 1. Hemat. Tahap 2 = "performa sistem final".
+- Opsi B: rerun juga contrastive di data benar (model finalis sama) bareng GPL.
+  Baru boleh klaim head-to-head "GPL > Contrastive pada Kanon Pali". Nambah kerja.
+=> Diskusikan dgn Bu Renny. (Dengan base vs GPL sudah ada perbandingan minimal.)
+
+------------------------------------------------------------
+10. TIMELINE KASAR (deadline 2026-07-31)
+------------------------------------------------------------
+Mgg 1  : ACC Bu Renny (arah, model, GPL, scope). Rapikan chunk.py (junk F2).
+         Rekrut pakar eval-2/3. Susun + approve 30 kueri.
+Mgg 2-3: Setup GPL (query-gen + cross-encoder multilingual), jalankan pipeline.
+         Precompute embeddings (incremental). Paralel: rekrut/jadwal pakar.
+Mgg 3-5: eval-2/3 (pakar nilai, ID dulu lalu EN), kumpulkan grade + IAA.
+Mgg 5-6: Hitung nDCG@10 dkk, analisis, finalisasi model.
+Mgg 6-8: Penulisan (paralel sejak awal), revisi, persiapan sidang.
+Jalur kritis = KETERSEDIAAN PAKAR, bukan komputasi.
+
+------------------------------------------------------------
+11. TODO / MENUNGGU KEPUTUSAN
+------------------------------------------------------------
+[ ] ACC Bu Renny atas seluruh rencana ini (PRIORITAS #1).
+[ ] Fix chunk.py: buang junk murni (F2: "(", "***", angka saja) - MIN_LEN sengaja
+    tetap longgar (teks suci utuh), JANGAN dipasang lagi.
+[ ] Pilih komponen GPL multilingual final: query-gen (mT5 base?) + cross-encoder
+    (mmarco-mMiniLMv2-L12?).
+[ ] Putuskan Opsi A vs B (baseline contrastive di data benar atau tidak).
+[ ] Susun + approve 30 kueri (25 anchor + 5 Vinaya/Abhidhamma) ke pakar.
+[ ] Rekrut 2-3 pakar eval-2/3 (untuk IAA). Konfirmasi kemampuan EN bila uji EN.
+[ ] Audit lanjutan: cek h4-h6 / <td> yang ke-drop (lih. memory project).
+[ ] Strategi PLI: konfirmasi jalur cross-lingual + (opsional) alignment PLI<->EN.
+============================================================
