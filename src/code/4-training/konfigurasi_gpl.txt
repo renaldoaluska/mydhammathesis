@@ -1,0 +1,58 @@
+METODOLOGI DAN KONFIGURASI PARAMETER GPL (GENERATIVE PSEUDO-LABELING)
+Sumber: src/config.py dan src/code/4-training/4-train-marginmse.py
+
+=============================================================================
+BAGIAN 1: IDENTITAS METODOLOGI (UNTUK PAPER/SKRIPSI)
+=============================================================================
+Nama Resmi Metode : "Multilingual Generative Pseudo-Labeling (mGPL) for Unsupervised Domain Adaptation in Dense Retrieval"
+Terjemahan        : "Adaptasi Domain Tidak Terawasi menggunakan Multilingual Generative Pseudo-Labeling (mGPL) pada Dense Retrieval"
+
+Bedah Istilah Metodologi:
+1. Unsupervised Domain Adaptation: Mengambil model pencarian umum dan mengadaptasinya ke domain spesifik (teks agama Buddha/Sutta) tanpa memerlukan data latih berlabel dari manusia sama sekali (unsupervised).
+2. Multilingual: Mendukung lebih dari satu bahasa (Inggris dan Indonesia).
+3. Generative Pseudo-Labeling (GPL):
+   - Generative: Menggunakan model AI generatif (mT5) untuk melahirkan "tebakan pertanyaan" secara otomatis dari teks sumber.
+   - Pseudo-Labeling: Menggunakan model penilai (Cross-Encoder) untuk memberikan skor/label semu (pseudo-label) pada pasangan teks-pertanyaan.
+4. Dense Retrieval: Sistem pencarian semantik modern berbasis vektor (embedding).
+
+Referensi/Sitasi Wajib:
+Wang, K., Thakur, N., Reimers, N., & Gurevych, I. (2022). GPL: Generative Pseudo Labeling for Unsupervised Domain Adaptation of Dense Retrieval. NAACL.
+
+=============================================================================
+BAGIAN 2: MODEL KOMPONEN mGPL (Berdasarkan Paper Asli)
+=============================================================================
+Pemilihan model di bawah ini mengikuti "Golden Standard" dari paper mGPL:
+- Query Generator: doc2query/msmarco-14langs-mt5-base-v1 (~580M) 
+  (Model mT5 multibahasa untuk menghasilkan pertanyaan generatif yang natural).
+- Cross-Encoder  : cross-encoder/mmarco-mMiniLMv2-L12-H384-v1 (~118M)
+  (Model mMARCO untuk memberikan skor pseudo-label/MarginMSE dengan efisien).
+- Retriever (Neg): intfloat/multilingual-e5-base
+  (Digunakan untuk mencari teks pengecoh atau 'Hard Negatives').
+
+=============================================================================
+BAGIAN 3: PARAMETER PEMBUATAN DATA SINTETIS
+=============================================================================
+- Target Bahasa  : Inggris (en) dan Indonesia (id). (Pali murni tidak di-GPL).
+- Jumlah Query   : 3 query per passage/chunk.
+- Hard Negatives : 1 negatif per query (diambil acak dari Top-50 hasil pencarian, melewati Top-1 untuk hindari false negative).
+
+=============================================================================
+BAGIAN 4: PARAMETER FINE-TUNING (MARGIN-MSE LOSS)
+=============================================================================
+- Training Steps : 10.000 langkah
+- Max Seq Length : 384 token (berdasarkan P99 panjang teks sutta, hemat memori)
+- Optimizer      : adamw_8bit (dipadukan dengan presisi bf16 dan tf32, sangat efisien untuk VRAM 12GB di RTX A2000)
+- Learning Rate  : 1e-5
+- Warmup Ratio   : 0.1
+- Weight Decay   : 0.01
+- Random Seed    : 42
+
+=============================================================================
+BAGIAN 5: SISTEM PENCEGAH OOM (AUTO-RETRY BATCHING)
+=============================================================================
+Karena keterbatasan VRAM 12 GB, sistem menerapkan strategi auto-fallback ukuran batch yang diimbangi dengan Gradient Accumulation agar proses matematika tidak berubah:
+- Opsi 1: Batch 32 (Accumulation 1) -> Target Utama
+- Opsi 2: Batch 16 (Accumulation 2) -> Jika OOM turun ke sini
+- Opsi 3: Batch 8  (Accumulation 4) -> Jika OOM turun ke sini
+- Opsi 4: Batch 4  (Accumulation 8) -> Jika OOM turun ke sini
+- Opsi 5: Batch 2  (Accumulation 16)-> Mentok paling bawah

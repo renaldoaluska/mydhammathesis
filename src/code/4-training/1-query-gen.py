@@ -1,5 +1,5 @@
 """
-1-query-gen.py — GPL langkah 1: generate kueri sintetis per pasase (mT5 doc2query).
+1-query-gen.py -- GPL langkah 1: generate kueri sintetis per pasase (mT5 doc2query).
 
 Input : 3-praproses (pasase Sutta en+id) | Output: 4-training/gpl/queries.jsonl
 Usage : python src/code/4-training/1-query-gen.py

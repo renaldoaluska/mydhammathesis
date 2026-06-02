@@ -1,10 +1,10 @@
 """
-4-train-marginmse.py — GPL langkah 4: fine-tune model core dengan MarginMSELoss.
+4-train-marginmse.py -- GPL langkah 4: fine-tune model core dengan MarginMSELoss.
 
 MSE( BE(q,pos) - BE(q,neg), margin ). Memakai SentenceTransformerTrainer
 (API ST 5.x, pola sama dgn training dhammakathika) + auto-retry OOM.
 Base diambil dari snapshot lokal (output/1-get-data/base-models) via
-config.resolve_model — fallback ke HF id kalau belum di-download.
+config.resolve_model -- fallback ke HF id kalau belum di-download.
 
 Input : 4-training/gpl/train.jsonl
 Output: 4-training/models/gpl-<model>/
