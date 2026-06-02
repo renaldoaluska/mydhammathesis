@@ -25,11 +25,19 @@ BATCH = 32
 
 
 def main():
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--limit", type=int, default=0, help="SMOKE TEST: batasi N pasase (0=semua)")
+    args = ap.parse_args()
+
     passages = _gpl.build_passages()
     print(f"[query-gen] pasase Sutta ({'+'.join(config.GPL_TRAIN_LANGS)}): {len(passages):,}")
     if not passages:
         print("Kosong. Jalankan 3-praproses/1-chunk.py dulu.")
         return
+    if args.limit:
+        passages = passages[:args.limit]
+        print(f"[SMOKE] dibatasi -> {len(passages)} pasase")
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     tok = AutoTokenizer.from_pretrained(config.GPL_QUERY_GEN)

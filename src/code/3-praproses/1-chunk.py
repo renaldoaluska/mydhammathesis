@@ -192,15 +192,26 @@ def clean_text(text):
 BR_SPLIT = re.compile(r'<br\s*/?>', re.IGNORECASE)
 DOUBLE_BR_SPLIT = re.compile(r'(?:<br\s*/?>\s*){2,}', re.IGNORECASE)
 
-# Fix "chunk raksasa": beberapa sutta punya satu <p> raksasa tanpa <br>; pecah di
-# satu-satunya batas yang tersedia sumber. Harus identik dengan app.py.
-PTS_BLOCK_SUTTAS   = {"ja522", "ja531", "ja534", "ja535", "ja536", "ja537", "ja538", "ja543"}
-SLASH_BLOCK_SUTTAS = {"pli-tv-kd18"}
-SLASH_BLOCK_RE     = re.compile(r'\s*/\s*(?=<br\s*/?>)', re.IGNORECASE)
+def _load_chunk_rules():
+    rules_file = config.EKSPLOR_DIR / "chunk_rules.json"
+    if rules_file.exists():
+        try:
+            with open(rules_file, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"  [WARN] gagal load chunk_rules.json: {e}")
+    return {"pts_split": [], "horner_split": []}
 
 
-def chunk_html(html_dir, text_key, output_dir):
+def chunk_html(html_dir, text_key, output_dir, htmltext):
     """Chunk HTML cocok dengan app.py `_get_sutta_from_html` (chunk_ids/parts konsisten)."""
+    
+    rules = _load_chunk_rules()
+    PTS_BLOCK_SUTTAS = set(rules.get("pts_split", []))
+    HORNER_BLOCK_SUTTAS = set(rules.get("horner_split", []))
+    
+    horner_split_re = re.compile(r'\[\d+\]')
+    
     all_html = list(Path(html_dir).rglob("*.html"))
     if not all_html:
         return {}
@@ -208,6 +219,7 @@ def chunk_html(html_dir, text_key, output_dir):
     datasets = {}
     for html_file in sorted(all_html, key=natural_keys):
         stem = html_file.stem
+        rel_id = str(html_file.relative_to(htmltext).with_suffix(""))
         # lxml: <p> tak tertutup ditutup otomatis (cegah chunk raksasa).
         soup = BeautifulSoup(html_file.read_text(encoding="utf-8"), "lxml")
 
@@ -228,10 +240,15 @@ def chunk_html(html_dir, text_key, output_dir):
         for el in soup.find_all(["footer", "script", "style"]):
             el.decompose()
         for el in soup.find_all(class_=["ref", re.compile(r"pts", re.I)]):
-            if stem in PTS_BLOCK_SUTTAS and el.name == "a":
+            if rel_id in PTS_BLOCK_SUTTAS and el.name == "a":
                 el.insert_before(soup.new_tag("br"))
                 el.insert_before(soup.new_tag("br"))
             el.decompose()
+
+        if rel_id in HORNER_BLOCK_SUTTAS:
+            for el in soup.find_all("span", class_="add", string=horner_split_re):
+                el.insert_before(soup.new_tag("br"))
+                el.insert_before(soup.new_tag("br"))
 
         file_chunks = []
         hdr_ctr, body_ctr = 1, 1
@@ -240,8 +257,6 @@ def chunk_html(html_dir, text_key, output_dir):
         for tag in soup.find_all(["p", "li", "h1", "h2", "h3", "h4", "h5", "h6"]):
             is_speaker_tag = "speaker" in tag.get("class", [])
             block_source = tag.decode_contents()
-            if stem in SLASH_BLOCK_SUTTAS:
-                block_source = SLASH_BLOCK_RE.sub('<br/><br/>', block_source)
 
             for block in DOUBLE_BR_SPLIT.split(block_source):
                 line_pairs = []
@@ -373,13 +388,13 @@ def main():
     # 4. ID html_text
     id_html = htmltext / "id" / "pli"
     if id_html.exists():
-        for author, n in chunk_html(id_html, "id_text", html_out / "id").items():
+        for author, n in chunk_html(id_html, "id_text", html_out / "id", htmltext).items():
             print(f"  html/id/{author}: {n} teks")
 
     # 5. EN html_text
     en_html = htmltext / "en" / "pli"
     if en_html.exists():
-        for author, n in chunk_html(en_html, "en_text", html_out / "en").items():
+        for author, n in chunk_html(en_html, "en_text", html_out / "en", htmltext).items():
             print(f"  html/en/{author}: {n} teks")
 
     print(f"\nSelesai! -> {out_dir}")

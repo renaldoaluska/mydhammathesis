@@ -1,0 +1,43 @@
+{
+  "pts_split": [
+    "en/pli/abhidhamma/patthana/narada/patthana1.2",
+    "en/pli/sutta/kn/ja/vol3/ja402",
+    "en/pli/sutta/kn/ja/vol3/ja406",
+    "en/pli/sutta/kn/ja/vol3/ja407",
+    "en/pli/sutta/kn/ja/vol3/ja416",
+    "en/pli/sutta/kn/ja/vol3/ja421",
+    "en/pli/sutta/kn/ja/vol3/ja432",
+    "en/pli/sutta/kn/ja/vol4/ja489",
+    "en/pli/sutta/kn/ja/vol4/ja491",
+    "en/pli/sutta/kn/ja/vol5/ja512",
+    "en/pli/sutta/kn/ja/vol5/ja514",
+    "en/pli/sutta/kn/ja/vol5/ja522",
+    "en/pli/sutta/kn/ja/vol5/ja524",
+    "en/pli/sutta/kn/ja/vol5/ja527",
+    "en/pli/sutta/kn/ja/vol5/ja528",
+    "en/pli/sutta/kn/ja/vol5/ja531",
+    "en/pli/sutta/kn/ja/vol5/ja532",
+    "en/pli/sutta/kn/ja/vol5/ja533",
+    "en/pli/sutta/kn/ja/vol5/ja534",
+    "en/pli/sutta/kn/ja/vol5/ja535",
+    "en/pli/sutta/kn/ja/vol5/ja536",
+    "en/pli/sutta/kn/ja/vol5/ja537",
+    "en/pli/sutta/kn/ja/vol6/ja538",
+    "en/pli/sutta/kn/ja/vol6/ja539",
+    "en/pli/sutta/kn/ja/vol6/ja540",
+    "en/pli/sutta/kn/ja/vol6/ja542",
+    "en/pli/sutta/kn/ja/vol6/ja543",
+    "en/pli/sutta/kn/ne/ne37",
+    "en/pli/sutta/kn/ps/ps3.1",
+    "en/pli/sutta/mn/horner/mn10",
+    "en/pli/vinaya/pli-tv-kd/pli-tv-kd11",
+    "en/pli/vinaya/pli-tv-kd/pli-tv-kd15",
+    "en/pli/vinaya/pli-tv-kd/pli-tv-kd16",
+    "en/pli/vinaya/pli-tv-kd/pli-tv-kd18",
+    "en/pli/vinaya/pli-tv-kd/pli-tv-kd20",
+    "en/pli/vinaya/pli-tv-kd/pli-tv-kd9"
+  ],
+  "horner_split": [
+    "en/pli/sutta/mn/horner/mn76"
+  ]
+}

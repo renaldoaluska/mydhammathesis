@@ -1,0 +1,33 @@
+=== PRAPROSES 4 — SPOT-CHECK CHUNK > 5,000 KARAKTER ===
+
+Total chunk diproses : 444,247
+Chunk > 5,000 char  : 4
+Persentase            : 0.0009%
+Max karakter          : 7,420
+
+  #  Chars  Words  H Lang Source  Author             Base/UID                                
+---------------------------------------------------------------------------------------------
+  1  7,420  1,260  0 en   bilara  brahmali           pli-tv-bu-vb-pj3                        
+  2  5,624    620  0 pli  bilara  ms                 mn113                                   
+  3  5,215    808  0 en   bilara  brahmali           pli-tv-kd13                             
+  4  5,022    887  0 en   bilara  brahmali           pli-tv-bu-vb-pc8                        
+---------------------------------------------------------------------------------------------
+
+================================================================================
+PREVIEW TEKS (maks 200 char)
+================================================================================
+
+[1] pli-tv-bu-vb-pj3  (7,420 char, en, bilara/brahmali)
+    A piece of furniture: if a monk places a dagger in a piece of furniture, smears the furniture with poison, or makes it weak, or if he places it near a lake, a pit, or a cliff, thinking, “Falling …
+
+[2] mn113  (5,624 char, pli, bilara/ms)
+    Puna caparaṁ, bhikkhave, asappuriso bahussuto hoti. So iti paṭisañcikkhati: ‘ahaṁ khomhi bahussuto, ime panaññe bhikkhū na bahussutā’ti. So tena bāhusaccena attānukkaṁseti, paraṁ vambheti. Ayampi, …
+
+[3] pli-tv-kd13  (5,215 char, en, bilara/brahmali)
+    ‘Please, venerables, I ask the Sangha to listen. The monk Udāyī had committed one offense of intentional emission of semen, concealed for a half-month. He asked the Sangha for probation for a half- …
+
+[4] pli-tv-bu-vb-pc8  (5,022 char, en, bilara/brahmali)
+    Tells: if a monk says to a person who is not fully ordained, “I attained the first absorption and the second absorption … I’m attaining … I’ve attained … I obtain … I master … I’ve realized the …
+
+[INFO] /home/paps21/palisemantic5026221144/mydhamma/src/output/3-praproses/4-spot-check.txt
+=== SELESAI ===

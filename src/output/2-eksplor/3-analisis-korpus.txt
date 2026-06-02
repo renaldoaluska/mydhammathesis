@@ -1,0 +1,33 @@
+=== EKSPLOR 3 — KARAKTERISTIK STRUKTURAL KORPUS MENTAH ===
+
+(A) Distribusi heading per level
+    level | bilara(sec) | html_text
+      h1  |        7286 |      8403
+      h2  |        4164 |      3455
+      h3  |        2617 |      2579
+      h4  |        1324 |      2880
+      h5  |         955 |      1017
+      h6  |        3785 |       189
+    h4-h6 (di luar rentang p/li/h1-h3): 10150
+
+(B) Segmen non-konten (hanya simbol/angka/1 huruf)
+    Jumlah: 13998
+    Contoh: '', '', '', '(…)', '', '~', '', ''
+
+(C) <p> tak tertutup (open != close) di html_text
+    File html: 8,401; dengan <p> tak tertutup: 92
+
+(D) Panjang karakter segmen mentah
+    [JSON] n=658,350  min=1  p50=35  p95=180  p99=335  max=2,865
+           Segmen <=15 char: 62,984
+    [HTML] n=237,044  min=1  p50=118  p95=671  p99=1223  max=23,145
+           Segmen <=15 char: 16,371
+
+=== TEMUAN ===
+- Heading h1-h6 hadir; 10150 di antaranya h4-h6.
+- Segmen non-konten murni: 13998.
+- File html dengan <p> tak tertutup: 92 dari 8401.
+- Panjang segmen JSON: median 35, max 2865 karakter (Aman).
+- Panjang segmen HTML: median 118, max 23145 karakter (Beresiko jadi Chunk Raksasa!).
+
+[INFO] /home/paps21/palisemantic5026221144/mydhamma/src/output/2-eksplor/3-analisis-korpus.txt

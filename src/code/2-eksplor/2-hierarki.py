@@ -26,6 +26,7 @@ class Logger:
         self.t = sys.stdout; self.f = open(fn, "w", encoding="utf-8")
     def write(self, m): self.t.write(m); self.f.write(m)
     def flush(self): self.t.flush(); self.f.flush()
+    def __getattr__(self, name): return getattr(self.t, name)   # proxy isatty/fileno/encoding dll
 
 
 def hitung_berkas(folder):

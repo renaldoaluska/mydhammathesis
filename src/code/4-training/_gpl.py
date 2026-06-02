@@ -14,7 +14,7 @@ sys.path.insert(0, str(_BASE))
 import config                                                  # noqa: E402
 
 GPL_DIR    = config.TRAINING_DIR / "gpl"
-MODELS_DIR = config.TRAINING_DIR / "models"
+MODELS_DIR = config.MODELS_DIR
 PASSAGES   = GPL_DIR / "passages.jsonl"    # {pid, text, lang}
 QUERIES    = GPL_DIR / "queries.jsonl"     # {query, pid}
 TRIPLES    = GPL_DIR / "triples.jsonl"     # {query, pos_pid, neg_pid}
@@ -57,6 +57,8 @@ def build_passages():
         lang = parts[1]
         if lang not in config.GPL_TRAIN_LANGS:
             continue
+        if jsonl.stem.startswith("blurb"):          # ringkasan editorial (EN-only), bukan teks
+            continue                                # kanonik -> tidak dilatih (tetap di-indeks web)
         for doc in read_jsonl(jsonl):
             base = doc.get("file_base_name", "")
             if not config.is_sutta(base):

@@ -21,8 +21,10 @@ RAW_DIR         = OUTPUT_DIR / "1-get-data" / "sc-raw"      # korpus mentah Sutt
 BASE_MODELS_DIR = OUTPUT_DIR / "1-get-data" / "base-models" # snapshot base model (pin)
 EKSPLOR_DIR     = OUTPUT_DIR / "2-eksplor"                  # statistik + analisis
 PRAPROSES_DIR   = OUTPUT_DIR / "3-praproses"                # hasil chunk (jsonl)
-TRAINING_DIR    = OUTPUT_DIR / "4-training"                 # model hasil GPL
+TRAINING_DIR    = OUTPUT_DIR / "4-training"                 # pipeline GPL (gpl/, models/)
 EVAL_DIR        = OUTPUT_DIR / "5-eval"                     # metrik + grade pakar
+MODELS_DIR      = TRAINING_DIR / "models"                   # model hasil GPL (gpl-<name>)
+EMBEDDINGS_DIR  = OUTPUT_DIR / "embeddings"                 # precompute embedding (web/eval)
 
 # =============================================================================
 # REGISTRY MODEL (retrieval-native + baseline; lihat rencana.txt bagian 2)
@@ -59,7 +61,7 @@ GPL_RETRIEVER      = "intfloat/multilingual-e5-base"   # dense retriever untuk h
 GPL_NEGS_PER_QUERY = 1
 GPL_NEG_TOP_K      = 50      # ambil negatif dari top-K (lewati top-1 = hindari false negative)
 GPL_BATCH_SIZE     = 32      # auto-retry OOM menurunkan ini
-GPL_MAX_SEQ        = 350
+GPL_MAX_SEQ        = 384      # >= P99 panjang token chunk (~375; lih. 3-panjang) -> ~99% utuh, hemat
 GPL_STEPS          = 10000   # langkah training MarginMSE (tunable; GPL paper 140k)
 
 # =============================================================================
@@ -68,6 +70,7 @@ GPL_STEPS          = 10000   # langkah training MarginMSE (tunable; GPL paper 14
 HF_USERNAME    = "renaldoaluska"
 HF_REPO_PREFIX = f"{HF_USERNAME}/mydhamma"
 HF_PRIVATE     = True
+HF_CACHE_REPO  = f"{HF_REPO_PREFIX}-cache"   # dataset HF: embeddings + search cache
 
 
 def hf_repo_id(folder_name: str) -> str:

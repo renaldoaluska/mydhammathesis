@@ -1,0 +1,13 @@
+=== EKSPLOR 1 — PARAMETER MODEL ===
+
+MODEL                                      | ROLE     |      PARAMETER |    JUTA
+--------------------------------------------------------------------------------
+multilingual-e5-base                       | core     |    278,043,648 |  278.0M
+gte-multilingual-base                      | core     |    305,368,320 |  305.4M
+LaBSE                                      | baseline |    471,517,440 |  471.5M
+--------------------------------------------------------------------------------
+
+Rentang ukuran: 278.0M (multilingual-e5-base) - 471.5M (LaBSE).
+(BM25 = baseline leksikal, tanpa parameter neural.)
+
+[INFO] /home/paps21/palisemantic5026221144/mydhamma/src/output/2-eksplor/1-parameter.txt

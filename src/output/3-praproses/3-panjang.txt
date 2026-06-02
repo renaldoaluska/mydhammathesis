@@ -1,0 +1,14 @@
+=== PRAPROSES 3 — PANJANG TOKEN CHUNK FINAL ===
+
+Chunk unik dianalisis: 338,192
+
+MODEL                                      |   MEAN |  P95 |  P99 |   MAX |  %<=256 |  %<=512
+---------------------------------------------------------------------------------------------
+multilingual-e5-base                       |   68.9 |  212 |  374 |  2156 |   97.0% |   99.7%
+gte-multilingual-base                      |   68.9 |  212 |  374 |  2156 |   97.0% |   99.7%
+LaBSE                                      |   59.2 |  180 |  314 |  1818 |   98.1% |   99.8%
+---------------------------------------------------------------------------------------------
+
+GPL_MAX_SEQ saat ini = 384 (token).
+
+[INFO] /home/paps21/palisemantic5026221144/mydhamma/src/output/3-praproses/3-panjang.txt

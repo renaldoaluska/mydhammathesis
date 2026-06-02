@@ -1,0 +1,31 @@
+=== EKSPLOR 2 — HIERARKI & STRUKTUR KORPUS ===
+
+Sumber       : /home/paps21/palisemantic5026221144/mydhamma/src/output/1-get-data/sc-raw
+Total berkas : 28,133
+Kedalaman    : dibatasi 4 level
+
+[DIR] sc-raw (ROOT)/  (28,133 berkas)
+    [DIR] html_text/  (8,401 berkas)
+        [DIR] en/  (4,256 berkas)
+            [DIR] pli/  (4,256 berkas)
+        [DIR] id/  (4,145 berkas)
+            [DIR] pli/  (4,145 berkas)
+    [DIR] name/  (158 berkas)
+        [DIR] abhidhamma/  (12 berkas)
+        [DIR] sutta/  (67 berkas)
+        [DIR] vinaya/  (78 berkas)
+    [DIR] sc_bilara_data/  (19,394 berkas)
+        [DIR] html/  (7,286 berkas)
+            [DIR] pli/  (7,286 berkas)
+        [DIR] root/  (7,307 berkas)
+            [DIR] en/  (18 berkas)
+            [DIR] pli/  (7,289 berkas)
+        [DIR] translation/  (4,800 berkas)
+            [DIR] en/  (4,794 berkas)
+            [DIR] id/  (6 berkas)
+    [DIR] tree/  (178 berkas)
+        [DIR] abhidhamma/  (17 berkas)
+        [DIR] sutta/  (67 berkas)
+        [DIR] vinaya/  (93 berkas)
+
+[INFO] /home/paps21/palisemantic5026221144/mydhamma/src/output/2-eksplor/2-hierarki.txt

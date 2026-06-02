@@ -25,6 +25,7 @@ class Logger:
         self.t = sys.stdout; self.f = open(fn, "w", encoding="utf-8")
     def write(self, m): self.t.write(m); self.f.write(m)
     def flush(self): self.t.flush(); self.f.flush()
+    def __getattr__(self, name): return getattr(self.t, name)   # proxy isatty/fileno/encoding dll
 
 
 def main():
@@ -52,8 +53,7 @@ def main():
     print("-" * 80)
     if hasil:
         kecil, besar = min(hasil, key=lambda x: x[1]), max(hasil, key=lambda x: x[1])
-        print(f"\nRentang: {kecil[1]:.1f}M ({kecil[0]}) - {besar[1]:.1f}M ({besar[0]}).")
-        print("Semua model skala juta parameter -> muat dilatih di GPU 12GB.")
+        print(f"\nRentang ukuran: {kecil[1]:.1f}M ({kecil[0]}) - {besar[1]:.1f}M ({besar[0]}).")
         print("(BM25 = baseline leksikal, tanpa parameter neural.)")
     print(f"\n[INFO] {OUT_TXT}")
 

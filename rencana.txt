@@ -293,4 +293,41 @@ Jalur kritis = KETERSEDIAAN PAKAR, bukan komputasi.
 [ ] Rekrut 2-3 pakar eval-2/3 (untuk IAA). Konfirmasi kemampuan EN bila uji EN.
 [ ] Audit lanjutan: cek h4-h6 / <td> yang ke-drop (lih. memory project).
 [ ] Strategi PLI: konfirmasi jalur cross-lingual + (opsional) alignment PLI<->EN.
+
+------------------------------------------------------------
+12. KEPUTUSAN TERKUNCI (update 2026-06-02)
+------------------------------------------------------------
+- TRAINING GPL = SUTTA SAJA (config.is_sutta). Indeks/pencarian = full Tipitaka.
+  Non-Sutta (Vinaya/Abhidhamma) lewat transfer cross-lingual/domain, BUKAN dilatih.
+  Alasan: train=eval selaras; query-gen jelek di non-Sutta (noise); coverage EN/ID
+  non-Sutta tipis; hemat compute. +5 kueri Vinaya/Abhidhamma (bila dipakai) =
+  ZERO-SHOT TRANSFER PROBE (dilaporkan sbg temuan, bukan kemampuan terlatih).
+  BLURB (ringkasan editorial EN-only) DIKECUALIKAN dari training (bukan teks
+  kanonik, asimetris bahasa); tetap DI-INDEKS web sebagai deskripsi sutta.
+- KOMPONEN GPL (ACC; default di config.py): query-gen mT5 doc2query
+  (doc2query/msmarco-14langs-mt5-base-v1) + cross-encoder mmarco-mMiniLMv2-L12.
+- BM25 = metode LEKSIKAL = "Kata Kunci" di web (lib rank-bm25). HYBRID = RRF(dense+BM25).
+  Web tetap 3 metode (Makna/Kata Kunci/Hybrid); "Kata Kunci" DI-UPGRADE dari
+  substring naif -> BM25 agar nyatu dgn baseline eval & dapat disitasi.
+- EVAL via WEB: mydhamma cuma SATU alur eval (satu fase metode = GPL), BUKAN gabungan.
+  dhammakathika punya 2 tahap (eval_pertama+eval_kedua) krn metodologi dua-fase yg
+  sudah dibuang -> di sini tidak relevan. 5-eval/* = metrik OFFLINE (nDCG@10, MRR@10,
+  P@10, Spearman, IAA) yang membaca CSV anotasi hasil web.
+- TRAINING pakai SentenceTransformerTrainer + MarginMSELoss (bukan model.fit),
+  auto-retry OOM; base diambil dari snapshot lokal via config.resolve_model.
+  Runner tmux: src/code/4-training/run.sh (1->4 berurutan).
+
+------------------------------------------------------------
+13. CATATAN TEKNIS
+------------------------------------------------------------
+- [gte] Warning "classifier.bias/classifier.weight UNEXPECTED" saat load
+  gte-multilingual-base sebagai embedding = AMAN. Itu head reranker/klasifikasi
+  yang TIDAK dipakai untuk dense retrieval; backbone encoder kebaca penuh
+  (305.4M). Abaikan. (Param: e5 278M, gte 305.4M, LaBSE 471.5M.)
+- [Logger] Skrip eksplor/praproses redirect stdout ke Logger (tee ke .txt);
+  Logger pakai __getattr__ proxy ke stdout asli agar isatty/fileno/encoding
+  (dipakai tqdm/kode remote gte) tidak error.
+- [max_seq] GPL_MAX_SEQ=384 dipilih DATA-DRIVEN: P99 panjang token chunk ~375
+  (3-panjang) -> 384 menutup ~99% chunk utuh; <1% outlier (sutta raksasa, max ~2594)
+  terpotong negligible. 256 terlalu agresif (3% potong); 512 overkill (mean 69, 2x beban).
 ============================================================

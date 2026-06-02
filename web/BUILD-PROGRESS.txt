@@ -1,0 +1,37 @@
+============================================================
+WEB BUILD — PROGRESS / RESUME (myDhamma)
+Update tiap 1 file selesai. RESUME dari item [ ] pertama.
+============================================================
+Tujuan: app pencarian (Makna=semantic, Kata Kunci=BM25, Hybrid=RRF) + reader sutta
++ UI asesmen pakar SATU alur (GRA). SATU sumber korpus = output 3-praproses
+(web/_corpus.py), TIDAK rebuild dari raw (beda dgn dhammakathika).
+config = src/config.py (web/ cari via walk "src/config.py").
+
+STAGE:
+[x] 1. web/_corpus.py        — loader korpus dari 3-praproses (id/en/pli)
+[ ] 2. web/precompute.py     — encode embedding per (model,lang) -> EMBEDDINGS_DIR/web
+[ ] 3. web/search.py         — engine: semantic + BM25 + RRF (dipakai app & eval)
+[ ] 4. web/app.py            — Flask: /, /api/search, /api/models, reader, browse
+[ ] 5. web/templates/ + web/static/ — UI search + reader + base (port dhammakathika)
+[ ] 6. web/eval (GRA SATU alur) — route + template + simpan CSV (kontrak 5-eval/common.py)
+[ ] 7. src/code/5-eval/1-precompute.py — cache hasil search utk asesmen (pakai web/search)
+
+KONTRAK (acuan saat lanjut):
+- entry korpus/search: {ref:[chunk_ids], text, heading, parts?, file_base_name,
+  author, source, lang, score}
+- eval CSV (stage 6) kolom: query_id, db, model, versi, rank, ref, retrieved_text,
+  cosine_sim, grade, is_heading   (HARUS cocok dgn src/code/5-eval/common.py)
+- Makna = semantic (dense, emb cache web/precompute) ; e5 pakai prefix query/passage
+- Kata Kunci = BM25 (rank_bm25 BM25Okapi) -- UPGRADE dari substring dhammakathika
+- Hybrid = RRF(semantic, keyword), k=60
+- Model di UI: e5/gte (base & gpl) + LaBSE + BM25
+- include_titles=False -> buang chunk heading>0 (seragam) ; include_blurb toggle
+
+SUMBER PORT (dhammakathika, untuk app/template/eval):
+- app.py        : src/code/3-2-web/2-web-md/app.py (2092 baris)
+- templates/JS  : src/code/3-2-web/2-web-md/{templates,static}/
+- eval UI       : src/code/3-2-web/1-web-eval/ (eval_app.py, eval_templates, eval_static)
+  -> mydhamma SATUKAN jadi satu alur (bukan eval_pertama+eval_kedua)
+
+DEPENDENSI: rank-bm25 (sudah di requirements.txt), sentence-transformers, flask, torch.
+============================================================

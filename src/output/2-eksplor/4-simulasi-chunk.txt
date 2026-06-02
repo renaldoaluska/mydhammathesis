@@ -1,0 +1,46 @@
+=== SIMULASI CHUNKING (THRESHOLD > 5000 chars) ===
+
+Ditemukan 40 file dengan chunk > 5000 karakter:
+
+- en/pli/sutta/kn/ja/vol5/ja531: 22,843 karakter
+- en/pli/sutta/kn/ja/vol6/ja538: 17,021 karakter
+- id/pli/sutta/kn/thig/thig16.1: 12,906 karakter
+- en/pli/sutta/kn/ja/vol5/ja534: 12,039 karakter
+- en/pli/sutta/kn/ja/vol6/ja543: 11,898 karakter
+- en/pli/sutta/kn/ja/vol5/ja536: 11,713 karakter
+- en/pli/vinaya/pli-tv-kd/pli-tv-kd18: 11,631 karakter
+- en/pli/sutta/kn/ja/vol5/ja535: 10,172 karakter
+- en/pli/sutta/kn/ja/vol5/ja532: 9,744 karakter
+- en/pli/sutta/kn/ja/vol5/ja533: 8,916 karakter
+- en/pli/sutta/kn/ja/vol6/ja540: 8,788 karakter
+- en/pli/sutta/kn/ja/vol5/ja522: 8,075 karakter
+- en/pli/sutta/kn/ja/vol6/ja542: 8,041 karakter
+- en/pli/sutta/mn/horner/mn76: 7,997 karakter
+- en/pli/sutta/kn/ja/vol5/ja537: 7,756 karakter
+- id/pli/sutta/kn/thig/thig15.1: 7,672 karakter
+- en/pli/sutta/kn/ja/vol5/ja528: 7,390 karakter
+- en/pli/sutta/kn/ja/vol5/ja524: 7,310 karakter
+- en/pli/vinaya/pli-tv-kd/pli-tv-kd9: 7,208 karakter
+- en/pli/sutta/kn/ja/vol5/ja514: 7,208 karakter
+- en/pli/sutta/kn/ja/vol5/ja527: 7,007 karakter
+- en/pli/sutta/kn/ja/vol6/ja539: 6,622 karakter
+- en/pli/vinaya/pli-tv-kd/pli-tv-kd15: 6,499 karakter
+- id/pli/sutta/kn/thig/thig14.1: 5,841 karakter
+- en/pli/vinaya/pli-tv-kd/pli-tv-kd16: 5,754 karakter
+- en/pli/abhidhamma/patthana/narada/patthana1.2: 5,673 karakter
+- en/pli/sutta/kn/ja/vol3/ja432: 5,649 karakter
+- en/pli/sutta/kn/ja/vol3/ja416: 5,647 karakter
+- en/pli/vinaya/pli-tv-kd/pli-tv-kd20: 5,604 karakter
+- en/pli/sutta/kn/ne/ne37: 5,485 karakter
+- en/pli/sutta/kn/ja/vol3/ja407: 5,351 karakter
+- en/pli/sutta/kn/ja/vol5/ja512: 5,316 karakter
+- en/pli/sutta/kn/ja/vol4/ja489: 5,275 karakter
+- en/pli/sutta/kn/ja/vol3/ja421: 5,238 karakter
+- en/pli/vinaya/pli-tv-kd/pli-tv-kd11: 5,224 karakter
+- en/pli/sutta/kn/ps/ps3.1: 5,224 karakter
+- en/pli/sutta/kn/ja/vol3/ja406: 5,191 karakter
+- en/pli/sutta/kn/ja/vol4/ja491: 5,166 karakter
+- en/pli/sutta/kn/ja/vol3/ja402: 5,158 karakter
+- en/pli/sutta/mn/horner/mn10: 5,013 karakter
+
+[INFO] Simulasi selesai. Hasil perlu diinspeksi manual untuk menentukan rule pemotongan.

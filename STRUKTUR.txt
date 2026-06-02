@@ -14,10 +14,10 @@ PRINSIP STRUKTUR
 - PAKAI penomoran URUTAN PIPELINE (1->5): menandai urutan eksekusi.
 - KONVENSI: folder BERNOMOR = langkah pipeline (urut dieksekusi); folder/file
   TANPA nomor = utility/shared lintas-langkah (config.py, sync-hf/, web/).
-- EKSPLOR SUDAH MENCAKUP ANALISIS: bagian 2-eksplor tidak hanya statistik
-  deskriptif, tapi juga ANALISIS yang menjadi JUSTIFIKASI desain chunk baru
-  (heading bocor, giant chunk dari <p> tak tertutup, junk, h4-h6/<td> ter-drop).
-  -> folder "audit-korpus" terpisah TIDAK ADA lagi; fungsinya melebur ke eksplor.
+- EKSPLOR (2-) = PRA-CHUNK: analisis korpus MENTAH yang jadi JUSTIFIKASI desain
+  chunk (heading h1-h6, junk, <p> tak tertutup). Statistik & panjang chunk FINAL
+  ada di 3-praproses (POST-chunk) supaya urutan pipeline konsisten -- tak ada step
+  yang butuh output step sesudahnya. Folder "audit-korpus" terpisah TIDAK ADA.
 - output/ MIRROR code/ (prinsip dari dhammakathika): tiap langkah punya folder
   output bernama sama.
 - config.py = SATU sumber kebenaran (registry model + path + komponen GPL).
@@ -40,8 +40,8 @@ mydhamma/
 │   ├── config.py            <- registry model + path + komponen GPL (SATU sumber; ANCHOR)
 │   ├── code/
 │   │   ├── 1-get-data/      <- unduh korpus SuttaCentral + base model (+ _sc.py helper)
-│   │   ├── 2-eksplor/       <- statistik korpus + ANALISIS justifikasi chunk baru
-│   │   ├── 3-praproses/     <- chunking full Tipitaka (heading-tagged, lxml, +filter junk)
+│   │   ├── 2-eksplor/       <- PRA-chunk: analisis korpus mentah + justifikasi chunk
+│   │   ├── 3-praproses/     <- chunk (lxml/heading/junk) + statistik & panjang hasil
 │   │   ├── 4-training/      <- pipeline GPL (query-gen -> hard-neg -> pseudo-label -> MarginMSE)
 │   │   ├── 5-eval/          <- intrinsik (dev) + ekstrinsik pakar (nDCG@10, dll)
 │   │   └── sync-hf/       <- push/pull HuggingFace (server kampus <-> PC lokal)
@@ -69,17 +69,17 @@ config.py
     5-get-sc-info.py      : author_edition.json (atribusi penerjemah)
     6-get-base-models.py  : unduh & pin base model (e5, gte, LaBSE)
 
-2-eksplor/  (= eksplorasi + ANALISIS justifikasi; _load.py = iterator chunk bersama)
+2-eksplor/  (PRA-chunk; analisis korpus mentah; run.sh = runner tmux)
     1-parameter.py        : ukuran (param) tiap model -> feasibility GPU
     2-hierarki.py         : struktur korpus mentah (sumber/bahasa/pitaka)
-    3-statistik.py        : distribusi dokumen/chunk & panjang char/kata per bahasa
-    4-analisis-chunk.py   : ANALISIS justifikasi chunk (heading h1-h6, junk, giant-chunk)
-    5-panjang.py          : panjang token per tokenizer -> justifikasi max_seq
+    3-analisis-korpus.py  : JUSTIFIKASI chunk dari raw (heading h1-h6, junk,
+                            <p> tak tertutup, panjang karakter segmen)
 
-3-praproses/
-    1-chunk.py            : chunking full Tipitaka (bilara + html_text), lxml,
-                            heading-tagged, parts, double-BR; +buang junk murni.
-                            (TANPA min-length: teks suci sengaja utuh.)
+3-praproses/  (chunk + karakterisasi HASIL; _load.py = iterator; run.sh = runner)
+    1-chunk.py            : chunking full Tipitaka (lxml, heading h1-h6, parts,
+                            double-BR, buang junk; TANPA min-length = teks utuh)
+    2-statistik.py        : statistik chunk final + VERIFIKASI (heading/junk bersih)
+    3-panjang.py          : panjang TOKEN chunk final per tokenizer -> max_seq
 
 4-training/  (GPL; _gpl.py = path/IO/loader pasase Sutta + prefix e5)
     1-query-gen.py        : generate kueri sintetis (mT5) per pasase -> (q, P+)
@@ -88,9 +88,9 @@ config.py
     4-train-marginmse.py  : fine-tune model finalis (MarginMSE)
     (komponen mT5 & cross-encoder multilingual: lihat rencana.txt TODO)
 
-5-eval/
-    common.py             : loader anotasi, dedup, skala 0-3, util (reuse)
-    1-precompute.py       : precompute hasil retrieval per kueri (cache)
+5-eval/  (eval via web; run.sh = intrinsik + semua metrik)
+    common.py             : loader anotasi + dedup + konsensus + skala 0-3 (KONTRAK CSV)
+    1-precompute.py       : precompute hasil retrieval per kueri (cache) -- MENYUSUL bareng web
     2-intrinsic.py        : gap cosine intra/inter (dev set, tuning GPL)
     3-ndcg.py             : nDCG@10 (utama) + nDCG@5
     4-precision.py        : P@10 + MRR@10 (relevan = grade>=2)

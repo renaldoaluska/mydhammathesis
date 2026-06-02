@@ -1,0 +1,77 @@
+=== PRAPROSES 2 — STATISTIK & VERIFIKASI CHUNK ===
+
+1. Dokumen & chunk per bahasa
+   Bahasa  Dokumen  Chunk
+  Inggris     6433 220654
+Indonesia     4077  53402
+     Pali     7286 170191
+   Total chunk: 444,247
+   [grafik] /home/paps21/palisemantic5026221144/mydhamma/src/output/3-praproses/2-statistik/1-chunk-per-bahasa.png
+
+2. Dokumen per koleksi (nikaya/pitaka)
+Bahasa    Indonesia  Inggris  Pali
+Koleksi                           
+AN             1356     1409  1408
+BV                0        0    29
+CND               0        0    23
+CP                0       35    35
+DHP               0       26    26
+DN               35       35    34
+DS                0       19    21
+DT                0       19    19
+ITI               0      113   112
+JA                0      548   547
+KP                3       10     9
+KV                0      219   219
+MIL               0      248   248
+MN              153      153   152
+MND               0        0    16
+NE                0       37    37
+PATTHANA          0       23   728
+PE                0        9     9
+PLI             222      425   420
+PP                0       20    20
+PS                0       31    31
+PV                1       23    51
+SN             1816     1820  1819
+SNP              73       74    73
+THA               0      561   563
+THAG            264      264   264
+THI               0       40    40
+THIG             73       73    73
+UD               81       81    80
+VB                0       18    18
+VV                0       23    85
+YA                0       77    77
+   [grafik] /home/paps21/palisemantic5026221144/mydhamma/src/output/3-praproses/2-statistik/2-dokumen-per-koleksi.png
+
+3. Distribusi panjang (karakter)
+              count   mean    std  min   25%    50%    75%     max
+Bahasa                                                            
+Indonesia   53402.0  228.4  268.7  1.0  31.0  150.0  314.0  3861.0
+Inggris    220654.0  199.1  258.2  1.0  41.0  125.0  245.0  7420.0
+Pali       170191.0  153.5  197.6  1.0  27.0   92.0  192.0  5624.0
+   [grafik] /home/paps21/palisemantic5026221144/mydhamma/src/output/3-praproses/2-statistik/3-panjang-karakter.png
+
+4. Distribusi panjang (kata)
+              count  mean   std  min  25%   50%   75%     max
+Bahasa                                                       
+Indonesia   53402.0  31.0  36.5  1.0  4.0  20.0  43.0   511.0
+Inggris    220654.0  33.8  44.5  1.0  7.0  21.0  41.0  1260.0
+Pali       170191.0  16.6  21.5  1.0  3.0  10.0  20.0   620.0
+   [grafik] /home/paps21/palisemantic5026221144/mydhamma/src/output/3-praproses/2-statistik/4-panjang-kata.png
+
+5. VERIFIKASI CHUNK
+   body (heading=0): 399,250
+   heading h1: 20,481
+   heading h2: 8,810
+   heading h3: 5,519
+   heading h4: 4,221
+   heading h5: 1,991
+   heading h6: 3,975
+   Junk tersisa di output: 0
+   Panjang char: max=7,420, p99=1,125; chunk >5000 char: 4
+
+[INFO] Ringkasan: /home/paps21/palisemantic5026221144/mydhamma/src/output/3-praproses/2-statistik.txt
+[INFO] Grafik: /home/paps21/palisemantic5026221144/mydhamma/src/output/3-praproses/2-statistik/
+=== SELESAI ===
