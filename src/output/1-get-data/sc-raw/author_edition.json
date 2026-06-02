@@ -1,0 +1,2108 @@
+[
+  {
+    "type": "author",
+    "uid": "lamminaho",
+    "short_name": "Lamminaho",
+    "long_name": "Juha Lamminaho"
+  },
+  {
+    "type": "author",
+    "uid": "suddhaso",
+    "short_name": "Suddhāso",
+    "long_name": "Suddhāso Bhikkhu"
+  },
+  {
+    "type": "author",
+    "uid": "jos",
+    "short_name": "Jos",
+    "long_name": "Aurora Gracia Jos"
+  },
+  {
+    "type": "author",
+    "uid": "becker",
+    "short_name": "Becker",
+    "long_name": "Zbigniew Becker"
+  },
+  {
+    "type": "author",
+    "uid": "dhammadharo",
+    "short_name": "Dhammadha",
+    "long_name": "Dhammadha.ro community"
+  },
+  {
+    "type": "author",
+    "uid": "kb",
+    "short_name": "KB",
+    "long_name": "KB"
+  },
+  {
+    "type": "author",
+    "uid": "yun",
+    "short_name": "葉均",
+    "long_name": "葉均"
+  },
+  {
+    "type": "author",
+    "uid": "soni",
+    "short_name": "Soni",
+    "long_name": "Dr. R.L. Soni"
+  },
+  {
+    "type": "author",
+    "uid": "piyadassi",
+    "short_name": "Piyadassi",
+    "long_name": "Piyadassi Thera"
+  },
+  {
+    "type": "author",
+    "uid": "sparham",
+    "short_name": "Sparham",
+    "long_name": "Gareth Sparham"
+  },
+  {
+    "type": "author",
+    "uid": "salomon",
+    "short_name": "Salomon",
+    "long_name": "Richard Salomon"
+  },
+  {
+    "type": "author",
+    "uid": "dz",
+    "short_name": "Dz",
+    "long_name": "Dz"
+  },
+  {
+    "type": "author",
+    "uid": "nanamoli",
+    "short_name": "Ñanamoli",
+    "long_name": "Ñanamoli Thera"
+  },
+  {
+    "type": "author",
+    "uid": "narada",
+    "short_name": "Nārada",
+    "long_name": "Nārada Thera"
+  },
+  {
+    "type": "author",
+    "uid": "a_kertesz",
+    "short_name": "Kertész",
+    "long_name": "Kertész Ágnes"
+  },
+  {
+    "type": "author",
+    "uid": "law",
+    "short_name": "Law",
+    "long_name": "Bimala Charan Law"
+  },
+  {
+    "type": "author",
+    "uid": "adam",
+    "short_name": "Ádám",
+    "long_name": "Ádám Szilvia"
+  },
+  {
+    "type": "author",
+    "uid": "karniawan",
+    "short_name": "Karniawan",
+    "long_name": "Arya Karniawan"
+  },
+  {
+    "type": "author",
+    "uid": "agganyani",
+    "short_name": "Agganyani",
+    "long_name": "Ayya Agganyani"
+  },
+  {
+    "type": "author",
+    "uid": "ahitapunno",
+    "short_name": "Ahitapuñño",
+    "long_name": "Bhikkhu Ahitapuñño"
+  },
+  {
+    "type": "author",
+    "uid": "alfano",
+    "short_name": "Alfano",
+    "long_name": "Enzo Alfano"
+  },
+  {
+    "type": "author",
+    "uid": "alfon",
+    "short_name": "Alfon",
+    "long_name": "Alfon"
+  },
+  {
+    "type": "author",
+    "uid": "fausboell",
+    "short_name": "Fausböll",
+    "long_name": "V. Fausböll"
+  },
+  {
+    "type": "author",
+    "uid": "karunabangsha",
+    "short_name": "Karunabangsha",
+    "long_name": "Karunabangsha Bhikkhu"
+  },
+  {
+    "type": "author",
+    "uid": "alokananda",
+    "short_name": "Алокананда",
+    "long_name": "Алокананда бхиккху"
+  },
+  {
+    "type": "author",
+    "uid": "analayo",
+    "short_name": "Anālayo",
+    "long_name": "Bhikkhu Anālayo"
+  },
+  {
+    "type": "author",
+    "uid": "kiribathgoda",
+    "short_name": "Kiribathgoda",
+    "long_name": "Ven. Kiribathgoda Gnanananda Thera"
+  },
+  {
+    "type": "author",
+    "uid": "hiriko",
+    "short_name": "Hiriko",
+    "long_name": "Ajahn Hiriko"
+  },
+  {
+    "type": "author",
+    "uid": "hiriko3",
+    "short_name": "Hiriko v3",
+    "long_name": "Ajahn Hiriko (3)"
+  },
+  {
+    "type": "author",
+    "uid": "hiriko2",
+    "short_name": "Hiriko v2",
+    "long_name": "Ajahn Hiriko (2)"
+  },
+  {
+    "type": "author",
+    "uid": "anandajoti",
+    "short_name": "Ānandajoti",
+    "long_name": "Bhikkhu Ānandajoti"
+  },
+  {
+    "type": "author",
+    "uid": "dhammajoti",
+    "short_name": "Dhammajoti",
+    "long_name": "Bhikkhu Kuala Lumpur Dhammajoti"
+  },
+  {
+    "type": "author",
+    "uid": "dubois",
+    "short_name": "Dubois",
+    "long_name": "Guy Eugène Dubois"
+  },
+  {
+    "type": "author",
+    "uid": "anatta",
+    "short_name": "Anatta",
+    "long_name": "Anatta"
+  },
+  {
+    "type": "author",
+    "uid": "anggara",
+    "short_name": "Anggara",
+    "long_name": "Indra Anggara"
+  },
+  {
+    "type": "author",
+    "uid": "angulo",
+    "short_name": "Angulo",
+    "long_name": "Federico Angulo"
+  },
+  {
+    "type": "author",
+    "uid": "arasu",
+    "short_name": "Arasu",
+    "long_name": "Ben Arasu"
+  },
+  {
+    "type": "author",
+    "uid": "ariyakumara",
+    "short_name": "Ariyakumara",
+    "long_name": "Seniya Ariyakumara"
+  },
+  {
+    "type": "author",
+    "uid": "aung-rhysdavids",
+    "short_name": "Aung …",
+    "long_name": "Shwe Zan Aung, C.A.F. Rhys Davids"
+  },
+  {
+    "type": "author",
+    "uid": "rhysdavids_litt",
+    "short_name": "Rhys Davids …",
+    "long_name": "C.A.F. Rhys Davids, D. Litt"
+  },
+  {
+    "type": "author",
+    "uid": "balint",
+    "short_name": "Bálint",
+    "long_name": "Bálint Gyöngyi"
+  },
+  {
+    "type": "author",
+    "uid": "baron",
+    "short_name": "Baron",
+    "long_name": "Anton P. Baron"
+  },
+  {
+    "type": "author",
+    "uid": "bartha",
+    "short_name": "Bartha",
+    "long_name": "Bartha Rita"
+  },
+  {
+    "type": "author",
+    "uid": "barua",
+    "short_name": "বড়ুয়া",
+    "long_name": "ড. বেণীমাধব বড়ুয়া"
+  },
+  {
+    "type": "author",
+    "uid": "beal",
+    "short_name": "Beal",
+    "long_name": "Samuel Beal"
+  },
+  {
+    "type": "author",
+    "uid": "beisert",
+    "short_name": "Beisert",
+    "long_name": "Michael Beisert"
+  },
+  {
+    "type": "author",
+    "uid": "bingenheimer",
+    "short_name": "Bingenheimer",
+    "long_name": "Marcus Bingenheimer"
+  },
+  {
+    "type": "author",
+    "uid": "bodhi",
+    "short_name": "Bodhi",
+    "long_name": "Bhikkhu Bodhi"
+  },
+  {
+    "type": "author",
+    "uid": "boros",
+    "short_name": "Boros",
+    "long_name": "Boros Szilárd"
+  },
+  {
+    "type": "author",
+    "uid": "brahmali",
+    "short_name": "Brahmali",
+    "long_name": "Bhikkhu Brahmali"
+  },
+  {
+    "type": "author",
+    "uid": "bs",
+    "short_name": "Б.С.",
+    "long_name": "Б.С."
+  },
+  {
+    "type": "author",
+    "uid": "btc",
+    "short_name": "BTC",
+    "long_name": "Bodhi Translation Committee"
+  },
+  {
+    "type": "author",
+    "uid": "buddharakkhita",
+    "short_name": "Buddharakkhita",
+    "long_name": "Ācāriya Buddharakkhita"
+  },
+  {
+    "type": "author",
+    "uid": "bozic",
+    "short_name": "Božič",
+    "long_name": "Božič"
+  },
+  {
+    "type": "author",
+    "uid": "buddhavacanaorg",
+    "short_name": "BVO",
+    "long_name": "buddha-vacana.org"
+  },
+  {
+    "type": "author",
+    "uid": "buddhabangsha",
+    "short_name": "ভদন্ত বুদ্ধবংশ",
+    "long_name": "ভদন্ত বুদ্ধবংশ ভিক্ষু"
+  },
+  {
+    "type": "author",
+    "uid": "indragupta-bangish-ajit-sivak",
+    "short_name": "ইন্দ্রগুপ্ত …",
+    "long_name": "ইন্দ্রগুপ্ত ভিক্ষু, বঙ্গীস ভিক্ষু, অজিত ভিক্ষু, সীবক ভিক্ষু"
+  },
+  {
+    "type": "author",
+    "uid": "indragupta-bangish-ajit",
+    "short_name": "ইন্দ্রগুপ্ত …",
+    "long_name": "ইন্দ্রগুপ্ত ভিক্ষু, বঙ্গীস ভিক্ষু, অজিত ভিক্ষু"
+  },
+  {
+    "type": "author",
+    "uid": "indragupta-suman-adikalyan-sivak-rahul",
+    "short_name": "ইন্দ্রগুপ্ত …",
+    "long_name": "ইন্দ্রগুপ্ত ভিক্ষু, সুমন ভিক্ষু, আদিকল্যাণ ভিক্ষু, সীবক ভিক্ষু, রাহুল ভিক্ষু"
+  },
+  {
+    "type": "author",
+    "uid": "sumangal-barua",
+    "short_name": "বড়ুয়া",
+    "long_name": "সুমঙ্গল বড়ুয়া"
+  },
+  {
+    "type": "author",
+    "uid": "indragupta-suman-bangish-ajit-jibana",
+    "short_name": "ইন্দ্রগুপ্ত …",
+    "long_name": "ইন্দ্রগুপ্ত ভিক্ষু, সুমন স্থবির, বঙ্গীস ভিক্ষু, অজিত ভিক্ষু, সীবক ভিক্ষু"
+  },
+  {
+    "type": "author",
+    "uid": "pragyadarshi",
+    "short_name": "প্রজ্ঞাদর্শী",
+    "long_name": "প্রজ্ঞাদর্শী ভিক্ষু"
+  },
+  {
+    "type": "author",
+    "uid": "bangish-ajit-pragyadarshi",
+    "short_name": "বঙ্গীস …",
+    "long_name": "বঙ্গীস ভিক্ষু, অজিত ভিক্ষু, প্রজ্ঞাদর্শী ভিক্ষু"
+  },
+  {
+    "type": "author",
+    "uid": "gyanendriya",
+    "short_name": "জ্ঞানেন্দ্রিয়",
+    "long_name": "জ্ঞানেন্দ্রিয় ভিক্ষু"
+  },
+  {
+    "type": "author",
+    "uid": "busoi",
+    "short_name": "Busoi",
+    "long_name": "Marian Victor Busoi"
+  },
+  {
+    "type": "author",
+    "uid": "caf_rhysdavids",
+    "short_name": "C.A.F. Rhys Davids",
+    "long_name": "C.A.F. Rhys Davids"
+  },
+  {
+    "type": "author",
+    "uid": "candiani",
+    "short_name": "Candiani",
+    "long_name": "Chandra Candiani"
+  },
+  {
+    "type": "author",
+    "uid": "canonpaliorg",
+    "short_name": "CPO",
+    "long_name": "Canonpali.org"
+  },
+  {
+    "type": "author",
+    "uid": "catalan-jose",
+    "short_name": "Catalán …",
+    "long_name": "Pablo Catalán, Dhamma José"
+  },
+  {
+    "type": "author",
+    "uid": "cayetano",
+    "short_name": "Cayetano",
+    "long_name": "Cayetano"
+  },
+  {
+    "type": "author",
+    "uid": "chalmers",
+    "short_name": "Chalmers",
+    "long_name": "Robert Chalmers"
+  },
+  {
+    "type": "author",
+    "uid": "cheng",
+    "short_name": "Cheng",
+    "long_name": "Cheng Jianhua"
+  },
+  {
+    "type": "author",
+    "uid": "chowdhury",
+    "short_name": "চৌধুরী",
+    "long_name": "বিনয়েন্দ্রনাথ চৌধুরী"
+  },
+  {
+    "type": "author",
+    "uid": "choong",
+    "short_name": "Choong",
+    "long_name": "Choong Mun-keat"
+  },
+  {
+    "type": "author",
+    "uid": "chromovsky",
+    "short_name": "Chromovský",
+    "long_name": "Štěpán Chromovský"
+  },
+  {
+    "type": "author",
+    "uid": "cmds",
+    "short_name": "CMDS",
+    "long_name": "Centro de Meditación Dhamma Sukha"
+  },
+  {
+    "type": "author",
+    "uid": "cowell-rouse",
+    "short_name": "Cowell …",
+    "long_name": "E.B. Cowell, W.H.D. Rouse"
+  },
+  {
+    "type": "author",
+    "uid": "csikos",
+    "short_name": "Csikós",
+    "long_name": "Csikós Henriett"
+  },
+  {
+    "type": "author",
+    "uid": "csornai",
+    "short_name": "Csornai",
+    "long_name": "Csornai Katalin"
+  },
+  {
+    "type": "author",
+    "uid": "darvas",
+    "short_name": "Darvas",
+    "long_name": "Darvas Gabriella"
+  },
+  {
+    "type": "author",
+    "uid": "deverdics",
+    "short_name": "Deverdics",
+    "long_name": "Deverdics Kinga"
+  },
+  {
+    "type": "author",
+    "uid": "dhammadinna",
+    "short_name": "Dhammadinnā",
+    "long_name": "Sāmaṇerī Dhammadinnā"
+  },
+  {
+    "type": "author",
+    "uid": "dhammarakkhita",
+    "short_name": "Dhammarakkhita",
+    "long_name": "Bhikkhu Dhammarakkhita"
+  },
+  {
+    "type": "author",
+    "uid": "dong-thang",
+    "short_name": "Đỗng Minh …",
+    "long_name": "Tỳ-kheo Thích Đỗng Minh, Thích Đức Thắng"
+  },
+  {
+    "type": "author",
+    "uid": "dorje",
+    "short_name": "Дорже",
+    "long_name": "Ешея Дорже"
+  },
+  {
+    "type": "author",
+    "uid": "dutoit",
+    "short_name": "Dutoit",
+    "long_name": "Dr. Julius Dutoit"
+  },
+  {
+    "type": "author",
+    "uid": "eugene_d",
+    "short_name": "Евгений Д",
+    "long_name": "Евгений Д"
+  },
+  {
+    "type": "author",
+    "uid": "fabra",
+    "short_name": "Fabra",
+    "long_name": "Jorge Fabra"
+  },
+  {
+    "type": "author",
+    "uid": "farkas",
+    "short_name": "Farkas",
+    "long_name": "Farkas Pál"
+  },
+  {
+    "type": "author",
+    "uid": "feldmeier",
+    "short_name": "Feldmeier",
+    "long_name": "Peter Feldmeier"
+  },
+  {
+    "type": "author",
+    "uid": "fenyvesi",
+    "short_name": "Fenyvesi",
+    "long_name": "Fenyvesi Róbert"
+  },
+  {
+    "type": "author",
+    "uid": "fenyvesi-mathe",
+    "short_name": "Fenyvesi …",
+    "long_name": "Fenyvesi Róbert, Máthé Veronika"
+  },
+  {
+    "type": "author",
+    "uid": "fenyvesi-sandor",
+    "short_name": "Fenyvesi …",
+    "long_name": "Fenyvesi Róbert, Sándor Ildikó"
+  },
+  {
+    "type": "author",
+    "uid": "fernandez",
+    "short_name": "Fernández",
+    "long_name": "Pablo Catalán Fernández"
+  },
+  {
+    "type": "author",
+    "uid": "hu",
+    "short_name": "Hû",
+    "long_name": "Fernand Hû"
+  },
+  {
+    "type": "author",
+    "uid": "galadriel",
+    "short_name": "Galadriel",
+    "long_name": "Galadriel"
+  },
+  {
+    "type": "author",
+    "uid": "spock",
+    "short_name": "Spock",
+    "long_name": "Mr. Spock"
+  },
+  {
+    "type": "author",
+    "uid": "worf",
+    "short_name": "Worf",
+    "long_name": "Worf"
+  },
+  {
+    "type": "author",
+    "uid": "fl_robert",
+    "short_name": "Robert",
+    "long_name": "Florent Robert"
+  },
+  {
+    "type": "author",
+    "uid": "fodi",
+    "short_name": "Fődi",
+    "long_name": "Fődi Attila"
+  },
+  {
+    "type": "author",
+    "uid": "fodor",
+    "short_name": "Fodor",
+    "long_name": "Fodor Tibor"
+  },
+  {
+    "type": "author",
+    "uid": "font",
+    "short_name": "Font",
+    "long_name": "Bernat Font"
+  },
+  {
+    "type": "author",
+    "uid": "forizs",
+    "short_name": "Fórizs",
+    "long_name": "Fórizs László"
+  },
+  {
+    "type": "author",
+    "uid": "francis",
+    "short_name": "Francis",
+    "long_name": "H.T. Francis"
+  },
+  {
+    "type": "author",
+    "uid": "francis-neil",
+    "short_name": "Francis …",
+    "long_name": "H.T. Francis, R.A. Neil"
+  },
+  {
+    "type": "author",
+    "uid": "franke",
+    "short_name": "Franke",
+    "long_name": "Dr. R. Otto Franke"
+  },
+  {
+    "type": "author",
+    "uid": "g_kovacs",
+    "short_name": "Kovács",
+    "long_name": "Kovács Gábor"
+  },
+  {
+    "type": "author",
+    "uid": "gabryszewski",
+    "short_name": "Gabryszewski",
+    "long_name": "Mieczysław Gabryszewski"
+  },
+  {
+    "type": "author",
+    "uid": "gallmo",
+    "short_name": "Gällmo",
+    "long_name": "Gunnar Gällmo"
+  },
+  {
+    "type": "author",
+    "uid": "garcia",
+    "short_name": "García",
+    "long_name": "David García"
+  },
+  {
+    "type": "author",
+    "uid": "gavesako",
+    "short_name": "Gavésakó",
+    "long_name": "Bhikkhu Gavésakó"
+  },
+  {
+    "type": "author",
+    "uid": "gavesako-chromovsky",
+    "short_name": "Gavésakó …",
+    "long_name": "Bhikkhu Gavésakó, Štěpán Chromovský"
+  },
+  {
+    "type": "author",
+    "uid": "gea",
+    "short_name": "Gea",
+    "long_name": "Albert Biayna Gea"
+  },
+  {
+    "type": "author",
+    "uid": "geiger",
+    "short_name": "Geiger",
+    "long_name": "Wilhelm Geiger"
+  },
+  {
+    "type": "author",
+    "uid": "gerasimov",
+    "short_name": "Герасимов",
+    "long_name": "Н. И. Герасимов"
+  },
+  {
+    "type": "author",
+    "uid": "gnanananda",
+    "short_name": "Gnanananda",
+    "long_name": "Kiribathgoda Gnanananda"
+  },
+  {
+    "type": "author",
+    "uid": "guang",
+    "short_name": "Guang",
+    "long_name": "Guang Xing"
+  },
+  {
+    "type": "author",
+    "uid": "hadhazi",
+    "short_name": "Hadházi",
+    "long_name": "Hadházi Zsolt"
+  },
+  {
+    "type": "author",
+    "uid": "hare",
+    "short_name": "Hare",
+    "long_name": "E.M. Hare"
+  },
+  {
+    "type": "author",
+    "uid": "hecker",
+    "short_name": "Hecker",
+    "long_name": "Dr. Hellmuth Hecker"
+  },
+  {
+    "type": "author",
+    "uid": "hecker-khema",
+    "short_name": "Hecker …",
+    "long_name": "Dr. Hellmuth Hecker, Ayya Khema"
+  },
+  {
+    "type": "author",
+    "uid": "hod",
+    "short_name": "HoD",
+    "long_name": "HoD"
+  },
+  {
+    "type": "author",
+    "uid": "horner",
+    "short_name": "Horner",
+    "long_name": "I.B. Horner"
+  },
+  {
+    "type": "author",
+    "uid": "huesken-nanadassana",
+    "short_name": "Hüsken …",
+    "long_name": "Ute Hüsken, Bhikkhu Ñāṇadassana"
+  },
+  {
+    "type": "author",
+    "uid": "huyenvi",
+    "short_name": "Huyen-Vi",
+    "long_name": "Thich Huyen-Vi"
+  },
+  {
+    "type": "author",
+    "uid": "huyenvi-boinwebb-pasadika",
+    "short_name": "Pāsādika …",
+    "long_name": "Thích Huyên-Vi, Sara Boin-Webb, Bhikkhu Pāsādika"
+  },
+  {
+    "type": "author",
+    "uid": "indacanda",
+    "short_name": "Indacanda",
+    "long_name": "Bhikkhu Indacanda"
+  },
+  {
+    "type": "author",
+    "uid": "indavati",
+    "short_name": "Indavati",
+    "long_name": "Indavati"
+  },
+  {
+    "type": "author",
+    "uid": "ireland",
+    "short_name": "Ireland",
+    "long_name": "John D. Ireland"
+  },
+  {
+    "type": "author",
+    "uid": "isidatta",
+    "short_name": "Isidatta",
+    "long_name": "Isidatta"
+  },
+  {
+    "type": "author",
+    "uid": "ivakhnenko",
+    "short_name": "Ивахненко",
+    "long_name": "Д. А. Ивахненко"
+  },
+  {
+    "type": "author",
+    "uid": "ivanovics",
+    "short_name": "Ivánovics",
+    "long_name": "Ivánovics Beatrix"
+  },
+  {
+    "type": "author",
+    "uid": "jagodzinski",
+    "short_name": "Jagodziński",
+    "long_name": "Piotr Jagodziński"
+  },
+  {
+    "type": "author",
+    "uid": "jambudipa",
+    "short_name": "Jambudipa",
+    "long_name": "Jambudipa"
+  },
+  {
+    "type": "author",
+    "uid": "jayarava",
+    "short_name": "Jayarava",
+    "long_name": "Jayarava"
+  },
+  {
+    "type": "author",
+    "uid": "johansson",
+    "short_name": "Johansson",
+    "long_name": "Rune. E. A. Johansson"
+  },
+  {
+    "type": "author",
+    "uid": "jonhagen",
+    "short_name": "Jönhagen",
+    "long_name": "Kerstin Jönhagen"
+  },
+  {
+    "type": "author",
+    "uid": "jose",
+    "short_name": "José",
+    "long_name": "Dhamma José"
+  },
+  {
+    "type": "author",
+    "uid": "k_toth",
+    "short_name": "Tóth",
+    "long_name": "Tóth Krisztina"
+  },
+  {
+    "type": "author",
+    "uid": "kelly-sawyer-yareham",
+    "short_name": "Kelly …",
+    "long_name": "Kelly, Sawyer, Yareham"
+  },
+  {
+    "type": "author",
+    "uid": "khemacara",
+    "short_name": "케마짜라",
+    "long_name": "케마짜라 빅쿠 한글 번"
+  },
+  {
+    "type": "author",
+    "uid": "kiss",
+    "short_name": "Kiss",
+    "long_name": "Kiss Csilla"
+  },
+  {
+    "type": "author",
+    "uid": "ko_lay",
+    "short_name": "Ko Lay",
+    "long_name": "Prof. U Ko Lay"
+  },
+  {
+    "type": "author",
+    "uid": "kobac",
+    "short_name": "Kobac",
+    "long_name": "Rastislav Kobac"
+  },
+  {
+    "type": "author",
+    "uid": "kolozsvari",
+    "short_name": "Kolozsvári",
+    "long_name": "Kolozsvári Ágnes"
+  },
+  {
+    "type": "author",
+    "uid": "koltai",
+    "short_name": "Koltai",
+    "long_name": "Koltai László"
+  },
+  {
+    "type": "author",
+    "uid": "komlody",
+    "short_name": "Komlódy",
+    "long_name": "Komlódy Zsolt"
+  },
+  {
+    "type": "author",
+    "uid": "koteles",
+    "short_name": "Köteles",
+    "long_name": "Köteles Géza"
+  },
+  {
+    "type": "author",
+    "uid": "kovacevic",
+    "short_name": "Kovačević",
+    "long_name": "Branislav Kovačević"
+  },
+  {
+    "type": "author",
+    "uid": "kowalewski",
+    "short_name": "Kowalewski",
+    "long_name": "Hubert Kowalewski"
+  },
+  {
+    "type": "author",
+    "uid": "kral",
+    "short_name": "Král",
+    "long_name": "Ladislav Král"
+  },
+  {
+    "type": "author",
+    "uid": "kruger",
+    "short_name": "Krüger",
+    "long_name": "Prof. J.S. Krüger"
+  },
+  {
+    "type": "author",
+    "uid": "kumara",
+    "short_name": "Kumara",
+    "long_name": "Bhikkhu Kumāra"
+  },
+  {
+    "type": "author",
+    "uid": "kupi-ka",
+    "short_name": "купи-ка",
+    "long_name": "баян купи-ка"
+  },
+  {
+    "type": "author",
+    "uid": "kusalagnana-maitrimurti-traetow",
+    "short_name": "Kusalagnana…",
+    "long_name": "Thalpawila Kusalagnana, Dr. Mudagamuwe Maithrimurthi, Thomas Trätow"
+  },
+  {
+    "type": "author",
+    "uid": "laera",
+    "short_name": "Laera",
+    "long_name": "Gabriel N. Laera"
+  },
+  {
+    "type": "author",
+    "uid": "leon",
+    "short_name": "León",
+    "long_name": "Dr. Ricardo de León"
+  },
+  {
+    "type": "author",
+    "uid": "lie",
+    "short_name": "Lie",
+    "long_name": "Kåre A. Lie"
+  },
+  {
+    "type": "author",
+    "uid": "lie-stabell",
+    "short_name": "Lie …",
+    "long_name": "Kåre A. Lie, Tone Gleditsch Stabell"
+  },
+  {
+    "type": "author",
+    "uid": "loosbroek",
+    "short_name": "Loosbroek",
+    "long_name": "Peter van Loosbroek"
+  },
+  {
+    "type": "author",
+    "uid": "lorenzo-morniroli-federici",
+    "short_name": "Lorenzo …",
+    "long_name": "De Lorenzo, Pier Antonio Morniroli, Enrico Federici"
+  },
+  {
+    "type": "author",
+    "uid": "lucjan",
+    "short_name": "Łucjan",
+    "long_name": "Paweł Łucjan"
+  },
+  {
+    "type": "author",
+    "uid": "liangjun",
+    "short_name": "Liangjun",
+    "long_name": "Guo Liangjun"
+  },
+  {
+    "type": "author",
+    "uid": "santagavesaka",
+    "short_name": "Santagavesaka",
+    "long_name": "Bhikkhu Santagavesaka"
+  },
+  {
+    "type": "author",
+    "uid": "mahinda",
+    "short_name": "Mahinda",
+    "long_name": "Bhikkhu Mahinda"
+  },
+  {
+    "type": "author",
+    "uid": "wuxing",
+    "short_name": "Wuxing",
+    "long_name": "Wuxing"
+  },
+  {
+    "type": "author",
+    "uid": "yunan",
+    "short_name": "Yun’an",
+    "long_name": "Bhikkhuni Yun’an"
+  },
+  {
+    "type": "author",
+    "uid": "sabbamitta",
+    "short_name": "Sabbamitta",
+    "long_name": "Sabbamitta"
+  },
+  {
+    "type": "author",
+    "uid": "mor",
+    "short_name": "Mor",
+    "long_name": "Mor"
+  },
+  {
+    "type": "author",
+    "uid": "guimaraes",
+    "short_name": "Guimarães",
+    "long_name": "Pedro Guimarães"
+  },
+  {
+    "type": "author",
+    "uid": "durall",
+    "short_name": "Durall",
+    "long_name": "Nil Durall"
+  },
+  {
+    "type": "author",
+    "uid": "amidala",
+    "short_name": "Amidala",
+    "long_name": "Padmé Amidala"
+  },
+  {
+    "type": "author",
+    "uid": "maes",
+    "short_name": "Maës",
+    "long_name": "Christian Maës"
+  },
+  {
+    "type": "author",
+    "uid": "mahapannya",
+    "short_name": "Mahapannya",
+    "long_name": "Ashin Mahapannya"
+  },
+  {
+    "type": "author",
+    "uid": "mahasthavya",
+    "short_name": "ধর্মাধার",
+    "long_name": "ধর্মাধার মহাস্থবির"
+  },
+  {
+    "type": "author",
+    "uid": "maitrimurti-traetow",
+    "short_name": "Maitrimurti …",
+    "long_name": "Maitrimurti, Trätow"
+  },
+  {
+    "type": "author",
+    "uid": "martinusz",
+    "short_name": "Martinusz",
+    "long_name": "Martinusz Mária"
+  },
+  {
+    "type": "author",
+    "uid": "marx",
+    "short_name": "Marx",
+    "long_name": "Josef Marx"
+  },
+  {
+    "type": "author",
+    "uid": "marx-chromovsky",
+    "short_name": "Marx …",
+    "long_name": "Josef Marx, Štěpán Chromovský"
+  },
+  {
+    "type": "author",
+    "uid": "mathe",
+    "short_name": "Máthé",
+    "long_name": "Máthé Veronika"
+  },
+  {
+    "type": "author",
+    "uid": "mettiko",
+    "short_name": "Mettiko",
+    "long_name": "Mettiko Bhikkhu"
+  },
+  {
+    "type": "author",
+    "uid": "mills",
+    "short_name": "Mills",
+    "long_name": "Laurence Khantipalo Mills"
+  },
+  {
+    "type": "author",
+    "uid": "mills-sujato",
+    "short_name": "Mills …",
+    "long_name": "Laurence Khantipalo Mills, Bhikkhu Sujato"
+  },
+  {
+    "type": "author",
+    "uid": "minh_chau",
+    "short_name": "Minh Châu",
+    "long_name": "Thích Minh Châu"
+  },
+  {
+    "type": "author",
+    "uid": "mrovcsak",
+    "short_name": "Mrovcsák",
+    "long_name": "Mrovcsák Zoltán"
+  },
+  {
+    "type": "author",
+    "uid": "nakatani",
+    "short_name": "Nakatani",
+    "long_name": "Hideaki Nakatani"
+  },
+  {
+    "type": "author",
+    "uid": "nanadassana",
+    "short_name": "Ñāṇadassana",
+    "long_name": "Bhikkhu Ñāṇadassana"
+  },
+  {
+    "type": "author",
+    "uid": "nandisena",
+    "short_name": "Nandisena",
+    "long_name": "Bhikkhu U Nandisena"
+  },
+  {
+    "type": "author",
+    "uid": "narada-mahinda",
+    "short_name": "Nārada …",
+    "long_name": "Nārada Thera, Mahinda Thera"
+  },
+  {
+    "type": "author",
+    "uid": "unarada",
+    "short_name": "U Nārada",
+    "long_name": "U Nārada"
+  },
+  {
+    "type": "author",
+    "uid": "unandamedha",
+    "short_name": "U Nandamedha",
+    "long_name": "U Nandamedha"
+  },
+  {
+    "type": "author",
+    "uid": "ukumarabhivamsa",
+    "short_name": "U Kumārābhivaṁsa",
+    "long_name": "U Kumārābhivaṁsa"
+  },
+  {
+    "type": "author",
+    "uid": "natarajan",
+    "short_name": "Natarajan",
+    "long_name": "நவாலியூர் சோ. நடராசன்"
+  },
+  {
+    "type": "author",
+    "uid": "nhat_hanh-laity",
+    "short_name": "Nhất Hạnh …",
+    "long_name": "Thích Nhất Hạnh, Annabel Laity"
+  },
+  {
+    "type": "author",
+    "uid": "nizamis",
+    "short_name": "Nizamis",
+    "long_name": "K. Nizamis"
+  },
+  {
+    "type": "author",
+    "uid": "nyanamoli",
+    "short_name": "Ñāṇamoli",
+    "long_name": "Bhikkhu Ñāṇamoli"
+  },
+  {
+    "type": "author",
+    "uid": "nyanaponika",
+    "short_name": "Nyanaponika",
+    "long_name": "Nyanaponika Thera"
+  },
+  {
+    "type": "author",
+    "uid": "nyanatiloka",
+    "short_name": "Nyanatiloka",
+    "long_name": "Nyānatiloka Thera"
+  },
+  {
+    "type": "author",
+    "uid": "nyanatiloka-nyanaponika",
+    "short_name": "Nyanatiloka …",
+    "long_name": "Nyanatiloka Thera, Nyanaponika Thera"
+  },
+  {
+    "type": "author",
+    "uid": "nyitrai",
+    "short_name": "Nyitrai",
+    "long_name": "Nyitrai Gábor"
+  },
+  {
+    "type": "author",
+    "uid": "obsitos",
+    "short_name": "Obsitos",
+    "long_name": "Obsitos Ildikó"
+  },
+  {
+    "type": "author",
+    "uid": "olendzki",
+    "short_name": "Olendzki",
+    "long_name": "Andrew Olendzki"
+  },
+  {
+    "type": "author",
+    "uid": "oorzhak",
+    "short_name": "Ооржак",
+    "long_name": "А.А. Ооржак"
+  },
+  {
+    "type": "author",
+    "uid": "orsovszky",
+    "short_name": "Orsovszky",
+    "long_name": "Orsovszky Gyöngyvér"
+  },
+  {
+    "type": "author",
+    "uid": "pachon",
+    "short_name": "Pachón",
+    "long_name": "Sabrina Pachón T."
+  },
+  {
+    "type": "author",
+    "uid": "pachon-baron",
+    "short_name": "Pachón …",
+    "long_name": "Sabrina Pachón T., Anton P. Baron"
+  },
+  {
+    "type": "author",
+    "uid": "pannyavaro",
+    "short_name": "Панньяваро",
+    "long_name": "Панньяваро бхиккху"
+  },
+  {
+    "type": "author",
+    "uid": "paribok",
+    "short_name": "Парибок",
+    "long_name": "А.В.Парибок"
+  },
+  {
+    "type": "author",
+    "uid": "patton",
+    "short_name": "Patton",
+    "long_name": "Charles Patton"
+  },
+  {
+    "type": "author",
+    "uid": "demieville",
+    "short_name": "Demiéville",
+    "long_name": "Demiéville Paul"
+  },
+  {
+    "type": "author",
+    "uid": "penci",
+    "short_name": "Penci",
+    "long_name": "Penci Zsombor"
+  },
+  {
+    "type": "author",
+    "uid": "perez",
+    "short_name": "Pérez",
+    "long_name": "Manuel Pérez de León Toscano"
+  },
+  {
+    "type": "author",
+    "uid": "phuoc_son",
+    "short_name": "Phước Sơn",
+    "long_name": "Thích Phước Sơn"
+  },
+  {
+    "type": "author",
+    "uid": "pierquet",
+    "short_name": "Pierquet",
+    "long_name": "J. Pierquet"
+  },
+  {
+    "type": "author",
+    "uid": "pajnabangsha",
+    "short_name": "প্রজ্ঞাবংশ",
+    "long_name": "ভদন্ত প্রজ্ঞাবংশ মহাস্থবির"
+  },
+  {
+    "type": "author",
+    "uid": "ashok-harshada",
+    "short_name": "अशोक …",
+    "long_name": "अशोक तपासे, हर्षदा तपासे"
+  },
+  {
+    "type": "author",
+    "uid": "pressing",
+    "short_name": "Pressing",
+    "long_name": "Pressing Lajos"
+  },
+  {
+    "type": "author",
+    "uid": "rhysdavids-brasington",
+    "short_name": "Rhys Davids …",
+    "long_name": "T.W. Rhys Davids, Leigh Brasington"
+  },
+  {
+    "type": "author",
+    "uid": "ripcse",
+    "short_name": "Ripcse",
+    "long_name": "Ripcse Judit"
+  },
+  {
+    "type": "author",
+    "uid": "ripcse-saskoi",
+    "short_name": "Ripcse …",
+    "long_name": "Ripcse Judit, Saskői Anikó"
+  },
+  {
+    "type": "author",
+    "uid": "rodolfo",
+    "short_name": "Rodolfo",
+    "long_name": "Rodolfo"
+  },
+  {
+    "type": "author",
+    "uid": "rouse",
+    "short_name": "Rouse",
+    "long_name": "W.H.D. Rouse"
+  },
+  {
+    "type": "author",
+    "uid": "rozehnal-chromovsky",
+    "short_name": "Rozehnal …",
+    "long_name": "Miroslav Rozehnal, Štěpán Chromovský"
+  },
+  {
+    "type": "author",
+    "uid": "salce",
+    "short_name": "Salce",
+    "long_name": "Giorgio Salce"
+  },
+  {
+    "type": "author",
+    "uid": "sandor",
+    "short_name": "Sándor",
+    "long_name": "Sándor Ildikó"
+  },
+  {
+    "type": "author",
+    "uid": "sankrityayan",
+    "short_name": "Sankrityayan",
+    "long_name": "Rahul Sankrityayan"
+  },
+  {
+    "type": "author",
+    "uid": "saskoi",
+    "short_name": "Saskői",
+    "long_name": "Saskői Anikó"
+  },
+  {
+    "type": "author",
+    "uid": "sass",
+    "short_name": "Saß",
+    "long_name": "Ekkehard Saß"
+  },
+  {
+    "type": "author",
+    "uid": "schaefer-beyerlein",
+    "short_name": "Schaefer …",
+    "long_name": "Fritz Schaefer, Raimund Beyerlein"
+  },
+  {
+    "type": "author",
+    "uid": "schwartz",
+    "short_name": "Schwartz",
+    "long_name": "Shai Schwartz"
+  },
+  {
+    "type": "author",
+    "uid": "seidenstuecker",
+    "short_name": "Seidenstücker",
+    "long_name": "Karl Seidenstücker"
+  },
+  {
+    "type": "author",
+    "uid": "shakyavamsa",
+    "short_name": "Shakyavamsa",
+    "long_name": "Shakyavamsa"
+  },
+  {
+    "type": "author",
+    "uid": "shapovalov",
+    "short_name": "Шаповалов",
+    "long_name": "Леонид Шаповалов"
+  },
+  {
+    "type": "author",
+    "uid": "shilabhadra",
+    "short_name": "Shilabhadra",
+    "long_name": "Bhikkhu Shilabhadra"
+  },
+  {
+    "type": "author",
+    "uid": "siam_rath",
+    "short_name": "Siam Rath",
+    "long_name": "Siam Rath"
+  },
+  {
+    "type": "author",
+    "uid": "siebenhofer",
+    "short_name": "Siebenhofer",
+    "long_name": "Siebenhofer Balázs"
+  },
+  {
+    "type": "author",
+    "uid": "silacara",
+    "short_name": "Sīlācāra",
+    "long_name": "Bhikkhu Sīlācāra"
+  },
+  {
+    "type": "author",
+    "uid": "siristru",
+    "short_name": "Siristru",
+    "long_name": "Siristru"
+  },
+  {
+    "type": "author",
+    "uid": "smith",
+    "short_name": "Smith",
+    "long_name": "N.J. Smith"
+  },
+  {
+    "type": "author",
+    "uid": "somananda",
+    "short_name": "Somananda",
+    "long_name": "Ven. Nilwakke Somananda Thera"
+  },
+  {
+    "type": "author",
+    "uid": "sujato",
+    "short_name": "Sujato",
+    "long_name": "Bhikkhu Sujato"
+  },
+  {
+    "type": "author",
+    "uid": "sujato-walton",
+    "short_name": "Sujato/Walton",
+    "long_name": "Bhikkhu Sujato, Jessica Walton"
+  },
+  {
+    "type": "author",
+    "uid": "walters",
+    "short_name": "Walters",
+    "long_name": "Jonathan S. Walters"
+  },
+  {
+    "type": "author",
+    "uid": "sv",
+    "short_name": "SV",
+    "long_name": "SV"
+  },
+  {
+    "type": "author",
+    "uid": "sugata",
+    "short_name": "Сугата",
+    "long_name": "Сугата Бхиккху"
+  },
+  {
+    "type": "author",
+    "uid": "syrkina",
+    "short_name": "Сыркина",
+    "long_name": "А. Я. Сыркина"
+  },
+  {
+    "type": "author",
+    "uid": "szabo",
+    "short_name": "Szabó",
+    "long_name": "Szabó Márta"
+  },
+  {
+    "type": "author",
+    "uid": "szeman-csimma",
+    "short_name": "Szemán …",
+    "long_name": "Szemán László, Csimma Vilmos"
+  },
+  {
+    "type": "author",
+    "uid": "tae-hye",
+    "short_name": "Tae Hye",
+    "long_name": "Tae Hye Sunim"
+  },
+  {
+    "type": "author",
+    "uid": "daikan",
+    "short_name": "Shoda",
+    "long_name": "Shoda Daikan"
+  },
+  {
+    "type": "author",
+    "uid": "tecsi",
+    "short_name": "Técsi",
+    "long_name": "Técsi Judit"
+  },
+  {
+    "type": "author",
+    "uid": "tenigl-takacs",
+    "short_name": "Tenigl-Takács",
+    "long_name": "Tenigl-Takács László"
+  },
+  {
+    "type": "author",
+    "uid": "thanissaro",
+    "short_name": "Thanissaro",
+    "long_name": "Thanissaro Bhikkhu"
+  },
+  {
+    "type": "author",
+    "uid": "amaravati",
+    "short_name": "Amaravati",
+    "long_name": "Amaravati Sangha"
+  },
+  {
+    "type": "author",
+    "uid": "thitapunno",
+    "short_name": "Thitapuñño",
+    "long_name": "Samanera Thitapuñño"
+  },
+  {
+    "type": "author",
+    "uid": "thittila",
+    "short_name": "Thittila",
+    "long_name": "U Thittila"
+  },
+  {
+    "type": "author",
+    "uid": "tin",
+    "short_name": "Tin",
+    "long_name": "U Tin U (Myaung)"
+  },
+  {
+    "type": "author",
+    "uid": "tobel-szirmai",
+    "short_name": "Tóbel …",
+    "long_name": "Tóbel Ibolya, Szirmai Balázs"
+  },
+  {
+    "type": "author",
+    "uid": "tola-dragonetti",
+    "short_name": "Tola …",
+    "long_name": "F. Tola, C. Dragonetti"
+  },
+  {
+    "type": "author",
+    "uid": "toth",
+    "short_name": "Tóth",
+    "long_name": "Tóth Kata"
+  },
+  {
+    "type": "author",
+    "uid": "tue_sy",
+    "short_name": "Tuệ Sỹ",
+    "long_name": "Tuệ Sỹ"
+  },
+  {
+    "type": "author",
+    "uid": "tue_sy-thang",
+    "short_name": "Tuệ Sỹ …",
+    "long_name": "Tuệ Sỹ, Thích Đức Thắng"
+  },
+  {
+    "type": "author",
+    "uid": "tw-caf_rhysdavids",
+    "short_name": "Rhys Davids",
+    "long_name": "T.W. & C.A.F. Rhys Davids"
+  },
+  {
+    "type": "author",
+    "uid": "tw_rhysdavids",
+    "short_name": "T.W. Rhys Davids",
+    "long_name": "T.W. Rhys Davids"
+  },
+  {
+    "type": "author",
+    "uid": "upasika",
+    "short_name": "Upasika",
+    "long_name": "Upasika"
+  },
+  {
+    "type": "author",
+    "uid": "vekerdi",
+    "short_name": "Vekerdi",
+    "long_name": "Vekerdi József"
+  },
+  {
+    "type": "author",
+    "uid": "veljacic",
+    "short_name": "Veljačić",
+    "long_name": "Čedomil Veljačić"
+  },
+  {
+    "type": "author",
+    "uid": "vidyabhusana",
+    "short_name": "Vidyabhusana",
+    "long_name": "Mahāmahopādhyāya Satis Chandra Vidyabhusana"
+  },
+  {
+    "type": "author",
+    "uid": "viryabodhi",
+    "short_name": "Viryabodhi",
+    "long_name": "Viryabodhi"
+  },
+  {
+    "type": "author",
+    "uid": "viterbo",
+    "short_name": "Viterbo",
+    "long_name": "Francesco Viterbo"
+  },
+  {
+    "type": "author",
+    "uid": "vri",
+    "short_name": "VRI",
+    "long_name": "Vipassana Research Institute"
+  },
+  {
+    "type": "author",
+    "uid": "vriendelijke",
+    "short_name": "Vriendelijke",
+    "long_name": "Vriendelijke"
+  },
+  {
+    "type": "author",
+    "uid": "woodward",
+    "short_name": "Woodward",
+    "long_name": "Frank Lee Woodward"
+  },
+  {
+    "type": "author",
+    "uid": "pmt",
+    "short_name": "PMT",
+    "long_name": "Pitaka Myanmar Translation"
+  },
+  {
+    "type": "author",
+    "uid": "xharde",
+    "short_name": "Xhardé",
+    "long_name": "Régis Xhardé"
+  },
+  {
+    "type": "author",
+    "uid": "ypg",
+    "short_name": "YPG",
+    "long_name": "Yahoo! Pali Group"
+  },
+  {
+    "type": "author",
+    "uid": "yu-kan",
+    "short_name": "Yu Kan",
+    "long_name": "Yu Kan"
+  },
+  {
+    "type": "author",
+    "uid": "z_kertesz",
+    "short_name": "Kertész",
+    "long_name": "Kertész Zsolt"
+  },
+  {
+    "type": "author",
+    "uid": "z_kovacs",
+    "short_name": "Kovács",
+    "long_name": "Kovács Zoltán"
+  },
+  {
+    "type": "author",
+    "uid": "zacsek",
+    "short_name": "Zacsek",
+    "long_name": "Zacsek Dóra"
+  },
+  {
+    "type": "author",
+    "uid": "zhuang",
+    "short_name": "莊春江",
+    "long_name": "莊春江"
+  },
+  {
+    "type": "author",
+    "uid": "zoysa",
+    "short_name": "Zoysa",
+    "long_name": "A.P. de Zoysa"
+  },
+  {
+    "type": "edition",
+    "uid": "banerjee",
+    "short_name": "Banerjee",
+    "long_name": "Anukul Chandra Banerjee"
+  },
+  {
+    "type": "edition",
+    "uid": "bernhard",
+    "short_name": "Bernhard",
+    "long_name": "Franz Bernhard"
+  },
+  {
+    "type": "edition",
+    "uid": "brough",
+    "short_name": "Brough",
+    "long_name": "John Brough"
+  },
+  {
+    "type": "edition",
+    "uid": "chandako",
+    "short_name": "Chandako",
+    "long_name": "Ajahn Chandako"
+  },
+  {
+    "type": "edition",
+    "uid": "chandra",
+    "short_name": "Chandra",
+    "long_name": "Lokesh Chandra"
+  },
+  {
+    "type": "edition",
+    "uid": "cone",
+    "short_name": "Cone",
+    "long_name": "Margaret Cone"
+  },
+  {
+    "type": "edition",
+    "uid": "cst",
+    "short_name": "CST",
+    "long_name": "Chaṭṭha Saṅgāyana Tipiṭaka"
+  },
+  {
+    "type": "edition",
+    "uid": "dege",
+    "short_name": "Degé",
+    "long_name": "Degé Kangyur"
+  },
+  {
+    "type": "edition",
+    "uid": "dietz-matsuda",
+    "short_name": "Dietz …",
+    "long_name": "Siglinde Dietz, Kazunobu Matsuda"
+  },
+  {
+    "type": "edition",
+    "uid": "enomoto",
+    "short_name": "Enomoto",
+    "long_name": "Fumio Enomoto"
+  },
+  {
+    "type": "edition",
+    "uid": "falk",
+    "short_name": "Falk",
+    "long_name": "Harry Falk"
+  },
+  {
+    "type": "edition",
+    "uid": "fukita",
+    "short_name": "Fukita",
+    "long_name": "Takamichi Fukita"
+  },
+  {
+    "type": "edition",
+    "uid": "gbm",
+    "short_name": "Gilgit",
+    "long_name": "Gilgit Buddhist Manuscripts"
+  },
+  {
+    "type": "edition",
+    "uid": "hartmann",
+    "short_name": "Hartmann",
+    "long_name": "Jens-Uwe Hartmann"
+  },
+  {
+    "type": "edition",
+    "uid": "hoernle",
+    "short_name": "Hoernle",
+    "long_name": "A.F. Rudolf Hoernle"
+  },
+  {
+    "type": "edition",
+    "uid": "hosoda",
+    "short_name": "Hosoda",
+    "long_name": "N. Hosoda"
+  },
+  {
+    "type": "edition",
+    "uid": "lenz",
+    "short_name": "Lenz",
+    "long_name": "Timothy Lenz"
+  },
+  {
+    "type": "edition",
+    "uid": "levi",
+    "short_name": "Lévi",
+    "long_name": "Sylvain Lévi"
+  },
+  {
+    "type": "edition",
+    "uid": "ms",
+    "short_name": "Mahāsaṅgīti",
+    "long_name": "Mahāsaṅgīti Tipiṭaka Buddhavasse 2500"
+  },
+  {
+    "type": "edition",
+    "uid": "matsumura",
+    "short_name": "Matsumura",
+    "long_name": "Hisashi Matsamura"
+  },
+  {
+    "type": "edition",
+    "uid": "mette",
+    "short_name": "Mette",
+    "long_name": "Adelheid Mette"
+  },
+  {
+    "type": "edition",
+    "uid": "minaev-mironov",
+    "short_name": "Minaev …",
+    "long_name": "I.P. Minaev, N.D. Mironov"
+  },
+  {
+    "type": "edition",
+    "uid": "mittal-schlingoff",
+    "short_name": "Mittal …",
+    "long_name": "Kusum Mittal, Dieter Schlingoff"
+  },
+  {
+    "type": "edition",
+    "uid": "pachow-mishra",
+    "short_name": "Pachow …",
+    "long_name": "W. Pachow, R. Mishra"
+  },
+  {
+    "type": "edition",
+    "uid": "roth",
+    "short_name": "Roth",
+    "long_name": "Gustav Roth"
+  },
+  {
+    "type": "edition",
+    "uid": "samtani",
+    "short_name": "Samtani",
+    "long_name": "Prof. N.H. Samtani"
+  },
+  {
+    "type": "edition",
+    "uid": "sander",
+    "short_name": "Sander",
+    "long_name": "Lore Sander"
+  },
+    {
+    "type": "edition",
+    "uid": "sct",
+    "short_name": "SC Taishō",
+    "long_name": "SuttaCentral Taishō"
+  },
+  {
+    "type": "edition",
+    "uid": "senart",
+    "short_name": "Senart",
+    "long_name": "Émile Senart"
+  },
+  {
+    "type": "edition",
+    "uid": "shakya",
+    "short_name": "Shakya",
+    "long_name": "M.B. Shakya"
+  },
+  {
+    "type": "edition",
+    "uid": "shukla",
+    "short_name": "Shukla",
+    "long_name": "Karunesha Shukla"
+  },
+  {
+    "type": "edition",
+    "uid": "simson",
+    "short_name": "Simson",
+    "long_name": "Georg von Simson"
+  },
+  {
+    "type": "edition",
+    "uid": "taisho",
+    "short_name": "Taishō",
+    "long_name": "Taishō Tripiṭaka"
+  },
+  {
+    "type": "edition",
+    "uid": "tatia",
+    "short_name": "Tatia",
+    "long_name": "N. Tatia"
+  },
+  {
+    "type": "edition",
+    "uid": "tripathi",
+    "short_name": "Tripāṭhī",
+    "long_name": "Chandra Bhal Tripāṭhī"
+  },
+  {
+    "type": "edition",
+    "uid": "vaidya",
+    "short_name": "Vaidya",
+    "long_name": "P.L. Vaidya"
+  },
+  {
+    "type": "edition",
+    "uid": "vaidya-speyer",
+    "short_name": "Vaidya …",
+    "long_name": "P.L. Vaidya, J.S. Speyer"
+  },
+  {
+    "type": "edition",
+    "uid": "vallee",
+    "short_name": "Vallée-Poussin",
+    "long_name": "Louis de La Vallée-Poussin"
+  },
+  {
+    "type": "edition",
+    "uid": "vidyakaraprabha",
+    "short_name": "Vidyākaraprabhā …",
+    "long_name": "Vidyākaraprabhā, Rin chen mchog"
+  },
+  {
+    "type": "edition",
+    "uid": "waldschmidt",
+    "short_name": "Waldschmidt",
+    "long_name": "Ernst Waldschmidt"
+  },
+  {
+    "type": "edition",
+    "uid": "waldschmidt-sander",
+    "short_name": "Waldschmidt …",
+    "long_name": "Ernst Waldschmidt, Lore Sander"
+  },
+  {
+    "type": "author",
+    "uid": "rockhill",
+    "short_name": "Rockhill",
+    "long_name": "Woodville Rockhill"
+  },
+  {
+    "type": "edition",
+    "uid": "yamada",
+    "short_name": "Yamada",
+    "long_name": "Isshi Yamada"
+  },
+  {
+    "type": "test",
+    "uid": "test",
+    "short_name": "Test",
+    "long_name": "Testing Page"
+  },
+  {
+    "type": "author",
+    "uid": "salih",
+    "short_name": "Sālih",
+    "long_name": "Muhammad Badr Abū Sālih"
+  },
+  {
+    "type": "author",
+    "uid": "su",
+    "short_name": "蘇錦坤",
+    "long_name": "蘇錦坤"
+  },
+  {
+    "type": "author",
+    "uid": "chun",
+    "short_name": "葉慶春",
+    "long_name": "葉慶春"
+  },
+  {
+    "type": "author",
+    "uid": "pachow",
+    "short_name": "巴宙",
+    "long_name": "巴宙"
+  },
+  {
+    "type": "author",
+    "uid": "metta",
+    "short_name": "Metta",
+    "long_name": "Metta"
+  },
+  {
+    "type": "author",
+    "uid": "fang",
+    "short_name": "法舫",
+    "long_name": "法舫"
+  },
+  {
+    "type": "author",
+    "uid": "hui",
+    "short_name": "莊博蕙",
+    "long_name": "莊博蕙"
+  },
+  {
+    "type": "author",
+    "uid": "guabo",
+    "short_name": "丘哌博",
+    "long_name": "丘哌博"
+  },
+  {
+    "type": "author",
+    "uid": "lu",
+    "short_name": "岫廬",
+    "long_name": "岫廬"
+  },
+  {
+    "type": "author",
+    "uid": "srirangaraj",
+    "short_name": "Srirangaraj",
+    "long_name": "H.V. Srirangaraj"
+  },
+  {
+    "type": "author",
+    "uid": "buddho",
+    "short_name": "Buddho",
+    "long_name": "Buddho"
+  },
+  {
+    "type": "author",
+    "uid": "kf-johansson",
+    "short_name": "K.F. Johansson",
+    "long_name": "Karl Ferdinand Johansson"
+  },
+  {
+    "type": "author",
+    "uid": "mahinda2",
+    "short_name": "玛欣德尊者 译",
+    "long_name": "玛欣德尊者 译"
+  },
+  {
+    "type": "author",
+    "uid": "kaz",
+    "short_name": "Takehara",
+    "long_name": "Kaz Takehara"
+  },
+  {
+    "type": "author",
+    "uid": "nogelmeier-davis",
+    "short_name": "Nogelmeier, Davis",
+    "long_name": "M. Puakea Nogelmeier, Jake H. Davis"
+  },
+  {
+    "type": "author",
+    "uid": "nyanamoli-thera",
+    "short_name": "Nyanamoli",
+    "long_name": "Nyanamoli Thera"
+  },
+  {
+    "type": "author",
+    "uid": "kansai",
+    "short_name": "関西パーリ語実習会",
+    "long_name": "関西パーリ語実習会"
+  },
+  {
+    "type": "author",
+    "uid": "bojan",
+    "short_name": "Božič",
+    "long_name": "Bojan Božič"
+  },
+  {
+    "type": "author",
+    "uid": "ufukcakmakci",
+    "short_name": "Ufuk Çakmakçı",
+    "long_name": "Ufuk Çakmakçı"
+  },
+  {
+    "type": "author",
+    "uid": "cemsen",
+    "short_name": "Cem Şen",
+    "long_name": "Cem Şen"
+  },
+  {
+    "type": "author",
+    "uid": "leninan",
+    "short_name": "leninan",
+    "long_name": "Claude Le Ninan, Chandhana Le Ninan"
+  },
+  {
+    "type": "author",
+    "uid": "wijayaratna",
+    "short_name": "wijayaratna",
+    "long_name": "Môhan Wijayaratna"
+  },
+  {
+    "type": "author",
+    "uid": "murthy",
+    "short_name": "murthy",
+    "long_name": "Dr. J. Srinivas Murthy"
+  },
+  {
+    "type": "author",
+    "uid": "rajaram",
+    "short_name": "rajaram",
+    "long_name": "Dr. B. V. Rajaram"
+  },
+  {
+    "type": "author",
+    "uid": "srinivasamurthy",
+    "short_name": "srinivasamurthy",
+    "long_name": "Molakalmuru Srinivasamurthy"
+  }
+]

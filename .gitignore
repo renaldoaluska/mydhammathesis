@@ -36,7 +36,7 @@ embeddings/
 *.npy
 
 # Korpus mentah SuttaCentral — re-fetch via src/code/1-get-data/
-src/output/1-get-data/sc-raw/
+#src/output/1-get-data/sc-raw/
 # Base model lokal — re-fetch via 1-get-data; pin revisi tetap di-track
 src/output/1-get-data/base-models/*
 !src/output/1-get-data/base-models/revisions.json
