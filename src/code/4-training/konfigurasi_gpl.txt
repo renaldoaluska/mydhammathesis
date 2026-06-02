@@ -15,7 +15,7 @@ Bedah Istilah Metodologi:
    - Pseudo-Labeling: Menggunakan model penilai (Cross-Encoder) untuk memberikan skor/label semu (pseudo-label) pada pasangan teks-pertanyaan.
 4. Dense Retrieval: Sistem pencarian semantik modern berbasis vektor (embedding).
 
-Referensi/Sitasi Wajib:
+Referensi/Sitasi:
 Wang, K., Thakur, N., Reimers, N., & Gurevych, I. (2022). GPL: Generative Pseudo Labeling for Unsupervised Domain Adaptation of Dense Retrieval. NAACL.
 
 =============================================================================
