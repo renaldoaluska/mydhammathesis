@@ -23,7 +23,7 @@
       cb_group: "Grup per Teks",
       cb_preview: "Konteks",
       lbl_search: "Kueri",
-      ph_search_semantic: "Ketik topik, misal: cara atasi marah; bolehkah biksu pegang uang; empat jenis manusia",
+      ph_search_semantic: "Ketik topik, misal: bahaya kemarahan; bolehkah biksu pegang uang; empat jenis manusia",
       ph_search_keyword: "Ketik kata yang ingin dicari, misal: dukkha…",
       btn_search: '<i data-lucide="search"></i> Cari',
       welcome_title: "Selamat Datang!",
