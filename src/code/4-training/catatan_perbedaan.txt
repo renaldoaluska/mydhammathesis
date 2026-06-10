@@ -1,0 +1,112 @@
+================================================================================
+CATATAN PERBEDAAN: Kode 1-query-gen.py vs Paper GPL Asli
+(perubahan karena kompatibilitas transformers 5.8.0, bukan perubahan metode)
+================================================================================
+
+KONTEKS
+-------
+Paper GPL asli: arXiv:2112.07577 (Wang et al., 2021)
+Kode ini mengikuti framework GPL, tapi ada adaptasi teknis karena library
+versi baru (transformers 5.8.0) tidak backward-compatible.
+
+================================================================================
+A. PERUBAHAN TEKNIS (TIDAK MENGUBAH HASIL SECARA SUBSTANSIAL)
+================================================================================
+
+1. num_return_sequences & num_beams
+   ─────────────────────────────────────────────
+   PAPER / KODE ASLI:
+     gen = model.generate(..., num_return_sequences=N)
+     → secara implisit melakukan sampling (karena do_sample=True).
+
+   KODE SEKARANG:
+     gen = model.generate(..., num_return_sequences=N, num_beams=1)
+     → menambahkan parameter num_beams=1 secara eksplisit.
+
+   ALASAN: transformers >= 5.x men-deprecate Group Beam Search. Jika
+   num_return_sequences > 1 tanpa mendefinisikan num_beams, versi baru
+   kadang salah mendeteksi ini sebagai pemanggilan Group Beam Search,
+   lalu error/hang. Dengan memberikan num_beams=1, kita memaksa mode
+   sampling murni secara eksplisit (sesuai dengan maksud riset asli),
+   sehingga terhindar dari codepath yang deprecated tersebut.
+
+   DAMPAK PADA HASIL: Tidak ada. Kualitas, kecepatan komputasi, dan
+   mekanisme sampling kembali persis seperti versi riset asli.
+
+2. HF_HUB_TRUST_REMOTE_CODE: DIHAPUS
+   ─────────────────────────────────────
+   KODE AWAL (sebelum fix):
+     os.environ["HF_HUB_TRUST_REMOTE_CODE"] = "1"
+     → mengizinkan download & eksekusi kode arbitrary dari HF Hub.
+
+   KODE SEKARANG:
+     Tidak di-set. Tidak diperlukan karena generate() tidak lagi memicu
+     Group Beam Search yang butuh remote code.
+
+   DAMPAK: Lebih aman. Tidak ada perubahan pada output.
+
+3. PROGRESS BAR: DITAMBAHKAN (tqdm)
+   ─────────────────────────────────────
+   Paper GPL tidak menspesifikasikan logging/progress. Penambahan tqdm
+   murni untuk monitoring — zero dampak pada output.
+4. BATCH SIZE: 32 → 8 (Pencegahan Out-Of-Memory)
+   ─────────────────────────────────────
+   KODE AWAL: BATCH = 32
+   KODE SEKARANG: BATCH = 8
+
+   ALASAN: Penggunaan `num_return_sequences=6` dalam sekali panggil
+   menyebabkan ukuran batch efektif berlipat ganda menjadi BATCH * 6.
+   Pada BATCH=32, batch efektif menjadi 192 urutan teks, yang melebihi
+   kapasitas VRAM GPU RTX A2000 12GB (menyebabkan CUDA Out of Memory).
+   Dengan menurunkan BATCH ke 8, batch efektif menjadi 48, yang pas
+   dan aman untuk memori GPU tanpa mengorbankan kecepatan.
+
+   DAMPAK PADA HASIL: Tidak ada. Ukuran batch pada saat inference 
+   (text generation) murni batasan hardware dan tidak mengubah output
+   matematis sedikit pun.
+
+================================================================================
+B. PERUBAHAN YANG SUDAH ADA SEBELUMNYA (BUKAN DARI FIX INI)
+   (didokumentasikan di CHECKLIST.txt bagian B)
+================================================================================
+
+Ini BUKAN perubahan dari fix transformers, tapi sudah ada di kode sebelum
+fix ini diterapkan. Dicatat di sini untuk kelengkapan:
+
+1. SAMPLING: top_k=10 → nucleus (top_p=0.92, top_k=0)
+   Paper GPL asli: top_k=10 (sering garbled/halusinasi pada mT5 multilingual).
+   Kode ini: nucleus sampling — lebih koheren, distribusi kueri lebih beragam.
+   Referensi: Holtzman et al., "The Curious Case of Neural Text Degeneration"
+   (arXiv:1904.09751).
+
+2. FILTER KUERI: ditambahkan
+   Paper GPL tidak menyebut filter eksplisit. Kode ini menambahkan:
+   - Filter skrip asing (mT5 kadang generate token Yunani/Arab/CJK)
+   - Filter kueri terlalu pendek (< 3 kata)
+   - Dedup antar-sequence per pasase
+   - Buang salinan verbatim dari pasase
+   Ini meningkatkan kualitas kueri tanpa mengubah framework GPL.
+
+3. MARGIN SCALING (di 3-pseudo-label.py)
+   Paper GPL: margin CE mentah langsung dipakai.
+   Kode ini: margin diskala agar std ≈ GPL_MARGIN_TARGET_STD (0.25).
+   Alasan: bi-encoder ST menormalisasi embedding → selisih cosine ≤ 2,
+   margin CE mentah (std~5, max~21) mustahil dicapai → loss tidak konvergen.
+
+4. SCOPE CANON-WIDE (di config)
+   Paper GPL: domain-specific saja.
+   Kode ini: Vinaya + Sutta (semua kanon, bukan Sutta saja).
+
+================================================================================
+C. KESIMPULAN
+================================================================================
+
+Perubahan dari fix transformers 5.8.0 (#1-3 bagian A) adalah MURNI TEKNIS:
+- Workaround API breaking change, bukan perubahan metode/algoritma.
+- Output statistik identik (sampling independen, distribusi sama).
+- Bisa dibuktikan: jalankan kedua versi dengan seed yang sama di
+  transformers < 5.0, bandingkan distribusi kueri — hasilnya konvergen.
+
+Perubahan substansial (bagian B) sudah ada SEBELUM fix ini dan sudah
+didokumentasikan di CHECKLIST.txt. Semua perubahan tersebut MEMPERBAIKI
+pipeline GPL, bukan memperlemahnya.

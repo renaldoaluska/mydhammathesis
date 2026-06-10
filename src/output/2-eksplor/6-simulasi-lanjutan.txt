@@ -1,0 +1,11 @@
+=== SIMULASI LANJUTAN (PENENTUAN RULE CHUNKING) ===
+
+
+Hasil Evaluasi Chunk Raksasa:
+  - Selesai via Double BR (Default)  : 3 file
+  - Selesai via PTS Split (Rule)     : 36 file
+  - Selesai via Horner Split (Rule)  : 1 file
+  - Tidak Terselesaikan              : 0 file
+
+Rule pemotongan tersimpan di: /home/paps21/palisemantic5026221144/mydhamma/src/output/2-eksplor/chunk_rules.json
+[INFO] Laporan evaluasi ini tersimpan di: /home/paps21/palisemantic5026221144/mydhamma/src/output/2-eksplor/6-simulasi-lanjutan.txt

@@ -47,6 +47,24 @@ def cetak_struktur(startpath, max_depth):
             dirs[:] = []
 
 
+BASKETS = ("sutta", "vinaya", "abhidhamma")
+
+
+def matriks_cakupan():
+    """Jumlah file html_text per bahasa x pitaka -> surface gap cakupan (mis. Abhidhamma id=0)."""
+    htmltext = TARGET / "html_text"
+    if not htmltext.exists():
+        return
+    langs = sorted(d.name for d in htmltext.iterdir() if d.is_dir())
+    print("\n--- CAKUPAN html_text per bahasa x pitaka (jumlah file) ---")
+    print(f"  {'lang':<6}" + "".join(f"{b:>12}" for b in BASKETS))
+    for lang in langs:
+        row = [len(list((htmltext / lang / "pli" / b).rglob("*.html")))
+               if (htmltext / lang / "pli" / b).exists() else 0 for b in BASKETS]
+        print(f"  {lang:<6}" + "".join(f"{v:>12,}" for v in row))
+    print("  (0 = tak ada terjemahan pitaka tsb di bahasa itu; pli-original ada di bilara-root)")
+
+
 def main():
     sys.stdout = Logger(OUT_TXT)
     print("=== EKSPLOR 2 — HIERARKI & STRUKTUR KORPUS ===\n")
@@ -57,6 +75,7 @@ def main():
     print(f"Total berkas : {hitung_berkas(TARGET):,}")
     print(f"Kedalaman    : dibatasi {MAX_DEPTH} level\n")
     cetak_struktur(TARGET, MAX_DEPTH)
+    matriks_cakupan()
     print(f"\n[INFO] {OUT_TXT}")
 
 

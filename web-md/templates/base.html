@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>document.documentElement.setAttribute("data-theme", localStorage.getItem("dk-theme") || "light");</script>
+    <meta name="description"
+        content="{% block description %}myDhamma — Pencarian Tipiṭaka berbasis makna & kata kunci untuk pembabar Dhamma{% endblock %}">
+    <title>{% block title %}myDhamma{% endblock %}</title>
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23a255ff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Ccircle cx='12' cy='12' r='2.5'/%3E%3Cpath d='M12 2v7.5'/%3E%3Cpath d='M12 14.5v7.5'/%3E%3Cpath d='M2 12h7.5'/%3E%3Cpath d='M14.5 12h7.5'/%3E%3Cpath d='M4.93 4.93l5.3 5.3'/%3E%3Cpath d='M13.77 13.77l5.3 5.3'/%3E%3Cpath d='M4.93 19.07l5.3-5.3'/%3E%3Cpath d='M13.77 10.23l5.3-5.3'/%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{{ versioned_static('style.css') }}">
+    {% block head_extra %}{% endblock %}
+</head>
+
+<body>
+
+    <div id="research-banner" data-i18n="research_banner">DALAM PENGEMBANGAN — MASIH TERBATAS UNTUK RISET</div>
+
+    <!-- ==================== HEADER ==================== -->
+    {% block navbar_extra %}{% endblock %}
+    <header id="app-header">
+        <div class="header-top">
+            <div class="header-left">
+                <h1 id="app-title"><a href="/">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="1.15em" height="1.15em" viewBox="0 0 24 24"
+                            fill="none" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+                            <defs>
+                                <linearGradient id="grad1" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+                                    <stop offset="0%" stop-color="#a255ff" />
+                                    <stop offset="100%" stop-color="#B388FF" />
+                                </linearGradient>
+                            </defs>
+                            <g stroke="url(#grad1)">
+                                <circle cx="12" cy="12" r="10" />
+                                <circle cx="12" cy="12" r="2.5" />
+                                <path d="M12 2v7.5" />
+                                <path d="M12 14.5v7.5" />
+                                <path d="M2 12h7.5" />
+                                <path d="M14.5 12h7.5" />
+                                <path d="M4.93 4.93l5.3 5.3" />
+                                <path d="M13.77 13.77l5.3 5.3" />
+                                <path d="M4.93 19.07l5.3-5.3" />
+                                <path d="M13.77 10.23l5.3-5.3" />
+                            </g>
+                        </svg>
+                        <judul>myDhamma</judul>
+                    </a></h1>
+                {% block header_subtitle %}{% endblock %}
+            </div>
+            <div class="header-right">
+                {% block source_toggle %}
+                {% endblock %}
+                <button id="btn-reader-settings" class="nav-tab" data-i18n-title="rs_title" title="Setelan">
+                    <i data-lucide="settings-2"></i> <span data-i18n="btn_reader_settings">Setelan</span>
+                </button>
+                <div id="btn-lang-toggle" class="lang-pill" title="Switch Language">
+                    <span class="lang-pill-opt" data-lang="id">ID</span>
+                    <span class="lang-pill-opt" data-lang="en">EN</span>
+                    <span class="lang-pill-slider"></span>
+                </div>
+                <div id="btn-theme-toggle" class="theme-pill" title="Toggle Light/Dark Mode">
+                    <span class="theme-pill-opt" data-theme="light"><i data-lucide="sun"></i></span>
+                    <span class="theme-pill-opt" data-theme="dark"><i data-lucide="moon"></i></span>
+                    <span class="theme-pill-slider"></span>
+                </div>
+                <script>
+                    (function () {
+                        var theme = localStorage.getItem("dk-theme") || "light";
+                        var lang = localStorage.getItem("dk-lang") || "id";
+                        var tp = document.getElementById("btn-theme-toggle");
+                        if (tp) {
+                            tp.setAttribute("data-active", theme);
+                            tp.querySelectorAll(".theme-pill-opt").forEach(function (o) {
+                                o.classList.toggle("active", o.dataset.theme === theme);
+                            });
+                        }
+                        var lp = document.getElementById("btn-lang-toggle");
+                        if (lp) {
+                            lp.setAttribute("data-active", lang);
+                            lp.querySelectorAll(".lang-pill-opt").forEach(function (o) {
+                                o.classList.toggle("active", o.dataset.lang === lang);
+                            });
+                        }
+                    })();
+                </script>
+            </div><!-- /.header-right -->
+        </div><!-- /.header-top -->
+    </header>
+
+    <!-- ==================== MAIN LAYOUT ==================== -->
+    <button id="btn-panel-toggle" class="panel-toggle-btn" aria-label="Toggle panel Catatan">
+        <i data-lucide="{% block panel_toggle_icon %}pen-line{% endblock %}" class="panel-toggle-icon"></i>
+        <span class="panel-toggle-label">{% block panel_toggle_label %}Catatan{% endblock %}</span>
+        <i data-lucide="chevron-left" class="panel-toggle-chevron"></i>
+    </button>
+    <div id="panel-backdrop"></div>
+    <main id="app-main">
+        <!-- ========= LEFT: SEARCH/READER PANEL ========= -->
+        <section id="search-panel">
+            <div id="search-scroll">
+                {% block main_panel %}{% endblock %}
+
+                <footer id="app-footer" class="panel-footer">
+                    <div class="footer-left">
+                        <a href="https://www.its.ac.id/" target="_blank" rel="noopener" class="footer-logo-wrap"
+                            data-i18n-tooltip="title_its" data-tooltip="Institut Teknologi Sepuluh Nopember">
+                            <img src="/res/its.png" alt="ITS" class="footer-logo">
+                        </a>
+                        <a href="https://stabkertarajasa.ac.id/" target="_blank" rel="noopener" class="footer-logo-wrap"
+                            data-i18n-tooltip="title_stab" data-tooltip="Sekolah Tinggi Agama Buddha Kertarajasa">
+                            <img src="/res/stab.png" alt="STAB Kertarajasa" class="footer-logo">
+                        </a>
+                        <a href="https://syailendra.ac.id/" target="_blank" rel="noopener" class="footer-logo-wrap"
+                            data-i18n-tooltip="title_styab" data-tooltip="STYAB Syailendra">
+                            <img src="/res/stab2.png" alt="STYAB Syailendra" class="footer-logo footer-logo-syl">
+                        </a>
+                        <!-- <a href="https://suttacentral.net" target="_blank" rel="noopener" class="footer-logo-wrap"
+                            data-i18n-tooltip="title_sc" data-tooltip="SuttaCentral">
+                            <img src="/res/sc.png" alt="SuttaCentral" class="footer-logo">
+                        </a> -->
+                    </div>
+                    <div class="footer-center">
+                        <a href="/tentang" class="footer-tentang-link"><i data-lucide="file-text"></i> <span
+                                data-i18n="footer_tentang">Tentang myDhamma</span></a>
+                    </div>
+                    <div class="footer-right">
+                        <div class="footer-info-group">
+                            <span class="info-item">
+                                <span class="info-label" data-i18n="footer_student">Mahasiswa:</span>
+                                <span class="info-value"><span data-tooltip="NRP 5026221144">Alfa Renaldo
+                                        Aluska</span></span>
+                            </span>
+                            <span class="info-sep">|</span>
+                            <span class="info-item">
+                                <span class="info-label" data-i18n="footer_supervisor">Dosen Pembimbing:</span>
+                                <span class="info-value"><span data-tooltip="NIDN 0017078108">Renny Pradina K., S.T.,
+                                        M.T.</span></span>
+                            </span>
+                        </div>
+                    </div>
+                </footer>
+            </div>
+            {% block panel_overlays %}{% endblock %}
+        </section>
+
+        <!-- ========= RESIZE HANDLE ========= -->
+        <div id="resize-handle" title="Drag untuk resize"></div>
+
+        <!-- ========= RIGHT PANEL ========= -->
+        {% block right_panel %}
+        <section id="notes-panel">
+            <div class="notes-header glass-panel">
+                <div class="notes-header-top">
+                    <h2 data-i18n-html="notes_title"><i data-lucide="pen-line"></i> Catatan</h2>
+                    <button id="btn-fullscreen-notes" class="icon-btn" title="Layar Penuh"><i data-lucide="maximize"
+                            class="icon-expand"></i>
+                        <!-- <i data-lucide="minimize" class="icon-collapse" style="display:none"></i> -->
+                    </button>
+                    <button id="btn-manage-notes" class="btn-secondary btn-sm" data-i18n="btn_manage_notes"
+                        title="Kelola catatan" disabled>Kelola</button>
+                    <button id="btn-new-note" class="btn-secondary btn-sm" data-i18n="btn_new_note"
+                        title="Buat catatan baru">+ Baru</button>
+                </div>
+                <div id="notes-list" class="notes-list"></div>
+            </div>
+
+            <div id="note-editor" class="hidden">
+                <div class="note-title-row">
+                    <input type="text" id="note-title-input" class="note-title-input"
+                        data-i18n-placeholder="ph_note_title" placeholder="Judul catatan…" value="">
+                    <div class="note-title-actions">
+                        <button id="btn-copy-note" class="icon-btn" title="Salin catatan"><i
+                                data-lucide="clipboard-list"></i></button>
+                        <button id="btn-download-note" class="icon-btn" title="Unduh sebagai PDF"><i
+                                data-lucide="download"></i></button>
+                        <button id="btn-delete-note" class="icon-btn danger" title="Hapus catatan"><i
+                                data-lucide="trash-2"></i></button>
+                    </div>
+                </div>
+                <div id="note-meta-dates" class="note-meta-dates"></div>
+                <div id="note-blocks" class="note-blocks"></div>
+                <button id="btn-add-text-block" class="btn-ghost" data-i18n="btn_add_text" title="Tambah blok teks">+
+                    Ketik Teks Sendiri</button>
+                <div id="paste-block-container"
+                    style="display:none; align-items: center; gap: 8px; width: 100%; margin-top: 8px;">
+                    <button id="btn-paste-block" class="btn-ghost" title="Tempel Blok"
+                        style="margin-top: 0; flex: 1;"><i data-lucide="clipboard"></i> <span
+                            data-i18n="btn_paste_block">Tempel Blok</span></button>
+                    <button id="btn-clear-paste" class="btn-ghost danger" title="Hapus Salinan"
+                        style="margin-top: 0; width: auto; padding: 8px 12px;"><i data-lucide="x"></i></button>
+                </div>
+                <div
+                    style="font-size: 0.75rem; color: var(--text-muted, #666); text-align: center; margin-top: 8px; padding: 0 16px; line-height: 1.4;">
+                    <i data-lucide="info"
+                        style="width: 12px; height: 12px; display: inline-block; vertical-align: -2px; margin-right: 2px;"></i>
+                    <span data-i18n-html="note_add_sutta_hint">Untuk menambah kutipan Sutta, gunakan fitur
+                        Telusuri/Pencarian di panel kiri, lalu klik tombol <b>+ Catatan</b> pada segmen teksnya.</span>
+                </div>
+
+            </div>
+
+            <div id="notes-empty-state" class="empty-state">
+                <div class="empty-icon"><i data-lucide="pen-line"></i></div>
+                <p data-i18n-html="notes_empty">Pilih atau buat catatan baru<br>untuk mulai menyusun pembabaran Dhamma.
+                </p>
+
+
+            </div>
+        </section>
+        {% endblock %}
+
+    </main>
+
+    <!-- ==================== SUTTA DIALOG ==================== -->
+    <dialog id="sutta-dialog">
+        <div class="sutta-dialog-header">
+            <button id="sutta-dialog-close" class="sutta-dialog-close" title="Tutup"><i data-lucide="x"></i></button>
+            <div class="sutta-dialog-actions">
+                <button id="sutta-dialog-settings-btn" class="sutta-dialog-open-btn" data-i18n-title="rs_title"
+                    title="Setelan">
+                    <i data-lucide="settings-2"></i><span class="sutta-dialog-open-label"
+                        data-i18n="btn_reader_settings">Setelan</span>
+                </button>
+                <a id="sutta-dialog-open-link" href="#" class="sutta-dialog-open-btn" title="Buka Sutta">
+                    <i data-lucide="maximize-2"></i><span class="sutta-dialog-open-label"
+                        data-i18n="btn_open_sutta">Halaman Teks</span>
+                </a>
+            </div>
+            <h2 id="sutta-dialog-title"></h2>
+            <div class="sutta-dialog-controls">
+                <div class="reader-controls-row">
+                    <div class="sutta-dialog-lang-toggle" id="sutta-dialog-lang-toggle"></div>
+                </div>
+                <div class="sutta-dialog-display-toggle" id="sutta-dialog-display-toggle"></div>
+            </div>
+        </div>
+        <div class="sutta-dialog-body">
+            <div id="sutta-dialog-loading" class="empty-state hidden">
+                <div class="spinner"></div>
+                <p>Memuat sutta…</p>
+            </div>
+            <div id="sutta-dialog-error" class="empty-state hidden">
+                <div class="empty-icon"><i data-lucide="triangle-alert"></i></div>
+                <p id="sutta-dialog-error-msg"></p>
+            </div>
+            <div id="sutta-dialog-content" class="hidden"></div>
+        </div>
+    </dialog>
+
+    <!-- ==================== READER SETTINGS DIALOG ==================== -->
+    <dialog id="reader-settings-dialog" class="reader-settings-dialog">
+        <div class="rs-header">
+            <h2 class="rs-title"><i data-lucide="settings-2"></i> <span data-i18n="rs_title">Setelan</span></h2>
+            <button id="reader-settings-close" class="icon-btn" title="Tutup"><i data-lucide="x"></i></button>
+        </div>
+        <div class="rs-body">
+            <h3 class="rs-section-title" data-i18n="rs_section_display">Tampilan Teks</h3>
+            <div class="rs-preview" id="rs-preview">
+                <span class="rs-preview-label" data-i18n="rs_preview_label">Pratinjau</span>
+                <div class="rs-preview-seg">
+                    <a class="rs-ex-tag">dn22:1.2</a>
+                    <p class="rs-preview-text"><sup class="rs-ex-sup">2</sup>Namo tassa bhagavato arahato
+                        sammāsambuddhassa. Evaṁ me sutaṁ — ekaṁ samayaṁ bhagavā sāvatthiyaṁ viharati jetavane
+                        anāthapiṇḍikassa ārāme.</p>
+                </div>
+            </div>
+            <div class="rs-font">
+                <div class="font-panel-row">
+                    <span class="font-panel-label" data-i18n="cb_seg_ref">Segmen</span>
+                    <label class="rs-switch">
+                        <input type="checkbox" id="cb-seg-ref">
+                        <span class="rs-switch-track"></span>
+                    </label>
+                </div>
+                <div class="font-panel-row-slider">
+                    <div class="font-slider-top">
+                        <span class="font-panel-label" data-i18n="font_panel_size">Ukuran</span>
+                        <button class="font-reset-btn" id="font-size-reset" title="Reset">↺</button>
+                    </div>
+                    <div class="font-size-slider-row">
+                        <span class="font-size-a-small">A</span>
+                        <input type="range" id="font-size-slider" class="font-size-slider" min="0" max="4" step="1">
+                        <span class="font-size-a-large">A</span>
+                    </div>
+                </div>
+                <div class="font-panel-row-slider">
+                    <div class="font-slider-top">
+                        <span class="font-panel-label" data-i18n="font_panel_line_height">Tinggi baris</span>
+                        <button class="font-reset-btn" id="line-height-reset" title="Reset">↺</button>
+                    </div>
+                    <div class="font-size-slider-row font-lh-slider-row">
+                        <span class="font-size-a-small" style="line-height:1">≡</span>
+                        <input type="range" id="line-height-slider" class="font-size-slider" min="0" max="6" step="1">
+                        <span class="font-size-a-large" style="line-height:1.8">≡</span>
+                    </div>
+                </div>
+                <div class="font-panel-row">
+                    <span class="font-panel-label" data-i18n="font_panel_font">Gaya</span>
+                    <div class="font-family-controls">
+                        <button class="font-family-btn" id="font-family-sans">Sans</button>
+                        <button class="font-family-btn" id="font-family-serif">Serif</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </dialog>
+
+    <!-- ==================== NOTES MANAGER DIALOG ==================== -->
+    <dialog id="notes-manager">
+        <div class="nm-header">
+            <h3 data-i18n="nm_title">Kelola Catatan</h3>
+            <button id="btn-nm-close" class="nm-close-btn" title="Tutup">&times;</button>
+        </div>
+        <div class="nm-toolbar">
+            <label class="nm-select-all-label">
+                <input type="checkbox" id="nm-select-all">
+                <span data-i18n="nm_select_all">Pilih Semua</span>
+            </label>
+            <div class="nm-bulk-actions">
+                <button id="btn-nm-bulk-download" class="nm-bulk-btn" disabled><i data-lucide="download"></i> <span
+                        data-i18n="nm_download_selected">Unduh
+                        PDF</span></button>
+                <button id="btn-nm-bulk-delete" class="nm-bulk-btn danger" disabled><i data-lucide="trash-2"></i> <span
+                        data-i18n="nm_delete_selected">Hapus</span></button>
+            </div>
+        </div>
+        <div id="nm-list" class="nm-list"></div>
+    </dialog>
+
+    <script id="dk-bilara-author-names" type="application/json">{{ bilara_author_names | tojson }}</script>
+    <script id="dk-edition-author-names" type="application/json">{{ edition_author_names | tojson }}</script>
+    <script id="dk-lang-names" type="application/json">{{ lang_names | tojson }}</script>
+    <script>
+        window.DK_BILARA_AUTHOR_NAMES = JSON.parse(document.getElementById('dk-bilara-author-names').textContent);
+        window.DK_EDITION_AUTHOR_NAMES = JSON.parse(document.getElementById('dk-edition-author-names').textContent);
+        window.DK_LANG_NAMES = JSON.parse(document.getElementById('dk-lang-names').textContent);
+    </script>
+    <script src="{{ versioned_static('lucide.min.js') }}"></script>
+    <script src="{{ versioned_static('common.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>

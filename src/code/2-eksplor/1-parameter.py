@@ -10,7 +10,6 @@ import sys
 from pathlib import Path
 
 import torch
-from sentence_transformers import SentenceTransformer
 
 _BASE = next(p for p in Path(__file__).resolve().parents if (p / "config.py").exists())
 sys.path.insert(0, str(_BASE))
@@ -39,7 +38,7 @@ def main():
         nama, role = entry["name"], entry["role"]
         short = nama.split("/")[-1]
         try:
-            model = SentenceTransformer(config.resolve_model(nama), trust_remote_code=True)
+            model = config.load_st_model(nama)
             total = sum(p.numel() for p in model.parameters())
             juta = total / 1_000_000
             print(f"{short:<42} | {role:<8} | {total:>14,} | {juta:>6.1f}M")

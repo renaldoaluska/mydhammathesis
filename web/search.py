@@ -57,9 +57,8 @@ def _ok(entry, include_titles, include_blurb):
 
 # ── loaders (cached) ─────────────────────────────────────────────────────────
 def _load_model(name):
-    from sentence_transformers import SentenceTransformer
     if name not in _model_cache:
-        _model_cache[name] = SentenceTransformer(config.resolve_model(name), trust_remote_code=True)
+        _model_cache[name] = config.load_st_model(name)
     return _model_cache[name]
 
 
@@ -101,6 +100,9 @@ def semantic_search(query, model_name, lang, top_k=10, include_titles=True, incl
     model = _load_model(model_name)
     q = f"query: {query}" if _needs_prefix(model_name) else query
     qe = model.encode(q, convert_to_tensor=True, normalize_embeddings=True)
+    # cache korpus selalu di CPU (map_location="cpu"); query bisa mendarat di GPU
+    # kalau model ke-load di cuda -> samakan device biar cos_sim tidak mismatch.
+    qe = qe.to(emb.device)
     scores = util.cos_sim(qe, emb)[0]
     idx = torch.topk(scores, min(len(corpus), top_k * 5)).indices.tolist()
     out = []

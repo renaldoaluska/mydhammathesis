@@ -1,0 +1,330 @@
+{% extends "eval_base.html" %}
+
+{% block title %}Asesmen Pakar — myDhamma{% endblock %}
+
+{% block panel_toggle_icon %}sliders-horizontal{% endblock %}
+{% block panel_toggle_label %}<span data-i18n="panel_sidebar">Bilah Sisi</span>{% endblock %}
+
+{% block header_subtitle %}
+<span class="header-subtitle" data-i18n="hdr_subtitle_gra">Asesmen Pakar</span>
+{% endblock %}
+
+
+{% block main_panel %}
+
+<div id="eval-app">
+
+    <!-- ===== INTRO PHASE ===== -->
+    <div id="eval-intro">
+        <div class="eval-intro-card">
+            <h2 id="eval-intro-title" data-i18n-html="intro_title"><i data-lucide="clipboard-list"></i> Selamat Datang
+            </h2>
+            <p class="eval-intro-desc" id="eval-intro-desc" data-i18n="intro_desc">
+                Selamat datang di form asesmen relevansi hasil pencarian semantik.
+                Anda akan menilai kualitas hasil pencarian untuk setiap kueri terhadap setiap model.
+            </p>
+
+            <div class="eval-section">
+                <h3 data-i18n="section_definitions">Definisi Istilah</h3>
+                <dl class="eval-definitions">
+                    <dt data-i18n="def_corpus_term">Korpus</dt>
+                    <dd data-i18n-html="def_corpus_desc_html"><strong>ID</strong> = teks Indonesia, <strong>EN</strong>
+                        = teks Inggris, <strong>PLI</strong> = teks Pali (dicari secara semantik, ditampilkan dengan
+                        terjemahan Inggris).</dd>
+                    <dt data-i18n="def_query_term">Kueri</dt>
+                    <dd data-i18n-html="def_query_desc_html">Pertanyaan atau topik pencarian yang diuji pada sistem
+                        pencarian semantik, sebagai <i>input</i> untuk model.</dd>
+                    <dt data-i18n="def_passage_term">Pasase</dt>
+                    <dd data-i18n-html="def_passage_desc_html">Bagian atau pasal yang dikutip dari sebuah korpus.</dd>
+                    <!-- <dt data-i18n="def_extra_term">Informasi Ekstra</dt>
+                    <dd data-i18n="def_extra_desc">Informasi lain di dalam pasase yang tidak berkaitan dengan kueri,
+                        sehingga jawaban yang ada menjadi terselip atau sulit ditemukan.</dd> -->
+                </dl>
+            </div>
+
+            <div class="eval-section">
+                <h3 data-i18n="section_criteria">Kriteria Penilaian</h3>
+                <div class="eval-crit1eria-list">
+                    <div class="eval-criteria-item">
+                        <span class="eval-grade-badge grade-0">0</span>
+                        <div><strong data-i18n="grade_0_title">Tidak Relevan</strong><br><span
+                                data-i18n="grade_0_desc">Pasase tidak memiliki hubungan apa pun dengan kueri.</span>
+                        </div>
+                    </div>
+                    <div class="eval-criteria-item">
+                        <span class="eval-grade-badge grade-1">1</span>
+                        <div><strong data-i18n="grade_1_title">Terkait</strong><br><span data-i18n="grade_1_desc">Pasase
+                                tampak terkait dengan kueri, tetapi tidak menjawab kueri.</span></div>
+                    </div>
+                    <div class="eval-criteria-item">
+                        <span class="eval-grade-badge grade-2">2</span>
+                        <div><strong data-i18n="grade_2_title">Sangat Relevan</strong><br><span
+                                data-i18n="grade_2_desc">Pasase memuat jawaban untuk kueri, tetapi jawabannya mungkin
+                                sedikit kurang jelas, atau tersembunyi di antara informasi yang tidak relevan.</span>
+                        </div>
+                    </div>
+                    <div class="eval-criteria-item">
+                        <span class="eval-grade-badge grade-3">3</span>
+                        <div><strong data-i18n="grade_3_title">Relevan Sempurna</strong><br><span
+                                data-i18n="grade_3_desc">Pasase berfokus khusus pada kueri dan memuat jawaban yang
+                                tepat.</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="eval-section">
+                <h3 data-i18n="section_start">Mulai Asesmen</h3>
+                <div class="eval-config">
+                    <div class="control-group">
+                        <label class="control-label" data-i18n="lbl_expert">Nama Pakar</label>
+                        <select id="eval-expert-select" class="model-select">
+                            <option value="" data-i18n="select_expert">— Pilih nama pakar —</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label" data-i18n="lbl_corpus_select">Korpus</label>
+                        <select id="eval-corpus-select" class="model-select" disabled>
+                            <option value="" data-i18n="select_corpus">— Pilih korpus —</option>
+                            <option value="id">Indonesia (ID)</option>
+                            <option value="en">English (EN)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="eval-section">
+                <h3 data-i18n="disclaimer_title">Penafian</h3>
+                <p class="eval-intro-desc" data-i18n-html="disclaimer_body">Dengan melanjutkan, saya bersedia data yang
+                    dimasukkan digunakan untuk
+                    kepentingan riset di Institut Teknologi Sepuluh Nopember (ITS) Surabaya dalam rangka Tugas Akhir
+                    (skripsi)
+                    serta pelatihan model AI lebih lanjut. Data yang dikumpulkan dilisensikan di bawah <a
+                        href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">Creative
+                        Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)</a> dan digunakan semata-mata
+                    untuk tujuan
+                    akademis dan nonkomersial.</p>
+            </div>
+
+            <div class="eval-section">
+                <div class="eval-notice">
+                    <i data-lucide="info"></i>
+                    <span data-i18n-html="notice_autosave">Setiap penilaian yang Anda berikan <strong>kini langsung
+                            tersimpan
+                            otomatis</strong> — tidak perlu menekan tombol Lanjut untuk menyimpan. Perhatikan indikator
+                        <em style="color: #16a34a;">✓ Tersimpan</em> yang muncul setelah setiap perubahan. <br><br>Jika
+                        ada masalah, mohon hubungi via WhatsApp <a href="https://wa.me/6285814566133" target="_blank"
+                            rel="noopener">+6285814566133</a> (Alfa Renaldo Aluska). Mohon maaf apabila ada
+                        ketidaknyamanan. <em>Vandāmi.</em></span>
+                </div>
+                <button id="btn-eval-start" class="btn-primary" data-i18n-html="btn_start"><i data-lucide="play"></i>
+                    Mulai Asesmen</button>
+                <p id="eval-start-info" class="eval-start-info"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== GRADING PHASE ===== -->
+    <div id="eval-grading" class="hidden">
+        <div id="eval-progress-sticky-wrapper">
+            <div id="eval-sticky-top-row">
+                <div id="eval-progress-bars">
+                    <div id="eval-progress-bar-container">
+                        <div id="eval-progress-bar"></div>
+                    </div>
+                    <div id="eval-passage-bar-container">
+                        <div id="eval-passage-bar"></div>
+                    </div>
+                </div>
+                <div id="eval-sticky-step-info"></div>
+                <div id="eval-sticky-expert"></div>
+            </div>
+            <div id="eval-sticky-query"></div>
+        </div>
+        <div id="eval-exit-row-top" class="eval-exit-row-top">
+            <a href="/" class="eval-exit-btn"><i data-lucide="log-out"></i> <span data-i18n="btn_exit_form">Keluar dari Form</span></a>
+        </div>
+        <div id="eval-nav-top" class="eval-nav hidden">
+            <button class="btn-secondary btn-eval-prev"><i data-lucide="chevron-left"></i> <span class="nav-full"
+                    data-i18n="btn_prev_full">Sebelumnya</span><span class="nav-short"
+                    data-i18n="btn_prev_short">Sebelum</span></button>
+            <span class="eval-nav-info"></span>
+            <button class="btn-primary btn-eval-next"><span class="nav-full"
+                    data-i18n="btn_next_full">Selanjutnya</span><span class="nav-short"
+                    data-i18n="btn_next_short">Lanjut</span> <i data-lucide="chevron-right"></i></button>
+        </div>
+        <div id="eval-step-header"></div>
+        <div id="eval-loading" class="empty-state hidden">
+            <div class="spinner"></div>
+            <p data-i18n="loading">Menjalankan pencarian…</p>
+        </div>
+        <div id="eval-results"></div>
+        <div id="eval-nav-bottom" class="eval-nav hidden">
+            <button class="btn-secondary btn-eval-prev"><i data-lucide="chevron-left"></i> <span class="nav-full"
+                    data-i18n="btn_prev_full">Sebelumnya</span><span class="nav-short"
+                    data-i18n="btn_prev_short">Sebelum</span></button>
+            <span class="eval-nav-info"></span>
+            <button class="btn-primary btn-eval-next"><span class="nav-full"
+                    data-i18n="btn_next_full">Selanjutnya</span><span class="nav-short"
+                    data-i18n="btn_next_short">Lanjut</span> <i data-lucide="chevron-right"></i></button>
+        </div>
+        <div id="eval-exit-row">
+            <a href="/" class="eval-exit-btn"><i data-lucide="log-out"></i> <span data-i18n="btn_exit_form">Keluar dari
+                    Form</span></a>
+        </div>
+    </div>
+
+    <!-- ===== DONE PHASE ===== -->
+    <div id="eval-done" class="hidden">
+        <div class="empty-state">
+            <div class="empty-icon"><i data-lucide="circle-check"></i></div>
+            <h2 data-i18n="done_title">Asesmen Selesai!</h2>
+            <p data-i18n="done_body">Terima kasih atas partisipasi Anda.<br>Data penilaian telah tersimpan.</p>
+            <div id="eval-done-summary"></div>
+            <div id="eval-exit-row" style="margin-top:20px">
+                <a href="/" class="eval-exit-btn"><i data-lucide="log-out"></i> <span data-i18n="btn_exit_form">Keluar dari Form</span></a>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    window.EVAL_TYPE = parseInt("{{ eval_type|default(1) }}", 10);
+</script>
+{% endblock %}
+
+{% block panel_overlays %}
+{% if eval_type == 1 %}
+<style>
+    #search-panel {
+        position: relative;
+    }
+
+    #search-panel {
+        position: relative;
+    }
+
+    .maintenance-blur,
+    .maintenance-card-wrap,
+    .maintenance-card {
+        display: none !important;
+    }
+
+    .maintenance-blur {
+        position: absolute;
+        inset: 0;
+        z-index: 9999;
+        backdrop-filter: blur(3px);
+        -webkit-backdrop-filter: blur(3px);
+        background: rgba(255, 255, 255, 0.15);
+    }
+
+    html.dark .maintenance-blur {
+        background: rgba(0, 0, 0, 0.25);
+    }
+
+    .maintenance-card-wrap {
+        position: absolute;
+        inset: 0;
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+    }
+
+    .maintenance-card {
+        pointer-events: auto;
+        background: #fff;
+        padding: 2.5rem;
+        border-radius: 1rem;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        text-align: center;
+        max-width: 400px;
+    }
+
+    .maintenance-card h2 {
+        margin-top: 1rem;
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--text-color);
+    }
+
+    .maintenance-card p {
+        margin-top: 0.5rem;
+        color: var(--text-muted);
+        line-height: 1.5;
+    }
+</style>
+<div class="maintenance-blur"></div>
+<div class="maintenance-card-wrap">
+    <div class="maintenance-card">
+        <i data-lucide="circle-check-big" style="width: 48px; height: 48px; color: #22c55e; margin: 0 auto;"></i>
+        <h2>Evaluasi 1 Selesai</h2>
+        <p>Sesi asesmen pakar Evaluasi 1 telah selesai dilaksanakan. Terima kasih atas partisipasi Anda. Sampai jumpa di
+            Evaluasi 2.</p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block right_panel %}
+<section id="eval-sidebar">
+    <div class="eval-sidebar-inner">
+        <div id="eval-sidebar-query-card" class="eval-sidebar-card glass-panel hidden">
+            <div class="eval-sidebar-query-header">
+                <h3><span data-i18n-html="sidebar_query"><i data-lucide="search"></i> Kueri</span>
+                    <span id="eval-sidebar-query-count"></span>
+                </h3>
+                <label id="demo-skip-toggle" class="demo-skip-toggle hidden" title="Skip mode (demo)">
+                    <input type="checkbox" id="demo-skip-check" checked>
+                    <span class="demo-skip-label">Skip</span>
+                </label>
+                <button id="btn-eval-admin" class="btn-admin-eye" title="Admin view"><i data-lucide="eye"></i></button>
+            </div>
+            <div id="eval-sidebar-query-content"></div>
+
+            <div class="eval-sidebar-divider"></div>
+
+            <div id="eval-sidebar-step-info" class="eval-sidebar-info-stack"></div>
+        </div>
+        <div class="eval-sidebar-card glass-panel">
+            <h3 data-i18n-html="sidebar_criteria"><i data-lucide="clipboard-list"></i> Kriteria Penilaian</h3>
+            <div class="eval-criteria-compact">
+                <div class="eval-criteria-row">
+                    <span class="eval-grade-badge grade-0">0</span>
+                    <div><strong data-i18n="grade_0_title">Tidak Relevan</strong><br><span
+                            data-i18n="grade_0_desc">Pasase tidak memiliki hubungan apa pun dengan kueri.</span></div>
+                </div>
+                <div class="eval-criteria-row">
+                    <span class="eval-grade-badge grade-1">1</span>
+                    <div><strong data-i18n="grade_1_title">Terkait</strong><br><span data-i18n="grade_1_desc">Pasase
+                            tampak terkait dengan kueri, tetapi tidak menjawab kueri.</span></div>
+                </div>
+                <div class="eval-criteria-row">
+                    <span class="eval-grade-badge grade-2">2</span>
+                    <div><strong data-i18n="grade_2_title">Sangat Relevan</strong><br><span
+                            data-i18n="grade_2_desc">Pasase memuat jawaban untuk kueri, tetapi jawabannya mungkin
+                            sedikit kurang jelas, atau tersembunyi di antara informasi yang tidak relevan.</span>
+                    </div>
+                </div>
+                <div class="eval-criteria-row">
+                    <span class="eval-grade-badge grade-3">3</span>
+                    <div><strong data-i18n="grade_3_title">Relevan Sempurna</strong><br><span
+                            data-i18n="grade_3_desc">Pasase berfokus khusus pada kueri dan memuat jawaban yang
+                            tepat.</span></div>
+                </div>
+            </div>
+        </div>
+        <div id="eval-sidebar-progress-table" class="eval-sidebar-card glass-panel hidden">
+            <h3><i data-lucide="bar-chart-3"></i> Progres</h3>
+            <div id="eval-sidebar-progress-content"></div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ versioned_static('eval_gra.js') }}"></script>
+{% endblock %}

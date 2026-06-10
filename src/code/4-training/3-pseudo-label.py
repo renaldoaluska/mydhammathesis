@@ -37,9 +37,19 @@ def main():
     s_pos = ce.predict(pos_pairs, batch_size=config.GPL_BATCH_SIZE, show_progress_bar=True)
     s_neg = ce.predict(neg_pairs, batch_size=config.GPL_BATCH_SIZE, show_progress_bar=True)
 
+    # Skala margin teacher -> rentang yang dapat dicapai bi-encoder. Model ST (e5/gte)
+    # menormalisasi embedding (cos in [-1,1]) -> selisih cos terbatas (~<=2); margin CE
+    # mentah (std~5, max~21) mustahil dikejar -> MarginMSE tak konvergen (loss mentok,
+    # grad meledak). Kalibrasi self-scaling: bagi agar std(margin) ~ GPL_MARGIN_TARGET_STD.
+    raw = s_pos - s_neg                                    # np.ndarray (ce.predict -> numpy)
+    sd = float(raw.std())
+    scale = sd / config.GPL_MARGIN_TARGET_STD if sd > 0 else 1.0
+    print(f"[margin-scale] raw mean={float(raw.mean()):.2f} std={sd:.2f} "
+          f"-> bagi {scale:.3f} -> std~{config.GPL_MARGIN_TARGET_STD}")
+
     out = [{"query": t["query"], "pos": pid2text[t["pos_pid"]],
-            "neg": pid2text[t["neg_pid"]], "margin": float(sp) - float(sn)}
-           for t, sp, sn in zip(triples, s_pos, s_neg)]
+            "neg": pid2text[t["neg_pid"]], "margin": float(m) / scale}
+           for t, m in zip(triples, raw)]
 
     _gpl.write_jsonl(_gpl.TRAIN, out)
     print(f"[done] {len(out):,} contoh latih -> {_gpl.TRAIN}")

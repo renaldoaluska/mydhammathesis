@@ -1,0 +1,19 @@
+{
+  "_doc": "Daftar MODEL eval myDhamma — BEKU & LOKAL (reproducibility: konsisten dgn search_cache.pkl yg di-freeze per (query,model,db)). model_versi: nama model -> label versi (kolom CSV). model_langs: nama model -> cakupan korpus (multi=id+en, en, indo). Nama model GPL = folder output 4-training/models/gpl-<short>. CATATAN: PATH data eval (EVAL_DIR) diambil dari src/config.py, BUKAN di sini.",
+  "model_versi": {
+    "intfloat/multilingual-e5-base": "base",
+    "gpl-multilingual-e5-base": "gpl",
+    "Alibaba-NLP/gte-multilingual-base": "base",
+    "gpl-gte-multilingual-base": "gpl",
+    "BAAI/bge-m3": "base",
+    "BM25": "base"
+  },
+  "model_langs": {
+    "intfloat/multilingual-e5-base": "multi",
+    "gpl-multilingual-e5-base": "multi",
+    "Alibaba-NLP/gte-multilingual-base": "multi",
+    "gpl-gte-multilingual-base": "multi",
+    "BAAI/bge-m3": "multi",
+    "BM25": "multi"
+  }
+}

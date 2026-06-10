@@ -1,0 +1,234 @@
+==============================================================================
+ MASALAH UTAMA PENELITIAN SEBELUMNYA  (dhammakathika / "tahap 1")
+ Latar yang memotivasi pivot ke myDhamma. Sumber: rencana.txt (LATAR REVISI).
+==============================================================================
+
+Inti masalah: yang bermasalah adalah DESAIN & FRAMING penelitian (kategori
+model, landasan pemilihan, metode adaptasi, dan protokol kueri) — BUKAN datanya.
+Korpus dan temuan tahap 1 tetap valid sebagai PILOT yang mengarahkan tahap 2.
+
+Enam kelemahan yang teridentifikasi:
+
+(1) PERBANDINGAN MODEL TIDAK SEBANDING (apple-to-apple semu).
+    4 jenis model dengan tujuan latih berbeda diadu setara: retrieval-native (e5)
+    vs STS/paraphrase (paraphrase-mpnet/xlm-r) vs raw BERT (indobert, tanpa
+    sentence embedding) vs bitext-mining (LaBSE). Baseline tidak sefungsi ->
+    "justifikasi tidak nyambung".
+
+(2) PEMILIHAN MODEL TANPA LANDASAN BENCHMARK IR.
+    Tidak merujuk MTEB / BEIR / MIRACL; model dipilih ad-hoc ("yang bagus per
+    bahasa"). Pertanyaan penguji "kenapa model ini?" sulit dijawab.
+
+(3) METODE TIDAK SELARAS TUJUAN (TSDAE vs retrieval).
+    TSDAE = denoising auto-encoder unsupervised, tidak mengoptimasi sinyal
+    retrieval; pada model supervised-mature -> CATASTROPHIC FORGETTING (terbukti
+    di eval-1). Inilah pemicu utama penggantian metode menjadi GPL [4].
+
+(4) PROTOKOL KUERI LEMAH.
+    Kueri seperti "empat kebenaran mulia" bersifat NAMA KONSEP (keyword), bukan
+    kueri semantik natural; dipilih sendiri tanpa persetujuan pakar (rawan
+    cherry-pick).
+
+(5) METRIK UTAMA TERKONTAMINASI HEADING.
+    Sebagian nDCG awal artefak kecocokan leksikal pada HEADING (judul seksi),
+    bukan relevansi konten -> peringkat model bias.
+
+(6) RUANG EKSPERIMEN MEMBENGKAK (29 kondisi).
+    Mayoritas varian TSDAE yang tidak relevan; beban asesmen meledak (1 pakar
+    menilai 1000+ pasase) tanpa menambah nilai ilmiah.
+
+Bagaimana myDhamma (tahap 2) menjawabnya:
+  (1)(2) -> 2 backbone retrieval-native [1][2] dipilih berbasis benchmark, plus
+           baseline jelas (BGE-M3 [3], BM25 [12]); kategori model setara.
+  (3)    -> TSDAE diganti GPL [4] (domain adaptation untuk dense retrieval).
+  (4)    -> kueri di-approve pakar SEBELUM melihat hasil (anti cherry-pick).
+  (5)    -> flag `heading` pada praproses memisahkan judul dari body.
+  (6)    -> diciutkan ke 6 sistem (3 model + BM25): beban manusiawi + IAA terukur.
+
+
+==============================================================================
+ myDhamma — DAFTAR SITASI PAPER
+ Semua paper/metode yang dipakai, dikelompokkan per tahap pipeline.
+ Tiap entri: sitasi lengkap + "Dipakai di:" (file/tahap kode).
+==============================================================================
+
+Catatan format: gaya sitasi di bawah mendekati APA. Sesuaikan dengan template
+skripsi/jurnalmu (IEEE/Harvard) bila perlu. arXiv ID dicantumkan untuk telusur.
+
+
+==============================================================================
+ A. MODEL DASAR — Dense Retrieval Encoders (bi-encoder embedding)
+==============================================================================
+
+[1] multilingual-e5-base  (backbone utama / "core")
+    Wang, L., Yang, N., Huang, X., Yang, L., Majumder, R., & Wei, F. (2024).
+    Multilingual E5 Text Embeddings: A Technical Report. arXiv:2402.05672.
+    Dipakai di: src/config.py (REGISTRY, role="core"); juga sebagai retriever
+    hard-negative GPL (src/code/4-training/2-hard-neg.py, config.GPL_RETRIEVER);
+    di-fine-tune menjadi varian "e5-GPL".
+
+[2] gte-multilingual-base / mGTE  (pembanding "core", arsitektur beda)
+    Zhang, X., Zhang, Y., Long, D., Xie, W., Dai, Z., Tang, J., Lin, H., Yang, B.,
+    Xie, P., Huang, F., Zhang, M., Li, W., & Zhang, M. (2024). mGTE: Generalized
+    Long-Context Text Representation and Reranking Models for Multilingual Text
+    Retrieval. In Proceedings of EMNLP 2024 (Industry Track). arXiv:2407.19669.
+    Dipakai di: src/config.py (REGISTRY, role="core"); di-fine-tune -> "gte-GPL".
+    (Butuh trust_remote_code; buffer RoPE dipulihkan via config.load_st_model —
+     lih. src/config.py.)
+
+[3] BGE-M3  (baseline dense "off-the-shelf", apa-adanya)
+    Chen, J., Xiao, S., Zhang, P., Luo, K., Lian, D., & Liu, Z. (2024).
+    BGE M3-Embedding: Multi-Lingual, Multi-Functionality, Multi-Granularity Text
+    Embeddings Through Self-Knowledge Distillation. arXiv:2402.03216.
+    Dipakai di: src/config.py (REGISTRY) sebagai baseline dense non-adaptasi.
+
+
+==============================================================================
+ B. ADAPTASI DOMAIN — Pipeline pelatihan GPL  (src/code/4-training/)
+==============================================================================
+
+[4] GPL — Generative Pseudo Labeling  (METODE INTI tahap pelatihan)
+    Wang, K., Thakur, N., Reimers, N., & Gurevych, I. (2022). GPL: Generative
+    Pseudo Labeling for Unsupervised Domain Adaptation of Dense Retrieval.
+    In Proceedings of NAACL-HLT 2022. arXiv:2112.07577.
+    Dipakai di: seluruh src/code/4-training/ (1-query-gen -> 2-hard-neg ->
+    3-pseudo-label -> 4-train-marginmse). Identitas metode di repo: "Multilingual
+    Generative Pseudo-Labeling (mGPL) for Unsupervised Domain Adaptation".
+
+[5] Sentence-BERT (SBERT)  (kerangka bi-encoder / library sentence-transformers)
+    Reimers, N., & Gurevych, I. (2019). Sentence-BERT: Sentence Embeddings using
+    Siamese BERT-Networks. In Proceedings of EMNLP-IJCNLP 2019. arXiv:1908.10084.
+    Dipakai di: framework SentenceTransformer untuk encode/train semua model dense
+    (src/code/4-training/5-embed.py, web/search.py).
+
+[6] Margin-MSE  (loss fine-tuning, distilasi dari cross-encoder)
+    Hofstaetter, S., Althammer, S., Schroeder, M., Sertkan, M., & Hanbury, A.
+    (2020). Improving Efficient Neural Ranking Models with Cross-Architecture
+    Knowledge Distillation. arXiv:2010.02666.
+    Dipakai di: src/code/4-training/4-train-marginmse.py (MarginMSELoss).
+
+[7] doc2query / Document Expansion by Query Prediction  (generasi kueri sintetis)
+    Nogueira, R., Yang, W., Lin, J., & Cho, K. (2019). Document Expansion by Query
+    Prediction. arXiv:1904.08375. (lihat juga: Nogueira, R., & Lin, J. (2019).
+    From doc2query to docTTTTTquery.)
+    Dipakai di: src/code/4-training/1-query-gen.py (model
+    doc2query/msmarco-14langs-mt5-base-v1, config.GPL_QUERY_GEN).
+
+[8] mT5  (backbone multibahasa untuk generator kueri di [7])
+    Xue, L., Constant, N., Roberts, A., Kale, M., Al-Rfou, R., Siddhant, A.,
+    Barua, A., & Raffel, C. (2021). mT5: A Massively Multilingual Pre-trained
+    Text-to-Text Transformer. In Proceedings of NAACL-HLT 2021. arXiv:2010.11934.
+    Dipakai di: src/code/4-training/1-query-gen.py (arsitektur query generator).
+
+[9] mMARCO  (cross-encoder penilai pseudo-label + asal data latih multibahasa)
+    Bonifacio, L., Jeronymo, V., Abonizio, H. Q., Campiotti, I., Fadaee, M.,
+    Lotufo, R., & Nogueira, R. (2021). mMARCO: A Multilingual Version of the MS
+    MARCO Passage Ranking Dataset. arXiv:2108.13897.
+    Dipakai di: src/code/4-training/3-pseudo-label.py (model
+    cross-encoder/mmarco-mMiniLMv2-L12-H384-v1, config.GPL_CROSS_ENCODER).
+
+[10] MiniLMv2  (arsitektur cross-encoder penilai di [9])
+    Wang, W., Bao, H., Huang, S., Dong, L., & Wei, F. (2021). MiniLMv2: Multi-Head
+    Self-Attention Relation Distillation for Compressing Pretrained Transformers.
+    In Findings of ACL 2021. arXiv:2012.15828.
+    Dipakai di: src/code/4-training/3-pseudo-label.py (backbone mMiniLMv2).
+
+[11] MS MARCO  (dataset asal cross-encoder & doc2query)
+    Nguyen, T., Rosenberg, M., Song, X., Gao, J., Tiwary, S., Majumder, R., &
+    Deng, L. (2016). MS MARCO: A Human Generated MAchine Reading COmprehension
+    Dataset. arXiv:1611.09268.
+    Dipakai di: silsilah data pra-latih untuk [7] dan [9] (tidak dilatih langsung,
+    tapi dasar pseudo-labeling GPL).
+
+
+==============================================================================
+ C. RETRIEVAL — Mesin pencarian  (web/search.py)
+==============================================================================
+
+[12] BM25 (Okapi)  (baseline leksikal/sparse)
+    Robertson, S., & Zaragoza, H. (2009). The Probabilistic Relevance Framework:
+    BM25 and Beyond. Foundations and Trends in Information Retrieval, 3(4), 333-389.
+    Dipakai di: web/search.py (rank_bm25 BM25Okapi) sebagai kaki "Kata Kunci".
+
+[13] Reciprocal Rank Fusion (RRF)  (penggabung hybrid)
+    Cormack, G. V., Clarke, C. L. A., & Buettcher, S. (2009). Reciprocal Rank
+    Fusion Outperforms Condorcet and Individual Rank Learning Methods. In
+    Proceedings of SIGIR 2009, 758-759.
+    Dipakai di: web/search.py (mode "Hybrid" = RRF(semantic, keyword), k=60).
+
+
+==============================================================================
+ D. EVALUASI  (src/code/5-eval/)
+==============================================================================
+
+[14] BEIR  (kerangka acuan evaluasi zero-shot retrieval, acuan nDCG@10)
+    Thakur, N., Reimers, N., Rueckle, A., Srivastava, A., & Gurevych, I. (2021).
+    BEIR: A Heterogeneous Benchmark for Zero-shot Evaluation of Information
+    Retrieval Models. In NeurIPS 2021 Datasets and Benchmarks Track. arXiv:2104.08663.
+    Dipakai di: src/code/5-eval/3-ndcg.py (metrik utama nDCG@10, selaras BEIR/GPL).
+
+[15] nDCG  (metrik utama)
+    Jaervelin, K., & Kekaelaeinen, J. (2002). Cumulated Gain-based Evaluation of IR
+    Techniques. ACM Transactions on Information Systems, 20(4), 422-446.
+    Dipakai di: src/code/5-eval/3-ndcg.py (nDCG@10 & nDCG@5 dari asesmen pakar).
+
+[16] MRR  (metrik presisi peringkat)
+    Voorhees, E. M. (1999). The TREC-8 Question Answering Track Report. In
+    Proceedings of TREC-8.
+    Dipakai di: src/code/5-eval/4-precision.py (MRR@10, P@10).
+
+[17] Cohen's kappa (quadratic-weighted)  (inter-annotator agreement)
+    Cohen, J. (1960). A Coefficient of Agreement for Nominal Scales. Educational
+    and Psychological Measurement, 20(1), 37-46.
+    Cohen, J. (1968). Weighted kappa: Nominal scale agreement with provision for
+    scaled disagreement or partial credit. Psychological Bulletin, 70(4), 213-220.
+    Dipakai di: src/code/5-eval/6-iaa.py (cohen_kappa_score, weights="quadratic").
+
+[18] Koefisien korelasi Spearman  (kalibrasi cosine vs grade pakar — SEKUNDER)
+    Spearman, C. (1904). The Proof and Measurement of Association between Two
+    Things. The American Journal of Psychology, 15(1), 72-101.
+    Dipakai di: src/code/5-eval/5-spearman.py (spearmanr).
+
+
+==============================================================================
+ E. FONDASI  (opsional — sitasi latar arsitektur; sertakan bila bab dasar teori
+    membahas Transformer/BERT)
+==============================================================================
+
+[19] Transformer
+    Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N.,
+    Kaiser, L., & Polosukhin, I. (2017). Attention Is All You Need. In NeurIPS 2017.
+    Mendasari: semua encoder dense [1]-[3], cross-encoder [9]-[10], generator [7]-[8].
+
+[20] BERT
+    Devlin, J., Chang, M.-W., Lee, K., & Toutanova, K. (2019). BERT: Pre-training
+    of Deep Bidirectional Transformers for Language Understanding. In NAACL-HLT 2019.
+    Mendasari: backbone encoder e5/gte/BGE-M3/LaBSE & MiniLM.
+
+
+==============================================================================
+ F. DISEBUT TAPI TIDAK DIPAKAI DI SISTEM FINAL  (jangan disitasi sbg komponen
+    sistem; hanya jika dibahas di pembanding/justifikasi pemilihan model)
+==============================================================================
+
+[x1] LaBSE  — DICABUT dari eval (peran "off-the-shelf dense baseline" sudah
+     diwakili BGE-M3 [3]; lih. src/config.py & CHECKLIST.txt).
+     Feng, F., Yang, Y., Cer, D., Arivazhagan, N., & Wang, W. (2022).
+     Language-agnostic BERT Sentence Embedding. In Proceedings of ACL 2022.
+     arXiv:2007.01852.
+
+[x2] TSDAE — pendekatan pra-latih unsupervised yang DIBUANG saat pivot ke GPL
+     (tidak ada di pipeline mydhamma; hanya relevan bila membahas alternatif).
+     Wang, K., Reimers, N., & Gurevych, I. (2021). TSDAE: Using Transformer-based
+     Sequential Denoising Auto-Encoder for Unsupervised Sentence Embedding
+     Learning. In Findings of EMNLP 2021. arXiv:2104.06979.
+
+
+==============================================================================
+ CATATAN SUMBER DATA (bukan paper akademik — sitasi sebagai sumber data/korpus)
+==============================================================================
+ - Korpus Tipitaka + terjemahan: SuttaCentral (sc_bilara_data & html_text),
+   diunduh via src/code/1-get-data/. Sitasikan sebagai sumber data, mis.
+   SuttaCentral (https://suttacentral.net), Bilara/Mahasangiti edition.
+ - Model & tokenizer didistribusikan via Hugging Face Hub.
+==============================================================================

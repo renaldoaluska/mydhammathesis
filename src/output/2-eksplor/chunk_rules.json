@@ -39,5 +39,20 @@
   ],
   "horner_split": [
     "en/pli/sutta/mn/horner/mn76"
+  ],
+  "structural_classes": [
+    "end",
+    "endsutta",
+    "endsection",
+    "endvagga",
+    "endbook",
+    "endkanda",
+    "namo",
+    "pe",
+    "uddana-intro"
+  ],
+  "heading_classes": [
+    "subheading",
+    "vagga"
   ]
 }

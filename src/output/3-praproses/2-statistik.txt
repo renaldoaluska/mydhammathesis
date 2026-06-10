@@ -62,8 +62,10 @@ Pali       170191.0  16.6  21.5  1.0  3.0  10.0  20.0   620.0
    [grafik] /home/paps21/palisemantic5026221144/mydhamma/src/output/3-praproses/2-statistik/4-panjang-kata.png
 
 5. VERIFIKASI CHUNK
-   body (heading=0): 399,250
-   heading h1: 20,481
+   body (heading=0): 377,154
+   heading h1: 42,577
+      - <h1> asli             : 20,481
+      - judul <li>/<p> header : 22,096  (di-tag heading=1 utk exclude dari body)
    heading h2: 8,810
    heading h3: 5,519
    heading h4: 4,221

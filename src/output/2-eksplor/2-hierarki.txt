@@ -28,4 +28,10 @@ Kedalaman    : dibatasi 4 level
         [DIR] sutta/  (67 berkas)
         [DIR] vinaya/  (93 berkas)
 
+--- CAKUPAN html_text per bahasa x pitaka (jumlah file) ---
+  lang         sutta      vinaya  abhidhamma
+  en           3,609         246         401
+  id           3,923         222           0
+  (0 = tak ada terjemahan pitaka tsb di bahasa itu; pli-original ada di bilara-root)
+
 [INFO] /home/paps21/palisemantic5026221144/mydhamma/src/output/2-eksplor/2-hierarki.txt

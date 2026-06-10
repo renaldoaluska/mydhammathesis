@@ -1,0 +1,49 @@
+================================================================================
+CATATAN — QUERY GENERATION (4-training/1-query-gen.py)
+Keputusan desain + pemisahan TEGAS antara parameter RISET vs buffer ENGINEERING.
+================================================================================
+
+MODEL
+  doc2query/msmarco-14langs-mt5-base-v1 (mT5 multibahasa). "Golden standard" mGPL
+  (lihat konfigurasi_gpl.txt). Menghasilkan kueri di bahasa dokumen (MONOLINGUAL).
+
+PARAMETER RISET (dipertahankan, bukan karangan)
+  - 3 kueri per pasase  = GPL default (Wang et al. 2022; config.GPL_QUERIES_PER_PASSAGE).
+    OUTPUT akhir TETAP 3/pasase -> tidak menyimpang dari GPL.
+  - Bahasa latih: en + id (config.GPL_TRAIN_LANGS). Generasi monolingual:
+    passage id -> kueri id, passage en -> kueri en. Transfer cross-lingual (mis. kueri
+    id -> pasase en Abhidhamma) DARI base model (e5/gte), BUKAN di-GPL eksplisit.
+
+DECODING (kenapa nucleus sampling)
+  - DULU: do_sample top_k=10 -> sering kueri garbled/halusinasi.
+  - SEKARANG: nucleus (top_p=0.92) + repetition_penalty=1.2 + no_repeat_ngram_size=2.
+    Lebih koheren tapi tetap beragam (sampling = standar doc2query/GPL untuk diversitas).
+  - TIDAK pakai diverse/group beam search: di transformers versi ini sudah dipindah ke
+    repo remote -> butuh trust_remote_code -> dihindari.
+
+FILTER KUALITAS (tambahan kami; tidak ada di GPL ori)
+  Urutan reject per kueri:
+   1. SKRIP ASING  : buang kueri mengandung Yunani/Sirilik/Ibrani/Arab/Devanagari/Thai/
+      CJK/Kana/Hangul (noise mT5 saat sampling). Latin + diakritik Pali (a-macron, n-tilde,
+      m-dot, dll) TETAP lolos. Verifikasi: unit-test KEEP Pali, REJECT skrip asing.
+   2. MIN KATA < 3 : buang fragmen terlalu pendek.
+   3. DEDUP        : buang duplikat antar-sampel dalam satu pasase.
+   4. VERBATIM     : buang kueri yang sekadar salinan persis pasase (bukan pertanyaan).
+  CATATAN: kueri "Latin-garbled" (ejaan ngaco tapi skrip Latin) SENGAJA DIBIARKAN ->
+  dibersihkan tahap 3-pseudo-label (cross-encoder beri margin rendah = bobot kecil).
+
+BUFFER ENGINEERING (n_gen = 2 x n = 6)  -- BUKAN parameter riset
+  Karena filter di atas bisa membuang sebagian kueri, jika generate tepat 3 lalu kena
+  filter -> pasase bisa berakhir <3 atau 0 kueri (tidak ada sinyal latih).
+  Maka: generate 6, saring, AMBIL 3 bersih pertama. Target riset (3) tetap tercapai.
+  - Faktor 2x adalah TUNABLE (boleh n+2 bila waktu generate jadi kendala). Bukan sakral.
+  - Pilih OVER-GENERATE UPFRONT (1 panggilan batched, GPU efisien) ketimbang lazy-retry
+    (pass-2 batch kecil utk yang gagal -> GPU tak penuh + kode rumit). Lihat 1-query-gen.py.
+
+VISIBILITAS
+  1-query-gen.py mencetak: "pasase >=1 kueri: X/total (0 kueri: ...%)" -> pantau berapa
+  pasase yang gagal dapat kueri (harusnya kecil; uji ID 6/6 -> 0 kosong).
+
+RINGKAS: 3 = riset (GPL), dipertahankan sebagai output. 6 = cara internal supaya tetap
+dapat 3 setelah penyaringan noise. Tidak ada hack yang disamarkan sebagai metodologi.
+================================================================================

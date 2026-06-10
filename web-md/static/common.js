@@ -1,0 +1,2262 @@
+/* ============================================================
+   Dhammakathika — Shared Logic (loaded via base.html)
+   Handles: theme, source toggle, notes panel, resize handle
+   ============================================================ */
+
+(function () {
+  "use strict";
+
+  // ========== Shared i18n (notes panel strings) ==========
+  const i18n = {
+    id: {
+      confirm_delete: "Hapus catatan ini?",
+      dlg_btn_ok: "OK",
+      dlg_btn_cancel: "Batal",
+      dlg_btn_continue: "Lanjutkan",
+      dlg_btn_delete: "Hapus",
+      btn_add_note: "+ Catatan",
+      btn_add_note_short: "+",
+      btn_open_sutta: "Halaman Teks",
+      btn_open_here: "Buka di sini",
+      btn_open_newtab: "Tab baru",
+      btn_single: "Terjemahan Saja",
+      btn_sidebyside: "Berdampingan Pāḷi",
+      msg_copied: "Catatan telah disalin ke clipboard!",
+      footer_student: "Penyusun:",
+      footer_supervisor: "Pembimbing:",
+      title_its: "Institut Teknologi Sepuluh Nopember",
+      title_stab: "Sekolah Tinggi Agama Buddha Kertarajasa",
+      title_styab: "Sekolah Tinggi Agama Buddha Syailendra",
+      title_sc: "SuttaCentral",
+      nav_search: "Mesin Pencari",
+      nav_search_full: "Mesin Pencari",
+      nav_search_short: "Mesin Cari",
+      nav_browse: "Telusuri",
+      cb_seg_ref: "Segmen",
+      btn_reader_settings: "Setelan",
+      rs_title: "Setelan",
+      rs_section_display: "Tampilan Teks",
+      rs_seg_desc: "Menampilkan kode rujukan tiap ruas teks beserta nomor barisnya. Berguna saat ingin mengutip atau menemukan baris tertentu secara tepat.",
+      rs_preview_label: "Pratinjau",
+      toc_title: "Daftar Isi",
+      seg_list_title: "Daftar Segmen",
+      btn_scroll_top: "Gulir ke Atas",
+      font_panel_title: "Teks",
+      font_panel_size: "Ukuran",
+      font_panel_line_height: "Tinggi baris",
+      font_panel_font: "Gaya",
+      font_style_hint: "Sans: tanpa kait, bersih & modern. Serif: berkait kecil, terasa klasik seperti buku cetak.",
+      btn_advanced: "Tingkat Lanjut",
+      config_search_engine: "Konfigurasi Mesin Pencari",
+      config_search_engine_desc: "Centang model yang ingin digabungkan pada pencarian biasa (bukan mode tingkat lanjut).",
+      hint_click_info: "Klik ikon <i data-lucide=\"info\" style=\"width: 14px; height: 14px; display: inline-block; vertical-align: -2px;\"></i> untuk lihat fungsi dari masing-masing opsi.",
+      err_no_config: "Konfigurasi model belum ada",
+      btn_manage_notes: "Kelola",
+      btn_config_short: "Konfig Mesin",
+      btn_reset: "Reset",
+      btn_open_link: "Buka",
+      btn_open_blurb: "Hlm. Teks",
+      legend_title: '<span class="hide-mobile">Keterangan Simbol</span><span class="show-mobile">Ket. Simbol</span>',
+      legend_segment: "Segmen Teks",
+      legend_blurb: "Sinopsis",
+      legend_author: "Penerjemah",
+      legend_similarity: "Kemiripan Makna",
+      legend_count: "Jumlah Kecocokan",
+      ensemble_config_title: "Konfigurasi Gabungan Model",
+      hint_ensemble_warning: "Ubah konfigurasi ini hanya jika Anda paham, karena akan sangat memengaruhi hasil pencarian. Anda dapat mereset kapan saja, konfigurasi ini hanya tersimpan di perangkat Anda.",
+      confirm_reset_ensemble: "Reset konfigurasi gabungan model ke setelan awal dari server?",
+      btn_save: "Simpan",
+      nm_title: "Kelola Catatan",
+      nm_select_all: "Pilih Semua",
+      nm_delete_selected: "Hapus",
+      nm_download_selected: "Unduh PDF",
+      nm_confirm_bulk: "Hapus catatan yang dipilih?",
+      nm_blocks: "blok",
+      nm_col_title: "Judul",
+      nm_col_created: "Dibuat",
+      nm_col_edited: "Disunting",
+      footer_tentang: "Tentang myDhamma",
+      notes_title: '<i data-lucide="pen-line"></i> Catatan',
+      btn_new_note: "+ Baru",
+      ph_note_title: "Judul catatan…",
+      btn_add_text: "+ Tambah Catatan Bebas",
+      note_add_sutta_hint: "Untuk mengutip teks Sutta, gunakan menu Telusuri/Pencarian di panel kiri, lalu klik tombol <b>+ Catatan</b> pada bagian teks yang ingin dikutip.",
+      btn_paste_block: "Tempel Blok",
+      notes_empty: "Pilih atau buat catatan baru<br>untuk mulai menyusun pembabaran Dhamma.",
+      sutta_not_found: "Sutta tidak ditemukan.",
+      loading_sutta: "Memuat sutta…",
+      sp_not_found: "Sutta tidak tersedia dalam korpus.",
+      research_banner: "DALAM PENGEMBANGAN — MASIH TERBATAS UNTUK RISET",
+      panel_sidebar: "Bilah Sisi",
+      select_corpus: "— Pilih korpus —",
+    },
+    en: {
+      confirm_delete: "Delete this note?",
+      btn_add_note: "+ Notes",
+      btn_add_note_short: "+ Note",
+      btn_open_sutta: "Text Page",
+      btn_open_here: "Open here",
+      btn_open_newtab: "New tab",
+      btn_single: "Translation Only",
+      btn_sidebyside: "Side by Side with Pāḷi",
+      msg_copied: "Note copied to clipboard!",
+      footer_student: "Researcher:",
+      footer_supervisor: "Supervisor:",
+      title_its: "Sepuluh Nopember Institute of Technology",
+      title_stab: "Kerataraja Buddhist College",
+      title_styab: "Syailendra Buddhist College",
+      title_sc: "SuttaCentral",
+      nav_search: "Search Engine",
+      nav_search_full: "Search Engine",
+      nav_search_short: "Search",
+      nav_browse: "Browse",
+      panel_sidebar: "Sidebar",
+      cb_seg_ref: "Segments",
+      btn_reader_settings: "Settings",
+      rs_title: "Settings",
+      rs_section_display: "Text Display",
+      rs_seg_desc: "Shows the reference code and line number of each text segment. Useful for quoting or pinpointing a specific line.",
+      rs_preview_label: "Preview",
+      toc_title: "Table of Contents",
+      seg_list_title: "Segment List",
+      font_panel_title: "Text",
+      font_panel_size: "Size",
+      font_panel_line_height: "Line height",
+      font_panel_font: "Style",
+      font_style_hint: "Sans: no serifs, clean & modern. Serif: small strokes, classic like printed books.",
+      btn_scroll_top: "Scroll to Top",
+      btn_advanced: "Advanced",
+      config_search_engine: "Search Engine Configuration",
+      config_search_engine_desc: "Check the models you want to combine for the simple search mode (not advanced mode).",
+      hint_click_info: "Click the <i data-lucide=\"info\" style=\"width: 14px; height: 14px; display: inline-block; vertical-align: -2px;\"></i> icon to learn the function of each option.",
+      err_no_config: "Model configuration missing",
+      btn_manage_notes: "Manage",
+      btn_config_short: "Machine Config",
+      btn_reset: "Reset",
+      btn_open_link: "Open",
+      btn_open_blurb: "View Text",
+      legend_title: "Legend",
+      legend_segment: "Text Segment",
+      legend_blurb: "Summary",
+      legend_author: "Translator",
+      legend_similarity: "Semantic Match",
+      legend_count: "Match Count",
+      ensemble_config_title: "Model Ensemble Configuration",
+      hint_ensemble_warning: "Change this configuration only if you understand it, as it will significantly affect search results. You can reset it anytime, this configuration is only saved on your device.",
+      confirm_reset_ensemble: "Reset ensemble model configuration to server defaults?",
+      btn_save: "Save",
+      nm_title: "Manage Notes",
+      nm_select_all: "Select All",
+      nm_delete_selected: "Delete",
+      nm_download_selected: "Download PDF",
+      nm_confirm_bulk: "Delete selected notes?",
+      nm_blocks: "blocks",
+      nm_col_title: "Title",
+      nm_col_created: "Created",
+      nm_col_edited: "Edited",
+      footer_tentang: "About myDhamma",
+      notes_title: '<i data-lucide="pen-line"></i> Notes',
+      btn_new_note: "+ New",
+      ph_note_title: "Note title…",
+      btn_add_text: "+ Add Personal Note",
+      note_add_sutta_hint: "To quote a Sutta, use the Browse/Search menu in the left panel, then click the <b>+ Notes</b> button on the text you want to quote.",
+      btn_paste_block: "Paste Block",
+      notes_empty: "Select or create a new note<br>to start composing your talk.",
+      sutta_not_found: "Sutta not found.",
+      loading_sutta: "Loading sutta…",
+      sp_not_found: "Sutta not available in the corpus.",
+      research_banner: "IN DEVELOPMENT — FOR RESEARCH PURPOSES ONLY ",
+      select_corpus: "— Select corpus —",
+    },
+  };
+
+  function getLang() { return localStorage.getItem("dk-lang") || "id"; }
+  function t(key) { return (i18n[getLang()] || i18n.id)[key] || key; }
+
+  window.refreshIcons = function () { if (window.lucide) lucide.createIcons(); };
+
+  function applyCommonI18n() {
+    const lang = getLang();
+    const pill = document.getElementById("btn-lang-toggle");
+    if (pill) {
+      pill.setAttribute("data-active", lang);
+      pill.querySelectorAll(".lang-pill-opt").forEach(o =>
+        o.classList.toggle("active", o.dataset.lang === lang)
+      );
+    }
+    document.documentElement.lang = lang;
+    document.querySelectorAll("[data-i18n]").forEach(el => {
+      const v = t(el.getAttribute("data-i18n"));
+      if (v !== el.getAttribute("data-i18n")) el.textContent = v;
+    });
+    document.querySelectorAll("[data-i18n-html]").forEach(el => {
+      const v = t(el.getAttribute("data-i18n-html"));
+      if (v !== el.getAttribute("data-i18n-html")) el.innerHTML = v;
+    });
+    document.querySelectorAll("[data-i18n-tooltip]").forEach(el => {
+      const v = t(el.getAttribute("data-i18n-tooltip"));
+      if (v !== el.getAttribute("data-i18n-tooltip")) {
+        el.setAttribute("data-tooltip", v);
+      }
+    });
+    document.querySelectorAll("[data-i18n-title]").forEach(el => {
+      const v = t(el.getAttribute("data-i18n-title"));
+      if (v !== el.getAttribute("data-i18n-title")) el.setAttribute("title", v);
+    });
+    document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+      const v = t(el.getAttribute("data-i18n-placeholder"));
+      if (v !== el.getAttribute("data-i18n-placeholder")) {
+        el.setAttribute("placeholder", v);
+      }
+    });
+    refreshIcons();
+  }
+
+  // ========== Shared State ==========
+  const state = {
+    notes: [],
+    activeNoteId: null,
+    activeNote: null,
+  };
+
+  const $ = s => document.querySelector(s);
+
+  // ========== Theme ==========
+  function initTheme() {
+    applyTheme(localStorage.getItem("dk-theme") || "light");
+  }
+  function toggleTheme() {
+    const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+    localStorage.setItem("dk-theme", next);
+    applyTheme(next);
+  }
+  function applyTheme(theme) {
+    document.documentElement.setAttribute("data-theme", theme);
+    const pill = $("#btn-theme-toggle");
+    if (!pill) return;
+    pill.setAttribute("data-active", theme);
+    pill.querySelectorAll(".theme-pill-opt").forEach(opt =>
+      opt.classList.toggle("active", opt.dataset.theme === theme)
+    );
+  }
+
+
+  function toShortId(id) {
+    if (!id) return id;
+    let s = String(id).trim().toLowerCase().replace(/^pli-tv-/, "").replace(/^(bu|bi)-vb-/, "$1-");
+    return s;
+  }
+  function authorLongName(uid, source) {
+    if (!uid || uid === "blurb") return uid;
+    const map = source === "bilara"
+      ? window.DK_BILARA_AUTHOR_NAMES
+      : window.DK_EDITION_AUTHOR_NAMES;
+    return (map && map[uid]) || uid;
+  }
+  function langName(uid) {
+    if (!uid) return uid;
+    return (window.DK_LANG_NAMES && window.DK_LANG_NAMES[uid]) || uid.toUpperCase();
+  }
+
+  function updateAllLinksInDOM() {
+    document.querySelectorAll(".lang-tag").forEach(tag => {
+      if (tag.tagName !== "A") return;
+      const suttaId = tag.dataset.suttaId;
+      const shortId = toShortId(suttaId);
+      const firstRef = tag.dataset.firstRef || "";
+      tag.target = "_self";
+      if (tag.dataset.isBlurb) {
+        tag.target = "_blank";
+        tag.href = shortId ? `/${shortId}` : "";
+        return;
+      }
+      if (tag.classList.contains("id")) {
+        tag.href = shortId ? `/${shortId}/id${firstRef ? "#" + firstRef : ""}` : "";
+        tag.title = `DK (ID)`;
+      } else if (tag.classList.contains("en")) {
+        tag.href = shortId ? `/${shortId}/en${firstRef ? "#" + firstRef : ""}` : "";
+        tag.title = `DK (EN)`;
+      } else if (tag.classList.contains("pli")) {
+        tag.href = shortId ? `/${shortId}/pli${firstRef ? "#" + firstRef : ""}` : "";
+        tag.title = `DK (PLI)`;
+      }
+    });
+  }
+
+  // ========== Utilities ==========
+  function esc(s) {
+    // Strip stray HTML tags (e.g. <j> from SuttaCentral), replace with space
+    s = s.replace(/<[^>]*>/g, " ").replace(/\s{2,}/g, " ").trim();
+    const d = document.createElement("div");
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  // Compact ref IDs: ["mn1.1:1.2","mn1.1:1.3","mn1.1:1.4"] → "mn1.1:1.2-4"
+  function compactRef(ids) {
+    if (!ids || ids.length === 0) return "";
+    const colonIdx = ids[0].indexOf(":");
+    const suttaPrefix = colonIdx === -1 ? "" : ids[0].substring(0, colonIdx + 1);
+    const anchors = ids.map(id => id.split(":").pop());
+    if (anchors.length === 1) return suttaPrefix + anchors[0];
+
+    const first = anchors[0];
+    const last = anchors[anchors.length - 1];
+
+    const firstDotIdx = first.lastIndexOf(".");
+    const lastDotIdx = last.lastIndexOf(".");
+
+    if (firstDotIdx !== -1 && lastDotIdx !== -1) {
+      const firstPrefix = first.substring(0, firstDotIdx + 1);
+      const lastPrefix = last.substring(0, lastDotIdx + 1);
+      if (firstPrefix === lastPrefix) {
+        return `${suttaPrefix}${first}-${last.substring(lastDotIdx + 1)}`;
+      }
+    }
+
+    return `${suttaPrefix}${first}-${last}`;
+  }
+
+  // Toast notification — moves inside open <dialog> so it's above the top layer
+  function showToast(msg, duration) {
+    duration = duration || 2200;
+    const openDialog = document.querySelector("dialog[open]");
+    const container = openDialog || document.body;
+    const existing = document.getElementById("dk-toast");
+    if (existing && existing.parentElement !== container) existing.remove();
+    let toast = document.getElementById("dk-toast");
+    if (!toast) {
+      toast = document.createElement("div");
+      toast.id = "dk-toast";
+      container.appendChild(toast);
+    }
+    toast.textContent = msg;
+    clearTimeout(toast._timer);
+    toast.classList.remove("visible");
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      toast.classList.add("visible");
+      toast._timer = setTimeout(() => toast.classList.remove("visible"), duration);
+    }));
+  }
+
+  function renderPartsHtml(parts, key, opts) {
+    key = key || "text";
+    opts = opts || {};
+    const headingAware = !!opts.headingAware;
+    const isHeading = !!opts.isHeading;
+    // Bilara: tiap part adalah baris bait asli → pakai <br>, tanpa ‖ dan tanpa nomor
+    const isBilara = parts.length > 0 && !!parts[0].bilara;
+    return parts.map((p, i) => {
+      // Folded body heading (".0" lead part): render as a block heading, no verse number.
+      if (p.heading) {
+        const lvl = Math.min(Math.max(p.heading, 1), 6);
+        const htxt = String(p.text || "").replace(/<[^>]+>/g, "").trim();
+        return `<div class="seg-heading seg-heading-${lvl}">${esc(htxt)}</div>`;
+      }
+      const verseNum = p.num !== undefined ? p.num : (p.id && p.id.includes(":") ? p.id.split(":").pop() : "");
+      const primary = key === "id" ? (p.text || "") : (p[key] || "");
+      let content;
+      if (headingAware && key !== "pli") {
+        const raw = primary.trim();
+        const pli = (p.pli || "").trim();
+        const isUntranslated = !raw || (pli && raw === pli);
+        if (isUntranslated) {
+          content = isHeading && pli
+            ? `<em class="seg-untranslated">${pli}</em>`
+            : `<em class="seg-untranslated">…</em>`;
+        } else {
+          content = primary;
+        }
+      } else {
+        content = primary || p.text || p.pli || p.en || "";
+      }
+
+      if (typeof content === 'string' && content.includes('speaker')) {
+        content = content.replace(/(<span[^>]*class=['"][^'"]*speaker[^'"]*['"][^>]*>)([^<]*)(<\/span>)/ig, (match, open, text, close) => {
+          let t = text.trim();
+          if (t && !t.endsWith(':')) t += ':';
+          return `${open}${t}${close}`;
+        });
+      }
+
+      if (isBilara) {
+        // Bilara: tanpa pembatas apapun, TAPI nomor subsegmen tetap ditampilkan
+        const hideSuperscript = parts.length === 1 && !String(verseNum).includes('.');
+        const supHtml = hideSuperscript ? "" : `<sup class="verse-num">${verseNum}</sup>`;
+        return `${supHtml}${content}`;
+      } else {
+        // HTML (dari br): render keduanya (‖ dan nomor). CSS akan mengatur mana yang tampil (berdasarkan opsi show-seg-ref)
+        const sep = i > 0 ? `<span class="verse-sep">‖</span>` : "";
+        const hideSuperscript = parts.length === 1 && !String(verseNum).includes('.');
+        const supHtml = hideSuperscript ? "" : `<sup class="verse-num">${verseNum}</sup>`;
+        return `${sep}${supHtml}${content}`;
+      }
+    }).join(isBilara ? " " : " ");
+  }
+
+  // ========== Notes — buildMiniTexts ==========
+  function buildMiniTexts(data) {
+    const texts = data.texts || {};
+    const availLinks = data.available_links || {};
+    // backward compat: old note blocks stored sc_link_* instead of available_links
+    if (!Object.keys(availLinks).length) {
+      if (data.sc_link_pli) availLinks.pli = data.sc_link_pli;
+      if (data.sc_link_id) availLinks.id = data.sc_link_id;
+      if (data.sc_link_en) availLinks.en = data.sc_link_en;
+    }
+
+    let firstRef = "";
+    if (data.ref && data.ref.length > 0) firstRef = data.ref[0];
+    else if (data.ref_display) firstRef = data.ref_display.split(",")[0].trim();
+
+    const suttaId = data.sutta_id || "";
+    const shortId = toShortId(suttaId);
+    const isBlurb = data.author === "blurb";
+    const eyeIcon = `<i data-lucide="${isBlurb ? 'maximize-2' : 'book-open'}"></i>`;
+
+    // pli first, then id, en, then any other langs
+    const order = ["pli", "id", "en"];
+    const langs = [...order.filter(l => texts[l]), ...Object.keys(texts).filter(l => !order.includes(l) && texts[l])];
+
+    let html = "";
+    for (const l of langs) {
+      const baseLink = availLinks[l] || "";
+      let url;
+      if (isBlurb) {
+        url = `/${shortId}`;
+      } else {
+        url = baseLink && firstRef ? `${baseLink}#${firstRef}` : baseLink;
+      }
+      const title = `Buka di Dhammakathika (${l.toUpperCase()})`;
+      const key = isBlurb ? "btn_open_blurb" : "btn_open_link";
+      const bodyHtml = (data.parts && data.parts_lang === l) ? renderPartsHtml(data.parts, l) : esc(texts[l]);
+      html += `<div>${url
+        ? `<a href="${url}" class="lang-tag ${l}${isBlurb ? ' dk-open-menu-link' : ''}" title="${title}" data-sutta-id="${suttaId}" data-first-ref="${firstRef}"${isBlurb ? ' data-is-blurb="1"' : ''}>${eyeIcon} <span style="margin-left:2px;" data-i18n="${key}">${t(key)}</span></a>`
+        : `<span class="lang-tag ${l}">${eyeIcon} <span style="margin-left:2px;" data-i18n="${key}">${t(key)}</span></span>`} ${bodyHtml}</div>`;
+    }
+    return html;
+  }
+
+  // ========== Notes — Block Clipboard ==========
+  let _copiedBlock = null;
+
+  function updatePasteBtn() {
+    const container = $("#paste-block-container");
+    if (container) container.style.display = _copiedBlock ? "flex" : "none";
+  }
+
+  // ========== Notes — Block Element ==========
+  function createNoteBlockEl(block, idx) {
+    const wrapper = document.createElement("div");
+    wrapper.className = "note-block";
+    wrapper.dataset.index = idx;
+    wrapper._blockData = block;
+
+    const noteBlocks = $("#note-blocks");
+
+    const actions = document.createElement("div");
+    actions.className = "note-block-actions";
+
+    const upBtn = document.createElement("button");
+    upBtn.className = "block-move-btn";
+    upBtn.textContent = "↑";
+    upBtn.title = "Geser ke atas";
+    upBtn.addEventListener("click", () => {
+      const prev = wrapper.previousElementSibling;
+      if (prev) { noteBlocks.insertBefore(wrapper, prev); autoSave(); }
+    });
+
+    const downBtn = document.createElement("button");
+    downBtn.className = "block-move-btn";
+    downBtn.textContent = "↓";
+    downBtn.title = "Geser ke bawah";
+    downBtn.addEventListener("click", () => {
+      const next = wrapper.nextElementSibling;
+      if (next) { noteBlocks.insertBefore(next, wrapper); autoSave(); }
+    });
+
+    const delBtn = document.createElement("button");
+    delBtn.className = "block-del-btn";
+    delBtn.textContent = "✕";
+    delBtn.title = "Hapus blok";
+    delBtn.addEventListener("click", () => { wrapper.remove(); autoSave(); });
+
+    const copyBtn = document.createElement("button");
+    copyBtn.className = "block-move-btn";
+    copyBtn.title = "Salin blok";
+    copyBtn.innerHTML = `<i data-lucide="copy"></i>`;
+    copyBtn.addEventListener("click", () => {
+      _copiedBlock = JSON.parse(JSON.stringify(block));
+      updatePasteBtn();
+
+      let clipText = "";
+      if (block.type === "text") {
+        clipText = block.content || "";
+      } else if (block.type === "sutta") {
+        const d = block.data || {};
+        const texts = d.texts || {};
+        clipText += `${d.formatted_id || d.sutta_id || ""}${d.sutta_name ? " — " + d.sutta_name : ""} — ${d.ref_display || ""}\n`;
+        if (d.author && d.author !== "blurb") clipText += `Penerjemah: ${authorLongName(d.author, d.source)}\n`;
+        if (texts.id) clipText += `ID: ${texts.id}\n`;
+        if (texts.en) clipText += `EN: ${texts.en}\n`;
+        if (texts.pli) clipText += `PLI: ${texts.pli}\n`;
+      }
+
+      if (clipText && navigator.clipboard) {
+        navigator.clipboard.writeText(clipText.trim()).catch(() => { });
+      }
+
+      showToast(getLang() === "en" ? "Block copied to clipboard" : "Blok disalin ke clipboard");
+    });
+
+    actions.append(copyBtn, upBtn, downBtn, delBtn);
+    wrapper.appendChild(actions);
+
+    if (block.type === "text") {
+      const textEl = document.createElement("div");
+      textEl.className = "note-block-text";
+      textEl.contentEditable = "true";
+      textEl.textContent = block.content || "";
+      textEl.addEventListener("blur", autoSave);
+      wrapper.appendChild(textEl);
+    } else if (block.type === "sutta") {
+      const d = block.data || {};
+      const isBlurb = d.author === "blurb";
+      const suttaEl = document.createElement("div");
+      suttaEl.className = "note-block-sutta" + (isBlurb ? " note-block-blurb" : "");
+      const noteName = d.sutta_name ? ` — ${esc(d.sutta_name)}` : "";
+      const langs = Object.keys(d.texts || {}).map(k => langName(k)).join(", ");
+      const langHtml = langs ? `<span><i data-lucide="globe"></i> ${langs}</span>` : "";
+      const authorHtml = (d.author && d.author !== "blurb") ? `<span><i data-lucide="user"></i> ${esc(authorLongName(d.author, d.source))}</span>` : "";
+      suttaEl.innerHTML = `
+        <div class="mini-header">
+          <strong>${esc(d.formatted_id || d.sutta_id || "")}${noteName}</strong>
+          <span><i data-lucide="map-pin"></i> ${esc(d.ref_display || "")}</span>
+          ${authorHtml}${langHtml}
+        </div>
+        <div class="mini-texts">${buildMiniTexts(d)}</div>
+      `;
+      wrapper.appendChild(suttaEl);
+    }
+    return wrapper;
+  }
+
+  function collectBlocksFromDOM() {
+    const blocks = [];
+    document.querySelectorAll("#note-blocks .note-block").forEach(el => {
+      const textEl = el.querySelector(".note-block-text");
+      if (textEl) { blocks.push({ type: "text", content: textEl.textContent || "" }); return; }
+      if (el._blockData && el._blockData.type === "sutta") blocks.push(el._blockData);
+    });
+    return blocks;
+  }
+
+  // ========== Notes — localStorage backend ==========
+  const LS_NOTES_KEY = "dk-notes-store";
+
+  function _lsStore() {
+    try { return JSON.parse(localStorage.getItem(LS_NOTES_KEY)) || {}; }
+    catch { return {}; }
+  }
+  function _lsSave(store) { localStorage.setItem(LS_NOTES_KEY, JSON.stringify(store)); }
+
+  function lsNotesGetAll() {
+    const store = _lsStore();
+    const notes = Object.values(store).map(({ id, title, created_at, updated_at }) => ({ id, title, created_at, updated_at }));
+    return { notes };
+  }
+  function lsNotesGet(id) { return _lsStore()[id] || null; }
+  function lsNotesCreate(data) {
+    const store = _lsStore();
+    const id = (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
+    const now = new Date().toISOString();
+    const note = { id, title: data.title || "", blocks: data.blocks || [], created_at: now, updated_at: now };
+    store[id] = note;
+    _lsSave(store);
+    return note;
+  }
+  function lsNotesUpdate(id, data) {
+    const store = _lsStore();
+    if (!store[id]) return null;
+    const now = new Date().toISOString();
+    store[id] = { ...store[id], ...data, id, updated_at: now };
+    _lsSave(store);
+    return store[id];
+  }
+  function lsNotesDelete(id) { const store = _lsStore(); delete store[id]; _lsSave(store); }
+
+  // ========== Notes — CRUD ==========
+  async function loadNotesList(openSaved = true) {
+    try {
+      const data = lsNotesGetAll();
+      state.notes = data.notes || [];
+      renderNotesList();
+      const btnManage = document.getElementById("btn-manage-notes");
+      if (btnManage) btnManage.disabled = false;
+      if (openSaved) {
+        const savedId = localStorage.getItem("dk-active-note");
+        if (savedId && state.notes.some(n => n.id === savedId)) openNote(savedId);
+      }
+    } catch (e) { console.error("Load notes error:", e); }
+  }
+
+  function renderNotesList() {
+    const notesList = $("#notes-list");
+    if (!notesList) return;
+    notesList.innerHTML = "";
+    const locale = getLang() === "id" ? "id-ID" : "en-GB";
+    const fmtShort = { day: "2-digit", month: "short", year: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" };
+    const sorted = [...state.notes].sort((a, b) => {
+      const ta = a.updated_at || a.created_at || "";
+      const tb = b.updated_at || b.created_at || "";
+      return tb.localeCompare(ta);
+    });
+    sorted.forEach(n => {
+      const tab = document.createElement("button");
+      tab.className = "note-tab" + (n.id === state.activeNoteId ? " active" : "");
+      tab.addEventListener("click", () => openNote(n.id));
+
+      const titleEl = document.createElement("span");
+      titleEl.className = "note-tab-title";
+      titleEl.textContent = n.title || "Untitled";
+
+      const dateEl = document.createElement("span");
+      dateEl.className = "note-tab-date";
+      const updatedStr = n.updated_at ? new Date(n.updated_at).toLocaleString(locale, fmtShort) : "";
+      const createdStr = n.created_at ? new Date(n.created_at).toLocaleString(locale, fmtShort) : "";
+      dateEl.textContent = updatedStr || createdStr;
+      dateEl.title = [createdStr ? `Dibuat: ${createdStr}` : "", updatedStr && updatedStr !== createdStr ? `Disunting: ${updatedStr}` : ""].filter(Boolean).join("\n");
+
+      tab.append(titleEl, dateEl);
+      notesList.appendChild(tab);
+    });
+  }
+
+  async function openNote(id) {
+    try {
+      state.activeNote = lsNotesGet(id);
+      state.activeNoteId = id;
+      localStorage.setItem("dk-active-note", id);
+      renderNoteEditor();
+      renderNotesList();
+    } catch (e) { console.error("Open note error:", e); }
+  }
+
+  function renderNoteEditor() {
+    const noteEditor = $("#note-editor");
+    const notesEmpty = $("#notes-empty-state");
+    const noteTitleInput = $("#note-title-input");
+    const noteBlocks = $("#note-blocks");
+    if (!state.activeNote) {
+      noteEditor.classList.add("hidden");
+      notesEmpty.classList.remove("hidden");
+      return;
+    }
+    notesEmpty.classList.add("hidden");
+    noteEditor.classList.remove("hidden");
+    noteTitleInput.value = state.activeNote.title || "";
+
+    refreshMetaDates();
+
+    noteBlocks.innerHTML = "";
+    (state.activeNote.blocks || []).forEach((block, idx) =>
+      noteBlocks.appendChild(createNoteBlockEl(block, idx))
+    );
+    refreshIcons();
+  }
+
+  function uniqueNewNoteTitle() {
+    const base = getLang() === "en" ? "New Note" : "Catatan Baru";
+    const existing = new Set(state.notes.map(n => n.title || ""));
+    if (!existing.has(base)) return base;
+    let i = 2;
+    while (existing.has(`${base} (${i})`)) i++;
+    return `${base} (${i})`;
+  }
+
+  async function createNote(focusTitle = true) {
+    try {
+      const note = lsNotesCreate({ title: uniqueNewNoteTitle(), blocks: [] });
+      state.activeNoteId = note.id;
+      state.activeNote = note;
+      localStorage.setItem("dk-active-note", note.id);
+      await loadNotesList(false);  // don't call openNote — we already have state.activeNote
+      renderNoteEditor();
+      if (focusTitle) {
+        const titleInput = $("#note-title-input");
+        if (titleInput) { titleInput.focus(); titleInput.select(); }
+      }
+    } catch (e) { console.error("Create note error:", e); }
+  }
+
+  async function saveCurrentNote() {
+    if (!state.activeNote) return;
+    const titleInput = $("#note-title-input");
+    state.activeNote.title = (titleInput ? titleInput.value.trim() : "") || state.activeNote.title;
+    state.activeNote.blocks = collectBlocksFromDOM();
+    try {
+      const updated = lsNotesUpdate(state.activeNote.id, state.activeNote);
+      if (updated && updated.updated_at) {
+        state.activeNote.updated_at = updated.updated_at;
+        const idx = state.notes.findIndex(n => n.id === state.activeNote.id);
+        if (idx !== -1) {
+          state.notes[idx].updated_at = updated.updated_at;
+          state.notes[idx].title = state.activeNote.title;
+        }
+        renderNotesList();
+        refreshMetaDates();
+      }
+    } catch (e) { console.error("Save note error:", e); }
+  }
+
+  function refreshMetaDates() {
+    const metaDates = $("#note-meta-dates");
+    if (!metaDates || !state.activeNote) return;
+    const locale = getLang() === "id" ? "id-ID" : "en-GB";
+    const fmtOpts = { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" };
+    const createdStr = state.activeNote.created_at ? new Date(state.activeNote.created_at).toLocaleString(locale, fmtOpts) : "";
+    const updatedStr = state.activeNote.updated_at ? new Date(state.activeNote.updated_at).toLocaleString(locale, fmtOpts) : "";
+    metaDates.innerHTML = [
+      createdStr ? `<span class="nm-date-entry"><i data-lucide="calendar"></i> ${createdStr}</span>` : "",
+      updatedStr && updatedStr !== createdStr ? `<span class="nm-date-entry"><i data-lucide="pencil"></i> ${updatedStr}</span>` : "",
+    ].filter(Boolean).join('<span class="nm-date-sep">·</span>');
+    refreshIcons();
+  }
+
+  async function deleteCurrentNote() {
+    if (!state.activeNote) return;
+    if (!await dkConfirm(t("confirm_delete"), { danger: true })) return;
+    try {
+      lsNotesDelete(state.activeNote.id);
+      state.activeNoteId = null;
+      state.activeNote = null;
+      localStorage.removeItem("dk-active-note");
+      $("#note-editor").classList.add("hidden");
+      $("#notes-empty-state").classList.remove("hidden");
+      await loadNotesList();
+    } catch (e) { console.error("Delete note error:", e); }
+  }
+
+  function addTextBlock() {
+    if (!state.activeNote) return;
+    const block = { type: "text", content: "" };
+    state.activeNote.blocks.push(block);
+    const noteBlocks = $("#note-blocks");
+    noteBlocks.appendChild(createNoteBlockEl(block, state.activeNote.blocks.length - 1));
+    const newEl = noteBlocks.lastElementChild.querySelector(".note-block-text");
+    if (newEl) newEl.focus();
+  }
+
+  function addBlockToNote(block) {
+    if (!state.activeNote) return false;
+    if (!Array.isArray(state.activeNote.blocks)) state.activeNote.blocks = [];
+    state.activeNote.blocks.push(block);
+    const noteBlocks = $("#note-blocks");
+    if (!noteBlocks) return false;
+    noteBlocks.appendChild(createNoteBlockEl(block, state.activeNote.blocks.length - 1));
+    refreshIcons();
+    autoSave();
+    const lastBlock = noteBlocks.lastElementChild;
+    lastBlock.style.boxShadow = "0 0 0 2px var(--success)";
+    setTimeout(() => (lastBlock.style.boxShadow = ""), 1200);
+    const label = getLang() === "id" ? "Ditambahkan ke catatan" : "Added to note";
+    showToast(label);
+    return true;
+  }
+
+  function showNotePicker(block, anchorEl) {
+    const existing = document.getElementById("dk-note-picker");
+    if (existing) { existing.remove(); return; }
+
+    const isId = getLang() === "id";
+    const popup = document.createElement("div");
+    popup.id = "dk-note-picker";
+    popup.className = "dk-note-picker";
+
+    const hdr = document.createElement("div");
+    hdr.className = "dk-note-picker-header";
+
+    // Buat tombol silang dengan class yang baru kita buat di CSS
+    const closeBtn = document.createElement("button");
+    closeBtn.className = "dk-note-picker-close";
+    closeBtn.innerHTML = '<i data-lucide="x" style="width: 16px; height: 16px;"></i>';
+    closeBtn.title = isId ? "Tutup" : "Close";
+
+    closeBtn.addEventListener("click", () => {
+      popup.remove();
+    });
+
+    const titleSpan = document.createElement("span");
+    titleSpan.textContent = isId ? "Tambah ke catatan:" : "Add to note:";
+
+    hdr.appendChild(closeBtn);
+    hdr.appendChild(titleSpan);
+    popup.appendChild(hdr);
+
+    // Render ikon Lucide di dalam header yang baru dibuat
+    if (window.lucide) window.lucide.createIcons({ root: hdr });
+
+    const sorted = [...state.notes].sort((a, b) =>
+      (b.updated_at || b.created_at || "").localeCompare(a.updated_at || a.created_at || "")
+    );
+
+    const list = document.createElement("div");
+    list.className = "dk-note-picker-list";
+
+    if (sorted.length === 0) {
+      const empty = document.createElement("p");
+      empty.className = "dk-note-picker-empty";
+      empty.textContent = isId ? "Belum ada catatan." : "No notes yet.";
+      list.appendChild(empty);
+    } else {
+      sorted.forEach(n => {
+        const item = document.createElement("button");
+        item.className = "dk-note-picker-item" + (n.id === state.activeNoteId ? " active" : "");
+        item.textContent = n.title || (isId ? "Tanpa judul" : "Untitled");
+        item.addEventListener("click", async () => {
+          popup.remove();
+          await openNote(n.id);
+          addBlockToNote(block);
+        });
+        list.appendChild(item);
+      });
+    }
+    popup.appendChild(list);
+
+    const divider = document.createElement("hr");
+    divider.className = "dk-note-picker-divider";
+    popup.appendChild(divider);
+
+    const newBtn = document.createElement("button");
+    newBtn.className = "dk-note-picker-new";
+    newBtn.textContent = isId ? "+ Buat catatan baru" : "+ New note";
+    newBtn.addEventListener("click", async () => {
+      popup.remove();
+      const isMobile = window.matchMedia("(max-width: 768px)").matches;
+      await createNote(!isMobile);
+      addBlockToNote(block);
+    });
+    popup.appendChild(newBtn);
+
+    // Mengecek apakah ada dialog yang terbuka (sama seperti logika showToast)
+    const openDialog = document.querySelector("dialog[open]");
+    const container = openDialog || document.body;
+    container.appendChild(popup);
+
+    requestAnimationFrame(() => {
+      const rect = anchorEl.getBoundingClientRect();
+      const ph = popup.offsetHeight;
+      const pw = popup.offsetWidth;
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const top = spaceBelow >= ph + 6 ? rect.bottom + 4 : rect.top - ph - 4;
+      const left = Math.max(4, Math.min(rect.left, window.innerWidth - pw - 4));
+      popup.style.top = top + "px";
+      popup.style.left = left + "px";
+    });
+
+    const closeOnOutside = (e) => {
+      if (!popup.contains(e.target) && e.target !== anchorEl) {
+        popup.remove();
+        document.removeEventListener("click", closeOnOutside, true);
+      }
+    };
+    setTimeout(() => document.addEventListener("click", closeOnOutside, true), 0);
+
+    const closeOnEsc = (e) => {
+      if (e.key === "Escape") { popup.remove(); document.removeEventListener("keydown", closeOnEsc); }
+    };
+    document.addEventListener("keydown", closeOnEsc);
+  }
+
+  let saveTimeout = null;
+  function autoSave() {
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(saveCurrentNote, 800);
+  }
+
+  // ========== Copy Note ==========
+  function copyNote() {
+    if (!state.activeNote) return;
+    const blocks = collectBlocksFromDOM();
+    let text = (state.activeNote.title || "Catatan") + "\n" + "=".repeat(40) + "\n\n";
+    blocks.forEach(block => {
+      if (block.type === "text") {
+        text += (block.content || "") + "\n\n";
+      } else if (block.type === "sutta") {
+        const d = block.data || {};
+        const texts = d.texts || {};
+        text += `[${d.formatted_id || d.sutta_id || ""}${d.sutta_name ? " — " + d.sutta_name : ""}] ${d.ref_display || ""}\n`;
+        if (texts.id) text += `ID: ${texts.id}\n`;
+        if (texts.en) text += `EN: ${texts.en}\n`;
+        if (texts.pli) text += `PLI: ${texts.pli}\n`;
+        text += "\n";
+      }
+    });
+    navigator.clipboard.writeText(text.trim()).then(() => {
+      showToast(t("msg_copied"));
+    }).catch(() => {
+      const ta = Object.assign(document.createElement("textarea"), { value: text });
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      try {
+        document.execCommand("copy");
+        showToast(t("msg_copied"));
+      } catch (_) { /* silent */ }
+      ta.remove();
+    });
+  }
+
+  // ========== Download as PDF ==========
+  function downloadNotePdf() {
+    if (!state.activeNote) return;
+    const blocks = collectBlocksFromDOM();
+    const title = esc(state.activeNote.title || "Catatan");
+    let body = "";
+    blocks.forEach(block => {
+      if (block.type === "text") {
+        body += `<div class="text-block">${esc(block.content || "").replace(/\n/g, "<br>")}</div>`;
+      } else if (block.type === "sutta") {
+        const d = block.data || {};
+        const texts = d.texts || {};
+        body += `<div class="sutta-block">
+          <div class="sutta-ref"><strong>${esc(d.formatted_id || d.sutta_id || "")}${d.sutta_name ? " — " + esc(d.sutta_name) : ""}</strong> — ${esc(d.ref_display || "")}${d.author && d.author !== "blurb" ? " — " + esc(authorLongName(d.author, d.source)) : ""}</div>
+          ${texts.id ? `<p><em>ID:</em> ${esc(texts.id)}</p>` : ""}
+          ${texts.en ? `<p><em>EN:</em> ${esc(texts.en)}</p>` : ""}
+          ${texts.pli ? `<p><em>PLI:</em> ${esc(texts.pli)}</p>` : ""}
+        </div>`;
+      }
+    });
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${title}</title>
+<style>
+  body{font-family:serif;max-width:700px;margin:40px auto;color:#222;line-height:1.6}
+  h1{font-size:1.4em;border-bottom:1px solid #ccc;padding-bottom:8px;margin-bottom:24px}
+  .text-block{margin:12px 0}
+  .sutta-block{background:#f5f5f5;padding:12px 16px;margin:16px 0;border-left:3px solid #888}
+  .sutta-ref{font-size:.85em;color:#555;margin-bottom:6px}
+  p{margin:4px 0}
+</style></head><body><h1>${title}</h1>${body}</body></html>`;
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const win = window.open(url, "_blank");
+    if (win) win.addEventListener("load", () => { win.print(); URL.revokeObjectURL(url); });
+  }
+
+  // ========== Resize ==========
+  function setupResize() {
+    const resizeHandle = $("#resize-handle");
+    const searchPanel = $("#search-panel");
+    const notesPanel = $("#notes-panel");
+    if (!resizeHandle) return;
+
+    // Restore saved width (desktop only)
+    const savedWidth = localStorage.getItem("dk-notes-width");
+    if (savedWidth && window.innerWidth >= 769) {
+      const w = parseInt(savedWidth);
+      if (w >= 280 && w <= 600) {
+        notesPanel.style.flex = `0 0 ${w}px`;
+      }
+    }
+
+    let isResizing = false;
+    let lastNotesWidth = null;
+    resizeHandle.addEventListener("mousedown", (e) => {
+      isResizing = true;
+      resizeHandle.classList.add("active");
+      document.body.style.cursor = "col-resize";
+      document.body.style.userSelect = "none";
+      e.preventDefault();
+    });
+    document.addEventListener("mousemove", (e) => {
+      if (!isResizing) return;
+      const mainRect = searchPanel.parentElement.getBoundingClientRect();
+      const newSearchWidth = e.clientX - mainRect.left;
+      const newNotesWidth = mainRect.right - e.clientX;
+      if (newSearchWidth > 350 && newNotesWidth > 280 && newNotesWidth < 600) {
+        searchPanel.style.flex = `0 0 ${newSearchWidth}px`;
+        notesPanel.style.flex = `0 0 ${newNotesWidth}px`;
+        lastNotesWidth = newNotesWidth;
+      }
+    });
+    document.addEventListener("mouseup", () => {
+      if (isResizing) {
+        isResizing = false;
+        resizeHandle.classList.remove("active");
+        document.body.style.cursor = "";
+        document.body.style.userSelect = "";
+        if (lastNotesWidth !== null) {
+          localStorage.setItem("dk-notes-width", String(Math.round(lastNotesWidth)));
+          lastNotesWidth = null;
+        }
+      }
+    });
+  }
+
+  // ========== Shared Card Rendering ==========
+  function _buildKwRegex(query) {
+    const keywords = query.split(/\s+/).filter(Boolean);
+    if (!keywords.length) return null;
+    const patterns = [...keywords];
+    if (keywords.length > 1) patterns.push(query.trim());
+    patterns.sort((a, b) => b.length - a.length);
+    const unique = [...new Set(patterns.map(p => p.toLowerCase()))];
+    const escaped = unique.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+    return new RegExp(`(^|\\s|[.,!?;:"'\\(\\[\\-])(${escaped.join("|")})(?=\\s|$|[.,!?;:"'\\)\\]\\-])`, "gi");
+  }
+
+  function highlightKeywords(escapedText, query) {
+    const re = _buildKwRegex(query);
+    if (!re) return escapedText;
+    return escapedText.replace(re, `$1<span class="kw-match">$2</span>`);
+  }
+
+  function highlightKeywordsInHtml(html, query) {
+    const re = _buildKwRegex(query);
+    if (!re) return html;
+    return html.replace(/(<[^>]*>)|([^<]+)/g, (_, tag, text) =>
+      tag ? tag : text.replace(re, `$1<span class="kw-match">$2</span>`)
+    );
+  }
+
+  // Normalize text for context-dedup comparison (trim + collapse whitespace).
+  function normCtx(s) { return (s || "").trim().replace(/\s+/g, " "); }
+
+  function buildFragTextLines(frag, sutta, ctx) {
+    const lines = [];
+    const texts = frag.texts || {};
+    const cb = frag.context_before || {};
+    const ca = frag.context_after || {};
+    const dedup = ctx && ctx.dedupTexts; // Set of matched-segment texts shown in this group
+    const isKeyword = ctx && ctx.method && ctx.method.includes("keyword");
+    const query = (ctx && ctx.query) || "";
+    const firstRef = (frag.ref && frag.ref.length > 0) ? frag.ref[0] : "";
+
+    const suttaId = sutta ? sutta.sutta_id : "";
+    const shortId = toShortId(suttaId);
+    const preview = ctx.showPreview !== false;
+    const isBlurb = frag.author === "blurb";
+
+    const availLinks = sutta ? (sutta.available_links || {}) : {};
+    function renderMain(text) {
+      return isKeyword && query ? highlightKeywords(esc(text), query) : `<span class="main-text">${esc(text)}</span>`;
+    }
+    const tgt = isBlurb ? ' target="_blank"' : "";
+    const icon = isBlurb ? "maximize-2" : "book-open";
+
+    const order = ["pli", "id", "en"];
+    const langs = [...order.filter(l => texts[l]), ...Object.keys(texts).filter(l => !order.includes(l) && texts[l])];
+    for (const l of langs) {
+      let baseLink = availLinks[l] || "";
+      if (baseLink && frag.author && frag.author !== "blurb" && frag.db_source === l) {
+        const parts = baseLink.split("/");
+        if (parts.length === 4) {
+          parts[3] = frag.author;
+          baseLink = parts.join("/");
+        }
+      }
+      let url;
+      if (isBlurb) {
+        url = `/${shortId}`;
+      } else {
+        url = baseLink && firstRef ? `${baseLink}#${firstRef}` : baseLink;
+      }
+      const key = isBlurb ? "btn_open_blurb" : "btn_open_link";
+      const tag = url
+        ? `<a href="${url}"${tgt} class="lang-tag ${l}${isBlurb ? ' dk-open-menu-link' : ''}" title="DK (${l.toUpperCase()})" data-sutta-id="${suttaId}" data-first-ref="${firstRef}"${isBlurb ? ' data-is-blurb="1"' : ''}><i data-lucide="${icon}"></i> <span style="margin-left:2px;" data-i18n="${key}">${t(key)}</span></a>`
+        : `<span class="lang-tag ${l}"><i data-lucide="${icon}"></i> <span style="margin-left:2px;" data-i18n="${key}">${t(key)}</span></span>`;
+      let line = `${tag} `;
+      const MAX_CTX_LEN = 200;
+      if (preview && cb[l] && !(dedup && dedup.has(normCtx(cb[l])))) {
+        if (dedup) dedup.add(normCtx(cb[l]));
+        let html;
+        if (cb[l].length > MAX_CTX_LEN) {
+          let trunc = cb[l].substring(cb[l].length - MAX_CTX_LEN);
+          const spaceIdx = trunc.indexOf(" ");
+          if (spaceIdx !== -1 && spaceIdx < 20) trunc = trunc.substring(spaceIdx + 1);
+          html = `...${esc(trunc)}`;
+        } else {
+          const cbParts = frag.context_before_parts && frag.context_before_parts.length > 0 ? frag.context_before_parts : null;
+          html = cbParts ? renderPartsHtml(cbParts, l) : esc(cb[l]);
+        }
+        line += `<span class="ctx">${html}</span> `;
+      }
+      const useParts = frag.parts && frag.parts.length > 0;
+      if (useParts) {
+        const partsHtml = renderPartsHtml(frag.parts, l);
+        const body = isKeyword && query ? highlightKeywordsInHtml(partsHtml, query) : partsHtml;
+        line += `<span class="main-text">${body}</span>`;
+      } else {
+        line += renderMain(texts[l]);
+      }
+      if (preview && ca[l] && !(dedup && dedup.has(normCtx(ca[l])))) {
+        if (dedup) dedup.add(normCtx(ca[l]));
+        let html;
+        if (ca[l].length > MAX_CTX_LEN) {
+          let trunc = ca[l].substring(0, MAX_CTX_LEN);
+          const spaceIdx = trunc.lastIndexOf(" ");
+          if (spaceIdx !== -1 && spaceIdx > trunc.length - 20) trunc = trunc.substring(0, spaceIdx);
+          html = `${esc(trunc)}...`;
+        } else {
+          const caParts = frag.context_after_parts && frag.context_after_parts.length > 0 ? frag.context_after_parts : null;
+          html = caParts ? renderPartsHtml(caParts, l) : esc(ca[l]);
+        }
+        line += ` <span class="ctx">${html}</span>`;
+      }
+      lines.push(line);
+    }
+    return lines;
+  }
+
+  function createFragmentEl(frag, sutta, ctx) {
+    const el = document.createElement("div"); el.className = frag.author === "blurb" ? "fragment fragment-blurb" : "fragment";
+    const meta = document.createElement("div"); meta.className = "fragment-meta";
+    const isKw = ctx && ctx.method && ctx.method.includes("keyword");
+    const refDisplay = frag.author === "blurb" ? "sinopsis" : (frag.ref_display || frag.ref.join(", "));
+    const refTitle = `${t("legend_segment")}: ${frag.ref.join(", ")}`;
+
+    // Build the text lines first so the keyword badge can mirror what is
+    // actually highlighted in the shown text.
+    const lines = buildFragTextLines(frag, sutta, ctx);
+    const kwHighlightCount = isKw ? (lines.join(" ").match(/class="kw-match"/g) || []).length : 0;
+
+    let scoreHtml = "";
+    let scoreTitle = "";
+    const hasSemantic = frag.score <= 1.0;
+    const hasKwData = frag.kw_count !== undefined;
+
+    if (hasSemantic) {
+      scoreHtml += `<span style="display:inline-flex;align-items:center;gap:3px;"><i data-lucide="target"></i> ${(frag.score * 100).toFixed(1)}%</span>`;
+      scoreTitle += `${t("legend_similarity")}: ${(frag.score * 100).toFixed(1)}%`;
+    }
+
+    // Keyword count: prefer the backend kw_count; otherwise fall back to the
+    // matches actually highlighted in the shown text, so a highlighted hit
+    // always gets a badge — even on semantic-sourced fragments in hybrid mode.
+    let kwCount = null;
+    if (hasKwData) kwCount = frag.kw_count;
+    else if (!hasSemantic && isKw) kwCount = Math.round(frag.score);
+    else if (isKw && kwHighlightCount > 0) kwCount = kwHighlightCount;
+
+    if (kwCount !== null) {
+      const phCount = frag.phrase_count || 0;
+      const kwFull = phCount ? `${phCount} frasa, ${kwCount} kata` : `${kwCount} kata`;
+      const kwShort = phCount ? `${kwCount}kt, ${phCount}fr` : `${kwCount}kt`;
+      const kwDisplay = `<span class="kw-full">${kwFull}</span><span class="kw-short">${kwShort}</span>`;
+
+      if (hasSemantic) {
+        scoreHtml += `<span style="margin: 0 6px; opacity: 0.5;">|</span>`;
+        scoreTitle += ` | `;
+      }
+      scoreHtml += `<span style="display:inline-flex;align-items:center;gap:3px;"><i data-lucide="bar-chart-3"></i> ${kwDisplay}</span>`;
+      scoreTitle += `${t("legend_count")}: ${kwFull}`;
+    }
+
+    // Inside a grouped (per-text) card the author lives in a sub-header, so the
+    // per-segment author is suppressed via ctx.hideAuthor to avoid redundancy.
+    const authorHtml = (!(ctx && ctx.hideAuthor) && frag.author && frag.author !== "blurb") ? `<span class="fragment-author" title="${t("legend_author")}: ${esc(authorLongName(frag.author, frag.source))}"><i data-lucide="user"></i> ${esc(authorLongName(frag.author, frag.source))}</span>` : "";
+    meta.innerHTML = `
+      <span class="fragment-ref" title="${refTitle}"><i data-lucide="map-pin"></i> ${refDisplay}</span>
+      ${authorHtml}
+      <span class="fragment-score" title="${scoreTitle}" style="display:inline-flex;align-items:center;">${scoreHtml}</span>`;
+    el.appendChild(meta);
+    const textsDiv = document.createElement("div"); textsDiv.className = "fragment-texts";
+    lines.forEach(line => {
+      const p = document.createElement("div"); p.className = "fragment-text-line"; p.innerHTML = line;
+      textsDiv.appendChild(p);
+    });
+    el.appendChild(textsDiv);
+    return el;
+  }
+
+  function createSuttaCardEl(sutta, fragmentsOverride, ctx, onFragment) {
+    const card = document.createElement("div"); card.className = "sutta-card";
+    const header = document.createElement("div"); header.className = "sutta-card-header";
+    const nameSpan = sutta.sutta_name ? ` <span class="sutta-card-name">${sutta.sutta_name}</span>` : "";
+    const frags = fragmentsOverride || sutta.fragments || [];
+    const isBlurbCard = frags.length > 0 && frags.every(f => f.author === "blurb");
+    //const titleHref = isBlurbCard ? `/${toShortId(sutta.sutta_id)}` : "#";
+    const titleHref = `/${toShortId(sutta.sutta_id)}`;
+    //const titleTarget = isBlurbCard ? ' target="_blank"' : "";
+    const titleTarget = ' target="_blank"';
+    //const titleClick = isBlurbCard ? "" : ` onclick="event.preventDefault(); window.DK && window.DK.openSuttaDialog('${sutta.sutta_id}', 'id');"`;
+    const titleClick = "";
+    const pitaka = sutta.pitaka || "";
+    // Tint the whole card outline by piṭaka (colors come from style.css,
+    // matching the .sutta-pitaka-badge palette).
+    if (pitaka) card.classList.add("pitaka-" + pitaka);
+    const pitakaBadge = pitaka ? `<span class="sutta-pitaka-badge ${pitaka}">${pitaka.charAt(0).toUpperCase() + pitaka.slice(1)}</span>` : "";
+    const collName = sutta.collection_name || "";
+    const collBadge = collName ? `<span class="sutta-collection-badge">${esc(collName)}</span>` : "";
+    // Kiri: nomor + nama sutta. Kanan: nama kitab + badge piṭaka (sinkron web-eval).
+    header.innerHTML = `
+      <span class="sutta-card-title">
+        <a href="${titleHref}"${titleTarget}${titleClick} class="dk-open-menu-link" style="color:inherit;text-decoration:none;">
+          ${sutta.formatted_id}${nameSpan}
+        </a>
+      </span>
+      <span class="sutta-card-meta">${collBadge}${pitakaBadge}</span>`;
+    card.appendChild(header);
+    // Dedup overlapping context within this card: collect every matched-segment
+    // text shown here, so a fragment's before/after context can be hidden when
+    // that exact text already appears as another fragment's result.
+    const dedupTexts = new Set();
+    frags.forEach(f => {
+      const tx = f.texts || {};
+      Object.keys(tx).forEach(l => { const v = normCtx(tx[l]); if (v) dedupTexts.add(v); });
+    });
+    const cardCtx = Object.assign({}, ctx, { dedupTexts });
+
+    // Sub-grouping by translator inside a grouped (per-text) card. Without it,
+    // fragments from the same text but different authors repeat the segment
+    // sequence once per author. Each translator's segments are wrapped in a
+    // labelled block (left border + chip header) so the grouping is obvious,
+    // and the author name moves into that header instead of repeating on every
+    // segment. Blurb (sinopsis) fragments have no author and render flat.
+    // Only grouped cards (fragmentsOverride == null) get this; single-fragment
+    // cards in ungrouped mode keep the per-segment author.
+    const isGroupedCard = fragmentsOverride == null;
+    const authorKey = (f) => `${f.source || ""}::${f.author}`;
+    const hasAuthor = frags.some(f => f.author && f.author !== "blurb");
+
+    const appendFrag = (parentEl, frag, fctx) => {
+      const fragEl = createFragmentEl(frag, sutta, fctx);
+      if (onFragment) onFragment(fragEl, frag, sutta);
+      parentEl.appendChild(fragEl);
+    };
+    const appendAuthorBlock = (blockFrags, fctx) => {
+      const head = blockFrags[0];
+      const block = document.createElement("div");
+      block.className = "sutta-author-group";
+      const label = document.createElement("div");
+      label.className = "sutta-author-group-label";
+      label.title = `${t("legend_author")}: ${esc(authorLongName(head.author, head.source))}`;
+      label.innerHTML = `<i data-lucide="user"></i> ${esc(authorLongName(head.author, head.source))}`;
+      block.appendChild(label);
+      blockFrags.forEach(f => appendFrag(block, f, fctx));
+      card.appendChild(block);
+    };
+
+    if (isGroupedCard && hasAuthor) {
+      // One labelled block per translator (≥1 author). Author order follows
+      // first appearance; segment order within each author is preserved.
+      const groupCtx = Object.assign({}, cardCtx, { hideAuthor: true });
+      const byAuthor = new Map();
+      frags.forEach(f => {
+        const k = (f.author && f.author !== "blurb") ? authorKey(f) : "__blurb__";
+        if (!byAuthor.has(k)) byAuthor.set(k, []);
+        byAuthor.get(k).push(f);
+      });
+      byAuthor.forEach((groupFrags, k) => {
+        if (k === "__blurb__") groupFrags.forEach(f => appendFrag(card, f, groupCtx));
+        else appendAuthorBlock(groupFrags, groupCtx);
+      });
+    } else {
+      frags.forEach(f => appendFrag(card, f, cardCtx));
+    }
+    if (window.lucide) window.lucide.createIcons({ root: card });
+    return card;
+  }
+
+  function renderSuttaCardsTo(parent, results, grouped, ctx, onFragment) {
+    if (grouped) {
+      results.forEach(sutta => parent.appendChild(createSuttaCardEl(sutta, null, ctx, onFragment)));
+    } else {
+      const allFrags = [];
+      results.forEach(sutta => (sutta.fragments || []).forEach(frag => allFrags.push({ sutta, frag })));
+      allFrags.sort((a, b) => b.frag.score - a.frag.score);
+      allFrags.forEach(({ sutta, frag }) => parent.appendChild(createSuttaCardEl(sutta, [frag], ctx, onFragment)));
+    }
+  }
+
+  // ========== Sutta Dialog ==========
+  const dlg = {
+    el: null,
+    title: null,
+    langToggle: null,
+    closeBtn: null,
+    loading: null,
+    error: null,
+    errorMsg: null,
+    content: null,
+  };
+  const dlgState = { suttaId: "", lang: "", author: "", authorSource: "", data: null, displayMode: localStorage.getItem("dk-display-mode") || "single" };
+  const nmSort = { col: null, dir: null }; // col: "created_at"|"updated_at", dir: "asc"|"desc"
+
+  function initDialog() {
+    dlg.el = $("#sutta-dialog");
+    if (!dlg.el) return;
+    dlg.title = $("#sutta-dialog-title");
+    dlg.langToggle = $("#sutta-dialog-lang-toggle");
+    dlg.scLinks = $("#sutta-dialog-sc-links");
+    dlg.closeBtn = $("#sutta-dialog-close");
+    dlg.openLink = $("#sutta-dialog-open-link");
+    dlg.displayToggle = $("#sutta-dialog-display-toggle");
+    dlg.loading = $("#sutta-dialog-loading");
+    dlg.error = $("#sutta-dialog-error");
+    dlg.errorMsg = $("#sutta-dialog-error-msg");
+    dlg.content = $("#sutta-dialog-content");
+
+    dlg.closeBtn.addEventListener("click", () => dlg.el.close());
+    dlg.el.addEventListener("click", e => { if (e.target === dlg.el) dlg.el.close(); });
+    dlg.el.addEventListener("keydown", e => { if (e.key === "Escape") dlg.el.close(); });
+
+    if (dlg.openLink) {
+      dlg.openLink.addEventListener("click", function (e) {
+        e.preventDefault();
+        const href = this.href;
+        if (!href) return;
+
+        // Remove any existing popover
+        const existing = document.getElementById("dlg-open-popover");
+        if (existing) { existing.remove(); return; }
+
+        const pop = document.createElement("div");
+        pop.id = "dlg-open-popover";
+        pop.className = "dlg-open-popover";
+
+        const btnHere = document.createElement("button");
+        btnHere.className = "btn-ghost";
+        btnHere.innerHTML = `<i data-lucide="monitor"></i> <span data-i18n="btn_open_here">${t("btn_open_here")}</span>`;
+        btnHere.onclick = () => {
+          pop.remove();
+          dlg.el.close();
+          document.querySelectorAll(".panel-open").forEach(el => el.classList.remove("panel-open"));
+          document.querySelectorAll(".panel-btn-open").forEach(el => el.classList.remove("panel-btn-open"));
+          const bd = document.getElementById("panel-backdrop");
+          if (bd) bd.classList.remove("visible");
+          window.location.href = href;
+        };
+
+        const btnNew = document.createElement("button");
+        btnNew.className = "btn-ghost";
+        btnNew.innerHTML = `<i data-lucide="external-link"></i> <span data-i18n="btn_open_newtab">${t("btn_open_newtab")}</span>`;
+        btnNew.onclick = () => { pop.remove(); window.open(href, "_blank"); };
+
+        pop.appendChild(btnHere);
+        pop.appendChild(btnNew);
+        this.appendChild(pop);
+
+        const dismissPop = (ev) => {
+          if (!pop.contains(ev.target) && ev.target !== dlg.openLink) {
+            pop.remove();
+            document.removeEventListener("click", dismissPop, true);
+          }
+        };
+        setTimeout(() => document.addEventListener("click", dismissPop, true), 0);
+
+        if (window.lucide) window.lucide.createIcons({ root: pop });
+      });
+    }
+  }
+
+  function openSuttaDialog(suttaId, lang, author, hash) {
+    if (!dlg.el) return;
+    dlgState.suttaId = suttaId;
+    dlgState.lang = lang;
+    dlgState.author = author || "";
+    dlgState.authorSource = "";
+    dlgState.hash = hash || "";
+    dlgState.data = null;
+    dlg.title.innerHTML = `<i data-lucide="book-open"></i> ${suttaId}`;
+    refreshIcons();
+    dlg.loading.classList.remove("hidden");
+    dlg.error.classList.add("hidden");
+    dlg.content.classList.add("hidden");
+    dlg.content.innerHTML = "";
+    dlg.el.showModal();
+    loadDialogSutta(hash);
+  }
+
+  async function loadDialogSutta(hash) {
+    dlg.loading.classList.remove("hidden");
+    dlg.error.classList.add("hidden");
+    dlg.content.classList.add("hidden");
+    dlg.content.innerHTML = "";
+    try {
+      const _apiUrl = dlgState.author
+        ? `/api/sutta/${dlgState.suttaId}/${dlgState.lang}/${dlgState.author}`
+        : `/api/sutta/${dlgState.suttaId}/${dlgState.lang}`;
+      const res = await fetch(_apiUrl);
+      if (!res.ok) { const err = await res.json(); throw new Error(err.error || `HTTP ${res.status}`); }
+      dlgState.data = await res.json();
+      dlgState.lang = dlgState.data.lang || dlgState.lang;
+      dlgState.author = dlgState.data.author || "";
+      dlgState.authorSource = dlgState.data.source || "";
+      if (!dlgState.data.segmented) dlgState.displayMode = "single";
+      const nameHtml = dlgState.data.sutta_name ? `<div class="dlg-sutta-name">${dlgState.data.sutta_name}</div>` : "";
+      dlg.title.innerHTML = `<div class="dlg-title-top"><i data-lucide="book-open"></i> <span class="dlg-formatted-id">${dlgState.data.formatted_id}</span></div>${nameHtml}`;
+      refreshIcons();
+
+      // Update tombol "Buka Sutta" ke URL halaman reader standalone
+      if (dlg.openLink) {
+        const author = dlgState.author || dlgState.data.author || "";
+        const readerUrl = author
+          ? `/${dlgState.suttaId}/${dlgState.lang}/${author}`
+          : `/${dlgState.suttaId}/${dlgState.lang}`;
+        const fragment = dlgState.hash ? `#${dlgState.hash}` : "";
+        dlg.openLink.href = readerUrl + fragment;
+      }
+
+      renderDialogLangToggle();
+      renderDialogScLinks();
+      renderDialogSegments(hash);
+      dlg.loading.classList.add("hidden");
+      dlg.content.classList.remove("hidden");
+    } catch (e) {
+      dlg.loading.classList.add("hidden");
+      dlg.errorMsg.textContent = e.message || "Sutta tidak ditemukan.";
+      dlg.error.classList.remove("hidden");
+    }
+  }
+
+  // ── Shared sutta control builders (used by dialog AND sutta reader page) ──
+  function buildDisplayToggle(container, lang, displayMode, onChange, segmented) {
+    // Dua tombol selalu tampil; di-disable kalau mode tak relevan (teks Pāḷi / non-segmented).
+    const dis = (lang === "pli" || segmented === false) ? " disabled" : "";
+    container.innerHTML = `
+      <button class="toggle-btn${displayMode === "single" ? " active" : ""}"${dis} data-mode="single" data-i18n-title="btn_single" title="${t("btn_single")}"><i data-lucide="align-justify"></i><span class="nav-full" style="margin-left:4px;" data-i18n="btn_single">${t("btn_single")}</span></button>
+      <button class="toggle-btn${displayMode === "sidebyside" ? " active" : ""}"${dis} data-mode="sidebyside" data-i18n-title="btn_sidebyside" title="${t("btn_sidebyside")}"><i data-lucide="columns-2"></i><span class="nav-full" style="margin-left:4px;" data-i18n="btn_sidebyside">${t("btn_sidebyside")}</span></button>`;
+    if (window.lucide) window.lucide.createIcons({ root: container });
+    container.querySelectorAll(".toggle-btn").forEach(btn => {
+      btn.addEventListener("click", () => { if (!btn.disabled) onChange(btn.dataset.mode); });
+    });
+  }
+
+  function buildScLinks(container, data) {
+    if (!data || !data.sutta_id) { container.innerHTML = ""; return; }
+    const scBase = `https://suttacentral.net/${esc(data.sutta_id)}`;
+    container.innerHTML = `<a href="${scBase}" target="_blank" class="sc-link-suttaplex" title="Buka di SuttaCentral"><i data-lucide="external-link"></i></a>`;
+    if (window.lucide) window.lucide.createIcons({ root: container });
+  }
+
+  function renderDialogLangToggle() {
+    const avail = (dlgState.data && dlgState.data.available_paths) || {};
+    let html = `<select class="sutta-lang-dropdown">`;
+    ["pli", "id", "en"].forEach(l => {
+      if (!avail[l]) return;
+      (avail[l] || []).forEach(entry => {
+        const uid = entry.uid;
+        const source = entry.source;
+        const selected = (dlgState.lang === l && dlgState.author === uid && dlgState.authorSource === source) ? "selected" : "";
+        html += `<option value="${l}:${source}:${uid}" ${selected}>${langName(l)} — ${authorLongName(uid, source)}</option>`;
+      });
+    });
+    html += `</select>`;
+    dlg.langToggle.innerHTML = html;
+
+    dlg.langToggle.querySelector("select").addEventListener("change", function () {
+      const [lang, source, author] = this.value.split(":");
+      dlgState.lang = lang;
+      dlgState.author = author || "";
+      dlgState.authorSource = source || "";
+      if (lang !== "en") dlgState.displayMode = "single";
+      loadDialogSutta();
+    });
+    refreshDialogDisplayToggle();
+  }
+
+  function refreshDialogDisplayToggle() {
+    buildDisplayToggle(dlg.displayToggle, dlgState.lang, dlgState.displayMode, mode => {
+      dlgState.displayMode = mode;
+      localStorage.setItem("dk-display-mode", mode);
+      refreshDialogDisplayToggle();
+      renderDialogSegments();
+      dlg.content.classList.remove("hidden");
+    }, dlgState.data && dlgState.data.segmented);
+  }
+
+  function renderDialogScLinks() {
+  }
+
+  function renderSegments(targetEl, data, lang, displayMode, opts) {
+    opts = opts || {};
+    const idPrefix = opts.idPrefix !== undefined ? opts.idPrefix : "dlg-";
+    const hash = opts.hash || null;
+    const isSideBySide = displayMode === "sidebyside" && lang !== "pli";
+    targetEl.innerHTML = "";
+    const container = document.createElement("div");
+    container.className = isSideBySide ? "sutta-segments side-by-side" : "sutta-segments";
+    data.segments.forEach(seg => {
+      const segText = seg.text || seg.pli || seg.en || "";
+      if (!segText) return;
+      const anchorId = seg.ids && seg.ids.length > 0 ? seg.ids[0] : "";
+      const refSuffix = anchorId.includes(":") ? anchorId.split(":").pop() : anchorId;
+      const isPreamble = refSuffix.startsWith("0.");
+      const segEl = document.createElement("div");
+      segEl.className = "sutta-segment" +
+        (isPreamble ? " sutta-preamble" : "") +
+        (seg.heading >= 1 && !isPreamble ? ` sutta-heading-${seg.heading}` : "");
+      if (anchorId) segEl.id = idPrefix + anchorId;
+
+      const parts = (seg.parts && seg.parts.length > 0) ? seg.parts : null;
+      const secondaryKey = lang !== "pli" ? "pli" : "en";
+      const partsOpts = { headingAware: true, isHeading: seg.heading >= 1 };
+      const renderParts = (key) => renderPartsHtml(parts, key, partsOpts);
+
+      if (isSideBySide) {
+        const colLeft = document.createElement("div");
+        colLeft.className = "seg-col seg-primary";
+        colLeft.innerHTML = parts ? renderParts("text") : segText;
+        const colRight = document.createElement("div");
+        colRight.className = "seg-col seg-secondary";
+        colRight.innerHTML = parts ? renderParts(secondaryKey) : ((lang !== "pli" ? seg.pli : seg.en) || "");
+        segEl.appendChild(colLeft);
+        segEl.appendChild(colRight);
+      } else {
+        const textEl = document.createElement("div");
+        textEl.className = "seg-text";
+        textEl.innerHTML = parts ? renderParts("text") : segText;
+        segEl.appendChild(textEl);
+      }
+
+      if (anchorId) {
+        const ref = document.createElement("a");
+        ref.className = "seg-ref";
+        const path = `/${data.sutta_id}/${lang}${data.author ? '/' + data.author : ''}`;
+        ref.href = `${path}#${anchorId}`;
+        ref.style.textDecoration = "none";
+        ref.textContent = compactRef(seg.ids);
+        ref.title = seg.ids.join(", ");
+        segEl.appendChild(ref);
+      }
+
+      const addBtn = document.createElement("button");
+      addBtn.className = "seg-add-btn";
+      addBtn.innerHTML = `<span class="full" data-i18n="btn_add_note">${t("btn_add_note")}</span><span class="short" data-i18n="btn_add_note_short">${t("btn_add_note_short")}</span>`;
+      addBtn.addEventListener("click", (e) => {
+        const block = {
+          type: "sutta",
+          data: {
+            sutta_id: data.sutta_id,
+            formatted_id: data.formatted_id,
+            sutta_name: data.sutta_name || "",
+            author: data.author || "",
+            source: data.source || "",
+            ref: seg.ids,
+            ref_display: compactRef(seg.ids),
+            texts: { [lang]: segText },
+            parts: parts,
+            parts_lang: parts ? lang : null,
+            available_links: data.available_links || {},
+          },
+        };
+        showNotePicker(block, e.currentTarget);
+      });
+      segEl.appendChild(addBtn);
+      container.appendChild(segEl);
+    });
+    targetEl.appendChild(container);
+
+    if (hash) {
+      const target = targetEl.querySelector(`#${CSS.escape(idPrefix + hash)}`);
+      if (target) {
+        target.classList.add("dlg-target");
+        setTimeout(() => target.scrollIntoView({ behavior: "smooth", block: "center" }), 80);
+      }
+    }
+    refreshIcons();
+  }
+
+  function renderDialogSegments(targetHash) {
+    if (!dlgState.data) return;
+    renderSegments(dlg.content, dlgState.data, dlgState.lang, dlgState.displayMode, { idPrefix: "dlg-", hash: targetHash });
+  }
+
+  function interceptDkLinks() {
+    document.addEventListener("click", e => {
+      const link = e.target.closest("a.sc-link, a.lang-tag");
+      if (!link) return;
+      if (link.dataset.isBlurb) return;
+      const href = link.getAttribute("href");
+      if (!href || !href.startsWith("/")) return;
+      e.preventDefault();
+      const match = href.match(/^\/([^/]+)\/([^/#]+)(?:\/([^#]+))?(?:#(.+))?$/);
+      if (match) openSuttaDialog(match[1], match[2], match[3] || "", match[4] || "");
+      else window.location.href = href;
+    });
+  }
+
+  // ========== Custom Dialog (replaces native alert / confirm) ==========
+  let _dkDialog = null;
+  function _ensureDialog() {
+    if (_dkDialog) return _dkDialog;
+    _dkDialog = document.createElement("dialog");
+    _dkDialog.id = "dk-dialog";
+    document.body.appendChild(_dkDialog);
+    _dkDialog.addEventListener("click", e => { if (e.target === _dkDialog) _dkDialog.close(); });
+    return _dkDialog;
+  }
+
+  function dkAlert(message, opts) {
+    opts = opts || {};
+    const dlg = _ensureDialog();
+    const icon = opts.icon || "info";
+    const iconName = icon === "warn" ? "triangle-alert" : "info";
+    dlg.innerHTML = `
+      <div class="dk-dlg-body">
+        <div class="dk-dlg-icon ${icon}"><i data-lucide="${iconName}" style="width: 24px; height: 24px;"></i></div>
+        <div class="dk-dlg-msg">${esc(message)}</div>
+      </div>
+      <div class="dk-dlg-footer">
+        <button class="dk-dlg-btn primary" id="dk-dlg-ok">${t("dlg_btn_ok")}</button>
+      </div>`;
+    if (window.lucide) window.lucide.createIcons({ root: dlg });
+    dlg.showModal();
+    return new Promise(resolve => {
+      const okBtn = dlg.querySelector("#dk-dlg-ok");
+      okBtn.focus();
+      okBtn.onclick = () => { dlg.close(); resolve(); };
+      dlg.onclose = () => resolve();
+    });
+  }
+
+  function dkConfirm(message, opts) {
+    opts = opts || {};
+    const dlg = _ensureDialog();
+    const isDanger = opts.danger || false;
+    const confirmLabel = opts.confirmLabel || (isDanger ? t("dlg_btn_delete") : t("dlg_btn_continue"));
+    const cancelLabel = opts.cancelLabel || t("dlg_btn_cancel");
+    const iconName = isDanger ? "triangle-alert" : "help-circle";
+    const iconClass = isDanger ? "warn" : "info";
+    dlg.innerHTML = `
+      <div class="dk-dlg-body">
+        <div class="dk-dlg-icon ${iconClass}"><i data-lucide="${iconName}" style="width: 24px; height: 24px;"></i></div>
+        <div class="dk-dlg-msg">${esc(message)}</div>
+      </div>
+      <div class="dk-dlg-footer">
+        <button class="dk-dlg-btn cancel" id="dk-dlg-cancel">${cancelLabel}</button>
+        <button class="dk-dlg-btn ${isDanger ? "danger" : "primary"}" id="dk-dlg-confirm">${confirmLabel}</button>
+      </div>`;
+    if (window.lucide) window.lucide.createIcons({ root: dlg });
+    dlg.showModal();
+    return new Promise(resolve => {
+      let resolved = false;
+      dlg.onclose = () => { if (!resolved) { resolved = true; resolve(false); } };
+      dlg.querySelector("#dk-dlg-cancel").onclick = () => { resolved = true; dlg.close(); resolve(false); };
+      dlg.querySelector("#dk-dlg-confirm").onclick = () => { resolved = true; dlg.close(); resolve(true); };
+    });
+  }
+
+  function dkPrompt(message, opts) {
+    opts = opts || {};
+    const dlg = _ensureDialog();
+    const confirmLabel = opts.confirmLabel || t("dlg_btn_continue");
+    const cancelLabel = opts.cancelLabel || t("dlg_btn_cancel");
+    const iconChar = "✏";
+    const iconClass = "info";
+    const defaultValue = opts.defaultValue || "";
+    dlg.innerHTML = `
+      <div class="dk-dlg-body" style="flex-direction: column; gap: 8px;">
+        <div style="display: flex; gap: 14px; align-items: flex-start;">
+          <div class="dk-dlg-icon ${iconClass}">${iconChar}</div>
+          <div class="dk-dlg-msg" style="padding-top: 6px;">${esc(message)}</div>
+        </div>
+        <input type="${opts.type || "text"}" id="dk-dlg-input" class="nm-rename-input" style="width: 100%; margin-top: 10px; box-sizing: border-box; padding: 8px 12px; font-size: 0.95rem;" value="${esc(defaultValue)}">
+      </div>
+      <div class="dk-dlg-footer">
+        <button class="dk-dlg-btn cancel" id="dk-dlg-cancel">${cancelLabel}</button>
+        <button class="dk-dlg-btn primary" id="dk-dlg-confirm">${confirmLabel}</button>
+      </div>`;
+    dlg.showModal();
+    return new Promise(resolve => {
+      const input = dlg.querySelector("#dk-dlg-input");
+      input.focus();
+      if (defaultValue) input.select();
+
+      let resolved = false;
+      dlg.onclose = () => { if (!resolved) { resolved = true; resolve(null); } };
+      dlg.querySelector("#dk-dlg-cancel").onclick = () => { resolved = true; dlg.close(); resolve(null); };
+      dlg.querySelector("#dk-dlg-confirm").onclick = () => { resolved = true; dlg.close(); resolve(input.value); };
+      input.onkeydown = (e) => {
+        if (e.key === "Enter") { resolved = true; dlg.close(); resolve(input.value); }
+      };
+    });
+  }
+
+  // ========== Public API ==========
+  window.DK = {
+    state, esc, buildMiniTexts, addBlockToNote, showNotePicker, updateAllLinksInDOM, copyNote, downloadNotePdf, t,
+    highlightKeywords, buildFragTextLines, createFragmentEl, createSuttaCardEl, renderSuttaCardsTo, openSuttaDialog,
+    compactRef, showToast, renderSegments, buildDisplayToggle, buildScLinks, langName, authorLongName,
+    alert: dkAlert, confirm: dkConfirm, prompt: dkPrompt,
+  };
+
+  // ========== Reader display settings (Segmen) ==========
+  // Centangan opsional di dialog "Atur" (base.html), berlaku global.
+  // Pemisah bait (‖) selalu tampil — bukan opsi, lihat .verse-sep di CSS.
+  function initSegRef() {
+    const segVal = localStorage.getItem("dk-show-segref") !== "0";
+    document.documentElement.classList.toggle("show-seg-ref", segVal);
+    const cbSeg = document.getElementById("cb-seg-ref");
+    if (cbSeg) {
+      cbSeg.checked = segVal;
+      cbSeg.addEventListener("change", () => {
+        localStorage.setItem("dk-show-segref", cbSeg.checked ? "1" : "0");
+        document.documentElement.classList.toggle("show-seg-ref", cbSeg.checked);
+      });
+    }
+  }
+
+  // ========== Reader settings dialog ("Atur") ==========
+  function initReaderSettings() {
+    const dlg = document.getElementById("reader-settings-dialog");
+    if (!dlg) return;
+    const open = () => { dlg.showModal(); refreshIcons(); };
+    const close = () => dlg.close();
+    document.getElementById("btn-reader-settings")?.addEventListener("click", open);
+    document.getElementById("sutta-dialog-settings-btn")?.addEventListener("click", open);
+    document.getElementById("reader-settings-close")?.addEventListener("click", close);
+    // klik backdrop (luar konten) untuk menutup
+    dlg.addEventListener("click", e => { if (e.target === dlg) close(); });
+  }
+
+  // ========== Font settings (di dalam dialog "Setelan", global) ==========
+  // Berlaku ke #sutta-body (halaman reader) & #sutta-dialog-content (popup).
+  function initFontSettings() {
+    const FONT_SIZES = [90, 100, 110, 125, 140];
+    const LINE_HEIGHTS = [1.1, 1.25, 1.4, 1.55, 1.7, 1.85, 2.0];
+    const fontState = {
+      sizeIdx: parseInt(localStorage.getItem("dk-font-size-idx") ?? "1"),
+      lineIdx: parseInt(localStorage.getItem("dk-line-height-idx") ?? "3"),
+      family: localStorage.getItem("dk-font-family") || "sans",
+    };
+
+    function apply() {
+      const pct = FONT_SIZES[fontState.sizeIdx];
+      const lh = LINE_HEIGHTS[fontState.lineIdx];
+      [document.getElementById("sutta-body"), document.getElementById("sutta-dialog-content")].forEach(el => {
+        if (!el) return;
+        el.style.zoom = pct + "%";
+        el.style.setProperty("--reader-line-height", lh);
+        el.classList.toggle("reader-serif", fontState.family === "serif");
+      });
+      const slider = document.getElementById("font-size-slider");
+      if (slider) slider.value = fontState.sizeIdx;
+      const lhSlider = document.getElementById("line-height-slider");
+      if (lhSlider) lhSlider.value = fontState.lineIdx;
+      ["font-family-sans", "font-family-serif"].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) btn.classList.toggle("active", id.endsWith(fontState.family));
+      });
+      // Pratinjau ikut semua setelan: gaya (sans/serif), ukuran (zoom), & tinggi baris
+      const preview = document.getElementById("rs-preview");
+      if (preview) {
+        preview.classList.toggle("reader-serif", fontState.family === "serif");
+        preview.style.setProperty("--reader-line-height", lh);
+        const previewText = preview.querySelector(".rs-preview-text");
+        if (previewText) previewText.style.zoom = pct + "%";
+      }
+    }
+
+    function save() {
+      localStorage.setItem("dk-font-size-idx", fontState.sizeIdx);
+      localStorage.setItem("dk-line-height-idx", fontState.lineIdx);
+      localStorage.setItem("dk-font-family", fontState.family);
+    }
+
+    document.getElementById("font-size-slider")?.addEventListener("input", function () {
+      fontState.sizeIdx = parseInt(this.value); apply(); save();
+    });
+    document.getElementById("line-height-slider")?.addEventListener("input", function () {
+      fontState.lineIdx = parseInt(this.value); apply(); save();
+    });
+    document.getElementById("font-family-sans")?.addEventListener("click", () => {
+      fontState.family = "sans"; apply(); save();
+    });
+    document.getElementById("font-family-serif")?.addEventListener("click", () => {
+      fontState.family = "serif"; apply(); save();
+    });
+    document.getElementById("font-size-reset")?.addEventListener("click", () => {
+      fontState.sizeIdx = 1; apply(); save();
+    });
+    document.getElementById("line-height-reset")?.addEventListener("click", () => {
+      fontState.lineIdx = 3; apply(); save();
+    });
+
+    apply();
+  }
+
+  // ========== Notes Manager ==========
+  function openNotesManager() {
+    const dlg = document.getElementById("notes-manager");
+    if (!dlg) return;
+    renderNotesManager();
+    dlg.showModal();
+  }
+
+  function renderNotesManager() {
+    const list = document.getElementById("nm-list");
+    if (!list) return;
+    list.innerHTML = "";
+
+    const locale = getLang() === "id" ? "id-ID" : "en-GB";
+    const fmtOpts = { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" };
+
+    if (!state.notes.length) {
+      const empty = document.createElement("p");
+      empty.className = "nm-empty";
+      empty.textContent = getLang() === "id" ? "Belum ada catatan." : "No notes yet.";
+      list.appendChild(empty);
+      updateNmToolbar();
+      return;
+    }
+
+    // sort
+    const sorted = [...state.notes];
+    if (nmSort.col) {
+      sorted.sort((a, b) => {
+        const va = a[nmSort.col] || "";
+        const vb = b[nmSort.col] || "";
+        return nmSort.dir === "asc" ? va.localeCompare(vb) : vb.localeCompare(va);
+      });
+    }
+
+    function sortIndicator(col) {
+      if (nmSort.col !== col) return " ↕";
+      return nmSort.dir === "asc" ? " ↑" : " ↓";
+    }
+
+    function makeSortHeader(label, col) {
+      const btn = document.createElement("button");
+      btn.className = "nm-sort-btn" + (nmSort.col === col ? " active" : "");
+      btn.textContent = label + sortIndicator(col);
+      btn.addEventListener("click", () => {
+        if (nmSort.col !== col) { nmSort.col = col; nmSort.dir = "asc"; }
+        else if (nmSort.dir === "asc") { nmSort.dir = "desc"; }
+        else { nmSort.col = null; nmSort.dir = null; }
+        renderNotesManager();
+      });
+      return btn;
+    }
+
+    // header row
+    const header = document.createElement("div");
+    header.className = "nm-list-header";
+    const hEmpty1 = document.createElement("span");
+    const hTitle = document.createElement("span");
+    hTitle.textContent = t("nm_col_title");
+    const hCreated = makeSortHeader(t("nm_col_created"), "created_at");
+    const hEdited = makeSortHeader(t("nm_col_edited"), "updated_at");
+    header.append(hEmpty1, hTitle, hCreated, hEdited, document.createElement("span"), document.createElement("span"), document.createElement("span"));
+    list.appendChild(header);
+
+    sorted.forEach(n => {
+      const item = document.createElement("div");
+      item.className = "nm-item";
+      item.dataset.id = n.id;
+
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.className = "nm-cb";
+      cb.addEventListener("change", updateNmToolbar);
+
+      const titleBtn = document.createElement("button");
+      titleBtn.className = "nm-title-btn";
+      titleBtn.textContent = n.title || "Untitled";
+      titleBtn.title = n.title || "";
+      titleBtn.addEventListener("click", () => {
+        openNote(n.id);
+        document.getElementById("notes-manager").close();
+      });
+
+      const createdStr = n.created_at ? new Date(n.created_at).toLocaleString(locale, fmtOpts) : "—";
+      const updatedStr = n.updated_at ? new Date(n.updated_at).toLocaleString(locale, fmtOpts) : "—";
+
+      const createdCell = document.createElement("span");
+      createdCell.className = "nm-date-cell";
+      createdCell.textContent = createdStr;
+
+      const updatedCell = document.createElement("span");
+      updatedCell.className = "nm-date-cell";
+      updatedCell.textContent = updatedStr;
+
+      const editBtn = document.createElement("button");
+      editBtn.className = "nm-action-btn";
+      editBtn.innerHTML = '<i data-lucide="pencil"></i>';
+      editBtn.title = getLang() === "id" ? "Ubah nama" : "Rename";
+      editBtn.addEventListener("click", () => startInlineRename(n.id, item));
+
+      const dlBtn = document.createElement("button");
+      dlBtn.className = "nm-action-btn";
+      dlBtn.innerHTML = '<i data-lucide="download"></i>';
+      dlBtn.title = getLang() === "id" ? "Unduh PDF" : "Download PDF";
+      dlBtn.addEventListener("click", () => downloadSingleNotePdf(n.id));
+
+      const delBtn = document.createElement("button");
+      delBtn.className = "nm-action-btn danger";
+      delBtn.innerHTML = '<i data-lucide="trash-2"></i>';
+      delBtn.title = getLang() === "id" ? "Hapus" : "Delete";
+      delBtn.addEventListener("click", () => deleteNoteFromManager(n.id));
+
+      item.append(cb, titleBtn, createdCell, updatedCell, editBtn, dlBtn, delBtn);
+      list.appendChild(item);
+    });
+    updateNmToolbar();
+    refreshIcons();
+  }
+
+  function updateNmToolbar() {
+    const btnDel = document.getElementById("btn-nm-bulk-delete");
+    const btnDl = document.getElementById("btn-nm-bulk-download");
+    const cbAll = document.getElementById("nm-select-all");
+    const cbs = [...document.querySelectorAll("#nm-list .nm-cb")];
+    const checked = cbs.filter(c => c.checked);
+    if (btnDel) btnDel.disabled = checked.length === 0;
+    if (btnDl) btnDl.disabled = checked.length === 0;
+    if (cbAll) {
+      cbAll.checked = cbs.length > 0 && checked.length === cbs.length;
+      cbAll.indeterminate = checked.length > 0 && checked.length < cbs.length;
+    }
+  }
+
+  async function deleteNoteFromManager(id) {
+    if (!await dkConfirm(t("confirm_delete"), { danger: true })) return;
+    lsNotesDelete(id);
+    if (state.activeNoteId === id) {
+      state.activeNoteId = null;
+      state.activeNote = null;
+      localStorage.removeItem("dk-active-note");
+      const editor = $("#note-editor");
+      const empty = $("#notes-empty-state");
+      if (editor) editor.classList.add("hidden");
+      if (empty) empty.classList.remove("hidden");
+    }
+    await loadNotesList();
+    renderNotesManager();
+  }
+
+  async function bulkDeleteNotes() {
+    const checked = [...document.querySelectorAll("#nm-list .nm-cb:checked")];
+    if (!checked.length) return;
+    if (!await dkConfirm(t("nm_confirm_bulk"), { danger: true })) return;
+    const ids = checked.map(c => c.closest(".nm-item").dataset.id);
+    ids.forEach(id => lsNotesDelete(id));
+    if (ids.includes(state.activeNoteId)) {
+      state.activeNoteId = null;
+      state.activeNote = null;
+      localStorage.removeItem("dk-active-note");
+      const editor = $("#note-editor");
+      const empty = $("#notes-empty-state");
+      if (editor) editor.classList.add("hidden");
+      if (empty) empty.classList.remove("hidden");
+    }
+    await loadNotesList();
+    renderNotesManager();
+  }
+
+  async function downloadSingleNotePdf(id) {
+    const note = lsNotesGet(id);
+    const title = esc(note.title || "Catatan");
+    let body = "";
+    (note.blocks || []).forEach(block => {
+      if (block.type === "text") {
+        body += `<div class="text-block">${esc(block.content || "").replace(/\n/g, "<br>")}</div>`;
+      } else if (block.type === "sutta") {
+        const d = block.data || {};
+        const texts = d.texts || {};
+        body += `<div class="sutta-block">
+          <div class="sutta-ref"><strong>${esc(d.formatted_id || d.sutta_id || "")}${d.sutta_name ? " — " + esc(d.sutta_name) : ""}</strong> — ${esc(d.ref_display || "")}${d.author && d.author !== "blurb" ? " — " + esc(authorLongName(d.author, d.source)) : ""}</div>
+          ${texts.id ? `<p><em>ID:</em> ${esc(texts.id)}</p>` : ""}
+          ${texts.en ? `<p><em>EN:</em> ${esc(texts.en)}</p>` : ""}
+          ${texts.pli ? `<p><em>PLI:</em> ${esc(texts.pli)}</p>` : ""}
+        </div>`;
+      }
+    });
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${title}</title>
+<style>
+  body{font-family:serif;max-width:700px;margin:40px auto;color:#222;line-height:1.6}
+  h1{font-size:1.4em;border-bottom:1px solid #ccc;padding-bottom:8px;margin-bottom:24px}
+  .text-block{margin:12px 0}
+  .sutta-block{background:#f5f5f5;padding:12px 16px;margin:16px 0;border-left:3px solid #888}
+  .sutta-ref{font-size:.85em;color:#555;margin-bottom:6px}
+  p{margin:4px 0}
+</style></head><body><h1>${title}</h1>${body}</body></html>`;
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const win = window.open(url, "_blank");
+    if (win) win.addEventListener("load", () => { win.print(); URL.revokeObjectURL(url); });
+  }
+
+  async function bulkDownloadPdf() {
+    const checked = [...document.querySelectorAll("#nm-list .nm-cb:checked")];
+    if (!checked.length) return;
+    const ids = checked.map(c => c.closest(".nm-item").dataset.id);
+    const notes = ids.map(id => lsNotesGet(id)).filter(Boolean);
+
+    function buildNoteHtml(note) {
+      const title = esc(note.title || "Catatan");
+      let body = "";
+      (note.blocks || []).forEach(block => {
+        if (block.type === "text") {
+          body += `<div class="text-block">${esc(block.content || "").replace(/\n/g, "<br>")}</div>`;
+        } else if (block.type === "sutta") {
+          const d = block.data || {};
+          const texts = d.texts || {};
+          body += `<div class="sutta-block">
+            <div class="sutta-ref"><strong>${esc(d.formatted_id || d.sutta_id || "")}${d.sutta_name ? " — " + esc(d.sutta_name) : ""}</strong> — ${esc(d.ref_display || "")}${d.author && d.author !== "blurb" ? " — " + esc(authorLongName(d.author, d.source)) : ""}</div>
+            ${texts.id ? `<p><em>ID:</em> ${esc(texts.id)}</p>` : ""}
+            ${texts.en ? `<p><em>EN:</em> ${esc(texts.en)}</p>` : ""}
+            ${texts.pli ? `<p><em>PLI:</em> ${esc(texts.pli)}</p>` : ""}
+          </div>`;
+        }
+      });
+      return `<section class="note-section"><h1>${title}</h1>${body}</section>`;
+    }
+
+    const combinedBody = notes.map(buildNoteHtml).join('<div class="page-break"></div>');
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Catatan</title>
+<style>
+  body{font-family:serif;max-width:700px;margin:40px auto;color:#222;line-height:1.6}
+  h1{font-size:1.4em;border-bottom:1px solid #ccc;padding-bottom:8px;margin-bottom:24px}
+  .text-block{margin:12px 0}
+  .sutta-block{background:#f5f5f5;padding:12px 16px;margin:16px 0;border-left:3px solid #888}
+  .sutta-ref{font-size:.85em;color:#555;margin-bottom:6px}
+  p{margin:4px 0}
+  .note-section{margin-bottom:40px}
+  .page-break{page-break-after:always}
+</style></head><body>${combinedBody}</body></html>`;
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const win = window.open(url, "_blank");
+    if (win) win.addEventListener("load", () => { win.print(); URL.revokeObjectURL(url); });
+  }
+
+  function startInlineRename(id, itemEl) {
+    if (itemEl.classList.contains("nm-editing")) return;
+    const titleBtn = itemEl.querySelector(".nm-title-btn");
+    if (!titleBtn) return;
+    const currentTitle = titleBtn.textContent;
+    itemEl.classList.add("nm-editing");
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.className = "nm-rename-input";
+    input.value = currentTitle;
+    titleBtn.replaceWith(input);
+    input.focus();
+    input.select();
+
+    let done = false;
+    async function confirmRename() {
+      if (done) return;
+      done = true;
+      const newTitle = input.value.trim() || currentTitle;
+      if (newTitle !== currentTitle) {
+        lsNotesUpdate(id, { title: newTitle });
+        await loadNotesList(false);  // don't re-render editor, just refresh sidebar
+        if (state.activeNoteId === id && state.activeNote) {
+          state.activeNote.title = newTitle;
+          const titleInput = $("#note-title-input");
+          if (titleInput) titleInput.value = newTitle;
+        }
+      }
+      renderNotesManager();
+    }
+
+    function cancelRename() {
+      if (done) return;
+      done = true;
+      renderNotesManager();
+    }
+
+    input.addEventListener("blur", confirmRename);
+    input.addEventListener("keydown", e => {
+      if (e.key === "Enter") { e.preventDefault(); input.blur(); }
+      if (e.key === "Escape") { input.removeEventListener("blur", confirmRename); cancelRename(); }
+    });
+  }
+
+  // ========== Init ==========
+  // Small popover offering "open here" / "open in new tab" for an in-page link,
+  // anchored to the clicked element. Used by the blurb "Hlm. Teks" links in
+  // notes and search results (mirrors the sutta-dialog open button).
+  function showOpenMenu(anchorEl, href, opts) {
+    opts = opts || {};
+    if (!href) return;
+    const existing = document.getElementById("dk-open-menu");
+    if (existing) {
+      const sameAnchor = existing._anchor === anchorEl;
+      existing.remove();
+      if (sameAnchor) return; // toggle off when clicking the same trigger
+    }
+
+    const pop = document.createElement("div");
+    pop.id = "dk-open-menu";
+    pop.className = "dk-open-menu";
+    pop._anchor = anchorEl;
+
+    function addItem(icon, key, onClick) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "dk-open-menu-item";
+      b.innerHTML = `<i data-lucide="${icon}"></i> <span data-i18n="${key}">${t(key)}</span>`;
+      b.addEventListener("click", (ev) => { ev.preventDefault(); ev.stopPropagation(); pop.remove(); onClick(); });
+      pop.appendChild(b);
+    }
+
+    addItem("monitor", "btn_open_here", () => { if (opts.onHere) opts.onHere(); else window.location.href = href; });
+    addItem("external-link", "btn_open_newtab", () => window.open(href, "_blank"));
+
+    const openDialog = document.querySelector("dialog[open]");
+    (openDialog || document.body).appendChild(pop);
+
+    requestAnimationFrame(() => {
+      const rect = anchorEl.getBoundingClientRect();
+      const ph = pop.offsetHeight, pw = pop.offsetWidth;
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const top = spaceBelow >= ph + 6 ? rect.bottom + 4 : Math.max(4, rect.top - ph - 4);
+      const left = Math.max(4, Math.min(rect.left, window.innerWidth - pw - 4));
+      pop.style.top = top + "px";
+      pop.style.left = left + "px";
+    });
+
+    function cleanup() {
+      pop.remove();
+      document.removeEventListener("click", dismiss, true);
+      document.removeEventListener("keydown", onEsc, true);
+    }
+    const dismiss = (ev) => { if (!pop.contains(ev.target)) cleanup(); };
+    const onEsc = (ev) => { if (ev.key === "Escape") cleanup(); };
+    setTimeout(() => {
+      document.addEventListener("click", dismiss, true);
+      document.addEventListener("keydown", onEsc, true);
+    }, 0);
+
+    if (window.lucide) window.lucide.createIcons({ root: pop });
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    initTheme();
+
+    // Blurb "Hlm. Teks" links open a small "here / new tab" chooser instead of
+    // navigating directly. Delegated so it survives note/result re-renders.
+    document.addEventListener("click", (e) => {
+      const link = e.target.closest && e.target.closest("a.dk-open-menu-link");
+      if (!link) return;
+      e.preventDefault();
+      e.stopPropagation();
+      showOpenMenu(link, link.href);
+    }, true);
+    initDialog();
+    interceptDkLinks();
+    initSegRef();
+    initReaderSettings();
+    initFontSettings();
+    setupResize();
+    applyCommonI18n();
+    loadNotesList();
+
+    const langBtn = document.getElementById("btn-lang-toggle");
+    if (langBtn) {
+      langBtn.addEventListener("click", () => {
+        const next = getLang() === "id" ? "en" : "id";
+        localStorage.setItem("dk-lang", next);
+        window.dispatchEvent(new CustomEvent("dk-lang-change", { detail: { lang: next } }));
+        applyCommonI18n();
+        renderNotesList();
+        refreshMetaDates();
+        const nmDlg = document.getElementById("notes-manager-dialog");
+        if (nmDlg && !nmDlg.classList.contains("hidden")) renderNotesManager();
+      });
+    }
+
+    // ── Panel toggle (mobile only) ──
+    const panelToggleBtn = $("#btn-panel-toggle");
+    const panelBackdrop = $("#panel-backdrop");
+    if (panelToggleBtn) {
+      const panel = $("#notes-panel");
+      if (panel) {
+        const closePanel = () => {
+          panel.classList.remove("panel-open");
+          panelToggleBtn.classList.remove("panel-btn-open");
+          if (panelBackdrop) panelBackdrop.classList.remove("visible");
+          panelToggleBtn.title = "Tampilkan panel";
+        };
+        const openPanel = () => {
+          panel.classList.add("panel-open");
+          panelToggleBtn.classList.add("panel-btn-open");
+          if (panelBackdrop) panelBackdrop.classList.add("visible");
+          panelToggleBtn.title = "Sembunyikan panel";
+        };
+        panelToggleBtn.addEventListener("click", () => {
+          panel.classList.contains("panel-open") ? closePanel() : openPanel();
+        });
+        if (panelBackdrop) panelBackdrop.addEventListener("click", closePanel);
+      } else {
+        panelToggleBtn.style.display = "none";
+      }
+    }
+
+    const themeBtn = $("#btn-theme-toggle");
+    const btnNewNote = $("#btn-new-note");
+    const btnDeleteNote = $("#btn-delete-note");
+    const btnAddTextBlock = $("#btn-add-text-block");
+    const btnPasteBlock = $("#btn-paste-block");
+    const noteTitleInput = $("#note-title-input");
+
+    const btnCopyNote = $("#btn-copy-note");
+    const btnDownloadNote = $("#btn-download-note");
+    const btnFullscreenNotes = $("#btn-fullscreen-notes");
+
+    const btnManageNotes = $("#btn-manage-notes");
+    const btnNmClose = document.getElementById("btn-nm-close");
+    const btnNmBulkDelete = document.getElementById("btn-nm-bulk-delete");
+    const btnNmBulkDownload = document.getElementById("btn-nm-bulk-download");
+    const cbNmSelectAll = document.getElementById("nm-select-all");
+    const notesMgrDlg = document.getElementById("notes-manager");
+
+    if (themeBtn) themeBtn.addEventListener("click", toggleTheme);
+    if (btnNewNote) btnNewNote.addEventListener("click", createNote);
+    if (btnManageNotes) btnManageNotes.addEventListener("click", openNotesManager);
+    if (btnFullscreenNotes) {
+      btnFullscreenNotes.addEventListener("click", () => {
+        const panel = $("#notes-panel");
+        const isFs = panel.classList.toggle("fullscreen");
+        btnFullscreenNotes.classList.toggle("active", isFs);
+        btnFullscreenNotes.title = isFs ? "Perkecil" : "Layar Penuh";
+        // btnFullscreenNotes.querySelector(".icon-expand").style.display = isFs ? "none" : "";
+        //btnFullscreenNotes.querySelector(".icon-collapse").style.display = isFs ? "" : "none";
+      });
+    }
+    if (btnNmClose) btnNmClose.addEventListener("click", () => notesMgrDlg.close());
+    if (btnNmBulkDelete) btnNmBulkDelete.addEventListener("click", bulkDeleteNotes);
+    if (btnNmBulkDownload) btnNmBulkDownload.addEventListener("click", bulkDownloadPdf);
+    if (cbNmSelectAll) cbNmSelectAll.addEventListener("change", e => {
+      document.querySelectorAll("#nm-list .nm-cb").forEach(c => c.checked = e.target.checked);
+      updateNmToolbar();
+    });
+    if (notesMgrDlg) notesMgrDlg.addEventListener("click", e => { if (e.target === notesMgrDlg) notesMgrDlg.close(); });
+    if (btnDeleteNote) btnDeleteNote.addEventListener("click", deleteCurrentNote);
+    if (btnCopyNote) btnCopyNote.addEventListener("click", copyNote);
+    if (btnDownloadNote) btnDownloadNote.addEventListener("click", downloadNotePdf);
+    if (btnAddTextBlock) btnAddTextBlock.addEventListener("click", addTextBlock);
+
+    if (btnPasteBlock) {
+      btnPasteBlock.addEventListener("click", () => {
+        if (!_copiedBlock || !state.activeNote) return;
+        const noteBlocks = $("#note-blocks");
+        state.activeNote.blocks.push(JSON.parse(JSON.stringify(_copiedBlock)));
+        noteBlocks.appendChild(createNoteBlockEl(state.activeNote.blocks[state.activeNote.blocks.length - 1], state.activeNote.blocks.length - 1));
+        refreshIcons();
+        autoSave();
+      });
+    }
+
+    const btnClearPaste = $("#btn-clear-paste");
+    if (btnClearPaste) {
+      btnClearPaste.addEventListener("click", () => {
+        _copiedBlock = null;
+        updatePasteBtn();
+        showToast(getLang() === "en" ? "Copied block cleared" : "Salinan dihapus");
+      });
+    }
+
+    if (noteTitleInput) noteTitleInput.addEventListener("blur", autoSave);
+    if (noteTitleInput) noteTitleInput.addEventListener("input", () => {
+      const activeTab = document.querySelector(`.note-tab.active .note-tab-title`);
+      if (activeTab) activeTab.textContent = noteTitleInput.value || "Untitled";
+    });
+  });
+})();

@@ -170,6 +170,9 @@ def chunk_bilara(sec_dir, text_dir, text_key, output_file):
         # Heading body tetap chunk sendiri (heading>0), disaring include_titles di web.
         cleaned = [c for c in chunks
                    if c[text_key] and not config.is_junk_body(c[text_key], c["heading"])]
+        for c in cleaned:                                      # tandai kolofon (teks struktural; tetap disimpan)
+            if not c.get("heading") and config.is_colophon(c[text_key]):
+                c["structural"] = "colophon"
         if cleaned:
             dataset.append({"file_base_name": base, "chunks": cleaned})
 
@@ -209,6 +212,8 @@ def chunk_html(html_dir, text_key, output_dir, htmltext):
     rules = _load_chunk_rules()
     PTS_BLOCK_SUTTAS = set(rules.get("pts_split", []))
     HORNER_BLOCK_SUTTAS = set(rules.get("horner_split", []))
+    STRUCTURAL_CLASSES = set(rules.get("structural_classes", []))   # <p class> non-konten -> tag structural
+    HEADING_CLASSES = set(rules.get("heading_classes", []))         # <p class> subjudul -> tag heading
     
     horner_split_re = re.compile(r'\[\d+\]')
     
@@ -258,6 +263,22 @@ def chunk_html(html_dir, text_key, output_dir, htmltext):
             is_speaker_tag = "speaker" in tag.get("class", [])
             block_source = tag.decode_contents()
 
+            # Label tebal: <p>/<li> yang SELURUH teksnya di dalam <b>/<strong> (mis. lemma
+            # kamus Vinaya "<p><b>Dalam kemarahan:</b></p>"). Bukan body konten -> di-tag
+            # heading + structural="label" supaya kebuang dari retrieval (include_titles) &
+            # SUMBER latih GPL (_gpl skip heading/structural). Aturan SERAGAM (bukan per-istilah).
+            _btag = tag.find(["b", "strong"])
+            is_bold_label = (tag.name in ("p", "li") and _btag is not None
+                             and tag.get_text(strip=True) != ""
+                             and tag.get_text(strip=True) == _btag.get_text(strip=True))
+
+            # Penanda struktural/heading berbasis <p class='...'> (policy dari chunk_rules.json,
+            # dikurasi di 6-simulasi-lanjutan dari inventaris 4-analisis-lanjutan). class
+            # struktural (end*/namo/pe/uddana-intro) -> tag structural; class subjudul -> heading.
+            _tcls = tag.get("class", []) or []
+            struct_class = next((c for c in _tcls if c in STRUCTURAL_CLASSES), None)
+            is_heading_class = any(c in HEADING_CLASSES for c in _tcls)
+
             for block in DOUBLE_BR_SPLIT.split(block_source):
                 line_pairs = []
                 for raw in BR_SPLIT.split(block):
@@ -276,11 +297,29 @@ def chunk_html(html_dir, text_key, output_dir, htmltext):
                     pending_speaker_pairs.extend(line_pairs)
                     continue
 
-                if tag.find_parent("header"):
+                in_header = tag.find_parent("header") is not None
+                if in_header:
                     p_id = f"md0{hdr_ctr}"; hdr_ctr += 1
                 else:
                     p_id = f"md{body_ctr}"; body_ctr += 1
-                heading = int(tag.name[1]) if re.fullmatch(r"h[1-6]", tag.name) else 0
+                # heading: <hN> -> level asli (1..6). Elemen NON-<hN> di dalam <header>
+                # (mis. <li>/<p> judul divisi/nikaya: "Aṅguttara Nikāya", "The Book of the
+                # Threes") di-tag heading=1 supaya TIDAK bocor jadi body (heading=0).
+                # KONSEKUENSI disengaja: judul header non-<hN> ini IKUT terhitung "h1" di
+                # 2-statistik (h1 = h1-asli + judul-header). Penyederhanaan, BUKAN bug —
+                # tujuannya memisahkan judul dari body, bukan presisi level heading.
+                if re.fullmatch(r"h[1-6]", tag.name):
+                    heading = int(tag.name[1])
+                elif in_header:
+                    heading = 1
+                elif is_bold_label:                 # lemma/label tebal (lihat is_bold_label di atas)
+                    heading = 1
+                elif is_heading_class:              # <p class=subheading/vagga> -> subjudul
+                    heading = 1
+                elif struct_class:                  # <p class=end*/namo/pe/...> -> penanda struktural
+                    heading = 1
+                else:
+                    heading = 0
                 chunk_id = f"{stem}:{p_id}"
 
                 parts = []
@@ -305,7 +344,14 @@ def chunk_html(html_dir, text_key, output_dir, htmltext):
                 )
                 if config.is_junk_body(full_text, heading):
                     continue
-                file_chunks.append({text_key: full_text, "chunk_ids": [chunk_id], "heading": heading, "parts": parts})
+                # tag = nama tag HTML asli (li/p/h1..h6) -> simpan kebenaran walau heading=1
+                # dipaksa utk judul <header> non-<hN> (lihat blok heading di atas).
+                _chunk = {text_key: full_text, "chunk_ids": [chunk_id], "heading": heading, "tag": tag.name, "parts": parts}
+                if is_bold_label:
+                    _chunk["structural"] = "label"
+                elif struct_class:
+                    _chunk["structural"] = struct_class
+                file_chunks.append(_chunk)
 
         if pending_speaker_pairs:
             chunk_id = f"{stem}:md{body_ctr}"
@@ -317,8 +363,11 @@ def chunk_html(html_dir, text_key, output_dir, htmltext):
                 clean_text(BeautifulSoup(p["text"], "html.parser").get_text(separator=" ")) for p in parts
             )
             if not config.is_junk_body(full_text, 0):
-                file_chunks.append({text_key: full_text, "chunk_ids": [chunk_id], "heading": 0, "parts": parts})
+                file_chunks.append({text_key: full_text, "chunk_ids": [chunk_id], "heading": 0, "tag": "p", "parts": parts})
 
+        for c in file_chunks:                                  # tandai kolofon (teks struktural; tetap disimpan)
+            if not c.get("heading") and config.is_colophon(c[text_key]):
+                c["structural"] = "colophon"
         if file_chunks:
             datasets.setdefault(author, []).append({"file_base_name": stem, "chunks": file_chunks})
 

@@ -1,0 +1,58 @@
+======================================================================
+CATATAN: 2 WARNING SAAT TRAINING gte — DUA-DUANYA AMAN (sudah diverifikasi)
+(2026-06-03)
+======================================================================
+
+Saat 4-train-marginmse.py melatih gte-multilingual-base muncul 2 warning ini.
+Keduanya TIDAK merusak hasil training dan TIDAK perlu dibenerin. Penjelasan +
+bukti di bawah (bukan asumsi).
+
+
+----------------------------------------------------------------------
+WARNING 1:
+    classifier.bias   | UNEXPECTED
+    classifier.weight | UNEXPECTED
+    Notes: UNEXPECTED can be ignored when loading from different task/architecture;
+           not ok if you expect identical arch.
+----------------------------------------------------------------------
+ARTINYA:
+  Checkpoint gte di disk MEMBAWA kepala "classifier" (sisa varian
+  klasifikasi/reranker). Kita memuatnya sebagai ENCODER (untuk embedding/dense
+  retrieval), yg TIDAK punya modul classifier -> kunci itu "kelebihan" -> dibuang.
+
+KENAPA AMAN (bukan klaim — dicek pakai output_loading_info):
+    MISSING    (bobot yg model BUTUH tapi GAK ada -> ke-random): set()   <- KOSONG
+    MISMATCHED (shape beda):                                     set()   <- KOSONG
+    bobot encoder yg hilang:                                     []      <- KOSONG
+  => Yg bahaya itu MISSING (bobot encoder ke-random). Di sini MISSING kosong:
+     SELURUH backbone encoder gte (305.4M) kebaca penuh. Yg "UNEXPECTED" cuma
+     kepala classifier yg MEMANG tidak dipakai untuk retrieval. Jadi murni
+     "ada kelebihan yg dibuang", bukan "ada yg hilang". 100% aman.
+  (Konsisten dgn rencana.txt bagian 13.)
+
+
+----------------------------------------------------------------------
+WARNING 2:
+    The `warmup_ratio` argument is deprecated in Transformers v5+ ...
+    please use `warmup_steps` (as a float) instead.
+----------------------------------------------------------------------
+ARTINYA:
+  Cuma pemberitahuan "argumen ini akan DIHAPUS di versi depan". Di transformers
+  5.8.0 SEKARANG argumen ini MASIH JALAN — warmup tetap diterapkan.
+
+KENAPA AMAN (dicek langsung):
+    TrainingArguments(max_steps=10000, warmup_ratio=0.1).get_warmup_steps(10000) = 1000
+  => warmup_ratio=0.1 beneran ter-resolve jadi 1000 warmup steps. Tidak diabaikan.
+
+KENAPA JUSTRU TIDAK DIUBAH (penting untuk validitas akademis):
+  Model 1 (e5) SUDAH dilatih memakai warmup_ratio=0.1 yg sama. Mengganti ke
+  warmup_steps hanya untuk gte akan membuat perlakuan KEDUA model berbeda ->
+  merusak apple-to-apple. Maka sengaja dibiarkan IDENTIK. Deprecated != rusak.
+
+
+----------------------------------------------------------------------
+CATATAN KE-3 (info, bukan warning): "[fix] buffer RoPE non-persisten ..."
+----------------------------------------------------------------------
+  Baris itu BUKAN error — itu pesan dari config.load_st_model yg memberitahu fix
+  buffer RoPE gte berhasil diterapkan. Lihat: catatan_fix_gte_rope.txt.
+======================================================================

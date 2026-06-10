@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Telusuri — myDhamma{% endblock %}
+
+{% block header_subtitle %}
+<span class="header-subtitle" data-i18n="nav_browse">Telusuri</span>
+{% endblock %}
+
+{% block main_panel %}
+<div id="browse-loading" class="empty-state">
+    <div class="spinner"></div>
+    <p data-i18n="loading_browse">Memuat daftar sutta…</p>
+</div>
+<div id="browse-tree" class="browse-container hidden"></div>
+
+<button id="btn-scroll-top" class="btn-scroll-top hidden" title="Gulir ke atas">
+    <i data-lucide="chevron-up"></i>
+</button>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ versioned_static('browse.js') }}"></script>
+{% endblock %}

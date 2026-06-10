@@ -1,0 +1,60 @@
+================================================================================
+FLOW — TAHAP 4: TRAINING (Generative Pseudo-Labeling / adaptasi domain)
+Tujuan tahap: mengadaptasi model retrieval-native (e5, gte) ke domain Kanon Pali
+TANPA label manusia (unsupervised), lalu menyiapkan embedding untuk pencarian/eval.
+Input: *_chunked.jsonl (3-praproses) + base-models (1-get-data).
+Scope pitaka diatur config.GPL_SUTTA_ONLY (default False = canon-wide).
+Jalankan: bash src/code/4-training/run.sh   (BUTUH GPU)
+================================================================================
+
+_gpl.py  (helper, bukan langkah)
+  APA  : path/IO bersama + build_passages() (kumpulkan pasase sumber, lewati
+         heading/structural/junk, hormati GPL_SUTTA_ONLY) + prefix e5 (query:/passage:).
+
+1-query-gen.py
+  APA  : doc2query (mT5) -> hasilkan kueri sintetis per pasase. Diverse beam search
+         + filter (min kata, dedup, buang salinan verbatim) = kueri lebih natural.
+  HASIL: gpl/queries.jsonl
+  KENAPA LANJUT: "pertanyaan tebakan" ini jadi sisi-kiri pasangan latih. Kualitasnya
+         menentukan sinyal adaptasi -> maka di-filter di sini.
+  CATATAN: Tahap ini SANGAT LAMA (~7-9 jam untuk 189k pasase) karena mT5 generate
+         kueri per kalimat. TAPI INI HANYA JALAN SATU KALI. Outputnya disimpan,
+         sehingga jika nanti ingin melatih base model lain, tahap 1 (serta 2 & 3)
+         TIDAK perlu diulang; bisa langsung skip ke tahap 4.
+
+2-hard-neg.py
+  APA  : untuk tiap (kueri, pasase-positif), tambang HARD NEGATIVE via retriever
+         (e5) dari Top-K (lewati Top-1 = hindari false negative).
+  HASIL: gpl/triples.jsonl  {query, pos_pid, neg_pid}
+  KENAPA LANJUT: negatif yang "menantang" bikin model belajar membedakan halus ->
+         dibutuhkan cross-encoder untuk menilai seberapa beda (langkah 3).
+
+3-pseudo-label.py
+  APA  : cross-encoder skor (q,pos) & (q,neg) -> margin = CE(pos)-CE(neg). Margin
+         DISKALAKAN (config.GPL_MARGIN_TARGET_STD) ke rentang cosine bi-encoder.
+  HASIL: gpl/train.jsonl  {query, pos, neg, margin}
+  KENAPA LANJUT: margin ber-skala benar = target yang BISA dikejar MarginMSE (kalau
+         tak diskalakan, loss mentok/grad meledak). Ini "pseudo-label" inti GPL.
+
+4-train-marginmse.py
+  APA  : fine-tune model core (e5, gte) dgn MarginMSELoss memakai train.jsonl.
+  HASIL: models/gpl-<model>/ (+ loss_history.json, train_meta.json)
+  KENAPA LANJUT: ini model hasil ADAPTASI domain. Untuk dipakai cari/eval, korpus
+         perlu di-encode dengannya -> langkah 5.
+
+5-embed.py
+  APA  : encode seluruh korpus per (model, bahasa) -> cache embedding (prefix e5
+         'passage:'; normalize).
+  HASIL: output/embeddings/web/embed_<lang>_<model>.pt + meta.pkl
+  KENAPA LANJUT: embedding cache = fondasi pencarian semantik (web) & evaluasi
+         (5-eval) base vs gpl.
+
+periksa.py  (sanity, bukan langkah utama)
+  APA  : cek netral kualitas data GPL (panjang, query/passage, echo, duplikat).
+  KENAPA: deteksi dini data latih berisik sebelum training mahal.
+
+────────────────────────────────────────────────────────────────────────────────
+JEMBATAN KE TAHAP 5 (eval): model base & gpl + embedding cache -> 5-eval mengukur
+mana yang lebih baik via metrik (nDCG/precision) berbasis anotasi pakar — BUKAN via
+angka cosine mentah (yang bias skala antar-metode).
+================================================================================

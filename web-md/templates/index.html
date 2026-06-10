@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+{% block title %}myDhamma{% endblock %}
+{% block header_subtitle %}
+<span class="header-subtitle" data-i18n="subtitle">Pencarian Tipiṭaka berbasis makna</span>
+{% endblock %}
+{% block main_panel %}
+<div class="section-divider">
+    <span data-i18n="browse_sutta_divider">Telusuri Teks</span>
+</div>
+<!-- ===== BROWSE SECTION ===== -->
+<div id="browse-section">
+    <div id="browse-loading" class="empty-state">
+        <div class="spinner"></div>
+        <p data-i18n="loading_browse">Memuat daftar sutta…</p>
+    </div>
+    <div id="browse-tree" class="browse-container hidden"></div>
+</div>
+<div class="section-divider">
+    <span data-i18n="or_search_directly">atau langsung cari</span>
+</div>
+<!-- ===== SEARCH TAB ===== -->
+<div id="tab-search">
+    <!-- Search Bar FIRST — primary action -->
+    <div id="search-bar">
+        <div class="search-bar-inner">
+            <input type="text" id="search-input" data-i18n-placeholder="ph_search_semantic"
+                placeholder="Ketik topik, misal: cara mengatasi kemarahan…" autocomplete="off">
+            <button id="btn-search" class="btn-primary" data-i18n-html="btn_search" title="Cari"><i
+                    data-lucide="search"></i>
+                Cari</button>
+        </div>
+    </div>
+    <!-- Collapsible options — progressive disclosure -->
+    <details id="search-options-details">
+        <summary><i data-lucide="chevron-right" class="search-options-chevron"></i><span
+                data-i18n="lbl_search_options">Opsi Pencarian</span></summary>
+        <div id="search-controls">
+            <div style="font-size: 0.75rem; color: var(--text-muted, #666); margin-bottom: 12px; text-align: left;">
+                <span data-i18n-html="hint_click_info">Klik ikon info (i) di sebelah nama opsi untuk melihat penjelasan
+                    detail.</span>
+            </div>
+            <div class="control-row">
+                <div class="control-group">
+                    <span class="control-label info-label">
+                        <span data-i18n="lbl_method">Metode</span>
+                        <button type="button" class="info-tip-btn" data-i18n-title="tt_method"
+                            title="Pilih metode pencarian:&#10;• Hybrid: Gabungan Makna + Kata Kunci (disarankan).&#10;• Makna: Mencari berdasarkan makna atau konteks kalimat.&#10;• Kata Kunci: Mencari berdasarkan kecocokan kata persis.">
+                            <i data-lucide="info"></i>
+                        </button>
+                    </span>
+                    <div class="toggle-group toggle-pills" id="method-toggle">
+                        <button class="toggle-btn active" data-value="hybrid" data-i18n="btn_hybrid"
+                            data-i18n-title="tt_btn_hybrid">Hybrid</button>
+                        <button class="toggle-btn" data-value="semantic" data-i18n="btn_semantic"
+                            data-i18n-title="tt_btn_semantic">Makna</button>
+                        <button class="toggle-btn" data-value="keyword" data-i18n="btn_keyword"
+                            data-i18n-title="tt_btn_keyword">Kata Kunci</button>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <span class="control-label info-label">
+                        <span data-i18n="lbl_language">Bahasa</span>
+                        <button type="button" class="info-tip-btn" data-i18n-title="tt_language"
+                            title="Pilih target bahasa pencarian:&#10;• ID: Bahasa Indonesia&#10;• EN: English (Bahasa Inggris)&#10;• PLI: Pāli&#10;Bisa pilih lebih dari satu.">
+                            <i data-lucide="info"></i>
+                        </button>
+                    </span>
+                    <div class="toggle-group" id="db-toggle" data-multi="true">
+                        <button class="toggle-btn active" data-value="id" data-i18n-title="tt_btn_id">ID</button>
+                        <button class="toggle-btn" data-value="en" data-i18n-title="tt_btn_en">EN</button>
+                        <button class="toggle-btn" data-value="pli" data-i18n-title="tt_btn_pli">PLI</button>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <span class="control-label info-label">
+                        <span data-i18n="lbl_pitaka">Pitaka</span>
+                        <button type="button" class="info-tip-btn" data-i18n-title="tt_pitaka" title="">
+                            <i data-lucide="info"></i>
+                        </button>
+                    </span>
+                    <div class="toggle-group" id="pitaka-toggle" data-multi="true">
+                        <button class="toggle-btn active" data-value="sutta">Sutta</button>
+                        <button class="toggle-btn" data-value="vinaya">Vinaya</button>
+                        <button class="toggle-btn" data-value="abhidhamma">Abhidhamma</button>
+                    </div>
+                </div>
+                <div class="control-group control-group-options">
+                    <div class="options-header">
+                        <span class="control-label info-label">
+                            <span data-i18n="lbl_options">Tampilkan</span>
+
+                            <button type="button" class="info-tip-btn" id="btn-options-info"
+                                data-i18n-title="tt_options"
+                                title="Opsi tambahan hasil pencarian:&#10;• Judul: Sertakan judul sutta dalam pencarian.&#10;• Sinopsis: Sertakan sinopsis sutta dalam pencarian.&#10;• Grup per Teks: Kelompokkan hasil yang berasal dari teks yang sama.&#10;• Konteks: Tampilkan teks sebelum dan sesudah hasil (konteks tambahan).">
+                                <i data-lucide="info"></i>
+                            </button>
+                        </span>
+                    </div>
+                    <div class="search-options-inline">
+                        <label class="checkbox-label" data-i18n-title="tt_cb_titles"><input type="checkbox"
+                                id="cb-titles" checked><span data-i18n="cb_titles">Judul</span></label>
+                        <label class="checkbox-label" data-i18n-title="tt_cb_blurbs"><input type="checkbox"
+                                id="cb-blurbs" checked><span data-i18n="cb_blurbs">Sinopsis</span></label>
+                        <label class="checkbox-label" data-i18n-title="tt_cb_group"><input type="checkbox" id="cb-group"
+                                checked><span data-i18n="cb_group">Grup per Teks</span></label>
+                        <label class="checkbox-label" data-i18n-title="tt_cb_preview"><input type="checkbox"
+                                id="cb-preview" checked><span data-i18n="cb_preview">Konteks</span></label>
+                    </div>
+                    <div class="search-actions">
+                        <button type="button" id="btn-ensemble-config" class="icon-btn icon-btn-sm"
+                            title="Konfigurasi Mesin Pencari"
+                            style="width: auto; padding: 4px 8px; display: flex; align-items: center; gap: 4px; font-size: 0.75rem;"><i
+                                data-lucide="settings" style="width:14px; height:14px;"></i> <span
+                                data-i18n="btn_config_short">Konfig Mesin</span></button>
+                        <button type="button" id="btn-advanced-toggle" class="icon-btn icon-btn-sm"
+                            title="Mode Tingkat Lanjut"
+                            style="width: auto; padding: 4px 8px; display: flex; align-items: center; gap: 4px; font-size: 0.75rem;"><i
+                                data-lucide="settings-2" style="width:14px; height:14px;"></i> <span
+                                data-i18n="btn_advanced">Tingkat Lanjut</span></button>
+                        <div style="flex-grow: 1;"></div>
+                        <button type="button" id="btn-reset-opts" class="icon-btn icon-btn-sm" title="Reset Opsi"
+                            style="width: auto; padding: 4px 8px; display: flex; align-items: center; gap: 4px; font-size: 0.75rem;"><i
+                                data-lucide="rotate-ccw" style="width:14px; height:14px;"></i> <span
+                                data-i18n="btn_reset_opts">Reset Opsi</span></button>
+                    </div>
+                </div>
+            </div>
+            <div class="control-row advanced-only" id="model-row">
+                <div class="control-group" id="mode-group">
+                    <span class="control-label info-label">
+                        <span>Mode</span>
+                        <button type="button" class="info-tip-btn" data-i18n-title="tt_mode"
+                            title="Pilih mode perbandingan model:&#10;• 1: Menampilkan hasil dari satu model saja.&#10;• 2: Membandingkan hasil dari dua model secara berdampingan.">
+                            <i data-lucide="info"></i>
+                        </button>
+                    </span>
+                    <div class="toggle-group" id="compare-toggle">
+                        <button class="toggle-btn active" data-value="1">1</button>
+                        <button class="toggle-btn" data-value="2">2</button>
+                    </div>
+                </div>
+                <div class="control-group model-select-group" id="model1-group">
+                    <span class="control-label info-label">
+                        <span>Model 1</span>
+                        <button type="button" class="info-tip-btn" data-i18n-title="tt_model1"
+                            title="Pilih model pencarian utama. Anda dapat mengganti kategori (misal: base, contrastive, dll.) pada dropdown pertama dan model spesifik pada dropdown kedua.">
+                            <i data-lucide="info"></i>
+                        </button>
+                    </span>
+                    <div class="model-dual-select">
+                        <select id="cat-select-1" class="cat-select"></select>
+                        <select id="model-select-1" class="model-select"></select>
+                    </div>
+                </div>
+                <div class="control-group model-select-group hidden" id="model2-group">
+                    <span class="control-label info-label">
+                        <span>Model 2</span>
+                        <button type="button" class="info-tip-btn" data-i18n-title="tt_model2"
+                            title="Pilih model kedua untuk membandingkan hasil secara berdampingan dengan Model 1.">
+                            <i data-lucide="info"></i>
+                        </button>
+                    </span>
+                    <div class="model-dual-select">
+                        <select id="cat-select-2" class="cat-select"></select>
+                        <select id="model-select-2" class="model-select"></select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </details>
+    <!-- Results Area -->
+    <div id="search-results">
+        <div id="loading-state" class="empty-state hidden">
+            <div class="spinner"></div>
+            <p data-i18n="loading_text">Mencari sutta…</p>
+        </div>
+        <!-- "Mungkin maksud Anda…" — query-language detection + manual switch.
+             Placed at the very top of the results area (like Google's "did you mean"). -->
+        <div id="query-lang-bar"
+            style="display:none; align-items:center; gap:10px; flex-wrap:wrap; margin:12px auto 0; padding:7px 12px; background:var(--bg-tertiary); border-left:3px solid var(--accent); border-radius:var(--radius-md); font-size:0.8rem; color:var(--text-secondary);">
+        </div>
+        <!-- Symbol legend: always visible, single compact line (not collapsible —
+             a collapsible version got mistaken for a search option). -->
+        <div id="search-legend" class="hidden"
+            style="margin: 8px auto 12px; padding: 7px 14px; background: var(--bg-tertiary); border-radius: var(--radius-md); max-width: 100%; font-size: 0.7rem; color: var(--text-muted); display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px;">
+            <span style="font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;"
+                data-i18n-html="legend_title">Legenda</span>
+            <span style="display: inline-flex; align-items: center; gap: 5px;"><i data-lucide="map-pin"
+                    style="width:13px; height:13px;"></i> <span data-i18n="legend_segment">Segmen teks</span></span>
+            <span style="display: inline-flex; align-items: center; gap: 5px;"><i data-lucide="user"
+                    style="width:13px; height:13px;"></i> <span data-i18n="legend_author">Penerjemah</span></span>
+            <span id="legend-similarity" style="display: inline-flex; align-items: center; gap: 5px;"><i
+                    data-lucide="target" style="width:13px; height:13px;"></i> <span
+                    data-i18n="legend_similarity">Kemiripan Makna</span></span>
+            <span id="legend-count" style="display: inline-flex; align-items: center; gap: 5px;"><i
+                    data-lucide="bar-chart-3" style="width:13px; height:13px;"></i> <span
+                    data-i18n="legend_count">Jumlah Kecocokan</span></span>
+        </div>
+        <div id="results-container" class="hidden"></div>
+        <div id="pagination" class="hidden">
+            <button id="btn-prev-page" class="btn-page" disabled>← Prev</button>
+            <span id="page-info"></span>
+            <button id="btn-next-page" class="btn-page">Next →</button>
+        </div>
+    </div>
+</div><!-- /tab-search -->
+<dialog id="ensemble-manager" class="dk-dialog"
+    style="width: 500px; max-width: 90vw; padding: 20px; border-radius: 8px; border: 1px solid var(--border-strong); background: var(--bg-primary); color: var(--text); position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); margin: 0; box-shadow: 0 16px 48px rgba(0,0,0,0.5);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 style="margin: 0; font-size: 1.1rem;"><i data-lucide="settings"
+                style="vertical-align: -2px; margin-right: 4px;"></i> <span data-i18n="config_search_engine">Konfigurasi
+                Mesin Pencari</span></h3>
+        <button class="nm-close-btn" id="btn-close-ensemble"><i data-lucide="x"
+                style="width:16px; height:16px;"></i></button>
+    </div>
+    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;" data-i18n="config_search_engine_desc">
+        Centang model yang ingin digabungkan pada pencarian biasa (bukan mode tingkat lanjut). Konfigurasi per korpus
+        (ID,
+        EN, PLI).</p>
+    <div
+        style="background-color: var(--surface-hover); border-left: 3px solid var(--accent); padding: 8px 12px; border-radius: 4px; margin-bottom: 16px; font-size: 0.8rem; color: var(--text-secondary);">
+        <i data-lucide="alert-triangle"
+            style="width: 14px; height: 14px; display: inline-block; vertical-align: -2px; margin-right: 4px; color: var(--accent);"></i>
+        <span data-i18n="hint_ensemble_warning">Ubah konfigurasi ini hanya jika Anda paham, karena akan sangat
+            memengaruhi hasil pencarian. Anda dapat mereset kapan saja, konfigurasi ini hanya tersimpan secara
+            lokal.</span>
+    </div>
+    <div id="ensemble-checkboxes"
+        style="display: flex; flex-direction: column; gap: 8px; max-height: 45vh; overflow-y: auto; padding-right: 8px; margin-bottom: 16px;">
+        <!-- Rendered via JS -->
+    </div>
+    <div
+        style="display: flex; justify-content: flex-end; align-items: center; gap: 16px; border-top: 1px solid var(--border); padding-top: 12px;">
+        <button type="button" id="btn-reset-ensemble"
+            style="background: transparent; border: none; padding: 0; color: var(--text-muted); font-size: 0.8rem; display: flex; align-items: center; gap: 4px; cursor: pointer; transition: color 0.15s;"
+            onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--text-muted)'">
+            <i data-lucide="rotate-ccw" style="width:14px; height:14px;"></i> <span data-i18n="btn_reset">Reset</span>
+        </button>
+        <button type="button" class="btn-primary" id="btn-save-ensemble" style="padding: 6px 16px;"><span
+                data-i18n="btn_save">Simpan</span></button>
+    </div>
+</dialog>
+<button id="btn-scroll-top" class="btn-scroll-top hidden" title="Gulir ke atas">
+    <i data-lucide="chevron-up"></i>
+</button>
+{% endblock %}
+{% block scripts %}
+<script src="{{ versioned_static('browse.js') }}"></script>
+<script src="{{ versioned_static('index.js') }}"></script>
+{% endblock %}

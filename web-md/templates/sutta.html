@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Text Reader — myDhamma{% endblock %}
+{% block description %}myDhamma — Text Reader{% endblock %}
+
+{% block header_subtitle %}
+<span class="header-subtitle">Pembaca Teks</span>
+{% endblock %}
+
+{% block main_panel %}
+<div class="breadcrumbs-outer" id="sutta-breadcrumbs-outer" style="display:none">
+    <nav id="sutta-breadcrumbs" class="suttaplex-breadcrumbs" aria-label="Breadcrumb"></nav>
+</div>
+<div class="sutta-dialog-header" id="reader-header">
+    <div class="sutta-header-top">
+        <a href="/{{ sutta_id }}" class="sp-back-btn" title="Kembali ke {{ sutta_id|upper }}">
+            <i data-lucide="arrow-left"></i>
+        </a>
+        <h2 id="reader-subtitle"></h2>
+    </div>
+</div>
+<div class="reader-controls-sticky" id="reader-controls-sticky">
+    <div class="sutta-dialog-controls">
+        <div class="reader-controls-row">
+            <div class="sutta-dialog-lang-toggle" id="reader-lang-toggle"></div>
+        </div>
+        <div class="sutta-dialog-display-toggle" id="reader-display-toggle"></div>
+    </div>
+</div>
+{% if prev_sutta or next_sutta %}
+<div class="sp-nav sutta-sp-nav">
+    {% if prev_sutta %}
+    <a href="{{ prev_sutta.href }}" class="sp-nav-btn sp-nav-prev"
+        title="{{ prev_sutta.label }}{% if prev_sutta.name %} — {{ prev_sutta.name }}{% endif %}">
+        <i data-lucide="chevron-left"></i>
+        <span class="sp-nav-label">
+            <span class="sp-nav-id">{{ prev_sutta.label }}</span>
+            {% if prev_sutta.name %}<span class="sp-nav-name">{{ prev_sutta.name }}</span>{% endif %}
+        </span>
+    </a>
+    {% else %}<div></div>{% endif %}
+    {% if next_sutta %}
+    <a href="{{ next_sutta.href }}" class="sp-nav-btn sp-nav-next"
+        title="{{ next_sutta.label }}{% if next_sutta.name %} — {{ next_sutta.name }}{% endif %}">
+        <span class="sp-nav-label">
+            <span class="sp-nav-id">{{ next_sutta.label }}</span>
+            {% if next_sutta.name %}<span class="sp-nav-name">{{ next_sutta.name }}</span>{% endif %}
+        </span>
+        <i data-lucide="chevron-right"></i>
+    </a>
+    {% else %}<div></div>{% endif %}
+</div>
+{% endif %}
+<div id="sutta-content">
+    <div id="sutta-loading" class="empty-state">
+        <div class="spinner"></div>
+        <p data-i18n="loading_sutta">Memuat sutta…</p>
+    </div>
+    <div id="sutta-error" class="empty-state hidden">
+        <div class="empty-icon"><i data-lucide="triangle-alert"></i></div>
+        <p id="sutta-error-msg"></p>
+    </div>
+    <div id="sutta-body" class="hidden"></div>
+    {% if prev_sutta or next_sutta %}
+    <div class="sp-nav sutta-sp-nav">
+        {% if prev_sutta %}
+        <a href="{{ prev_sutta.href }}" class="sp-nav-btn sp-nav-prev"
+            title="{{ prev_sutta.label }}{% if prev_sutta.name %} — {{ prev_sutta.name }}{% endif %}">
+            <i data-lucide="chevron-left"></i>
+            <span class="sp-nav-label">
+                <span class="sp-nav-id">{{ prev_sutta.label }}</span>
+                {% if prev_sutta.name %}<span class="sp-nav-name">{{ prev_sutta.name }}</span>{% endif %}
+            </span>
+        </a>
+        {% else %}<div></div>{% endif %}
+        {% if next_sutta %}
+        <a href="{{ next_sutta.href }}" class="sp-nav-btn sp-nav-next"
+            title="{{ next_sutta.label }}{% if next_sutta.name %} — {{ next_sutta.name }}{% endif %}">
+            <span class="sp-nav-label">
+                <span class="sp-nav-id">{{ next_sutta.label }}</span>
+                {% if next_sutta.name %}<span class="sp-nav-name">{{ next_sutta.name }}</span>{% endif %}
+            </span>
+            <i data-lucide="chevron-right"></i>
+        </a>
+        {% else %}<div></div>{% endif %}
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block panel_overlays %}
+<div class="reader-fab-group">
+    <button id="sutta-scroll-top" class="toc-fab hidden" data-i18n-title="btn_scroll_top" title="Gulir ke Atas"
+        onclick="document.getElementById('search-scroll').scrollTo({top:0,behavior:'smooth'})">
+        <i data-lucide="arrow-up"></i>
+    </button>
+    <div id="seg-fab" class="toc-fab hidden" data-i18n-title="seg_list_title" title="Daftar Segmen">
+        <i data-lucide="hash"></i>
+    </div>
+    <div id="toc-fab" class="toc-fab hidden" data-i18n-title="toc_title" title="Daftar Isi">
+        <i data-lucide="list"></i>
+    </div>
+    <button id="notes-fab" class="toc-fab notes-fab-desktop" title="Sembunyikan catatan">
+        <i data-lucide="panel-right-close" id="notes-fab-icon"></i>
+    </button>
+</div>
+<div id="seg-panel" class="toc-panel hidden">
+    <div class="toc-panel-header">
+        <span class="toc-panel-title" data-i18n="seg_list_title">Daftar Segmen</span>
+        <button id="seg-close" class="icon-btn"><i data-lucide="x"></i></button>
+    </div>
+    <div id="seg-list" class="toc-list"></div>
+</div>
+<div id="toc-panel" class="toc-panel hidden">
+    <div class="toc-panel-header">
+        <span class="toc-panel-title" data-i18n="toc_title">Daftar Isi</span>
+        <button id="toc-close" class="icon-btn"><i data-lucide="x"></i></button>
+    </div>
+    <div id="toc-list" class="toc-list"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ versioned_static('sutta.js') }}"></script>
+{% endblock %}

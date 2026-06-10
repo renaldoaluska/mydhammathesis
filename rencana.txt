@@ -324,10 +324,72 @@ Jalur kritis = KETERSEDIAAN PAKAR, bukan komputasi.
   gte-multilingual-base sebagai embedding = AMAN. Itu head reranker/klasifikasi
   yang TIDAK dipakai untuk dense retrieval; backbone encoder kebaca penuh
   (305.4M). Abaikan. (Param: e5 278M, gte 305.4M, LaBSE 471.5M.)
+- [gte-RoPE] gte juga GAGAL dilatih/encode di transformers v5: buffer RoPE non-persisten
+  (position_ids/cos/sin) kebaca SAMPAH -> CUDA device-side assert. FIX seragam: SEMUA load
+  model lewat config.load_st_model() yg materialize ulang buffer (no-op utk e5/LaBSE/bge).
+  Bukan tuning -> apple-to-apple aman, e5 tak perlu retrain. Detail: catatan_fix_gte_rope.txt.
 - [Logger] Skrip eksplor/praproses redirect stdout ke Logger (tee ke .txt);
   Logger pakai __getattr__ proxy ke stdout asli agar isatty/fileno/encoding
   (dipakai tqdm/kode remote gte) tidak error.
 - [max_seq] GPL_MAX_SEQ=384 dipilih DATA-DRIVEN: P99 panjang token chunk ~375
   (3-panjang) -> 384 menutup ~99% chunk utuh; <1% outlier (sutta raksasa, max ~2594)
   terpotong negligible. 256 terlalu agresif (3% potong); 512 overkill (mean 69, 2x beban).
+============================================================
+
+------------------------------------------------------------
+14. PEMBARUAN (update 2026-06-03) — implementasi & revisi keputusan
+------------------------------------------------------------
+[A] BGE-M3 -> DIPAKAI sbg BASELINE (dense-only/apa-adanya). REVISI dari bagian 2
+    ("tidak dipakai"). BUKAN di-GPL (encode-only). Peran: referensi atas SOTA
+    (kelas large ~568M) + narasi efisiensi (base+GPL ~ SOTA besar). Frame jujur di
+    paper: beda kelas berat, BUKAN apple-to-apple dgn core base. => 7 sistem total.
+[B] KUERI -> direvisi jadi SEMANTIK (25 kueri). Nama-istilah kanonik ("empat
+    kebenaran mulia") diganti deskripsi natural TANPA istilah ("mengapa hidup
+    penuh penderitaan dan cara melepaskan diri"). Field `konsep` = jangkar pakar.
+    Tujuan: passage target tak mengandung kata kueri verbatim -> beneran nguji
+    MAKNA (bukan keyword/BM25). Draft di src/output/5-eval/queries_pakar.json;
+    WAJIB approve pakar sebelum lihat hasil. (+5 Vinaya/Abhidhamma menyusul.)
+[C] DISPLAY EVAL = OPSI A (fragmen FOKUS). Pakar menilai fragmen yg di-retrieve
+    APA ADANYA, TANPA konteks tetangga. Dasar: koreksi makna "extraneous
+    information" (TREC: grade-3 = passage "dedicated to the query"; konteks
+    tetangga jadi extraneous -> assessor nurunin ke grade-2 = kontaminasi, persis
+    yg bikin eval-1 goyah). Window konteks = fitur web-md (UX baca), BUKAN form
+    eval. Unit DINILAI = unit RETRIEVAL.
+[D] ARSITEKTUR WEB (3 lapis, decoupled). Prinsip: FOLDER = fase riset; IMPORT =
+    dependency (boleh lintas-fase).
+    - web/      = ENGINE retrieval BERSAMA (bukan app): _corpus + search
+                  (semantic emb-cache + BM25 + RRF). Dipakai web-md & build-cache.
+    - web-eval/ = APP asesmen GRA, STANDALONE/tersegel, cache-only (port 5001),
+                  model di eval_config.json, PATH dari config.py. NOL import engine.
+    - web-md/   = APP produk (search + reader). SUDAH DIBANGUN (app.py + reader.py +
+                  config.json). Search DELEGASI ke web/search.py (BUKAN reimplement);
+                  reader baca raw (bilara+html) -> pemotongan segmen 1:1 dgn 1-chunk.py.
+                  BM25 jalan tanpa GPU; semantic nyala stlh 5-embed. md.renaldo.my.id.
+    - 4-training/5-embed.py   = encode SELURUH korpus (base+GPL x bahasa) ->
+      embeddings. Embedding = output MODEL, BUKAN urusan eval.
+    - 5-eval/1-build-cache.py = bangun search_cache.pkl BEKU (top-10) via web/search;
+      opsi A (fragmen fokus). Lalu 2..6 = metrik murni (baca CSV).
+[E] CHUNKER (perbaikan via audit 2-eksplor/6-audit-struktural + temuan sesi):
+    - HEADING-LEAK: judul <li>/<p> di <header> (mis "Aṅguttara Nikāya") dulu bocor
+      jadi body (heading=0) krn chunker cuma nge-tag <hN>. FIX: apa pun di <header>
+      = heading. <li> -> heading=1 (disederhanakan; didokumentasiin di 1-chunk.py +
+      breakdown jujur di 2-statistik: h1 = h1-asli + judul <li>/<p>).
+    - AUTHOR masuk pid (lang:author:chunk_id) -> cegah TABRAKAN md#/seg antar author
+      (7.729 tabrakan ke-resolve; semua author disimpan).
+    - KOLOFON ("End of ... Chapter", 1.016) di-flag structural="colophon": teks
+      KANONIK (tetap di-indeks) tapi DIKECUALIKAN dari sumber latih (config.is_colophon).
+    - MIN-WORDS=8 utk SUMBER LATIH GPL (judul/fragmen pendek lemah); passage tetap
+      di-indeks. md# = indeks POSISI html -> TAK align lintas-bahasa (50% dok beda
+      jumlah chunk); jangan dipakai sbg kunci cross-lingual.
+[F] HARD-NEG GPL = LANGUAGE-CONSISTENT: kueri bhs-L cari negatif dari korpus bhs-L
+    saja -> cegah false-negative terjemahan (yg malah ngerusak alignment cross-lingual).
+    Passages training Sutta FINAL = 132.734 (post author-in-id + min-words + fix).
+[G] h4-h6 heading: di mydhamma SUDAH ke-capture (chunker ambil h1-h6) -> bukan bug.
+[H] WEB-MD DIBANGUN: app produk (search+reader) di web-md/ (app.py + reader.py + config.json).
+    Search DELEGASI ke web/search.py. Reader baca raw (bilara+html); pemotongan segmen
+    DIVERIFIKASI 1:1 dgn 1-chunk.py (chunk_id+heading cocok korpus -> klik hasil = highlight
+    tepat). BM25 jalan kini; semantic nyala stlh 5-embed. Fitur: search, reader, browse,
+    breadcrumb, prev/next, suttaplex, notes, tentang.
+[I] LOADER TUNGGAL config.load_st_model() utk SEMUA pemuatan model (train/embed/eval/web) ->
+    fix buffer RoPE gte (transformers v5) di satu tempat, no redundansi. Lihat §13 [gte-RoPE].
 ============================================================

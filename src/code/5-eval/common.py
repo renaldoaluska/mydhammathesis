@@ -2,8 +2,10 @@
 common.py — util bersama eval ekstrinsik (asesmen pakar) myDhamma. SATU sumber.
 
 KONTRAK CSV anotasi (dihasilkan WEB -> src/output/5-eval/anotasi/anotasi_<pakar>.csv):
-  query_id, db(korpus: id|en), model(e5|gte|labse|bm25), versi(base|gpl),
-  rank, ref(segmen), retrieved_text, cosine_sim, grade(0-3), [is_heading], [method]
+  query_id, db(korpus: id|en), model(e5|gte|bm25), versi(base|gpl),
+  rank, ref(segmen), author(penerjemah), retrieved_text, cosine_sim, grade(0-3), [is_heading], [method]
+  CATATAN: ref TIDAK unik lintas penerjemah -> pasase = (ref, author). Semua dedup/
+  konsensus/IAA key by (ref, author), bukan ref saja.
 Opsional completed_<pakar>.json = daftar "query_id_db" yang sudah selesai dinilai.
 
 Dipakai: 3-ndcg.py, 4-precision.py, 5-spearman.py, 6-iaa.py.
@@ -21,7 +23,7 @@ sys.path.insert(0, str(_BASE))
 import config                                                  # noqa: E402
 
 ANOTASI_DIR     = config.EVAL_DIR / "anotasi"
-QUERIES_FILE    = config.EVAL_DIR / "queries.json"
+QUERIES_FILE    = config.EVAL_INPUT_DIR / "queries_pakar.json"   # fix: dulu salah cari "queries.json" di EVAL_DIR (selalu kosong)
 EXCLUDE_EXPERTS = ["Demo"]
 REL = 2          # grade >= 2 = relevan (untuk P@k & MRR)
 
@@ -118,7 +120,7 @@ def load_annotations(verbose=True, exclude=None, consensus=True):
     if "versi" not in df.columns:
         df["versi"] = "base"
 
-    dkey = [c for c in ["expert", "query_id", "model", "versi", "db", "rank", "ref"] if c in df.columns]
+    dkey = [c for c in ["expert", "query_id", "model", "versi", "db", "rank", "ref", "author"] if c in df.columns]
     if dkey:
         before = len(df)
         df = df.drop_duplicates(subset=dkey, keep="last")
@@ -131,10 +133,13 @@ def load_annotations(verbose=True, exclude=None, consensus=True):
         df["is_heading"] = False
 
     if consensus and "ref" in df.columns and df["expert"].nunique() > 1:
-        cons = (df.groupby(["query_id", "ref"], as_index=False)["grade"]
+        # konsensus per PASASE = (query_id, ref, author): ref tak unik lintas
+        # penerjemah, jadi anggara vs karniawan TIDAK boleh dirata-rata bareng.
+        pcols = ["query_id", "ref"] + (["author"] if "author" in df.columns else [])
+        cons = (df.groupby(pcols, as_index=False)["grade"]
                   .mean().rename(columns={"grade": "_c"}))
-        key = [c for c in ["query_id", "model", "versi", "db", "rank", "ref"] if c in df.columns]
-        df = df.drop_duplicates(subset=key).merge(cons, on=["query_id", "ref"], how="left")
+        key = [c for c in ["query_id", "model", "versi", "db", "rank", "ref", "author"] if c in df.columns]
+        df = df.drop_duplicates(subset=key).merge(cons, on=pcols, how="left")
         df["grade"] = df["_c"].round(4)
         df = df.drop(columns="_c")
         df["expert"] = "konsensus"

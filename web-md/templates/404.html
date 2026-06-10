@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}{{ error_code or 404 }} — myDhamma{% endblock %}
+
+{% block head_extra %}
+<style>
+    #resize-handle, #right-panel-toggle, #notes-panel { display: none !important; }
+    #app-header { border-bottom: 1px solid var(--border); }
+    #not-found-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 55vh;
+        text-align: center;
+        gap: 16px;
+        padding: 48px 24px;
+    }
+    #not-found-wrap .nf-code {
+        font-size: 5rem;
+        font-weight: 700;
+        line-height: 1;
+        color: var(--accent);
+        letter-spacing: -3px;
+    }
+    #not-found-wrap .nf-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0;
+    }
+    #not-found-wrap .nf-desc {
+        font-size: .95rem;
+        color: var(--text-secondary);
+        max-width: 360px;
+        margin: 0;
+    }
+    #not-found-wrap .nf-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-top: 8px;
+    }
+    #not-found-wrap .nf-actions a {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: auto;
+        padding: 8px 18px;
+        text-decoration: none;
+        font-size: .9rem;
+    }
+</style>
+{% endblock %}
+
+{% block source_toggle %}{% endblock %}
+{% block right_panel %}{% endblock %}
+
+{% block main_panel %}
+<div id="not-found-wrap">
+    <div class="nf-code">{{ error_code or 404 }}</div>
+    {% if (error_code or 404) == 500 %}
+        <p class="nf-title">Terjadi kesalahan server</p>
+        <p class="nf-desc">Ada yang tidak beres di sisi server. Coba lagi beberapa saat.</p>
+    {% else %}
+        <p class="nf-title">Halaman tidak ditemukan</p>
+        <p class="nf-desc">URL yang kamu masukkan tidak ada atau sudah dipindahkan.</p>
+    {% endif %}
+    <div class="nf-actions">
+        <a href="/" class="btn-primary"><i data-lucide="search"></i> Cari</a>
+        <a href="/browse/sutta" class="btn-secondary"><i data-lucide="book-open"></i> Telusuri Tipiṭaka</a>
+    </div>
+</div>
+{% endblock %}
+

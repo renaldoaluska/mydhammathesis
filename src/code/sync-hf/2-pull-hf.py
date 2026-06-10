@@ -3,7 +3,7 @@
 
   --m  model GPL (repo mydhamma-gpl-*)  -> output/4-training/models/gpl-*
   --e  embeddings                        -> output/embeddings/
-  --c  search cache                      -> output/5-eval/cache/
+  --c  search cache                      -> output/5-eval/search_cache.pkl
   --a  semua
 
 Aman diulang: snapshot_download hanya menarik file yang belum ada.
@@ -16,7 +16,8 @@ import sys
 import argparse
 from pathlib import Path
 
-from huggingface_hub import login, HfApi, snapshot_download
+from huggingface_hub import login, HfApi, snapshot_download, hf_hub_download
+import shutil
 
 _BASE = next(p for p in Path(__file__).resolve().parents if (p / "config.py").exists())
 sys.path.insert(0, str(_BASE))
@@ -70,6 +71,18 @@ def pull_dataset(path_in_repo, local_dir, label):
         print(f"  gagal: {e}")
 
 
+def pull_cache():
+    print("=== SEARCH CACHE ===")
+    try:
+        cached_file = hf_hub_download(repo_id=config.HF_CACHE_REPO, repo_type="dataset", filename="cache/search_cache.pkl")
+        target = config.EVAL_DIR / "search_cache.pkl"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(cached_file, target)
+        print(f"  done -> {target}")
+    except Exception as e:
+        print(f"  gagal: {e}")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--m", action="store_true", help="model GPL")
@@ -88,7 +101,7 @@ def main():
     if a.e or a.a:
         pull_dataset("embeddings", config.EMBEDDINGS_DIR, "EMBEDDINGS")
     if a.c or a.a:
-        pull_dataset("cache", config.EVAL_DIR / "cache", "SEARCH CACHE")
+        pull_cache()
     print("\nSelesai.")
 
 

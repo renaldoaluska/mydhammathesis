@@ -1,0 +1,4910 @@
+/* ============================================================
+   Dhammakathika — Design System
+   ============================================================ */
+
+/* Lucide icon defaults */
+.lucide {
+  display: inline-block;
+  vertical-align: -0.125em;
+  width: 1em;
+  height: 1em;
+  stroke-width: 2;
+}
+
+.empty-icon .lucide {
+  width: 3rem;
+  height: 3rem;
+}
+
+.lucide-sm {
+  width: .85em;
+  height: .85em;
+}
+
+.eval-dashboard-card-icon .lucide {
+  width: 1.6rem;
+  height: 1.6rem;
+}
+
+@keyframes lucide-spin-anim {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.lucide-spin {
+  animation: lucide-spin-anim 1.2s linear infinite;
+}
+
+/* --- CSS Custom Properties (Theming) --- */
+:root {
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Noto Serif', Georgia, serif;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, .08);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, .1);
+  --shadow-lg: 0 8px 30px rgba(0, 0, 0, .12);
+  --transition: .25s cubic-bezier(.4, 0, .2, 1);
+  --header-h: 56px;
+  --banner-h: 28px;
+}
+
+/* --- DARK THEME (default) --- */
+[data-theme="dark"] {
+  --bg-primary: #0f0f14;
+  --bg-secondary: #1a1a24;
+  --bg-tertiary: #22222e;
+  --bg-glass: rgba(30, 30, 45, .72);
+  --bg-glass-border: rgba(255, 255, 255, .07);
+  --bg-card: #1e1e2a;
+  --bg-card-hover: #26263a;
+  --bg-input: #16161f;
+  --text-primary: #e8e6f0;
+  --text-secondary: #9a97b0;
+  --text-muted: #5e5b72;
+  --accent: #e8a838;
+  --accent-hover: #f0bc5a;
+  --accent-subtle: rgba(232, 168, 56, .12);
+  --border: rgba(255, 255, 255, .06);
+  --border-strong: rgba(255, 255, 255, .12);
+  --danger: #e85454;
+  --success: #4ade80;
+  --link: #64b5f6;
+  --link-hover: #f0bc5a;
+  --tag-id: #4fc3f7;
+  --tag-en: #81c784;
+  --tag-pli: #ffb74d;
+  --scrollbar-thumb: #333;
+  --scrollbar-track: transparent;
+  color-scheme: dark;
+}
+
+/* --- LIGHT THEME --- */
+[data-theme="light"] {
+  --bg-primary: #f5f3f0;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #eae7e2;
+  --bg-glass: rgba(255, 255, 255, .78);
+  --bg-glass-border: rgba(0, 0, 0, .08);
+  --bg-card: #ffffff;
+  --bg-card-hover: #f9f7f4;
+  --bg-input: #ffffff;
+  --text-primary: #1a1818;
+  --text-secondary: #5a5555;
+  --text-muted: #9a9494;
+  --accent: #c47d15;
+  --accent-hover: #a86a0e;
+  --accent-subtle: rgba(196, 125, 21, .1);
+  --border: rgba(0, 0, 0, .08);
+  --border-strong: rgba(0, 0, 0, .14);
+  --danger: #d32f2f;
+  --success: #2e7d32;
+  --link: #1565c0;
+  --link-hover: #c47d15;
+  --tag-id: #0277bd;
+  --tag-en: #2e7d32;
+  --tag-pli: #e65100;
+  --scrollbar-thumb: #ccc;
+  --scrollbar-track: transparent;
+}
+
+/* --- Reset & Base --- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 15px;
+  scroll-behavior: smooth;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  overflow: hidden;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  transition: background var(--transition), color var(--transition);
+}
+
+a {
+  color: var(--link);
+  text-decoration: none;
+  transition: color var(--transition);
+}
+
+a:hover {
+  color: var(--link-hover);
+}
+
+::selection {
+  background: var(--accent-subtle);
+  color: var(--accent);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+/* --- Research banner --- */
+#research-banner {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #c0392b;
+  color: #fff;
+  text-align: center;
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .03em;
+  padding: 5px 16px;
+  line-height: 1.4;
+  flex-shrink: 0;
+}
+
+/* --- Header --- */
+#app-header {
+  height: var(--header-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  z-index: 100;
+}
+
+/* desktop: wrapper transparan, children langsung jadi flex item #app-header */
+.header-top {
+  display: contents;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+#app-title {
+  font-size: clamp(.7rem, 3.5vw, 1rem);
+  font-weight: 700;
+  letter-spacing: -.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#app-title a {
+  text-decoration: none;
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#app-title a judul {
+  padding-top: 1.5px;
+}
+
+.header-subtitle {
+  font-size: .8rem;
+  color: var(--text-muted);
+}
+
+/* Indikator pembeda Eval 1 vs Eval 2 (badge + garis warna header) */
+.eval-num-badge {
+  font-size: .7rem;
+  font-weight: 800;
+  letter-spacing: .07em;
+  padding: 3px 9px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.eval-num-1 {
+  background: var(--eval1-color, #e8a838);
+  color: #0f0f14;
+}
+
+.eval-num-2 {
+  background: var(--eval2-color, #4f7cff);
+  color: #fff;
+}
+
+body[data-eval="1"] #app-header {
+  border-top: 3px solid var(--eval1-color, #e8a838);
+}
+
+body[data-eval="2"] #app-header {
+  border-top: 3px solid var(--eval2-color, #4f7cff);
+}
+
+/* Nav tabs (Eval 1/2 & Output 1/2) — desktop: di tengah (title · nav · toggle) */
+.eval-nav-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-strong);
+  border-radius: 20px;
+  order: 2;
+  /* taruh di antara header-left (kiri) & header-right (kanan) */
+}
+
+.header-right {
+  order: 3;
+}
+
+.eval-nav-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 11px;
+  border-radius: 16px;
+  font-size: .74rem;
+  font-weight: 600;
+  letter-spacing: .01em;
+  color: var(--text-muted);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color var(--transition), background var(--transition);
+}
+
+.eval-nav-tab i {
+  width: 14px;
+  height: 14px;
+}
+
+.eval-nav-tab:hover {
+  color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+.eval-nav-tab.active {
+  background: var(--accent);
+  color: #0f0f14;
+}
+
+/* Mobile: nav jadi segmented tab bar penuh-lebar (baris ke-2 di bawah header) */
+@media (max-width: 900px) {
+  .eval-nav-tabs {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    gap: 0;
+    background: var(--bg-secondary);
+    border: 0;
+    border-top: 1px solid var(--border);
+    border-radius: 0;
+    flex-shrink: 0;
+  }
+
+  .eval-nav-tab {
+    flex: 1 1 0;
+    min-width: 0;
+    /* izinkan menyusut supaya 4 tab muat, tak overflow */
+    justify-content: center;
+    gap: 5px;
+    padding: 9px 2px;
+    font-size: .72rem;
+    border-radius: 0;
+    border-bottom: 2px solid transparent;
+  }
+
+  .eval-nav-tab i {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+  }
+
+  .eval-nav-tab:hover {
+    background: transparent;
+  }
+
+  .eval-nav-tab.active {
+    background: transparent;
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+}
+
+.header-right {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+/* Language pill toggle */
+.lang-pill {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-strong);
+  border-radius: 20px;
+  padding: 2px;
+  cursor: pointer;
+  user-select: none;
+  height: 30px;
+  transition: border-color var(--transition);
+}
+
+.lang-pill:hover {
+  border-color: var(--accent);
+}
+
+.lang-pill-opt {
+  position: relative;
+  z-index: 2;
+  padding: 2px 10px;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: var(--text-muted);
+  transition: color var(--transition);
+  line-height: 1;
+}
+
+.lang-pill-opt.active {
+  color: #0f0f14;
+}
+
+.lang-pill-slider {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: calc(50% - 2px);
+  height: calc(100% - 4px);
+  background: var(--accent);
+  border-radius: 18px;
+  transition: transform var(--transition);
+  z-index: 1;
+}
+
+.lang-pill[data-active="en"] .lang-pill-slider {
+  transform: translateX(100%);
+}
+
+/* Theme pill toggle (matches lang-pill) */
+.theme-pill {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-strong);
+  border-radius: 20px;
+  padding: 2px;
+  cursor: pointer;
+  user-select: none;
+  height: 30px;
+  transition: border-color var(--transition);
+}
+
+.theme-pill:hover {
+  border-color: var(--accent);
+}
+
+.theme-pill-opt {
+  position: relative;
+  z-index: 2;
+  padding: 2px 8px;
+  font-size: .8rem;
+  line-height: 1;
+  transition: all var(--transition);
+  opacity: .35;
+  filter: grayscale(1);
+}
+
+.theme-pill-opt.active {
+  opacity: 1;
+  filter: grayscale(1) brightness(0.2);
+}
+
+.theme-pill-slider {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: calc(50% - 2px);
+  height: calc(100% - 4px);
+  background: var(--accent);
+  border-radius: 18px;
+  transition: transform var(--transition);
+  z-index: 1;
+}
+
+.theme-pill[data-active="dark"] .theme-pill-slider {
+  transform: translateX(100%);
+}
+
+/* --- Icon & Ghost Buttons --- */
+
+/* --- Info Tip Button & Popup --- */
+.info-label {
+  display: flex;
+  align-items: center;
+}
+
+/* --- Scroll to Top Button --- */
+.btn-scroll-top {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 130;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border-strong);
+  border-radius: 50%;
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .15);
+  transition: opacity .2s, transform .2s;
+}
+
+.btn-scroll-top:hover {
+  background: var(--accent-subtle);
+  color: var(--accent);
+}
+
+.btn-scroll-top.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(10px);
+}
+
+.btn-scroll-top .lucide {
+  width: 20px;
+  height: 20px;
+}
+
+/* --- Options Header (label + action buttons) --- */
+
+/* --- Search Actions (config & advanced buttons) --- */
+
+.btn-ghost {
+  background: none;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: 8px 16px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: .85rem;
+  width: 100%;
+  transition: all var(--transition);
+  margin-top: 8px;
+}
+
+.btn-ghost:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+.btn-ghost.danger:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+  background: var(--danger-subtle);
+}
+
+/* --- Main Layout --- */
+#app-main {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+#search-panel {
+  flex: 1 1 60%;
+  min-width: min(380px, 100vw);
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+#resize-handle {
+  width: 5px;
+  cursor: col-resize;
+  background: var(--border);
+  transition: background var(--transition);
+  flex-shrink: 0;
+}
+
+#resize-handle:hover,
+#resize-handle.active {
+  background: var(--accent);
+}
+
+#notes-panel {
+  flex: 0 0 360px;
+  min-width: 280px;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-left: 1px solid var(--border);
+  transition: all 0.3s ease;
+}
+
+/* Notes panel collapsed (sutta viewer toggle) — desktop only */
+
+/* --- Glass Panels --- */
+.glass-panel {
+  background: var(--bg-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--bg-glass-border);
+  border-radius: 0;
+  padding: 14px 20px;
+}
+
+/* --- Controls --- */
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+}
+
+.control-label {
+  font-size: .72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--text-muted);
+}
+
+/* Toggle Buttons */
+
+/* Chip-style toggles: multi-select (checkbox) + single-select pills share metrics */
+
+/* Checkbox indicator → multi-select only */
+
+/* Model Select */
+
+.model-select {
+  width: 100%;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: var(--bg-input);
+  color: var(--text-primary);
+  font-size: .82rem;
+  font-family: var(--font-sans);
+}
+
+.model-select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* Dual model select (category + model side by side) */
+
+/* Category badge in result column headers */
+
+/* Dark mode: force readable select dropdowns */
+
+[data-theme="dark"] .model-select {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+
+[data-theme="dark"] .model-select option {
+  background-color: #22222e;
+  color: #e8e6f0;
+}
+
+/* Search Bar — pill shape, sticky on scroll */
+
+@keyframes fakeFocusHighlight {
+  0% {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-subtle);
+  }
+
+  60% {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-subtle);
+  }
+
+  100% {
+    border-color: var(--border-strong);
+    box-shadow: none;
+  }
+}
+
+.search-bar-inner .btn-primary {
+  height: 36px;
+  padding: 0 18px;
+  border-radius: 0 999px 999px 0;
+  font-size: .85rem;
+}
+
+.btn-primary {
+  height: 28px;
+  padding: 0 14px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: #0f0f14;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: .82rem;
+  white-space: nowrap;
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+
+.eval-start-info {
+  text-align: center;
+  margin: 6px 0 0;
+  font-size: .75rem;
+  color: var(--text-muted);
+}
+
+.eval-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  background: var(--accent-subtle);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-md);
+  font-size: .85rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+.eval-notice .lucide {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  color: var(--accent);
+  margin-top: 2px;
+}
+
+.btn-sm {
+  padding: 4px 10px;
+  font-size: .75rem;
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(232, 168, 56, .3);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  padding: 6px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: .8rem;
+  font-weight: 500;
+  transition: all var(--transition);
+}
+
+.btn-secondary:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+/* Seg-ref checkbox inline in control-group / dialog header */
+.seg-ref-cb-label {
+  margin-left: 6px;
+  opacity: 0.8;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.nav-short {
+  display: none;
+}
+
+/* --- Search Results --- */
+#search-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 10px 20px 0 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  color: var(--text-muted);
+  padding: 40px;
+  margin: 0 auto;
+}
+
+.empty-icon {
+  font-size: 3.5rem;
+  margin-bottom: 16px;
+  opacity: .5;
+}
+
+.empty-state h2 {
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  font-size: .88rem;
+  line-height: 1.6;
+  max-width: 400px;
+}
+
+/* Welcome state: compact horizontal on desktop */
+
+/* Spinner */
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--border-strong);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+  margin-bottom: 12px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Results Grid (dual model) */
+
+/* --- Pagination --- */
+
+#pagination .btn-page {
+  padding: 4px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: .82rem;
+}
+
+#pagination .btn-page:hover:not(:disabled) {
+  background: var(--accent);
+  color: #fff;
+}
+
+#pagination .btn-page:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+}
+
+/* --- Sutta Card (Notion-like block) --- */
+.sutta-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-bottom: 12px;
+  transition: all var(--transition);
+  animation: cardIn .35s ease-out;
+}
+
+.sutta-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-md);
+}
+
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sutta-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sutta-card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.sutta-card-name {
+  font-weight: 400;
+  font-style: italic;
+  opacity: 0.85;
+}
+
+.sutta-card-links {
+  display: flex;
+  gap: 6px;
+}
+
+/* Fragment inside sutta card */
+.fragment {
+  padding: 10px 12px;
+  margin: 6px 0;
+  border-radius: var(--radius-md);
+  background: var(--bg-tertiary);
+  border-left: 3px solid var(--accent);
+  position: relative;
+}
+
+.fragment-blurb {
+  background: var(--bg-hover);
+  border-left-color: var(--text-muted);
+}
+
+.fragment-blurb .main-text {
+  font-style: italic;
+}
+
+.fragment-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-bottom: 6px;
+  font-size: .75rem;
+  color: var(--text-muted);
+}
+
+.fragment-ref,
+.fragment-author {
+  font-weight: 700;
+  color: var(--text-muted)
+}
+
+
+.fragment-score {
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.fragment-texts {
+  font-size: .88rem;
+  line-height: 1.65;
+}
+
+.fragment-texts .lang-tag {
+  display: inline-block;
+  font-size: .65rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 3px;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+.fragment-texts a.lang-tag {
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.fragment-texts a.lang-tag:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.lang-tag.id {
+  background: var(--tag-id);
+  color: #fff;
+}
+
+.lang-tag.en {
+  background: var(--tag-en);
+  color: #fff;
+}
+
+.lang-tag.pli {
+  background: var(--tag-pli);
+  color: #fff;
+}
+
+.fragment-text-line {
+  margin-bottom: 4px;
+}
+
+.fragment-text-line:last-child {
+  margin-bottom: 0;
+}
+
+.ctx {
+  color: var(--text-muted);
+  font-size: .82rem;
+  word-wrap: break-word;
+}
+
+.main-text {
+  word-wrap: break-word;
+  font-weight: 500;
+}
+
+/* In search-result fragments, make the matched segment stand out and let the
+   surrounding context recede, so the match stays findable with Extra Info on.
+   Scoped to .fragment so the sutta reader is unaffected. */
+.fragment .main-text {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.fragment .ctx {
+  opacity: .7;
+}
+
+/* Keyword-only highlight (keyword search mode) */
+.kw-match {
+  color: var(--text-primary);
+  background: var(--accent-subtle);
+  font-weight: 600;
+  padding: 1px 3px;
+  border-radius: 3px;
+}
+
+/* Add to notes button */
+.btn-add-note {
+  position: absolute;
+  /* top: 8px; */
+  bottom: 8px;
+  right: 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 2px 8px;
+  font-size: .65rem;
+  cursor: pointer;
+  color: var(--accent);
+  font-weight: 600;
+  opacity: 0.6;
+  transition: all var(--transition);
+}
+
+.fragment:hover .btn-add-note {
+  opacity: 1;
+}
+
+.btn-add-note:hover,
+.btn-add-note:active {
+  opacity: 1;
+  background: var(--accent);
+  color: #0f0f14;
+  border-color: var(--accent);
+}
+
+.btn-retry {
+  margin-top: 12px;
+  padding: 6px 18px;
+  background: var(--accent-subtle);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  font-size: .85rem;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.btn-retry:hover {
+  background: var(--accent);
+  color: #0f0f14;
+}
+
+/* --- Note Picker Popover --- */
+.dk-note-picker {
+  position: fixed;
+  z-index: 9999;
+  min-width: 200px;
+  max-width: 280px;
+  max-height: 320px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, .25);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.dk-note-picker-list {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.dk-note-picker-header {
+  padding: 8px 12px 6px;
+  font-size: .7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dk-note-picker-close {
+  background: transparent;
+  border: none;
+  padding: 2px;
+  margin-left: -4px;
+  /* Geser sedikit ke kiri agar sejajar dengan padding */
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+  border-radius: 4px;
+  transition: all var(--transition);
+}
+
+.dk-note-picker-close:hover {
+  background: var(--danger);
+  /* Menggunakan warna merah bawaan temamu */
+  color: #fff;
+}
+
+.dk-note-picker-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-size: .85rem;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background .1s;
+}
+
+.dk-note-picker-item:hover {
+  background: var(--bg-tertiary);
+}
+
+.dk-note-picker-item.active {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.dk-note-picker-empty {
+  padding: 8px 12px;
+  font-size: .82rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.dk-note-picker-divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 0;
+}
+
+.dk-note-picker-new {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: .85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .1s;
+}
+
+.dk-note-picker-new:hover {
+  background: var(--accent-subtle);
+}
+
+/* --- Notes Panel --- */
+
+/* Note Editor */
+
+/* Note Blocks */
+
+/* Text block in notes */
+
+/* Sutta block in notes (mini version) */
+
+/* Blurb (sinopsis) note card: grey left border, matching the search-result
+   .fragment-blurb treatment instead of the accent used for real segments. */
+
+/* "Open here / new tab" chooser popover (blurb text links in notes & results) */
+.dk-open-menu {
+  position: fixed;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  min-width: 150px;
+  padding: 4px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, .25);
+}
+
+.dk-open-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: .82rem;
+  font-family: var(--font-sans);
+  text-align: left;
+  cursor: pointer;
+  transition: background .1s, color .1s;
+}
+
+.dk-open-menu-item:hover {
+  background: var(--accent-subtle);
+  color: var(--accent);
+}
+
+.dk-open-menu-item .lucide {
+  width: 15px;
+  height: 15px;
+  flex: none;
+}
+
+/* --- Simple Mode (Global) --- */
+
+#btn-advanced-toggle.active {
+  background: var(--accent-subtle);
+  color: var(--accent);
+}
+
+/* ================================================================
+   RESPONSIVE
+   ================================================================ */
+
+/* panel toggle: hidden on desktop */
+.panel-toggle-btn {
+  display: none;
+}
+
+/* --- Tablet (≤ 768px) --- */
+@media (max-width: 768px) {
+  #app-main {
+    flex-direction: column;
+  }
+
+
+  #resize-handle {
+    display: none;
+  }
+
+  #search-panel {
+    min-width: auto;
+    min-height: 0;
+  }
+}
+
+/* --- Mobile & Half Desktop (≤ 900px) --- */
+@media (max-width: 900px) {
+
+  /* ── Layout: body flex column, header shrinks, main fills ── */
+  body {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  #app-header {
+    flex-shrink: 0;
+    height: auto;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    padding: 0 14px;
+  }
+
+  #app-main {
+    flex: 1;
+    min-height: 0;
+    height: auto;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── Header row 1: logo kiri, pills kanan ─────────────── */
+  .header-top {
+    display: flex;
+    align-items: center;
+    height: 48px;
+    flex-shrink: 0;
+  }
+
+  .header-left {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .header-subtitle {
+    display: none;
+  }
+
+  .lang-pill,
+  .theme-pill {
+    height: 26px;
+  }
+
+  .lang-pill-opt,
+  .theme-pill-opt {
+    padding: 2px 7px;
+    font-size: .65rem;
+  }
+
+  /* ── Header row 2: nav tabs ───────────────────────────── */
+
+  .nav-tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: .65rem;
+    border-radius: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    padding: 0 4px;
+  }
+
+  .nav-full {
+    display: none;
+  }
+
+  .nav-short {
+    display: inline;
+  }
+
+  /* ── Search panel ─────────────────────────────────────── */
+  #search-panel {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  #search-scroll {
+    padding: 8px 12px 0;
+  }
+
+  /* ── Right panels: drawer dari kanan ─────────────────── */
+  #notes-panel,
+  #eval-sidebar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 88vw;
+    max-width: 360px;
+    height: 100dvh;
+    z-index: 140;
+    background: var(--bg-primary);
+    border-left: 1px solid var(--border-strong);
+    border-top: none;
+    transform: translateX(100%);
+    transition: transform .3s cubic-bezier(.4, 0, .2, 1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex: none;
+  }
+
+  #notes-panel.panel-open,
+  #eval-sidebar.panel-open {
+    transform: translateX(0);
+  }
+
+  #eval-sidebar .eval-sidebar-inner {
+    overflow-y: auto;
+    flex: 1 1 auto;
+    min-height: 0;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* backdrop */
+  #panel-backdrop {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 139;
+    background-color: rgba(0, 0, 0, 0.5);
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+  }
+
+  #panel-backdrop.visible {
+    display: block;
+  }
+
+  /* ── Panel toggle (tab di kanan layar) ────────────────── */
+  .panel-toggle-btn {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 150;
+    width: 26px;
+    height: auto;
+    padding: 10px 0;
+    gap: 6px;
+    /* 80% berarti 80% solid, 20% tembus pandang. Sesuaikan persentasenya! */
+    background: color-mix(in srgb, var(--bg-secondary) 30%, transparent);
+    backdrop-filter: blur(0.8px);
+    -webkit-backdrop-filter: blur(0.8px);
+    /* Untuk Safari */
+    /* ----------------------- */
+    border: 1px solid var(--border-strong);
+    border-right: none;
+    border-radius: 8px 0 0 8px;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: .6rem;
+    font-weight: 700;
+    box-shadow: -3px 0 10px rgba(0, 0, 0, .15);
+    transition: right .3s cubic-bezier(.4, 0, .2, 1), background var(--transition), color var(--transition);
+    user-select: none;
+  }
+
+  .panel-toggle-icon,
+  .panel-toggle-chevron {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+  }
+
+  .panel-toggle-label {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    transform: rotate(180deg);
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .06em;
+    line-height: 1;
+  }
+
+  .panel-btn-open .panel-toggle-chevron {
+    transform: rotate(180deg);
+  }
+
+  .panel-toggle-btn.panel-btn-open {
+    right: min(88vw, 360px);
+    background: var(--accent);
+    color: #0f0f14;
+    border-color: var(--accent);
+    box-shadow: -4px 0 14px rgba(0, 0, 0, .35);
+  }
+
+  .panel-toggle-btn:hover,
+  .panel-toggle-btn:active {
+    background: var(--accent-subtle);
+    color: var(--accent);
+  }
+
+  .panel-toggle-btn.panel-btn-open:hover,
+  .panel-toggle-btn.panel-btn-open:active {
+    background: var(--accent);
+    color: #0f0f14;
+    opacity: .85;
+  }
+
+  /* ── Sutta dialog: full screen ────────────────────────── */
+  #sutta-dialog {
+    inset: 0;
+    border-radius: 0;
+    max-width: 100vw;
+    max-height: 100dvh;
+  }
+
+  .sutta-dialog-header {
+    padding: 12px 14px 6px;
+    gap: 8px;
+  }
+
+
+
+  .sutta-dialog-close {
+    top: 10px;
+    right: 10px;
+    width: 30px;
+    height: 30px;
+  }
+
+  .sutta-dialog-controls {
+    gap: 6px;
+  }
+
+  .sutta-dialog-lang-toggle {
+    min-width: 0;
+    flex-shrink: 1;
+  }
+
+  .sutta-dialog-sc-links {
+    order: 3;
+    margin-left: auto;
+    height: 30px;
+    display: flex;
+    align-items: center;
+  }
+
+  .sutta-dialog-body {
+    padding: 8px 6px;
+  }
+
+  .sutta-segment {
+    padding: 6px 8px;
+  }
+
+  /* ── Search controls ──────────────────────────────────── */
+  .sutta-dialog-display-toggle {
+    order: 4;
+    width: 100%;
+    /* margin-top: 4px; */
+  }
+
+  /* Dialog popup mobile: satu baris — dropdown isi sisa, tombol toggle di kanan (sinkron dengan reader-controls-sticky) */
+  .sutta-dialog-header .sutta-dialog-controls {
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .sutta-dialog-header .sutta-dialog-lang-toggle {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .sutta-dialog-header .sutta-lang-dropdown {
+    width: 100%;
+  }
+
+  /* override: display toggle tetap inline di kanan, bukan full-width baris baru */
+  .sutta-dialog-header .sutta-dialog-display-toggle {
+    order: 0;
+    width: auto;
+    margin-top: 0;
+    flex-shrink: 0;
+  }
+
+  /* Sutta reader mobile: satu baris — dropdown isi sisa, tombol toggle (ikon) di kanan */
+  .reader-controls-sticky .sutta-dialog-controls {
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .reader-controls-sticky .sutta-dialog-lang-toggle {
+    flex: 1;
+  }
+
+  .reader-controls-sticky .sutta-lang-dropdown {
+    width: 100%;
+  }
+
+  /* override stack global: toggle display inline di kanan, bukan full-width baris baru */
+  .reader-controls-sticky .sutta-dialog-display-toggle {
+    order: 0;
+    width: auto;
+    margin-top: 0;
+    flex-shrink: 0;
+  }
+
+  /* Tombol aksi (Setelan & Halaman Teks) jadi icon-only di mobile */
+  .sutta-dialog-open-label {
+    display: none;
+  }
+
+  .control-group {
+    flex: 1;
+  }
+
+  /* ── Eval dashboard ───────────────────────────────────── */
+  #eval-dashboard {
+    padding: 16px 12px 32px;
+    gap: 16px;
+  }
+
+  .eval-dashboard-inner {
+    gap: 14px;
+  }
+
+  .eval-dashboard-title {
+    font-size: 1.1rem;
+  }
+
+  .eval-dashboard-card {
+    padding: 10px 12px;
+    gap: 10px;
+  }
+
+  .eval-dashboard-card-icon {
+    font-size: 1.3rem;
+    width: 30px;
+  }
+
+  /* ── Footer ───────────────────────────────────────────── */
+  .panel-footer {
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+    padding: 10px 0;
+  }
+
+  .footer-left {
+    justify-content: center;
+  }
+
+  .footer-center,
+  .footer-right {
+    text-align: center;
+    padding: 4px 0;
+    justify-content: center;
+  }
+
+  .footer-tentang-link {
+    display: inline-block !important;
+    padding: 6px 14px !important;
+    margin: 6px 0 !important;
+  }
+
+  .footer-info-group {
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 2px 8px;
+  }
+
+  .info-sep {
+    flex: 0 0 100%;
+    height: 0;
+    visibility: hidden;
+  }
+}
+
+/* ================================================================
+   SUTTA READER PAGE
+   ================================================================ */
+
+/* Segment container */
+.sutta-segments {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Single segment */
+.sutta-segment {
+  position: relative;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  transition: background var(--transition), padding var(--transition);
+  line-height: 1.7;
+}
+
+html.show-seg-ref .sutta-segment {
+  padding-top: 24px;
+}
+
+.sutta-segment:hover {
+  background: var(--bg-tertiary);
+}
+
+.sutta-segment:target {
+  background: var(--accent-subtle);
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+
+.seg-text {
+  font-family: var(--font-sans);
+  font-size: .92rem;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.verse-num {
+  /* font-size: .68em; */
+  font-size: .70em;
+  color: var(--text-muted, var(--text-secondary, #888));
+  margin-right: 2px;
+  vertical-align: super;
+  line-height: 0;
+  /* font-weight: 100; */
+  font-weight: 700;
+  user-select: none;
+  display: none;
+}
+
+html.show-seg-ref .verse-num {
+  display: inline;
+}
+
+/* Pemisah bait (‖) */
+.verse-sep {
+  color: var(--text-muted);
+  opacity: 0.8;
+  margin: 0 4px;
+  font-weight: 300;
+  user-select: none;
+}
+
+html.show-seg-ref .verse-sep {
+  display: none;
+}
+
+@media (max-width: 768px) {
+
+  .seg-ref-cb-label:not(.verse-sep-cb-label) {
+    order: 2;
+  }
+}
+
+.seg-untranslated {
+  opacity: 0.55;
+  font-style: italic;
+}
+
+.speaker {
+  display: inline-block;
+  color: var(--accent);
+  font-size: 0.75em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  /* margin-right: 2px; */
+  opacity: 0.9;
+}
+
+.seg-add-btn .short {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .seg-add-btn .full {
+    display: none;
+  }
+
+  .seg-add-btn .short {
+    display: inline;
+  }
+}
+
+.kw-short {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .kw-full {
+    display: none;
+  }
+
+  .kw-short {
+    display: inline;
+  }
+}
+
+/* Sutta heading levels */
+.sutta-heading-1 {
+  margin-top: 1.6em;
+}
+
+.sutta-heading-1 .seg-text,
+.sutta-heading-1 .seg-col {
+  font-size: 1.18rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 4px;
+}
+
+.sutta-heading-2 {
+  margin-top: 1em;
+}
+
+.sutta-heading-2 .seg-text,
+.sutta-heading-2 .seg-col {
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.sutta-heading-3 {
+  margin-top: 0.6em;
+}
+
+.sutta-heading-3 .seg-text,
+.sutta-heading-3 .seg-col {
+  font-size: .92rem;
+  font-weight: 600;
+  font-style: italic;
+  color: var(--text-secondary);
+}
+
+.sutta-heading-4 {
+  margin-top: 0.4em;
+}
+
+.sutta-heading-4 .seg-text,
+.sutta-heading-4 .seg-col {
+  font-size: .88rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.sutta-heading-5 {
+  margin-top: 0.3em;
+}
+
+.sutta-heading-5 .seg-text,
+.sutta-heading-5 .seg-col {
+  font-size: .84rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+/* Folded body heading rendered as a ".0" lead part inside a content segment
+   (chunker heading-merge). Mirrors .sutta-heading-* but scoped to the part itself,
+   since the segment around it is ordinary content (seg.heading === 0). */
+.seg-heading {
+  color: var(--text-primary);
+  line-height: 1.3;
+  margin: 0.2em 0 0.4em;
+}
+
+.seg-heading-1 {
+  font-size: 1.18rem;
+  font-weight: 700;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 4px;
+  /* margin-top: 1.6em; */
+}
+
+.seg-heading-2 {
+  font-size: 1.02rem;
+  font-weight: 600;
+  /* margin-top: 1em; */
+}
+
+.seg-heading-3 {
+  font-size: .92rem;
+  font-weight: 600;
+  font-style: italic;
+  color: var(--text-secondary);
+  /* margin-top: .6em; */
+}
+
+.seg-heading-4 {
+  font-size: .88rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  /* margin-top: .4em; */
+}
+
+.seg-heading-5 {
+  font-size: .84rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  /* margin-top: .3em; */
+}
+
+.seg-heading-6 {
+  font-size: .82rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  /* margin-top: .3em; */
+}
+
+/* Side-by-side */
+.sutta-segments.side-by-side .sutta-segment {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.seg-col {
+  font-family: var(--font-sans);
+  font-size: .88rem;
+  line-height: var(--reader-line-height, 1.7);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.seg-primary {
+  color: var(--text-primary);
+}
+
+.seg-secondary {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Segment ref badge — hidden by default, toggled via html.show-seg-ref */
+.seg-ref {
+  position: absolute;
+  top: 4px;
+  left: 12px;
+  /* font-size: .58rem; */
+  font-size: .60rem;
+  font-family: "Inter", sans-serif;
+  font-weight: 700;
+  color: var(--text-muted);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition);
+  background: var(--bg-secondary);
+  padding: 1px 5px;
+  border-radius: 4px;
+  white-space: nowrap;
+  /* max-width: 34px; */
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+html.show-seg-ref .seg-ref {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+html.show-seg-ref .sutta-segment:hover .seg-ref {
+  opacity: 0.85;
+}
+
+/* Add to notes button (appears on hover, always visible on touch) */
+.seg-add-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  font-size: .65rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-secondary);
+  color: var(--accent);
+  cursor: pointer;
+  opacity: 0;
+  transition: all var(--transition);
+}
+
+.sutta-segment:hover .seg-add-btn {
+  opacity: 1;
+}
+
+.seg-add-btn:hover {
+  opacity: 1;
+  background: var(--accent);
+  color: #0f0f14;
+  border-color: var(--accent);
+}
+
+@media (hover: none) {
+  .seg-add-btn {
+    opacity: .35;
+  }
+
+  .btn-add-note {
+    opacity: .35;
+  }
+}
+
+/* ================================================================
+   NAV TABS (Search / Browse)
+   ================================================================ */
+
+.nav-tabs {
+  display: flex;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-strong);
+  border-radius: 20px;
+  padding: 2px;
+  align-items: center;
+}
+
+.nav-tab {
+  background: transparent;
+  border: none;
+  border-radius: 18px;
+  padding: 5px 14px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: .8rem;
+  font-weight: 600;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+
+.nav-tab.active {
+  background: var(--accent);
+  color: #0f0f14;
+}
+
+.nav-tab:hover:not(.active) {
+  color: var(--text-primary);
+}
+
+
+/* ================================================================
+   BROWSE TREE
+   ================================================================ */
+
+/* ── Piṭaka level (top) ── */
+
+/* ── Nikāya / Vagga level ── */
+
+/* ── Sutta row ── */
+
+/* ── Language badges ── */
+
+
+
+/* ================================================================
+   PANEL FOOTER (Non-sticky, inside scrollable area)
+   ================================================================ */
+.panel-footer {
+  flex-shrink: 0;
+  margin-top: auto;
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* FAB clearance on sutta reader page */
+#sutta-content~.panel-footer {
+  margin-bottom: 80px;
+}
+
+.footer-left {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.footer-logo {
+  transition: filter 0.1s ease, opacity 0.1s ease, transform 0.1s ease;
+}
+
+/* Light Mode: Normal (Full Color) */
+.footer-logo {
+  filter: none;
+  opacity: 1;
+}
+
+/* Dark Mode: Grayscale (Calmer) */
+[data-theme="dark"] .footer-logo {
+  filter: grayscale(1) opacity(0.6);
+}
+
+.footer-logo {
+  height: 28px;
+  width: auto;
+}
+
+/* Syailendra logo: emblem on a transparent background (white removed in
+   stab2.png). Light mode shows the blue line art as-is; dark mode whitens it so
+   it stays legible on the dark footer — a colored grayscale would be too faint. */
+[data-theme="dark"] .footer-logo-syl {
+  filter: brightness(0) invert(1) opacity(0.6);
+}
+
+[data-theme="dark"] .footer-logo-wrap:hover .footer-logo-syl,
+[data-theme="dark"] .footer-logo-syl:hover {
+  filter: brightness(0) invert(1) opacity(1) !important;
+}
+
+.footer-logo-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.footer-logo-wrap::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  transform: translateY(4px);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-strong);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  z-index: 100;
+}
+
+@media (max-width: 600px) {
+  .footer-logo-wrap::after {
+    left: 0;
+    right: auto;
+    white-space: normal;
+    max-width: 200px;
+  }
+
+
+}
+
+.footer-logo-wrap:hover::after {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.footer-logo-wrap:hover .footer-logo,
+.footer-logo:hover {
+  filter: grayscale(0) opacity(1) !important;
+  transform: scale(1.1);
+}
+
+.footer-center {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 16px;
+  line-height: 1.4;
+}
+
+.footer-tentang-link {
+  font-size: .72rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  padding: 3px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-tertiary);
+  transition: background .15s, border-color .15s, color .15s;
+  white-space: nowrap;
+}
+
+.footer-tentang-link:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.footer-right {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.footer-info-group {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+.info-item {
+  white-space: nowrap;
+}
+
+.info-sep {
+  margin: 0 20px;
+  opacity: 0.3;
+}
+
+.info-label {
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-right: 4px;
+}
+
+.info-value {
+  color: var(--text-secondary);
+}
+
+.info-value span {
+  cursor: help;
+  position: relative;
+  transition: color var(--transition);
+}
+
+.info-value span:hover {
+  color: var(--accent);
+}
+
+.info-value span[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  transform: translateY(4px);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  z-index: 100;
+}
+
+.info-value span[data-tooltip]:hover::after {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+
+@media (max-width: 650px) {
+  .panel-footer {
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+  }
+
+  .footer-center {
+    text-align: center;
+    padding: 4px 0;
+    justify-content: center;
+  }
+
+  .footer-right {
+    text-align: center;
+    padding: 4px 0;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .footer-info-group {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: 4px;
+  }
+
+  .info-sep {
+    display: none;
+  }
+}
+
+/* ================================================================
+   EXPERT EVALUATION (Asesmen Pakar)
+   ================================================================ */
+
+/* --- Intro Page --- */
+.eval-intro-card {
+  padding: 8px 0 40px;
+}
+
+.eval-intro-card h2 {
+  font-size: 1.3rem;
+  margin-bottom: 8px;
+}
+
+.eval-intro-desc {
+  color: var(--text-secondary);
+  font-size: .9rem;
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+.eval-section {
+  margin-bottom: 24px;
+}
+
+/* Expert done option in dropdown */
+#eval-expert-select option[data-done="1"],
+#eval-expert-select option:disabled {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.eval-section h3 {
+  font-size: .85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--accent);
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.eval-definitions {
+  display: grid;
+  gap: 8px;
+}
+
+.eval-definitions dt {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: .88rem;
+}
+
+.eval-definitions dd {
+  margin: 0 0 6px 0;
+  color: var(--text-secondary);
+  font-size: .84rem;
+  line-height: 1.5;
+}
+
+/* Criteria list (intro + sidebar) */
+.eval-criteria-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.eval-criteria-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+}
+
+.eval-criteria-item div {
+  font-size: .84rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.eval-criteria-item strong {
+  color: var(--text-primary);
+}
+
+/* Grade badges */
+.eval-grade-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: .82rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  color: #fff;
+}
+
+.eval-grade-badge.grade-0 {
+  background: var(--danger);
+}
+
+.eval-grade-badge.grade-1 {
+  background: #e88b38;
+}
+
+.eval-grade-badge.grade-2 {
+  background: #5b9bd5;
+}
+
+.eval-grade-badge.grade-3 {
+  background: var(--success);
+}
+
+/* Config form in intro */
+.eval-config {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-end;
+}
+
+/* ===== SUS ===== */
+
+/* SUS results in output page */
+
+.eval-warning {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background: rgba(232, 84, 84, .12);
+  color: var(--danger);
+  font-size: .85rem;
+  border: 1px solid rgba(232, 84, 84, .25);
+}
+
+/* --- Evaluation Phase --- */
+#eval-progress-sticky-wrapper {
+  position: sticky;
+  top: -10px;
+  z-index: 30;
+  background: var(--bg-primary);
+  padding-top: 5px;
+  padding-bottom: 5px;
+  margin-top: -10px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+#eval-sticky-top-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+#eval-sticky-query {
+  display: none;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  padding-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  align-items: center;
+  gap: 8px;
+}
+
+#eval-sticky-query .eval-sticky-expert-inline {
+  margin-left: auto;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  #eval-sticky-query {
+    display: flex;
+  }
+
+  #eval-sticky-expert {
+    display: none;
+  }
+}
+
+#eval-progress-bars {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+#eval-progress-bar-container {
+  width: 100%;
+  height: 4px;
+  background: var(--bg-tertiary);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+#eval-passage-bar-container {
+  width: 100%;
+  height: 3px;
+  background: var(--bg-tertiary);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+#eval-passage-bar {
+  height: 100%;
+  background: #16a34a;
+  border-radius: 2px;
+  transition: width .3s ease;
+  width: 0%;
+}
+
+#eval-sticky-step-info {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+#eval-sticky-expert {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--accent);
+  white-space: nowrap;
+  padding-left: 10px;
+  border-left: 1px solid var(--border);
+}
+
+#eval-progress-bar {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width .4s ease;
+  width: 0%;
+}
+
+#eval-step-header {
+  margin-bottom: 0;
+}
+
+#eval-step-info {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.eval-step-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: .75rem;
+  font-weight: 600;
+  background: var(--accent-subtle);
+  color: var(--accent);
+}
+
+.eval-step-badge strong {
+  color: var(--text-primary);
+}
+
+.eval-step-badge-muted {
+  display: inline-flex;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: .72rem;
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+}
+
+#eval-query-display {
+  font-size: 1rem;
+  font-weight: 500;
+  font-family: var(--font-serif);
+  color: var(--text-primary);
+  line-height: 1.5;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+}
+
+.eval-query-label {
+  color: var(--text-muted);
+  font-size: .8rem;
+  font-family: var(--font-sans);
+  font-weight: 600;
+}
+
+.eval-grade-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border);
+}
+
+.eval-save-indicator {
+  margin-left: auto;
+  font-size: .7rem;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.eval-save-indicator.saving {
+  opacity: 1;
+  color: var(--text-muted);
+}
+
+.eval-save-indicator.saved {
+  opacity: 1;
+  color: #16a34a;
+}
+
+.eval-save-indicator.failed {
+  opacity: 1;
+  color: #ef4444;
+}
+
+.eval-grade-label {
+  font-size: .75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-right: 4px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.eval-grade-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition);
+  border: 1px solid transparent;
+  user-select: none;
+}
+
+.eval-grade-option:hover {
+  background: var(--accent-subtle);
+}
+
+.eval-grade-option.selected {
+  border-color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+.eval-grade-option input[type="radio"] {
+  display: none;
+}
+
+.eval-grade-option .eval-grade-badge {
+  width: 22px;
+  height: 22px;
+  font-size: .72rem;
+}
+
+.eval-grade-desc {
+  font-size: .72rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.eval-ungraded {
+  outline: 2px solid var(--danger) !important;
+  outline-offset: -2px;
+  animation: evalPulse .6s ease 2;
+}
+
+
+.eval-model-sources {
+  display: none;
+  margin: 6px 12px 10px;
+  padding: 6px 10px;
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  border-left: 3px solid var(--accent);
+  border-radius: 4px;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.eval-model-source-item {
+  display: inline-block;
+  margin-right: 12px;
+}
+
+@keyframes evalPulse {
+
+  0%,
+  100% {
+    outline-color: var(--danger);
+  }
+
+  50% {
+    outline-color: transparent;
+  }
+}
+
+.eval-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 0;
+  margin-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.eval-nav-info {
+  font-size: .82rem;
+  color: var(--text-muted);
+}
+
+.eval-nav .btn-primary {
+  min-width: 160px;
+  height: 36px;
+  font-size: .88rem;
+}
+
+.eval-nav .btn-secondary {
+  min-width: 140px;
+  height: 36px;
+  font-size: .88rem;
+}
+
+.eval-nav button:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+}
+
+/* Mode Ulasan (Debt Mode) */
+.eval-hidden-graded {
+  display: none !important;
+}
+
+.eval-debt-banner {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 10px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+#eval-exit-row {
+  display: flex;
+  justify-content: center;
+  padding: 4px 0 24px;
+}
+
+.eval-exit-row-top {
+  display: flex;
+  justify-content: center;
+  padding: 6px 0 2px;
+  margin-bottom: 8px;
+}
+
+.eval-exit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  font-size: .8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: none;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  transition: background .15s, border-color .15s, color .15s;
+}
+
+.eval-exit-btn:hover {
+  background: var(--danger-subtle, var(--bg-tertiary));
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.eval-exit-btn svg {
+  width: 15px;
+  height: 15px;
+}
+
+@media (min-width: 901px) {
+  #eval-sidebar {
+    flex: 0 0 360px;
+    min-width: 280px;
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    height: 100%;
+    border-left: 1px solid var(--border);
+  }
+}
+
+.eval-sidebar-inner {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.eval-sidebar-card {
+  border-radius: var(--radius-md) !important;
+  padding: 14px 16px !important;
+}
+
+.eval-sidebar-card h3 {
+  font-size: .85rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--text-primary);
+}
+
+.eval-sidebar-query-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.eval-sidebar-query-header h3 {
+  margin-bottom: 0;
+}
+
+#eval-sidebar-query-count {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-left: 8px;
+  font-weight: 600;
+}
+
+#eval-sidebar-query-content {
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  line-height: 1.5;
+  font-weight: 600;
+}
+
+.eval-sidebar-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.eval-sidebar-progress-track {
+  flex: 1;
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.eval-sidebar-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--accent, #6366f1);
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+
+.eval-sidebar-progress-label {
+  font-size: .7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.eval-sidebar-prog-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .7rem;
+}
+
+.eval-sidebar-prog-table th,
+.eval-sidebar-prog-table td {
+  padding: 3px 5px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+
+.eval-sidebar-prog-table th {
+  font-weight: 600;
+  color: var(--text-muted);
+  font-size: .65rem;
+  text-transform: uppercase;
+}
+
+.eval-prog-num {
+  text-align: left !important;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.eval-prog-done {
+  color: #16a34a;
+  font-weight: 700;
+}
+
+.eval-prog-count {
+  font-size: .58rem;
+  font-weight: 500;
+  opacity: .7;
+}
+
+.eval-prog-partial {
+  color: #f59e0b;
+  font-size: .62rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.eval-prog-empty {
+  color: var(--text-muted);
+  opacity: .4;
+}
+
+tr.eval-prog-current {
+  background: var(--bg-tertiary);
+}
+
+tr.eval-prog-current .eval-prog-num {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.eval-sidebar-prog-table tr[data-qid]:hover {
+  background: var(--accent-subtle);
+  transition: background .15s;
+}
+
+.eval-sidebar-prog-table tr[data-qid]:hover .eval-prog-num {
+  color: var(--accent);
+}
+
+.eval-sidebar-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 6px 0;
+}
+
+#btn-eval-start {
+  display: block;
+  margin: 0 auto;
+  height: 40px;
+  padding: 0 32px;
+  font-size: 1rem;
+}
+
+.eval-criteria-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.eval-criteria-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: .78rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.eval-criteria-row .eval-grade-badge {
+  width: 22px;
+  height: 22px;
+  font-size: .7rem;
+}
+
+.eval-progress-stat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: .8rem;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.eval-progress-bar-mini {
+  flex: 1;
+  height: 6px;
+  background: var(--bg-tertiary);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.eval-progress-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 3px;
+  transition: width .3s ease;
+}
+
+.eval-progress-detail {
+  font-size: .75rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.eval-sidebar-model-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  font-size: .75rem;
+  color: var(--text-muted);
+  transition: all var(--transition);
+}
+
+.eval-sidebar-model-item.active {
+  background: var(--accent-subtle);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.eval-sidebar-model-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--bg-tertiary);
+  font-size: .65rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.eval-sidebar-model-item.active .eval-sidebar-model-num {
+  background: var(--accent);
+  color: #0f0f14;
+}
+
+.eval-sidebar-model-corpora {
+  font-size: .65rem;
+  color: var(--text-muted);
+  margin-left: auto;
+  opacity: .7;
+}
+
+.eval-hide-scores .fragment-score {
+  display: none;
+}
+
+.eval-hide-scores .eval-display-rank {
+  display: none;
+}
+
+.eval-display-rank {
+  font-size: .72rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-left: auto;
+}
+
+.btn-admin-eye {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 2px 8px;
+  opacity: .5;
+  transition: opacity var(--transition), background var(--transition), border-color var(--transition);
+}
+
+.btn-admin-eye:hover {
+  opacity: 1;
+}
+
+.btn-admin-eye.admin-active {
+  opacity: 1;
+  background: var(--accent, #6366f1);
+  border-color: var(--accent, #6366f1);
+  color: #fff;
+}
+
+.demo-skip-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+}
+
+.demo-skip-toggle input {
+  margin: 0;
+}
+
+.demo-skip-label {
+  opacity: 0.7;
+}
+
+.eval-sidebar-info-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.eval-sidebar-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.eval-sidebar-info-item.horizontal {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.eval-sidebar-info-item label {
+  font-size: .7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--text-muted);
+}
+
+/*.eval-sidebar-info-item span {
+  font-size: .9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}*/
+
+.eval-sidebar-info-item .model-name {
+  font-family: var(--font-sans);
+  font-size: .82rem;
+  color: var(--accent);
+  word-break: break-all;
+}
+
+.eval-sidebar-info-item .lang-tag {
+  display: inline-flex;
+  padding: 1px 8px;
+  border-radius: 4px;
+  font-size: .75rem;
+  font-weight: 800;
+  width: fit-content;
+}
+
+
+/* ================================================================
+   SUTTA DIALOG
+   ================================================================ */
+#sutta-dialog {
+  position: fixed;
+  inset: 16px;
+  width: auto;
+  height: auto;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 32px);
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, .5);
+  z-index: 1000;
+}
+
+#sutta-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+#sutta-dialog::backdrop {
+  background: rgba(0, 0, 0, .55);
+  backdrop-filter: blur(4px);
+}
+
+/* ==================== READER SETTINGS DIALOG ==================== */
+
+/* Pratinjau tunggal: satu blok yang mencerminkan semua setelan pembaca
+   (segmen, gaya, ukuran, tinggi baris) sekaligus */
+
+/* Teks pratinjau ikut gaya huruf (sans/serif lewat .reader-serif), ukuran (zoom
+   diset via JS pada elemen ini), & tinggi baris aktif */
+
+/* Toggle switch (Segmen) */
+
+/* Tombol gaya huruf tampil dengan font aslinya biar kelihatan bedanya */
+
+/* Ruas pratinjau: badge ref melayang di pojok kiri-atas (mirip .seg-ref pembaca),
+   bukan inline. Beri ruang di atas teks saat "Segmen" aktif. */
+
+/* Nomor baris inline di awal teks (mirip .verse-num), tampil saat "Segmen" aktif */
+
+#sutta-content {
+  padding: 0 24px 24px;
+}
+
+@media (max-width: 768px) {
+  #sutta-content {
+    padding: 0 6px 12px;
+  }
+
+  /* Nav atas ikut inset konten mobile (nav bawah sudah 0 + padding #sutta-content) */
+  .sp-nav.sutta-sp-nav {
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+}
+
+.sutta-dialog-header {
+  position: sticky;
+  z-index: 10;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 24px 12px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#search-scroll .sutta-dialog-header {
+  margin-left: -20px;
+  margin-right: -20px;
+  margin-top: -10px;
+}
+
+/* Reader: judul tidak sticky (biar ke-scroll); border bawah dipindah ke bar sticky */
+
+/* Bar kontrol (dropdown + toggle) — sticky di atas saat scroll.
+   top negatif = nutup padding-top #search-scroll (10px) biar nempel flush. */
+
+.reader-controls-sticky .sutta-dialog-controls {
+  margin: 0;
+}
+
+.sutta-header-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.sutta-header-top h2 {
+  min-width: 0;
+  flex: 1;
+}
+
+.sutta-dialog-header h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  padding-right: 44px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 768px) {
+  .sutta-dialog-header h2 {
+    font-size: .95rem;
+    padding-right: 40px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+}
+
+.sutta-dialog-header h2 svg {
+  width: 20px;
+  height: 20px;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.sutta-dialog-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.sutta-dialog-lang-toggle {
+  display: flex;
+  gap: 4px;
+  min-width: 0;
+  flex-shrink: 1;
+}
+
+.sutta-lang-dropdown {
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: .82rem;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: border-color var(--transition);
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sutta-lang-dropdown:hover,
+.sutta-lang-dropdown:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.sutta-dialog-lang-toggle .toggle-btn {
+  padding: 4px 12px;
+  font-size: .8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all var(--transition);
+}
+
+.sutta-dialog-lang-toggle .toggle-btn.active {
+  background: var(--accent);
+  color: #0f0f14;
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+.sutta-dialog-lang-toggle .toggle-btn:hover:not(.active) {
+  background: var(--bg-card-hover);
+}
+
+.sutta-dialog-sc-links {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+  align-items: center;
+}
+
+/* Mobile: native select dropdown, Desktop: individual links */
+
+.sutta-dialog-sc-links a {
+  font-size: .75rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  transition: all var(--transition);
+}
+
+.sutta-dialog-sc-links a.id {
+  color: var(--tag-id);
+}
+
+.sutta-dialog-sc-links a.en {
+  color: var(--tag-en);
+}
+
+.sutta-dialog-sc-links a.pli {
+  color: var(--tag-pli);
+}
+
+.sutta-dialog-sc-links a:hover {
+  background: var(--bg-card);
+  filter: brightness(1.2);
+}
+
+.sutta-dialog-close {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+  z-index: 11;
+}
+
+.sutta-dialog-close svg {
+  width: 18px;
+  height: 18px;
+}
+
+.sutta-dialog-close:hover {
+  background: var(--danger);
+  color: #fff;
+  border-color: var(--danger);
+}
+
+/* Grup tombol aksi (Atur + Buka Sutta) — sebelah kiri close button */
+.sutta-dialog-actions {
+  position: absolute;
+  top: 12px;
+  right: 56px;
+  /* 32px (close) + 8px gap + 16px margin */
+  display: flex;
+  gap: 8px;
+  z-index: 11;
+}
+
+.sutta-dialog-open-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 10px;
+  height: 32px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: .78rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--transition);
+  z-index: 11;
+  white-space: nowrap;
+}
+
+.sutta-dialog-open-btn svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.sutta-dialog-open-btn:hover {
+  background: var(--accent-subtle);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.dlg-open-popover .btn-ghost {
+  border-radius: 0;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-secondary);
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 9px 14px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  width: 100%;
+  margin-top: 0;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+}
+
+.dlg-open-popover .btn-ghost:last-child {
+  border-bottom: none;
+}
+
+.dlg-open-popover .btn-ghost:hover {
+  background: var(--accent-subtle);
+  color: var(--accent);
+}
+
+
+
+.sutta-dialog-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Reuse sutta segment styles inside dialog */
+#sutta-dialog .sutta-segments {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+
+
+/* Display mode toggle in dialog header */
+.sutta-dialog-display-toggle {
+  display: flex;
+  gap: 4px;
+}
+
+/* Saat kosong (teks Pāḷi / non-segmented), jangan sisakan ruang/margin hantu */
+.sutta-dialog-display-toggle:empty {
+  display: none;
+}
+
+/* Tombol mode tampil ter-disable (teks Pāḷi / non-segmented) */
+.sutta-dialog-display-toggle .toggle-btn:disabled {
+  opacity: .4;
+  cursor: not-allowed;
+}
+
+
+#sutta-dialog-display-toggle {
+  margin-left: auto;
+}
+
+.sutta-dialog-display-toggle .toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+  font-size: .75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.sutta-dialog-display-toggle .toggle-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.sutta-dialog-display-toggle .toggle-btn.active {
+  background: var(--accent-subtle);
+  color: var(--accent);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+.sutta-dialog-display-toggle .toggle-btn:hover:not(.active) {
+  background: var(--bg-card-hover);
+}
+
+/* Highlighted/target segment in dialog (from link with hash) or main page */
+#sutta-dialog .sutta-segment.dlg-target,
+.sutta-segment.target {
+  background: var(--accent-subtle);
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  animation: dlg-seg-glow 2s ease-out forwards;
+}
+
+@keyframes dlg-seg-glow {
+  0% {
+    box-shadow: 0 0 0 4px rgba(232, 168, 56, .4);
+  }
+
+  60% {
+    box-shadow: 0 0 0 8px rgba(232, 168, 56, .15);
+  }
+
+  100% {
+    box-shadow: none;
+  }
+}
+
+/* ================================================================
+   EVAL DASHBOARD PAGE
+   ================================================================ */
+
+#eval-dashboard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 20px 40px;
+  gap: 28px;
+  width: 100%;
+}
+
+
+.eval-topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0 4px 20px;
+}
+
+#eval-app {
+  padding: 0 20px;
+}
+
+/* Mobile: kecilkan margin/padding samping halaman eval agar konten asesmen lebih lega */
+@media (max-width: 768px) {
+
+  /* Rapatkan HANYA fase grading ke tepi layar (intro/topbar & padding-dalam kartu
+     dibiarkan apa adanya). Margin negatif menarik konten masuk ke padding 20px milik
+     #eval-app → gap tepi ~6px, tanpa bikin isi kartu mepet. */
+  #eval-grading {
+    margin-left: -14px;
+    margin-right: -14px;
+  }
+}
+
+.eval-dashboard-inner {
+  max-width: 560px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.eval-dashboard-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.eval-dashboard-desc {
+  color: var(--text-muted);
+  margin: 0;
+  font-size: .9rem;
+}
+
+.eval-dashboard-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.eval-dashboard-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: var(--text-primary);
+  transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+}
+
+.eval-dashboard-card:hover {
+  background: var(--accent-subtle) !important;
+  transform: translateX(3px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, .15);
+}
+
+.eval-dashboard-card-icon {
+  font-size: 1.6rem;
+  flex-shrink: 0;
+  width: 40px;
+  text-align: center;
+}
+
+.eval-dashboard-card-body {
+  flex: 1;
+}
+
+.eval-dashboard-card-body h3 {
+  font-size: .95rem;
+  font-weight: 700;
+  margin: 0 0 3px;
+}
+
+.eval-dashboard-card-body p {
+  font-size: .8rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.eval-dashboard-card-arrow {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  transition: color var(--transition);
+}
+
+.eval-dashboard-card:hover .eval-dashboard-card-arrow {
+  color: var(--accent);
+}
+
+/* ================================================================
+   EVAL OUTPUT PAGE
+   ================================================================ */
+
+.lang-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 8px;
+  border-radius: 4px;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+}
+
+#eo-app {
+  padding: 16px 20px;
+}
+
+#eo-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.eo-file-section {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--bg-glass-border);
+  border-radius: var(--radius-md);
+  background: var(--bg-glass);
+  overflow: hidden;
+}
+
+.eo-file-header {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.eo-file-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.eo-file-title h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.eo-file-meta {
+  display: flex;
+  gap: 16px;
+  font-size: .78rem;
+  color: var(--text-muted);
+}
+
+.eo-file-meta span strong {
+  color: var(--text-primary);
+}
+
+.eo-grade-seg.grade-0 {
+  background: var(--danger);
+}
+
+.eo-grade-seg.grade-1 {
+  background: #e88b38;
+}
+
+.eo-grade-seg.grade-2 {
+  background: #5b9bd5;
+}
+
+.eo-grade-seg.grade-3 {
+  background: var(--success);
+}
+
+.eo-grade-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  font-size: .72rem;
+  color: var(--text-muted);
+}
+
+.eo-grade-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.eo-grade-legend-item strong {
+  color: var(--text-primary);
+}
+
+.eo-corpus-legend-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  width: 100%;
+}
+
+.eo-corpus-legend-row+.eo-corpus-legend-row {
+  margin-top: 4px;
+}
+
+.eo-detail-toggle {
+  border-top: 1px solid var(--border);
+}
+
+.eo-detail-toggle summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: .75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--bg-secondary);
+  list-style: none;
+  user-select: none;
+  width: 100%;
+  transition: color var(--transition), background var(--transition);
+}
+
+.eo-detail-toggle summary::before {
+  content: "";
+  font-size: .6rem;
+  transition: transform 0.2s ease;
+}
+
+.eo-detail-toggle summary::-webkit-details-marker {
+  display: none;
+}
+
+.eo-detail-toggle summary:hover {
+  color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+.eo-detail-toggle[open] summary {
+  color: var(--accent);
+  background: var(--accent-subtle);
+  border-bottom: 1px solid var(--border);
+}
+
+.eo-detail-toggle[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.eo-table-wrap {
+  overflow-x: auto;
+}
+
+.eo-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .78rem;
+}
+
+.eo-table thead th {
+  padding: 7px 10px;
+  text-align: left;
+  font-size: .68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--text-muted);
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.eo-table tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background var(--transition);
+}
+
+.eo-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.eo-table tbody tr:hover {
+  background: var(--bg-secondary);
+}
+
+.eo-table td {
+  padding: 6px 10px;
+  vertical-align: middle;
+}
+
+.eo-td-num {
+  text-align: center;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.eo-td-query {
+  max-width: 200px;
+}
+
+.eo-td-model {
+  font-size: .72rem;
+  color: var(--accent);
+  max-width: 160px;
+  word-break: break-word;
+}
+
+.eo-td-sutta {
+  font-family: var(--font-mono, monospace);
+  font-size: .72rem;
+}
+
+.eo-td-author {
+  font-size: .72rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.eo-text-link {
+  color: var(--accent, #2563eb);
+  cursor: pointer;
+  text-decoration: underline dotted;
+  font-family: var(--font-mono, monospace);
+  font-size: .72rem;
+}
+
+.eo-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.eo-modal-overlay.hidden {
+  display: none;
+}
+
+.eo-modal {
+  background: var(--bg-card, #1e1e2a);
+  color: var(--text, inherit);
+  max-width: 640px;
+  width: 100%;
+  max-height: 80vh;
+  overflow: auto;
+  border: 1px solid var(--border, rgba(255, 255, 255, .1));
+  border-radius: 12px;
+  padding: 22px 24px;
+  position: relative;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, .45);
+}
+
+.eo-modal-close {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  background: none;
+  border: none;
+  font-size: 1.7rem;
+  cursor: pointer;
+  color: var(--text-muted);
+  line-height: 1;
+}
+
+.eo-modal-ref {
+  font-family: var(--font-mono, monospace);
+  font-weight: 600;
+  font-size: .9rem;
+  padding-right: 24px;
+}
+
+.eo-modal-author {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.eo-modal-meta {
+  font-size: .75rem;
+  color: var(--text-muted);
+  margin: 8px 0 14px;
+}
+
+.eo-modal-body {
+  white-space: pre-wrap;
+  line-height: 1.65;
+  font-size: .92rem;
+}
+
+.eo-q-head td {
+  background: var(--bg-tertiary, rgba(255, 255, 255, .04));
+  font-weight: 600;
+  font-size: .8rem;
+  padding: 8px 10px;
+  border-top: 2px solid var(--border, rgba(255, 255, 255, .08));
+}
+
+.eo-q-count {
+  color: var(--text-muted);
+  font-weight: 400;
+  font-size: .72rem;
+}
+
+.eo-td-found {
+  line-height: 1.9;
+  max-width: 360px;
+}
+
+.eo-src {
+  display: inline-block;
+  margin: 1px 2px;
+  font-family: var(--font-mono, monospace);
+  font-size: .66rem;
+  background: var(--bg-tertiary, rgba(255, 255, 255, .05));
+  color: var(--text-muted);
+  padding: 1px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.eo-file-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 5px 0;
+  text-decoration: none;
+  color: var(--text-secondary);
+  font-size: .82rem;
+  border-bottom: 1px solid var(--border);
+  transition: color var(--transition);
+}
+
+.eo-file-link:last-child {
+  border-bottom: none;
+}
+
+.eo-file-link:hover {
+  color: var(--accent);
+}
+
+.eo-file-expert {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+/* ========== Toast notification ========== */
+#dk-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(16px);
+  background: #1a7a3a;
+  color: #fff;
+  border: 1px solid #22a050;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-size: .82rem;
+  font-weight: 600;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 9999;
+  white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, .35);
+}
+
+#dk-toast.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ================================================================
+   NOTES MANAGER DIALOG
+   ================================================================ */
+
+.nm-rename-input {
+  font-size: .85rem;
+  background: var(--bg-card);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  padding: 3px 8px;
+  color: var(--text-primary);
+  outline: none;
+  min-width: 0;
+}
+
+.btn-sm {
+  padding: 4px 10px;
+  font-size: .75rem;
+}
+
+@media (max-width: 768px) {
+
+  /* Sembunyikan kolom tanggal (kolom 3 & 4) */
+}
+
+/* ================================================================
+   EVAL OUTPUT — Summary Matrix Table + Nav Links
+   ================================================================ */
+
+.eo-section-heading {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.eo-sum-table-wrap {
+  overflow-x: auto;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  margin-bottom: 28px;
+}
+
+.eo-sum-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: .8rem;
+}
+
+.eo-sum-table thead th {
+  background: var(--bg-tertiary);
+  padding: 7px 10px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.eo-sum-table thead th:last-child {
+  border-right: none;
+}
+
+.eo-sum-th-expert {
+  text-align: left !important;
+  min-width: 180px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.eo-sum-th-count {
+  font-size: .65rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  padding: 2px 4px !important;
+  text-align: center;
+}
+
+.eo-sum-th-q {
+  font-size: .72rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  min-width: 28px;
+  padding: 6px 4px !important;
+}
+
+.eo-sum-table tbody tr {
+  border-bottom: 1px solid var(--border);
+}
+
+.eo-sum-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.eo-sum-table tbody tr:hover {
+  background: var(--bg-card-hover);
+}
+
+.eo-sum-table tbody td {
+  padding: 5px 4px;
+  border-right: 1px solid var(--border);
+  text-align: center;
+}
+
+.eo-sum-table tbody td:last-child {
+  border-right: none;
+}
+
+.eo-sum-td-expert {
+  text-align: left !important;
+  font-size: .82rem;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.eo-online-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  margin-right: 6px;
+  vertical-align: middle;
+  box-shadow: 0 0 4px #22c55e88;
+  animation: eo-pulse 2s ease-in-out infinite;
+}
+
+@keyframes eo-pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: .5;
+  }
+}
+
+.eo-sum-check {
+  color: var(--success, #4ade80);
+  font-weight: 700;
+  font-size: .9rem;
+  position: relative;
+}
+
+.eo-sum-prog-label {
+  font-size: .68rem;
+  font-weight: 500;
+}
+
+.eo-sum-excl {
+  font-size: .58rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  opacity: .55;
+}
+
+.eo-sum-partial {
+  color: #f59e0b;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.eo-sum-empty {
+  color: var(--text-muted);
+  opacity: .4;
+}
+
+.eo-sum-row-done td {
+  background: rgba(74, 222, 128, .04);
+}
+
+#eo-summary-section {
+  margin-bottom: 32px;
+}
+
+.eo-config-details {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+.eo-config-details summary {
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: .88rem;
+  font-weight: 600;
+  background: var(--bg-tertiary);
+  user-select: none;
+}
+
+.eo-config-details summary:hover {
+  background: var(--bg-card-hover);
+}
+
+.eo-config-details summary code {
+  font-size: .78rem;
+  color: var(--text-muted);
+  font-weight: 400;
+  margin-left: 6px;
+}
+
+.eo-config-body {
+  padding: 10px;
+  background: var(--bg-secondary);
+}
+
+.eo-json-editor {
+  width: 100%;
+  min-height: 180px;
+  font-family: monospace;
+  font-size: .78rem;
+  background: var(--bg-input);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.eo-config-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.eo-cfg-msg {
+  font-size: .8rem;
+  font-weight: 600;
+}
+
+/* Progress bar per pakar */
+.eo-progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0 6px;
+}
+
+.eo-progress-bar-bg {
+  height: 5px;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.eo-progress-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+.eo-progress-bar-fill.done {
+  background: var(--success, #4ade80);
+}
+
+.eo-progress-label {
+  font-size: .78rem;
+  color: var(--text-secondary);
+}
+
+/* ===== Tentang page ===== */
+.tentang-md {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px 20px 48px;
+  line-height: 1.7;
+}
+
+.tentang-md h1,
+.tentang-md h2,
+.tentang-md h3 {
+  margin-top: 1.6em;
+  margin-bottom: .4em;
+}
+
+.tentang-md p {
+  margin-bottom: .9em;
+}
+
+.tentang-md code {
+  font-family: monospace;
+  font-size: .88em;
+}
+
+.tentang-md :not(pre)>code {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 5px;
+}
+
+.tentang-md table {
+  border-collapse: collapse;
+  min-width: 100%;
+  margin-bottom: 1em;
+}
+
+.tentang-md .table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 1em;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.tentang-md .table-wrapper table {
+  margin-bottom: 0;
+  border: none;
+}
+
+.tentang-md .table-wrapper table {
+  margin-bottom: 0;
+}
+
+.tentang-md th,
+.tentang-md td {
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.tentang-md ul,
+.tentang-md ol {
+  padding-left: 1.6em;
+  margin-bottom: .9em;
+}
+
+.tentang-md li {
+  margin-bottom: .25em;
+}
+
+.tentang-md li>ul,
+.tentang-md li>ol {
+  margin-bottom: 0;
+}
+
+.tentang-toc-fab {
+  position: fixed;
+  top: calc(var(--banner-h, 28px) + var(--header-h) + 12px);
+  left: 16px;
+  z-index: 200;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: .8rem;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .18);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background .15s, box-shadow .15s, transform .1s;
+  white-space: nowrap;
+}
+
+.tentang-toc-fab:hover {
+  background: var(--bg-card-hover);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .25);
+}
+
+.tentang-toc-popover {
+  position: fixed;
+  top: calc(var(--banner-h, 28px) + var(--header-h) + 52px);
+  left: 16px;
+  z-index: 199;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, .22);
+  padding: 8px 0;
+  min-width: 220px;
+  max-width: 320px;
+  max-height: calc(100vh - var(--header-h) - 80px);
+  overflow-y: auto;
+  display: none;
+}
+
+.tentang-toc-popover.open {
+  display: block;
+}
+
+.tentang-toc-popover a {
+  display: block;
+  padding: 5px 16px;
+  font-size: .78rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  line-height: 1.35;
+  transition: background .1s, color .1s;
+}
+
+.tentang-toc-popover a:hover {
+  background: var(--bg-tertiary);
+  color: var(--accent);
+}
+
+@media (max-width: 768px) {
+  .tentang-toc-fab {
+    top: auto !important;
+    left: auto !important;
+    bottom: 16px;
+    right: 16px;
+  }
+
+  .tentang-toc-popover {
+    top: auto !important;
+    left: 16px !important;
+    right: 16px;
+    bottom: 60px;
+    max-width: none;
+    max-height: 60vh;
+  }
+}
+
+/* ===== Suttaplex Breadcrumbs ===== */
+
+/* Chrome/Safari — sembunyikan scrollbar */
+
+/* ===== Browse highlight ===== */
+@keyframes browse-highlight-in {
+  from {
+    background: var(--accent-subtle);
+    box-shadow: inset 3px 0 0 var(--accent);
+  }
+
+  to {
+    background: transparent;
+    box-shadow: inset 3px 0 0 transparent;
+  }
+}
+
+/* ===== Suttaplex ===== */
+
+/* ── Header: Pali name + ID ── */
+
+.sp-back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background .15s, border-color .15s, color .15s;
+}
+
+.sp-back-btn:hover {
+  background: var(--accent-subtle);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.sp-back-btn svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* ── Language buttons ── */
+
+/* ── Suttaplex prev/next navigation ── */
+/* Nav prev/next halaman baca — sejajarkan dgn teks konten, padding vertikal simetris */
+.sp-nav.sutta-sp-nav {
+  padding: 20px 24px;
+}
+
+/* Nav bawah ada DI DALAM #sutta-content (sudah padding samping 24px),
+   jadi jangan dobel; cukup garis pemisah dari teks di atasnya. */
+#sutta-content .sp-nav.sutta-sp-nav {
+  padding-left: 0;
+  padding-right: 0;
+  border-top: 1px solid var(--border);
+}
+
+/* ── Reader (sutta page) header controls ── */
+
+/* ================================================================
+   Custom Dialog (replaces native alert / confirm)
+   ================================================================ */
+#dk-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(.96);
+  width: 380px;
+  max-width: calc(100vw - 32px);
+  border: 1px solid var(--border-strong);
+  background: var(--bg-primary);
+  border-radius: 12px;
+  padding: 0;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .45);
+  opacity: 0;
+  transition: opacity .15s ease, transform .15s ease;
+  overflow: hidden;
+  color: var(--text-primary);
+}
+
+#dk-dialog[open] {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+#dk-dialog::backdrop {
+  background: rgba(0, 0, 0, .55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.dk-dlg-body {
+  padding: 24px 24px 8px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.dk-dlg-icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+.dk-dlg-icon.info {
+  background: var(--accent-subtle, rgba(212, 175, 55, .15));
+  color: var(--accent, #d4af37);
+}
+
+.dk-dlg-icon.warn {
+  background: rgba(245, 158, 11, .15);
+  color: #f59e0b;
+}
+
+.dk-dlg-msg {
+  font-size: .9rem;
+  line-height: 1.55;
+  padding-top: 6px;
+  word-break: break-word;
+}
+
+.dk-dlg-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 16px 24px 20px;
+}
+
+.dk-dlg-btn {
+  padding: 7px 18px;
+  border-radius: 7px;
+  font-size: .85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--border-strong);
+  transition: all .15s ease;
+}
+
+.dk-dlg-btn.cancel {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+}
+
+.dk-dlg-btn.cancel:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+}
+
+.dk-dlg-btn.primary {
+  background: var(--primary, var(--accent));
+  color: #0f0f14;
+  border-color: transparent;
+}
+
+.dk-dlg-btn.primary:hover {
+  filter: brightness(1.1);
+}
+
+.dk-dlg-btn.danger {
+  background: var(--danger, #e05);
+  color: #fff;
+  border-color: transparent;
+}
+
+.dk-dlg-btn.danger:hover {
+  filter: brightness(1.15);
+}
+
+/* ── Sutta floating button group (TOC + Seg) ── */
+
+.reader-serif .seg-text,
+.reader-serif .seg-col {
+  font-family: var(--font-serif);
+}
+
+#sutta-body .sutta-segment,
+#sutta-dialog-content .sutta-segment {
+  line-height: var(--reader-line-height, 1.7);
+}
+
+/* Segment list item */
+.seg-list-item {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  white-space: normal;
+}
+
+.seg-list-ref {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: .74rem;
+  font-weight: 600;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.seg-list-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: .80rem;
+}
+
+/* Folded body-heading entries in the segment list (kept distinct from ".1" content). */
+.seg-list-heading .seg-list-text {
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: normal;
+}
+
+/* Speaker (".0") entries in the segment list — own row, like headings but lighter. */
+.seg-list-speaker .seg-list-text {
+  font-weight: 600;
+  color: var(--accent);
+  white-space: normal;
+}
+
+/* Pitaka badge in search results */
+.sutta-pitaka-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  vertical-align: middle;
+  margin-right: 8px;
+  margin-bottom: 2px;
+}
+
+/* Grup-kanan header kartu: badge piṭaka + nama kitab + rank tampil. */
+.sutta-card-meta {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+/* Nama kitab/koleksi (mis. Aṅguttaranikāya) — chip netral berpasangan dgn badge
+   piṭaka. Tidak uppercase: ini nama Pāli (Title-case asli). */
+.sutta-collection-badge {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 4px;
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  vertical-align: middle;
+  margin-right: 8px;
+  margin-bottom: 2px;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
+.sutta-pitaka-badge.sutta {
+  background-color: rgba(52, 152, 219, 0.15);
+  color: #2980b9;
+  border: 1px solid rgba(52, 152, 219, 0.3);
+}
+
+.sutta-pitaka-badge.vinaya {
+  background-color: rgba(231, 76, 60, 0.15);
+  color: #c0392b;
+  border: 1px solid rgba(231, 76, 60, 0.3);
+}
+
+.sutta-pitaka-badge.abhidhamma {
+  background-color: rgba(155, 89, 182, 0.15);
+  color: #8e44ad;
+  border: 1px solid rgba(155, 89, 182, 0.3);
+}
+
+[data-theme="dark"] .sutta-pitaka-badge.sutta {
+  color: #5dade2;
+}
+
+[data-theme="dark"] .sutta-pitaka-badge.vinaya {
+  color: #e74c3c;
+}
+
+[data-theme="dark"] .sutta-pitaka-badge.abhidhamma {
+  color: #af7ac5;
+}
+
+/* Responsive display utilities */
+
+/* ===== Search result: per-translator sub-group inside a grouped card ===== */
+.sutta-author-group {
+  border-left: 2px solid var(--border);
+  padding-left: 10px;
+  margin: 8px 0 4px;
+}
+
+.sutta-author-group-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm, 6px);
+  background: var(--surface-hover, var(--bg-tertiary));
+  color: var(--text-muted);
+  font-size: .75rem;
+  font-weight: 700;
+  /* text-transform: uppercase; */
+  letter-spacing: 0.03em;
+}
+
+.sutta-author-group-label i,
+.sutta-author-group-label svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* ===== Search result: sutta-card outline tinted by piṭaka ===== */
+/* Colors mirror the .sutta-pitaka-badge palette (sutta=blue, vinaya=red, abhidhamma=purple). */
+.sutta-card.pitaka-sutta {
+  border-color: rgba(52, 152, 219, 0.5);
+}
+
+.sutta-card.pitaka-vinaya {
+  border-color: rgba(231, 76, 60, 0.5);
+}
+
+.sutta-card.pitaka-abhidhamma {
+  border-color: rgba(155, 89, 182, 0.5);
+}
+
+.sutta-card.pitaka-sutta:hover {
+  border-color: rgba(52, 152, 219, 0.85);
+}
+
+.sutta-card.pitaka-vinaya:hover {
+  border-color: rgba(231, 76, 60, 0.85);
+}
+
+.sutta-card.pitaka-abhidhamma:hover {
+  border-color: rgba(155, 89, 182, 0.85);
+}
+
+/* ============================================================
+   Ukuran font — stepper A-/A+ langsung di header (akses cepat, ramah sepuh)
+   ============================================================ */
+.font-pill {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-strong);
+  border-radius: 20px;
+  padding: 2px;
+  height: 30px;
+  user-select: none;
+}
+
+.font-pill-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 16px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-weight: 700;
+  font-size: .9rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+.font-pill-btn:hover:not(:disabled) {
+  background: var(--accent);
+  color: #0f0f14;
+}
+
+.font-pill-btn:disabled {
+  opacity: .3;
+  cursor: not-allowed;
+}
+
+.font-pill-pct {
+  min-width: 2.9rem;
+  text-align: center;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+  color: var(--text-muted);
+}

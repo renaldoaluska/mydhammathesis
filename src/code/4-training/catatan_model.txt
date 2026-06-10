@@ -1,0 +1,58 @@
+================================================================================
+CATATAN MODEL: doc2query/msmarco-14langs-mt5-base-v1
+(dipakai di 1-query-gen.py untuk generate kueri sintetis GPL)
+================================================================================
+
+A. IDENTITAS MODEL
+--------------------------------------------------------------------------------
+   Nama HF       : doc2query/msmarco-14langs-mt5-base-v1
+   Arsitektur     : MT5ForConditionalGeneration (mT5-base, Google)
+   Training data  : unicamp-dl/mmarco (terjemahan MS MARCO → 14 bahasa)
+   Bahasa (14)    : en, ar, zh, nl, fr, de, hi, id, it, ja, pt, ru, es, vi
+   Lisensi        : Apache 2.0
+   Downloads (HF) : ~7.500+ (aktif dipakai komunitas)
+   Organisasi HF  : doc2query (org resmi)
+
+B. PAPER RUJUKAN (3 paper utama)
+--------------------------------------------------------------------------------
+   1. arXiv:1904.08375 — "Document Expansion by Query Prediction"
+      (Nogueira et al., 2019)
+      → Paper asli doc2query: teknik generate kueri dari dokumen untuk
+        document expansion / dense retrieval.
+
+   2. arXiv:2104.08663 — "mMARCO: A Multilingual Version of MS MARCO
+      Passage Ranking Dataset"
+      (Bonifacio et al., 2021)
+      → Dataset multilingual yang dipakai training model ini. MS MARCO
+        diterjemahkan ke 13 bahasa (termasuk Bahasa Indonesia) via
+        machine translation, lalu divalidasi.
+
+   3. arXiv:2112.07577 — "GPL: Generative Pseudo Labeling for Unsupervised
+      Domain Adaptation of Dense Retrieval"
+      (Wang et al., 2021)
+      → Paper utama framework GPL. Step 1 GPL = doc2query generate kueri
+        sintetis per pasase → hard-neg mining → pseudo-label via CE →
+        train bi-encoder dengan MarginMSE.
+
+C. KENAPA MODEL INI DIPILIH
+--------------------------------------------------------------------------------
+   - Sudah support id + en secara native → generate kueri MONOLINGUAL
+     (passage id → kueri id, passage en → kueri en). Tidak perlu terjemahan
+     tambahan.
+   - Transfer cross-lingual ditangani oleh base model bi-encoder (e5/gte/bge),
+     bukan oleh query generator.
+   - mT5-base cukup ringan (~580M param) untuk jalan di GPU consumer.
+   - Sesuai rekomendasi paper GPL (arXiv:2112.07577) yang memang memakai
+     doc2query/msmarco sebagai generator default.
+
+D. CATATAN TEKNIS (TRANSFORMERS >= 5.x)
+--------------------------------------------------------------------------------
+   - transformers >= 5.x men-deprecate Group Beam Search dan memindahkannya
+     ke repo komunitas (transformers-community/group-beam-search).
+   - num_return_sequences > 1 dalam satu panggilan generate() dapat memicu
+     deteksi Group Beam Search → ValueError atau hang.
+   - FIX (diterapkan di 1-query-gen.py): loop generate() n_gen kali dengan
+     num_return_sequences=1, decode langsung per-call. Hasil identik,
+     tanpa menyentuh deprecated codepath.
+   - HF_HUB_TRUST_REMOTE_CODE sengaja TIDAK di-set (hindari download kode
+     arbitrary dari HF Hub).

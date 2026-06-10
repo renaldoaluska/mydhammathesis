@@ -23,7 +23,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt                                # noqa: E402
 import seaborn as sns                                          # noqa: E402
 import torch                                                   # noqa: E402
-from sentence_transformers import SentenceTransformer, util    # noqa: E402
+from sentence_transformers import util    # noqa: E402
 
 _BASE = next(p for p in Path(__file__).resolve().parents if (p / "config.py").exists())
 sys.path.insert(0, str(_BASE))
@@ -54,6 +54,8 @@ def load_en_by_sutta():
         parts = jsonl.relative_to(config.PRAPROSES_DIR).parts
         if len(parts) < 3 or parts[1] != "en":
             continue
+        author = jsonl.stem[:-8] if jsonl.stem.endswith("_chunked") else jsonl.stem
+        is_blurb = (author == "blurb")
         with open(jsonl, encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
@@ -66,7 +68,12 @@ def load_en_by_sutta():
                         continue
                     t = ch.get("en_text", "").strip()
                     if t and len(t.split()) > 5:
-                        by.setdefault(base, []).append(t)
+                        # Blurb = file level-koleksi (1 grup = banyak sutta) -> pisah per
+                        # sutta asli (ref) biar tiap grup intra = 1 sutta. Non-blurb pakai
+                        # file_base_name. Sama spt _sid_for build-cache (konsisten).
+                        cids = ch.get("chunk_ids") or []
+                        sid = cids[0].split(":")[0] if (is_blurb and cids) else base
+                        by.setdefault(sid, []).append(t)
     return by
 
 
@@ -104,7 +111,7 @@ def main():
     for name, label in collect_models():
         print(f"  [{label}] ...")
         try:
-            model = SentenceTransformer(config.resolve_model(name), trust_remote_code=True)
+            model = config.load_st_model(name)
             pre = (lambda x: f"passage: {x}") if _needs_prefix(name) else (lambda x: x)
             ea = model.encode([pre(x) for x in A], convert_to_tensor=True, show_progress_bar=False, normalize_embeddings=True)
             eb = model.encode([pre(x) for x in B], convert_to_tensor=True, show_progress_bar=False, normalize_embeddings=True)

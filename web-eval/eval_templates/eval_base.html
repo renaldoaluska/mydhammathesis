@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>document.documentElement.setAttribute("data-theme", localStorage.getItem("dk-theme") || "light");</script>
+    <script>(function(){var s=parseFloat(localStorage.getItem("dk-fontscale"));if(s>=1&&s<=2){document.documentElement.style.fontSize=(15*s)+"px";}})();</script>
+    <meta name="description"
+        content="{% block description %}myDhamma — Pencarian Tipiṭaka berbasis makna & kata kunci untuk pembabar Dhamma{% endblock %}">
+    <title>{% block title %}myDhamma{% endblock %}</title>
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23a255ff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Ccircle cx='12' cy='12' r='2.5'/%3E%3Cpath d='M12 2v7.5'/%3E%3Cpath d='M12 14.5v7.5'/%3E%3Cpath d='M2 12h7.5'/%3E%3Cpath d='M14.5 12h7.5'/%3E%3Cpath d='M4.93 4.93l5.3 5.3'/%3E%3Cpath d='M13.77 13.77l5.3 5.3'/%3E%3Cpath d='M4.93 19.07l5.3-5.3'/%3E%3Cpath d='M13.77 10.23l5.3-5.3'/%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{{ versioned_static('style.css') }}">
+    {% block head_extra %}{% endblock %}
+</head>
+
+<body data-eval="{{ eval_type|default('') }}">
+
+
+    <!-- ==================== HEADER ==================== -->
+    {% block navbar_extra %}{% endblock %}
+    <header id="app-header">
+        <div class="header-top">
+            <div class="header-left">
+                <h1 id="app-title"><a href="/">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="1.15em" height="1.15em" viewBox="0 0 24 24"
+                            fill="none" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+                            <defs>
+                                <linearGradient id="grad1" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+                                    <stop offset="0%" stop-color="#a255ff" />
+                                    <stop offset="100%" stop-color="#B388FF" />
+                                </linearGradient>
+                            </defs>
+                            <g stroke="url(#grad1)">
+                                <circle cx="12" cy="12" r="10" />
+                                <circle cx="12" cy="12" r="2.5" />
+                                <path d="M12 2v7.5" />
+                                <path d="M12 14.5v7.5" />
+                                <path d="M2 12h7.5" />
+                                <path d="M14.5 12h7.5" />
+                                <path d="M4.93 4.93l5.3 5.3" />
+                                <path d="M13.77 13.77l5.3 5.3" />
+                                <path d="M4.93 19.07l5.3-5.3" />
+                                <path d="M13.77 10.23l5.3-5.3" />
+                            </g>
+                        </svg>
+                        <judul data-i18n="hdr_app_title">Evaluasi Relevansi</judul>
+                    </a></h1>
+                {% block header_subtitle %}{% endblock %}
+            </div>
+            <div class="header-right">
+                {% block source_toggle %}
+                {% endblock %}
+
+                <div id="btn-lang-toggle" class="lang-pill" title="Switch Language">
+                    <span class="lang-pill-opt" data-lang="id">ID</span>
+                    <span class="lang-pill-opt" data-lang="en">EN</span>
+                    <span class="lang-pill-slider"></span>
+                </div>
+                <div id="btn-theme-toggle" class="theme-pill" title="Toggle Light/Dark Mode">
+                    <span class="theme-pill-opt" data-theme="light"><i data-lucide="sun"></i></span>
+                    <span class="theme-pill-opt" data-theme="dark"><i data-lucide="moon"></i></span>
+                    <span class="theme-pill-slider"></span>
+                </div>
+                <div id="font-stepper" class="font-pill" title="Ukuran Teks" data-i18n-title="set_fontsize">
+                    <button id="dk-font-dec" class="font-pill-btn" aria-label="Perkecil teks">A&minus;</button>
+                    <span id="dk-font-pct" class="font-pill-pct">100%</span>
+                    <button id="dk-font-inc" class="font-pill-btn" aria-label="Perbesar teks">A+</button>
+                </div>
+                <script>
+                    (function () {
+                        var theme = localStorage.getItem("dk-theme") || "light";
+                        var lang = localStorage.getItem("dk-lang") || "id";
+                        var tp = document.getElementById("btn-theme-toggle");
+                        if (tp) {
+                            tp.setAttribute("data-active", theme);
+                            tp.querySelectorAll(".theme-pill-opt").forEach(function (o) {
+                                o.classList.toggle("active", o.dataset.theme === theme);
+                            });
+                        }
+                        var lp = document.getElementById("btn-lang-toggle");
+                        if (lp) {
+                            lp.setAttribute("data-active", lang);
+                            lp.querySelectorAll(".lang-pill-opt").forEach(function (o) {
+                                o.classList.toggle("active", o.dataset.lang === lang);
+                            });
+                        }
+                    })();
+                </script>
+            </div><!-- /.header-right -->
+        </div><!-- /.header-top -->
+        <nav class="eval-nav-tabs" aria-label="Navigasi Evaluasi">
+            <a href="/" class="eval-nav-tab {{ 'active' if request.path == '/' else '' }}">
+                <i data-lucide="clipboard-pen"></i><span>Evaluasi</span></a>
+            <a href="/output" class="eval-nav-tab {{ 'active' if request.path == '/output' else '' }}">
+                <i data-lucide="table-2"></i><span>Output</span></a>
+        </nav>
+    </header>
+
+    <!-- ==================== MAIN LAYOUT ==================== -->
+    <button id="btn-panel-toggle" class="panel-toggle-btn" aria-label="Toggle panel Catatan">
+        <i data-lucide="{% block panel_toggle_icon %}pen-line{% endblock %}" class="panel-toggle-icon"></i>
+        <span class="panel-toggle-label">{% block panel_toggle_label %}Catatan{% endblock %}</span>
+        <i data-lucide="chevron-left" class="panel-toggle-chevron"></i>
+    </button>
+    <div id="panel-backdrop"></div>
+    <main id="app-main">
+        <!-- ========= LEFT: SEARCH/READER PANEL ========= -->
+        <section id="search-panel">
+            <div id="search-scroll">
+                {% block main_panel %}{% endblock %}
+
+                <footer id="app-footer" class="panel-footer">
+                    <div class="footer-left">
+                        <a href="https://www.its.ac.id/" target="_blank" rel="noopener" class="footer-logo-wrap"
+                            data-i18n-tooltip="title_its" data-tooltip="Institut Teknologi Sepuluh Nopember">
+                            <img src="/eval_static/res/its.png" alt="ITS" class="footer-logo">
+                        </a>
+                        <a href="https://stabkertarajasa.ac.id/" target="_blank" rel="noopener" class="footer-logo-wrap"
+                            data-i18n-tooltip="title_stab" data-tooltip="Sekolah Tinggi Agama Buddha Kertarajasa">
+                            <img src="/eval_static/res/stab.png" alt="STAB Kertarajasa" class="footer-logo">
+                        </a>
+                        <a href="https://syailendra.ac.id/" target="_blank" rel="noopener" class="footer-logo-wrap"
+                            data-i18n-tooltip="title_styab" data-tooltip="STYAB Syailendra">
+                            <img src="/eval_static/res/stab2.png" alt="STYAB Syailendra" class="footer-logo footer-logo-syl">
+                        </a>
+                    </div>
+
+                    <div class="footer-right">
+                        <div class="footer-info-group">
+                            <span class="info-item">
+                                <span class="info-label" data-i18n="footer_student">Mahasiswa:</span>
+                                <span class="info-value"><span data-tooltip="NRP 5026221144">Alfa Renaldo
+                                        Aluska</span></span>
+                            </span>
+                            <span class="info-sep">|</span>
+                            <span class="info-item">
+                                <span class="info-label" data-i18n="footer_supervisor">Dosen Pembimbing:</span>
+                                <span class="info-value"><span data-tooltip="NIDN 0017078108">Renny Pradina K., S.T.,
+                                        M.T.</span></span>
+                            </span>
+                        </div>
+                    </div>
+                </footer>
+            </div>
+            {% block panel_overlays %}{% endblock %}
+        </section>
+        {% block right_panel %}{% endblock %}
+    </main>
+
+    <script id="dk-bilara-author-names" type="application/json">{{ bilara_author_names | tojson }}</script>
+    <script id="dk-edition-author-names" type="application/json">{{ edition_author_names | tojson }}</script>
+    <script id="dk-lang-names" type="application/json">{{ lang_names | tojson }}</script>
+    <script>
+        window.DK_BILARA_AUTHOR_NAMES = JSON.parse(document.getElementById('dk-bilara-author-names').textContent);
+        window.DK_EDITION_AUTHOR_NAMES = JSON.parse(document.getElementById('dk-edition-author-names').textContent);
+        window.DK_LANG_NAMES = JSON.parse(document.getElementById('dk-lang-names').textContent);
+    </script>
+    <script src="{{ versioned_static('lucide.min.js') }}"></script>
+    <script src="{{ versioned_static('eval_common.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>

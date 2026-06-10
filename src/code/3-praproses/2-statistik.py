@@ -61,6 +61,7 @@ def main():
     nchunk = defaultdict(int)
     kitab  = defaultdict(lambda: defaultdict(set))
     heading = Counter()
+    htag = Counter()          # rincian heading=1: <h1> asli vs judul <li>/<p> di <header>
     junk_left = 0
     char_rows, word_rows, char_lens = [], [], []
 
@@ -70,6 +71,8 @@ def main():
             continue
         h = ch.get("heading", 0)
         heading[h] += 1
+        if h == 1:
+            htag["header" if ch.get("tag") in ("li", "p") else "h1"] += 1
         if config.is_junk_body(text, h):
             junk_left += 1
         docs[lang].add(base)
@@ -132,6 +135,9 @@ def main():
     for lvl in range(1, 7):
         if heading.get(lvl):
             print(f"   heading h{lvl}: {heading[lvl]:,}")
+            if lvl == 1 and htag:
+                print(f"      - <h1> asli             : {htag.get('h1', 0):,}")
+                print(f"      - judul <li>/<p> header : {htag.get('header', 0):,}  (di-tag heading=1 utk exclude dari body)")
     print(f"   Junk tersisa di output: {junk_left}")
     char_lens.sort()
     p99 = char_lens[min(len(char_lens) - 1, int(len(char_lens) * 0.99))]

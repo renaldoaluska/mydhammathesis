@@ -1,0 +1,67 @@
+================================================================================
+FLOW — TAHAP 5: EVAL (mengukur base vs GPL, manusia-in-the-loop)
+Tujuan tahap: menjawab "apakah adaptasi domain (GPL) MENINGKATKAN temu-balik?"
+secara OBJEKTIF lewat penilaian PAKAR (bukan angka cosine mentah yang bias skala).
+Input: queries_pakar.json + nama_pakar.json (di folder ini) + model & embedding (4-training).
+================================================================================
+
+INPUT hand-made (di folder code ini, BUKAN output):
+  queries_pakar.json : daftar kueri uji (stimulus). nama_pakar.json : daftar pakar.
+
+common.py  (helper, bukan langkah)
+  APA  : util bersama — load_annotations() (baca CSV pakar, konsensus antar-pakar,
+         dedup), ndcg_at_k(), kontrak kolom CSV. Dipakai 3/4/5/6.
+
+────────────────────────────────────────────────────────────────────────────────
+ALUR BESAR (perhatikan ada LANGKAH MANUSIA di tengah):
+
+  [1-build-cache]  ->  [WEB-EVAL: pakar menilai]  ->  [run.sh: 2..6 metrik]
+   (offline, sekali)      (anotasi/*.csv)              (hitung dari anotasi)
+────────────────────────────────────────────────────────────────────────────────
+
+1-build-cache.py   (DIJALANKAN TERPISAH, sebelum sesi penilaian)
+  APA  : untuk tiap (kueri, model, korpus) jalankan web/search top-10 sutta
+         (INCLUDE_TITLES=False -> heading dibuang, seragam), BEKUKAN ke pickle.
+  HASIL: src/output/5-eval/search_cache.pkl
+  KENAPA LANJUT: reproducibility + web-eval menyajikan hasil IDENTIK & beku ke semua
+         pakar (tidak ada model yang jalan live saat penilaian -> adil & stabil).
+
+[ WEB-EVAL (folder web-eval/) — LANGKAH MANUSIA ]
+  Pakar (nama_pakar.json) menilai relevansi tiap hasil (grade 0-3) tanpa tahu model
+  mana. Tersimpan: src/output/5-eval/anotasi/anotasi_<pakar>.csv (+ completed_*.json).
+  -> INILAH "label" emas yang membuat kesimpulan bisa ditarik (bukan asumsi).
+
+2-intrinsic.py   (sinyal DEV, bukan metrik buku)
+  APA  : gap cosine intra-sutta vs inter-sutta dari embedding.
+  HASIL: src/output/5-eval/2-intrinsic/
+  KENAPA: menyetel/menyaring GPL TANPA menyentuh test-set pakar (hindari bocor).
+
+3-ndcg.py   (METRIK UTAMA)
+  APA  : nDCG@10 (+@5) dari anotasi pakar, per model x versi(base/gpl) x korpus,
+         DENGAN & TANPA heading (uji robustness).
+  HASIL: 3-ndcg/ (ndcg_per_model.csv, plot, ringkasan_ndcg.txt)
+  KENAPA LANJUT: ini jawaban inti base-vs-gpl. Disandingkan precision (langkah 4).
+
+4-precision.py
+  APA  : P@10 + MRR@10 (relevan = grade >= REL).
+  HASIL: 4-precision/
+  KENAPA LANJUT: melengkapi nDCG (presisi peringkat atas).
+
+5-spearman.py   (SEKUNDER)
+  APA  : Spearman rho — apakah cosine_sim model selaras dengan grade pakar (kalibrasi).
+  HASIL: 5-spearman/
+  KENAPA: menjelaskan MENGAPA "% kemiripan" bisa menyesatkan (skor tinggi != relevan).
+
+6-iaa.py
+  APA  : Inter-Annotator Agreement (Cohen's kappa quadratic-weighted, butuh >= 2 pakar).
+  HASIL: 6-iaa/
+  KENAPA: validitas anotasi — kalau pakar tidak sepakat, metrik di atas perlu hati-hati.
+
+────────────────────────────────────────────────────────────────────────────────
+CATATAN penting:
+- Pemisahan INPUT (queries/nama_pakar di code/) vs OUTPUT (cache/anotasi/metrik di
+  src/output/5-eval) — supaya jejak data bersih.
+- Cakupan eval mengikuti scope training (canon-wide). Kueri Vinaya untuk melengkapi
+  representasi kanon: lihat TODO (perlu validasi pakar) sebelum sesi final.
+- Putusan base-vs-gpl diambil dari nDCG/precision (3,4), BUKAN cosine mentah.
+================================================================================

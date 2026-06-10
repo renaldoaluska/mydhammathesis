@@ -1,0 +1,53 @@
+======================================================================
+CATATAN SISTEM CACHING EVALUASI (search_cache.pkl)
+======================================================================
+
+File ini menjelaskan logika di balik pembuatan cache evaluasi (1-build-cache.py)
+dan bagaimana pakar melakukan penilaian (grading) di aplikasi web-eval.
+
+1. ALUR PENCARIAN (INDEPENDEN PER METODE)
+-----------------------------------------
+Script memproses setiap kombinasi (query, model, database).
+Pencarian dilakukan secara terpisah dan independen untuk setiap metode:
+- Model leksikal (BM25) akan dieksekusi melalui `keyword_search`.
+- Model semantik (seperti e5-base, gte-base) akan dieksekusi melalui `semantic_search`.
+Hasil dari BM25 dan Semantik TIDAK dicampur. Masing-masing metode memiliki cache-nya
+sendiri sehingga performa mereka bisa dievaluasi secara adil (head-to-head).
+
+2. LOGIKA PENGAMBILAN PASASE (FRAGMEN)
+-----------------------------------------
+Untuk setiap kombinasi (query, model, database):
+- Mesin pencari menarik 60 pasase/fragmen teratas (`FETCH_CHUNK = TOP_K * 6`).
+- Ke-60 pasase tersebut kemudian dikelompokkan berdasarkan dokumen asalnya (Sutta).
+- Sistem akan mengurutkan Sutta berdasarkan pasase dengan skor tertinggi, lalu
+  hanya menyimpan 10 Sutta teratas (`TOP_K = 10`).
+- Pasase yang berasal dari Sutta di urutan ke-11 dan seterusnya akan otomatis dibuang.
+- Hasil pemeringkatan akhir disimpan ke dalam file `search_cache.pkl`.
+
+# ALASAN ILMIAH DI BALIK LOGIKA INI (STANDAR IR):
+a. Kenapa pasase dari Sutta ke-11 dibuang? (Ranking Cutoff)
+   Sistem diukur dengan metrik nDCG@10 (Top 10 hasil halaman pertama). Sutta ke-11
+   sudah berada di "halaman kedua", sehingga tidak relevan untuk dievaluasi oleh pakar.
+b. Kenapa Sutta diurutkan dari skor pasase tertingginya? (Max-P Aggregation)
+   Ini algoritma standar bernama Max-Passage. Logikanya: sebuah dokumen panjang (Sutta)
+   dianggap sangat relevan apabila ia memiliki MINIMAL SATU paragraf yang sangat akurat
+   menjawab query. Oleh karena itu, skor dokumen = skor pasase terbaiknya.
+c. Kenapa harus menarik 60 pasase? (Bounded Look-Ahead)
+   Kita butuh 10 Sutta (dokumen) berbeda. Jika kita hanya meminta 10 pasase, bisa jadi
+   semuanya kebetulan berasal dari 1 Sutta panjang yang sama. Dengan meminta 60 pasase
+   (x6 multiplier), kita punya ruang "cadangan" yang cukup agar 10 Sutta unik dapat
+   ditemukan dari kelompok 60 pasase tersebut, sambil menjaga kecepatan komputasi.
+
+3. PARADIGMA PENILAIAN (GRADING) - STANDAR TREC DL
+-----------------------------------------
+Meskipun hasil pencarian dibungkus ke dalam wadah Sutta untuk disajikan di UI,
+penilaian aktual oleh pakar TETAP dilakukan di tingkat PASASE (FRAGMEN) tunggal!
+- Di dalam CSV evaluasi, nilai (skala 0-3) diikat langsung ke referensi pasase (`ref`).
+- Sutta hanyalah "folder visual" di layar agar hasil evaluasi merepresentasikan Document-Level Retrieval.
+- Pakar menilai pasase yang dikembalikan APA ADANYA, tanpa melihat teks paragraf sebelum atau sesudahnya.
+- Alasan: Untuk mencegah *extraneous information bias* (bias informasi luar). Jika pakar melihat
+  konteks tambahan, mereka mungkin menganggap pasase itu relevan berkat konteksnya, bukan karena
+  potongan pasase itu sendiri. Padahal yang kita ukur adalah "kepintaran" model dalam menangkap
+  potongan pasase tersebut.
+- Pendekatan ketat ini mengadopsi standar emas riset Information Retrieval dari TREC DL
+  (Text REtrieval Conference - Deep Learning Track).

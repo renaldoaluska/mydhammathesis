@@ -51,7 +51,9 @@ mydhamma/
 │       ├── 3-praproses/
 │       ├── 4-training/
 │       └── 5-eval/
-└── web/                     <- aplikasi myDhamma + web asesmen pakar (model-agnostic)
+├── web/                     <- ENGINE retrieval BERSAMA (bukan app): _corpus.py + search.py
+├── web-eval/                <- APP asesmen pakar (GRA) — STANDALONE & tersegel (cache-only)
+└── web-md/                  <- APP produk myDhamma (search + reader): app.py + reader.py + config.json
 
 ------------------------------------------------------------
 ISI TIAP LANGKAH (rencana file .py)
@@ -59,6 +61,9 @@ ISI TIAP LANGKAH (rencana file .py)
 config.py
     REGISTRY model (e5-base, gte-base, LaBSE, BM25) + lang_mode + needs_prefix,
     PATH dasar (raw, output per-langkah), KOMPONEN GPL (query-gen, cross-encoder).
+    load_st_model(): loader SentenceTransformer TUNGGAL utk SEMUA tahap (training/embed/
+    eval/web) — resolve snapshot + trust_remote_code + fix buffer RoPE gte (kompat
+    transformers v5; buffer non-persisten kebaca sampah). Lihat catatan_fix_gte_rope.txt.
 
 1-get-data/
     _sc.py                : helper git sparse-checkout (dipakai skrip 1-5, no redundan)
@@ -70,27 +75,38 @@ config.py
     6-get-base-models.py  : unduh & pin base model (e5, gte, LaBSE)
 
 2-eksplor/  (PRA-chunk; analisis korpus mentah; run.sh = runner tmux)
-    1-parameter.py        : ukuran (param) tiap model -> feasibility GPU
+    1-parameter.py        : ukuran (param) tiap model (incl BGE-M3) -> feasibility GPU
     2-hierarki.py         : struktur korpus mentah (sumber/bahasa/pitaka)
     3-analisis-korpus.py  : JUSTIFIKASI chunk dari raw (heading h1-h6, junk,
                             <p> tak tertutup, panjang karakter segmen)
+    4-simulasi-chunk.py   : deteksi chunk RAKSASA (>5000 char) -> kandidat split
+    5-simulasi-lanjutan.py: uji strategi split (PTS/horner) -> chunk_rules.json
+    6-audit-struktural.py : audit teks struktural di BODY (kolofon "End of..", judul
+                            pendek) -> justifikasi flag structural / dibiarkan
 
 3-praproses/  (chunk + karakterisasi HASIL; _load.py = iterator; run.sh = runner)
-    1-chunk.py            : chunking full Tipitaka (lxml, heading h1-h6, parts,
-                            double-BR, buang junk; TANPA min-length = teks utuh)
-    2-statistik.py        : statistik chunk final + VERIFIKASI (heading/junk bersih)
-    3-panjang.py          : panjang TOKEN chunk final per tokenizer -> max_seq
+    1-chunk.py            : chunking full Tipitaka (lxml; heading h1-h6 + ISI <header>
+                            di-tag heading [cegah judul bocor]; tag asli; kolofon di-flag
+                            structural; author per-file; parts; double-BR; buang junk;
+                            TANPA min-length = teks utuh)
+    2-statistik.py        : statistik chunk final + VERIFIKASI (heading breakdown jujur
+                            h1 = h1-asli + judul <li>/<p>; junk bersih)
+    3-panjang.py          : panjang TOKEN chunk final per tokenizer -> max_seq (P99 374)
+    4-spot-check.py       : spot-check chunk terbesar (cek kualitas / tak ada leak)
 
 4-training/  (GPL; _gpl.py = path/IO/loader pasase Sutta + prefix e5)
     1-query-gen.py        : generate kueri sintetis (mT5) per pasase -> (q, P+)
     2-hard-neg.py         : hard negative mining (dense retriever) -> (q, P+, P-)
     3-pseudo-label.py     : cross-encoder margin = CE(q,P+) - CE(q,P-)
     4-train-marginmse.py  : fine-tune model finalis (MarginMSE)
+    5-embed.py            : encode SELURUH korpus per (model base+GPL x bahasa) ->
+                            embeddings (dipakai web/search & 5-eval/1-build-cache)
     (komponen mT5 & cross-encoder multilingual: lihat rencana.txt TODO)
 
 5-eval/  (eval via web; run.sh = intrinsik + semua metrik)
     common.py             : loader anotasi + dedup + konsensus + skala 0-3 (KONTRAK CSV)
-    1-precompute.py       : precompute hasil retrieval per kueri (cache) -- MENYUSUL bareng web
+    1-build-cache.py      : bangun search_cache.pkl BEKU (top-10 sutta) via web/search;
+                            display A = fragmen FOKUS (tanpa konteks tetangga; cf TREC DL)
     2-intrinsic.py        : gap cosine intra/inter (dev set, tuning GPL)
     3-ndcg.py             : nDCG@10 (utama) + nDCG@5
     4-precision.py        : P@10 + MRR@10 (relevan = grade>=2)
@@ -102,9 +118,17 @@ sync-hf/
                             (flag: --m model, --e embeddings, --c cache, --a all)
     2-pull-hf.py          : download artefak dari HF Hub (flag sama) -> jalan di lokal
 
-web/
-    aplikasi eval (modul asesmen pakar GRA + link SUS ke Gform https://forms.gle/Xqt75xXesjgN1ajk6)
-    aplikasi myDhamma (search + reader).
+web/        ENGINE retrieval BERSAMA (BUKAN app): _corpus.py (loader 3-praproses) + search.py
+            (semantic emb-cache + BM25 + RRF). Dipakai web-md & 5-eval/1-build-cache.
+web-eval/   APP asesmen pakar GRA — STANDALONE/tersegel, cache-only (search_cache.pkl beku),
+            daftar model di eval_config.json, PATH dari config.py. eval.renaldo.my.id.
+            (+ link SUS ke Gform https://forms.gle/Xqt75xXesjgN1ajk6)
+web-md/     APP produk myDhamma (search + reader). md.renaldo.my.id.
+            app.py (Flask) + reader.py + config.json. SEARCH DIDELEGASI ke web/search.py;
+            reader baca sc_bilara_data + html_text (segmen + parts + nav) — pemotongan
+            segmen 1:1 dgn 3-praproses/1-chunk.py (chunk_id/heading cocok dgn korpus search).
+            Fitur: search (BM25 kini; semantic stlh 5-embed), reader, browse, breadcrumb,
+            prev/next, suttaplex, notes, tentang.
 ------------------------------------------------------------
 PETA REUSE (dari ../dhammakathika)
 ------------------------------------------------------------
@@ -137,7 +161,7 @@ DIBUANG (tidak di-reuse):
 MODEL (lih. rencana.txt bagian 2)
 ------------------------------------------------------------
 CORE (di-GPL): multilingual-e5-base, gte-multilingual-base
-BASELINE     : LaBSE (encode-only), BM25 (lexical)
+BASELINE     : LaBSE (encode-only), BM25 (lexical), BGE-M3 (referensi atas, kelas large)
 
 ------------------------------------------------------------
 WORKFLOW SERVER <-> LOKAL

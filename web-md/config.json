@@ -1,0 +1,13 @@
+{
+  "_doc": "Konfigurasi mesin web-md (APP produk). Format matrix nested {qlang:{target:[models]}} (qlang=bahasa kueri id/en, target=korpus). Model = nama HF / nama folder GPL (gpl-<short>). DEFAULT = ensemble 2 model domain-adapted (gpl-multilingual-e5-base + gpl-gte-multilingual-base) digabung via RRF — beda arsitektur, sama-sama di-GPL utk korpus Tipiṭaka, jadi pilihan terbaik. pli diisi (embedding tersedia utk semua target). Engine retrieval = web/search.py (semantic emb-cache + BM25 + RRF). PATH dari src/config.py.",
+  "id": {
+    "id": ["gpl-multilingual-e5-base", "gpl-gte-multilingual-base"],
+    "en": ["gpl-multilingual-e5-base", "gpl-gte-multilingual-base"],
+    "pli": ["gpl-multilingual-e5-base", "gpl-gte-multilingual-base"]
+  },
+  "en": {
+    "id": ["gpl-multilingual-e5-base", "gpl-gte-multilingual-base"],
+    "en": ["gpl-multilingual-e5-base", "gpl-gte-multilingual-base"],
+    "pli": ["gpl-multilingual-e5-base", "gpl-gte-multilingual-base"]
+  }
+}

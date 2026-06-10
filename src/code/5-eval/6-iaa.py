@@ -32,9 +32,11 @@ def main():
         return
 
     OUT = figdir("6-iaa")
-    # 1 grade per (pakar, query_id, ref)
-    g = (df.groupby(["expert", "query_id", "ref"], as_index=False)["grade"].mean())
-    piv = g.pivot_table(index=["query_id", "ref"], columns="expert", values="grade")
+    # 1 grade per (pakar, query_id, ref, author). author masuk kunci: ref tak unik
+    # lintas penerjemah, jadi pasase anggara vs karniawan dicocokkan terpisah.
+    pcols = ["query_id", "ref"] + (["author"] if "author" in df.columns else [])
+    g = (df.groupby(["expert"] + pcols, as_index=False)["grade"].mean())
+    piv = g.pivot_table(index=pcols, columns="expert", values="grade")
 
     rows = []
     for a, b in combinations(sorted(piv.columns), 2):

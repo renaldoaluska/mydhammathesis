@@ -1,0 +1,5491 @@
+/* ============================================================
+   Dhammakathika — Design System
+   ============================================================ */
+
+/* Lucide icon defaults */
+.lucide {
+  display: inline-block;
+  vertical-align: -0.125em;
+  width: 1em;
+  height: 1em;
+  stroke-width: 2;
+}
+
+.empty-icon .lucide {
+  width: 3rem;
+  height: 3rem;
+}
+
+.icon-btn .lucide {
+  width: 1.1em;
+  height: 1.1em;
+}
+
+.lucide-sm {
+  width: .85em;
+  height: .85em;
+}
+
+@keyframes lucide-spin-anim {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.lucide-spin {
+  animation: lucide-spin-anim 1.2s linear infinite;
+}
+
+/* --- CSS Custom Properties (Theming) --- */
+:root {
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Noto Serif', Georgia, serif;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, .08);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, .1);
+  --shadow-lg: 0 8px 30px rgba(0, 0, 0, .12);
+  --transition: .25s cubic-bezier(.4, 0, .2, 1);
+  --header-h: 56px;
+  --banner-h: 28px;
+}
+
+/* --- DARK THEME (default) --- */
+[data-theme="dark"] {
+  --bg-primary: #0f0f14;
+  --bg-secondary: #1a1a24;
+  --bg-tertiary: #22222e;
+  --bg-glass: rgba(30, 30, 45, .72);
+  --bg-glass-border: rgba(255, 255, 255, .07);
+  --bg-card: #1e1e2a;
+  --bg-card-hover: #26263a;
+  --bg-input: #16161f;
+  --text-primary: #e8e6f0;
+  --text-secondary: #9a97b0;
+  --text-muted: #5e5b72;
+  --accent: #e8a838;
+  --accent-hover: #f0bc5a;
+  --accent-subtle: rgba(232, 168, 56, .12);
+  --border: rgba(255, 255, 255, .06);
+  --border-strong: rgba(255, 255, 255, .12);
+  --danger: #e85454;
+  --success: #4ade80;
+  --link: #64b5f6;
+  --link-hover: #f0bc5a;
+  --tag-id: #4fc3f7;
+  --tag-en: #81c784;
+  --tag-pli: #ffb74d;
+  --scrollbar-thumb: #333;
+  --scrollbar-track: transparent;
+  color-scheme: dark;
+}
+
+/* --- LIGHT THEME --- */
+[data-theme="light"] {
+  --bg-primary: #f5f3f0;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #eae7e2;
+  --bg-glass: rgba(255, 255, 255, .78);
+  --bg-glass-border: rgba(0, 0, 0, .08);
+  --bg-card: #ffffff;
+  --bg-card-hover: #f9f7f4;
+  --bg-input: #ffffff;
+  --text-primary: #1a1818;
+  --text-secondary: #5a5555;
+  --text-muted: #9a9494;
+  --accent: #c47d15;
+  --accent-hover: #a86a0e;
+  --accent-subtle: rgba(196, 125, 21, .1);
+  --border: rgba(0, 0, 0, .08);
+  --border-strong: rgba(0, 0, 0, .14);
+  --danger: #d32f2f;
+  --success: #2e7d32;
+  --link: #1565c0;
+  --link-hover: #c47d15;
+  --tag-id: #0277bd;
+  --tag-en: #2e7d32;
+  --tag-pli: #e65100;
+  --scrollbar-thumb: #ccc;
+  --scrollbar-track: transparent;
+}
+
+/* --- Reset & Base --- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 15px;
+  scroll-behavior: smooth;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  overflow: hidden;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  transition: background var(--transition), color var(--transition);
+}
+
+a {
+  color: var(--link);
+  text-decoration: none;
+  transition: color var(--transition);
+}
+
+a:hover {
+  color: var(--link-hover);
+}
+
+::selection {
+  background: var(--accent-subtle);
+  color: var(--accent);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+/* --- Research banner --- */
+#research-banner {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #c0392b;
+  color: #fff;
+  text-align: center;
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .03em;
+  padding: 5px 16px;
+  line-height: 1.4;
+  flex-shrink: 0;
+}
+
+/* --- Header --- */
+#app-header {
+  height: var(--header-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  z-index: 100;
+}
+
+/* desktop: wrapper transparan, children langsung jadi flex item #app-header */
+.header-top {
+  display: contents;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+#app-title {
+  font-size: clamp(.7rem, 3.5vw, 1rem);
+  font-weight: 700;
+  letter-spacing: -.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#app-title a {
+  text-decoration: none;
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#app-title a judul {
+  padding-top: 1.5px;
+}
+
+.header-subtitle {
+  font-size: .8rem;
+  color: var(--text-muted);
+}
+
+
+.header-nav-tabs {
+  margin-bottom: 0;
+  height: 30px;
+}
+
+.header-right {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+/* Language pill toggle */
+.lang-pill {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-strong);
+  border-radius: 20px;
+  padding: 2px;
+  cursor: pointer;
+  user-select: none;
+  height: 30px;
+  transition: border-color var(--transition);
+}
+
+.lang-pill:hover {
+  border-color: var(--accent);
+}
+
+.lang-pill-opt {
+  position: relative;
+  z-index: 2;
+  padding: 2px 10px;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: var(--text-muted);
+  transition: color var(--transition);
+  line-height: 1;
+}
+
+.lang-pill-opt.active {
+  color: #0f0f14;
+}
+
+.lang-pill-slider {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: calc(50% - 2px);
+  height: calc(100% - 4px);
+  background: var(--accent);
+  border-radius: 18px;
+  transition: transform var(--transition);
+  z-index: 1;
+}
+
+.lang-pill[data-active="en"] .lang-pill-slider,
+.lang-pill[data-active="dk"] .lang-pill-slider {
+  transform: translateX(100%);
+}
+
+/* Theme pill toggle (matches lang-pill) */
+.theme-pill {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-strong);
+  border-radius: 20px;
+  padding: 2px;
+  cursor: pointer;
+  user-select: none;
+  height: 30px;
+  transition: border-color var(--transition);
+}
+
+.theme-pill:hover {
+  border-color: var(--accent);
+}
+
+.theme-pill-opt {
+  position: relative;
+  z-index: 2;
+  padding: 2px 8px;
+  font-size: .8rem;
+  line-height: 1;
+  transition: all var(--transition);
+  opacity: .35;
+  filter: grayscale(1);
+}
+
+.theme-pill-opt.active {
+  opacity: 1;
+  filter: grayscale(1) brightness(0.2);
+}
+
+.theme-pill-slider {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: calc(50% - 2px);
+  height: calc(100% - 4px);
+  background: var(--accent);
+  border-radius: 18px;
+  transition: transform var(--transition);
+  z-index: 1;
+}
+
+.theme-pill[data-active="dark"] .theme-pill-slider {
+  transform: translateX(100%);
+}
+
+/* --- Icon & Ghost Buttons --- */
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  cursor: pointer;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition);
+  color: var(--text-primary);
+}
+
+.icon-btn:hover {
+  background: var(--accent-subtle);
+}
+
+.icon-btn.active {
+  background: var(--accent-subtle) !important;
+  color: var(--accent) !important;
+}
+
+#ensemble-manager::backdrop {
+  background: rgba(0, 0, 0, .5);
+  backdrop-filter: blur(3px);
+}
+
+.icon-btn.danger:hover {
+  background: rgba(232, 84, 84, .15);
+}
+
+/* --- Info Tip Button & Popup --- */
+.info-label {
+  display: flex;
+  align-items: center;
+}
+
+.info-tip-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 4px;
+  padding: 4px;
+  margin-top: -4px;
+  margin-bottom: -4px;
+  border: none;
+  background: none;
+  cursor: help;
+  color: var(--text-muted);
+}
+
+.info-tip-btn .lucide {
+  width: 14px;
+  height: 14px;
+}
+
+.info-tip-popup {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 200;
+  min-width: 260px;
+  max-width: 340px;
+  padding: 10px 14px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, .25);
+  backdrop-filter: none;
+  font-size: .8rem;
+  line-height: 1.5;
+  color: var(--text-primary);
+  white-space: pre-line;
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+}
+
+/* --- Scroll to Top Button --- */
+.btn-scroll-top {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 130;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border-strong);
+  border-radius: 50%;
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .15);
+  transition: opacity .2s, transform .2s;
+}
+
+.btn-scroll-top:hover {
+  background: var(--accent-subtle);
+  color: var(--accent);
+}
+
+.btn-scroll-top.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(10px);
+}
+
+.btn-scroll-top .lucide {
+  width: 20px;
+  height: 20px;
+}
+
+.query-label-group {
+  margin-top: 8px;
+  margin-bottom: 2px;
+}
+
+/* --- Options Header (label + action buttons) --- */
+.control-group-options {
+  position: relative;
+  flex: 1 1 100%;
+}
+
+.options-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 16px;
+}
+
+/* --- Search Actions (config & advanced buttons) --- */
+.search-actions {
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+
+.icon-btn-sm {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  color: var(--text-secondary);
+}
+
+.icon-btn-sm .lucide {
+  width: 14px;
+  height: 14px;
+}
+
+.btn-ghost {
+  background: none;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: 8px 16px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: .85rem;
+  width: 100%;
+  transition: all var(--transition);
+  margin-top: 8px;
+}
+
+.btn-ghost:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+.btn-ghost.danger:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+  background: var(--danger-subtle);
+}
+
+/* --- Main Layout --- */
+#app-main {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+#search-panel {
+  flex: 1 1 60%;
+  min-width: min(380px, 100vw);
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+#resize-handle {
+  width: 5px;
+  cursor: col-resize;
+  background: var(--border);
+  transition: background var(--transition);
+  flex-shrink: 0;
+}
+
+#resize-handle:hover,
+#resize-handle.active {
+  background: var(--accent);
+}
+
+#notes-panel {
+  flex: 0 0 360px;
+  min-width: 280px;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-left: 1px solid var(--border);
+  transition: all 0.3s ease;
+}
+
+/* Notes panel collapsed (sutta viewer toggle) — desktop only */
+#notes-panel.notes-collapsed,
+#resize-handle.notes-collapsed {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .notes-fab-desktop {
+    display: none !important;
+  }
+}
+
+#notes-panel.fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  max-width: none;
+  z-index: 9999;
+  background: var(--bg-primary);
+  border: none;
+}
+
+/* --- Glass Panels --- */
+.glass-panel {
+  background: var(--bg-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--bg-glass-border);
+  border-radius: 0;
+  padding: 14px 20px;
+}
+
+/* --- Controls --- */
+.control-row {
+  display: flex;
+  gap: 14px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  row-gap: 6px;
+}
+
+.control-row:last-child {
+  margin-bottom: 0;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+}
+
+.control-label {
+  font-size: .72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--text-muted);
+}
+
+/* Toggle Buttons */
+.toggle-group {
+  display: flex;
+  gap: 0;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--border-strong);
+  height: 28px;
+}
+
+.toggle-btn {
+  padding: 0 12px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: .8rem;
+  font-weight: 500;
+  transition: all var(--transition);
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toggle-btn:not(:last-child) {
+  border-right: 1px solid var(--border);
+}
+
+.toggle-btn.active {
+  background: var(--accent);
+  color: #0f0f14;
+  font-weight: 600;
+}
+
+.toggle-btn:hover:not(.active) {
+  background: var(--accent-subtle);
+}
+
+/* Soft-disabled toggle (mis. Kata Kunci saat mode tingkat lanjut): tetap bisa di-hover
+   supaya tooltip native muncul, tapi klik di-ignore di setupToggle. */
+.toggle-btn.is-disabled {
+  opacity: .4;
+  cursor: not-allowed;
+}
+
+.toggle-btn.is-disabled:hover {
+  background: transparent;
+}
+
+/* Chip-style toggles: multi-select (checkbox) + single-select pills share metrics */
+.toggle-group[data-multi="true"],
+.toggle-group.toggle-pills {
+  border: none;
+  gap: 6px;
+  height: auto;
+}
+
+.toggle-group[data-multi="true"] .toggle-btn,
+.toggle-group.toggle-pills .toggle-btn {
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: .78rem;
+}
+
+.toggle-group[data-multi="true"] .toggle-btn:not(:last-child),
+.toggle-group.toggle-pills .toggle-btn:not(:last-child) {
+  border-right: 1px solid var(--border-strong);
+}
+
+/* Checkbox indicator → multi-select only */
+.toggle-group[data-multi="true"] .toggle-btn::before {
+  content: "";
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 4px;
+  border-radius: 3px;
+  border: 1.5px solid var(--border-strong);
+  vertical-align: -2px;
+  transition: all .12s;
+}
+
+.toggle-group[data-multi="true"] .toggle-btn.active::before {
+  background: var(--accent);
+  border-color: var(--accent);
+  /* CSS checkmark */
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 12 12' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M3 6l2.5 2.5L9.5 4' stroke='%230f0f14' stroke-width='1.8' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-size: 12px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.toggle-group[data-multi="true"] .toggle-btn.active,
+.toggle-group.toggle-pills .toggle-btn.active {
+  background: var(--accent-subtle);
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+/* Model Select */
+.model-select-group {
+  flex: 1;
+  min-width: 180px;
+}
+
+.model-select {
+  width: 100%;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: var(--bg-input);
+  color: var(--text-primary);
+  font-size: .82rem;
+  font-family: var(--font-sans);
+}
+
+.model-select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* Dual model select (category + model side by side) */
+.model-dual-select {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.cat-select {
+  width: auto;
+  min-width: 70px;
+  max-width: 140px;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--accent);
+  background: var(--accent-subtle);
+  color: var(--text-primary);
+  font-size: .76rem;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  flex-shrink: 0;
+}
+
+.cat-select:focus {
+  outline: none;
+  border-color: var(--accent-hover);
+}
+
+/* Category badge in result column headers */
+.cat-badge {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 3px;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  margin-right: 5px;
+  vertical-align: middle;
+}
+
+.cat-badge.base {
+  background: #546e7a;
+  color: #e0f0ff;
+}
+
+.cat-badge.gpl {
+  background: #1f9d63;
+  color: #e6fff1;
+}
+
+.cat-badge.contrastive {
+  background: #00897b;
+  color: #e0fff8;
+}
+
+.cat-badge.contrastive-pli {
+  background: #00695c;
+  color: #e0fff8;
+}
+
+.cat-badge.tsdae {
+  background: #5e35b1;
+  color: #ede0ff;
+}
+
+.cat-badge.tsdae-pli {
+  background: #4527a0;
+  color: #ede0ff;
+}
+
+.cat-badge.contrast-tsdae {
+  background: #c62828;
+  color: #ffe0e0;
+}
+
+.cat-badge.contrast-tsdae-pli {
+  background: #b71c1c;
+  color: #ffe0e0;
+}
+
+/* Dark mode: force readable select dropdowns */
+[data-theme="dark"] .cat-select,
+[data-theme="dark"] .model-select {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .cat-select option,
+[data-theme="dark"] .model-select option {
+  background-color: #22222e;
+  color: #e8e6f0;
+}
+
+/* Search Bar — pill shape, sticky on scroll */
+#search-bar {
+  position: sticky;
+  top: -10px;
+  z-index: 10;
+  background: var(--bg-primary);
+  padding: 8px 20px;
+  margin: 0 -20px;
+}
+
+.search-bar-inner {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--bg-input);
+  transition: border-color var(--transition), box-shadow var(--transition);
+  overflow: hidden;
+}
+
+.search-bar-inner:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-subtle);
+}
+
+@keyframes fakeFocusHighlight {
+  0% {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-subtle);
+  }
+
+  60% {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-subtle);
+  }
+
+  100% {
+    border-color: var(--border-strong);
+    box-shadow: none;
+  }
+}
+
+.search-bar-inner.fake-focus-anim {
+  animation: fakeFocusHighlight 2s ease-out forwards;
+}
+
+.search-options-inline {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  min-height: 28px;
+  height: auto;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: var(--bg-tertiary);
+  overflow: visible;
+}
+
+.search-bar-inner input[type="text"] {
+  flex: 1;
+  min-width: 160px;
+  height: 36px;
+  padding: 0 16px;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: .88rem;
+  font-family: var(--font-sans);
+}
+
+.search-bar-inner input[type="text"]:focus {
+  outline: none;
+}
+
+.search-bar-inner input[type="text"]::placeholder {
+  color: var(--text-muted);
+}
+
+.search-bar-inner .btn-primary {
+  height: 36px;
+  padding: 0 18px;
+  border-radius: 0 999px 999px 0;
+  font-size: .85rem;
+}
+
+.btn-primary {
+  height: 28px;
+  padding: 0 14px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: #0f0f14;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: .82rem;
+  white-space: nowrap;
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+
+.btn-sm {
+  padding: 4px 10px;
+  font-size: .75rem;
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(232, 168, 56, .3);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  padding: 6px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: .8rem;
+  font-weight: 500;
+  transition: all var(--transition);
+}
+
+.btn-secondary:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: .75rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.checkbox-label input[type="checkbox"] {
+  accent-color: var(--accent);
+  width: 13px;
+  height: 13px;
+}
+
+/* Seg-ref checkbox inline in control-group / dialog header */
+.seg-ref-cb-label {
+  margin-left: 6px;
+  opacity: 0.8;
+}
+
+.slider-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  border-left: 1px solid var(--border-strong);
+  padding-left: 8px;
+}
+
+.slider-group-label {
+  margin-bottom: 0;
+}
+
+.k-number-input {
+  width: 46px;
+  height: 22px;
+  padding: 0 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: .78rem;
+  text-align: center;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.k-number-input::-webkit-inner-spin-button,
+.k-number-input::-webkit-outer-spin-button {
+  opacity: 1;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.nav-short {
+  display: none;
+}
+
+/* --- Search Results --- */
+#search-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 10px 20px 0 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+#search-options-details {
+  margin: 6px 0 0;
+}
+
+#search-options-details>summary {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  font-size: .78rem;
+  color: var(--text-muted);
+  padding: 5px 12px;
+  user-select: none;
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  transition: all .15s;
+}
+
+#search-options-details>summary:hover {
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+
+.search-options-chevron {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  transition: transform .15s;
+}
+
+#search-options-details[open]>summary {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+#search-options-details[open] .search-options-chevron {
+  transform: rotate(90deg);
+}
+
+#search-options-details>summary::-webkit-details-marker {
+  display: none;
+}
+
+#search-options-details[open]>#search-controls {
+  animation: slideDown .15s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+#tab-search {
+  padding-bottom: 40px;
+}
+
+#search-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  color: var(--text-muted);
+  padding: 40px;
+  margin: 0 auto;
+}
+
+.empty-icon {
+  font-size: 3.5rem;
+  margin-bottom: 16px;
+  opacity: .5;
+}
+
+.empty-state h2 {
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  font-size: .88rem;
+  line-height: 1.6;
+  max-width: 400px;
+}
+
+/* Welcome state: compact horizontal on desktop */
+#welcome-state {
+  flex-direction: row;
+  height: auto;
+  padding: 16px 20px;
+  gap: 12px;
+  justify-content: flex-start;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0;
+}
+
+#welcome-state .empty-icon {
+  font-size: 1.8rem;
+  margin-bottom: 0;
+  opacity: .7;
+  flex-shrink: 0;
+}
+
+#welcome-state h2 {
+  font-size: 1rem;
+  margin-bottom: 2px;
+}
+
+#welcome-state p {
+  font-size: .82rem;
+  max-width: none;
+  margin: 0;
+}
+
+/* Spinner */
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--border-strong);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+  margin-bottom: 12px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Results Grid (dual model) */
+#results-container {
+  display: flex;
+  gap: 16px;
+  margin-top: 16px;
+  /* border-top: 1px solid var(--border); */
+}
+
+#results-container.single-mode {
+  flex-direction: column;
+  gap: 0;
+}
+
+#results-container.dual-mode {
+  flex-direction: row;
+}
+
+.results-column {
+  flex: 1;
+  min-width: 0;
+}
+
+.results-column-header {
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  padding: 4px 0;
+  margin: 0 0 4px 0;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  /* Nempel tepat di bawah #search-bar (juga sticky, z-index 10). Offset dihitung di
+     index.js dari tinggi search-bar aktual; fallback 50px kalau JS belum jalan. */
+  top: var(--results-sticky-top, 50px);
+  background: var(--bg-primary);
+  z-index: 5;
+}
+
+/* --- Pagination --- */
+#pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px 0;
+  margin-top: 8px;
+}
+
+#pagination .btn-page {
+  padding: 4px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: .82rem;
+}
+
+#pagination .btn-page:hover:not(:disabled) {
+  background: var(--accent);
+  color: #fff;
+}
+
+#pagination .btn-page:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+}
+
+#page-info {
+  font-size: .82rem;
+  color: var(--text-muted);
+}
+
+/* --- Sutta Card (Notion-like block) --- */
+.sutta-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-bottom: 12px;
+  transition: all var(--transition);
+  animation: cardIn .35s ease-out;
+}
+
+.sutta-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-md);
+}
+
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sutta-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sutta-card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.sutta-card-name {
+  font-weight: 400;
+  font-style: italic;
+  opacity: 0.85;
+}
+
+.sutta-card-links {
+  display: flex;
+  gap: 6px;
+}
+
+.sc-link-suttaplex {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: .75rem;
+  font-weight: 600;
+  letter-spacing: .03em;
+  text-decoration: none;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  transition: color var(--transition), border-color var(--transition), background var(--transition);
+}
+
+.sc-link-suttaplex:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+/* Fragment inside sutta card */
+.fragment {
+  padding: 10px 12px;
+  margin: 6px 0;
+  border-radius: var(--radius-md);
+  background: var(--bg-tertiary);
+  border-left: 3px solid var(--accent);
+  position: relative;
+}
+
+.fragment-blurb {
+  background: var(--bg-hover);
+  border-left-color: var(--text-muted);
+}
+
+.fragment-blurb .main-text {
+  font-style: italic;
+}
+
+.fragment-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-bottom: 6px;
+  font-size: .75rem;
+  color: var(--text-muted);
+}
+
+.fragment-ref,
+.fragment-author {
+  font-weight: 700;
+  color: var(--text-muted)
+}
+
+
+.fragment-score {
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.fragment-texts {
+  font-size: .88rem;
+  line-height: 1.65;
+}
+
+.fragment-texts .lang-tag,
+.mini-texts .lang-tag {
+  display: inline-block;
+  font-size: .65rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 3px;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+.fragment-texts a.lang-tag,
+.mini-texts a.lang-tag {
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.fragment-texts a.lang-tag:hover,
+.mini-texts a.lang-tag:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.lang-tag.id {
+  background: var(--tag-id);
+  color: #fff;
+}
+
+.lang-tag.en {
+  background: var(--tag-en);
+  color: #fff;
+}
+
+.lang-tag.pli {
+  background: var(--tag-pli);
+  color: #fff;
+}
+
+.fragment-text-line {
+  margin-bottom: 4px;
+}
+
+.fragment-text-line:last-child {
+  margin-bottom: 0;
+}
+
+.ctx {
+  color: var(--text-muted);
+  font-size: .82rem;
+  word-wrap: break-word;
+}
+
+.main-text {
+  word-wrap: break-word;
+  font-weight: 500;
+}
+
+/* In search-result fragments, make the matched segment stand out and let the
+   surrounding context recede, so the match stays findable with Context on.
+   Scoped to .fragment so the sutta reader is unaffected. */
+.fragment .main-text {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.fragment .ctx {
+  opacity: .7;
+}
+
+/* Keyword-only highlight (keyword search mode) */
+.kw-match {
+  color: var(--text-primary);
+  background: var(--accent-subtle);
+  font-weight: 600;
+  padding: 1px 3px;
+  border-radius: 3px;
+}
+
+/* Add to notes button */
+.btn-add-note {
+  position: absolute;
+  /* top: 8px; */
+  bottom: 8px;
+  right: 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 2px 8px;
+  font-size: .65rem;
+  cursor: pointer;
+  color: var(--accent);
+  font-weight: 600;
+  opacity: 0.4;
+  transition: all var(--transition);
+}
+
+.fragment:hover .btn-add-note {
+  opacity: 1;
+}
+
+.btn-add-note:hover,
+.btn-add-note:active {
+  opacity: 1;
+  background: var(--accent);
+  color: #0f0f14;
+  border-color: var(--accent);
+}
+
+.btn-retry {
+  margin-top: 12px;
+  padding: 6px 18px;
+  background: var(--accent-subtle);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  font-size: .85rem;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.btn-retry:hover {
+  background: var(--accent);
+  color: #0f0f14;
+}
+
+/* --- Note Picker Popover --- */
+.dk-note-picker {
+  position: fixed;
+  z-index: 9999;
+  min-width: 200px;
+  max-width: 280px;
+  max-height: 320px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, .25);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.dk-note-picker-list {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.dk-note-picker-header {
+  padding: 8px 12px 6px;
+  font-size: .7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dk-note-picker-close {
+  background: transparent;
+  border: none;
+  padding: 2px;
+  margin-left: -4px;
+  /* Geser sedikit ke kiri agar sejajar dengan padding */
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+  border-radius: 4px;
+  transition: all var(--transition);
+}
+
+.dk-note-picker-close:hover {
+  background: var(--danger);
+  /* Menggunakan warna merah bawaan temamu */
+  color: #fff;
+}
+
+.dk-note-picker-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-size: .85rem;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background .1s;
+}
+
+.dk-note-picker-item:hover {
+  background: var(--bg-tertiary);
+}
+
+.dk-note-picker-item.active {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.dk-note-picker-empty {
+  padding: 8px 12px;
+  font-size: .82rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.dk-note-picker-divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 0;
+}
+
+.dk-note-picker-new {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: .85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .1s;
+}
+
+.dk-note-picker-new:hover {
+  background: var(--accent-subtle);
+}
+
+/* --- Notes Panel --- */
+.notes-header {
+  border-bottom: 1px solid var(--border);
+}
+
+.notes-header-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.notes-header h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  flex: 1;
+}
+
+.notes-list {
+  display: flex;
+  gap: 4px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+}
+
+.note-tab {
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  font-size: .75rem;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition);
+  flex: 0 0 auto;
+  width: 130px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  text-align: left;
+}
+
+.note-tab-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.note-tab-date {
+  font-size: .6rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  opacity: .8;
+}
+
+.note-tab:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.note-tab.active {
+  background: var(--accent);
+  color: #0f0f14;
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+.note-tab.active .note-tab-date {
+  color: rgba(15, 15, 20, .65);
+}
+
+/* Note Editor */
+#note-editor {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 16px;
+}
+
+.note-title-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 4px;
+  align-items: center;
+}
+
+.note-meta-dates {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 0 10px;
+  border-top: 1px solid var(--border);
+  margin-bottom: 10px;
+}
+
+.nm-date-entry {
+  font-size: .67rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.nm-date-sep {
+  font-size: .67rem;
+  color: var(--border-strong);
+}
+
+.note-title-input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 12px;
+  border: none;
+  border-bottom: 2px solid var(--border);
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-family: var(--font-sans);
+  transition: border-color var(--transition);
+}
+
+.note-title-input:focus {
+  outline: none;
+  border-bottom-color: var(--accent);
+}
+
+.note-title-input::placeholder {
+  color: var(--text-muted);
+}
+
+.note-title-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.note-title-actions .icon-btn {
+  width: 32px;
+  height: 32px;
+  font-size: 0.95rem;
+}
+
+/* Note Blocks */
+.note-blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.note-block {
+  position: relative;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  transition: all var(--transition);
+  animation: cardIn .3s ease-out;
+}
+
+.note-block:hover {
+  border-color: var(--border-strong);
+}
+
+.note-block-actions {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+
+.note-block:hover .note-block-actions {
+  opacity: 1;
+}
+
+.note-block-actions button {
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 4px;
+  background: var(--bg-tertiary);
+  font-size: .7rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.note-block-actions button {
+  cursor: pointer;
+}
+
+.note-block-actions .block-move-btn:hover {
+  background: var(--accent-subtle);
+  color: var(--accent);
+}
+
+.note-block-actions .block-del-btn:hover {
+  background: var(--danger);
+  color: #fff;
+}
+
+/* Text block in notes */
+.note-block-text {
+  padding: 10px 12px;
+  min-height: 40px;
+  font-size: .88rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+}
+
+.note-block-text:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--accent-subtle);
+}
+
+.note-block:hover .note-block-text {
+  padding-right: 80px;
+}
+
+/* Sutta block in notes (mini version) */
+.note-block-sutta {
+  padding: 10px 12px;
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--accent);
+}
+
+/* Blurb (sinopsis) note card: grey left border, matching the search-result
+   .fragment-blurb treatment instead of the accent used for real segments. */
+.note-block-sutta.note-block-blurb {
+  border-left-color: var(--text-muted);
+}
+
+/* "Open here / new tab" chooser popover (blurb text links in notes & results) */
+.dk-open-menu {
+  position: fixed;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  min-width: 150px;
+  padding: 4px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, .25);
+}
+
+.dk-open-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: .82rem;
+  font-family: var(--font-sans);
+  text-align: left;
+  cursor: pointer;
+  transition: background .1s, color .1s;
+}
+
+.dk-open-menu-item:hover {
+  background: var(--accent-subtle);
+  color: var(--accent);
+}
+
+.dk-open-menu-item .lucide {
+  width: 15px;
+  height: 15px;
+  flex: none;
+}
+
+.note-block-sutta .mini-header {
+  font-size: .75rem;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+  line-height: 1.6;
+}
+
+.note-block-sutta .mini-header>span:first-of-type,
+.note-block-sutta .mini-header>span:nth-of-type(2) {
+  font-weight: 700;
+}
+
+.note-block-sutta .mini-header strong {
+  color: var(--accent);
+  font-size: .8rem;
+  display: block;
+}
+
+.note-block-sutta .mini-header span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: 8px;
+  /* Keep each icon+text package as one unit: never split the icon from its
+     label, and let the whole package wrap down together when the row is full. */
+  white-space: nowrap;
+  vertical-align: top;
+}
+
+.note-block-sutta .mini-header span .lucide {
+  flex: none;
+}
+
+.note-block-sutta .mini-texts {
+  font-size: .82rem;
+  line-height: 1.55;
+}
+
+/* --- Simple Mode (Global) --- */
+.simple-mode .advanced-only {
+  display: none !important;
+}
+
+#btn-advanced-toggle.active {
+  background: var(--accent-subtle);
+  color: var(--accent);
+}
+
+/* ================================================================
+   RESPONSIVE
+   ================================================================ */
+
+/* panel toggle: hidden on desktop */
+.panel-toggle-btn {
+  display: none;
+}
+
+/* --- Tablet (≤ 768px) --- */
+@media (max-width: 768px) {
+  #app-main {
+    flex-direction: column;
+  }
+
+  #welcome-state {
+    flex-direction: row;
+    padding: 12px 16px;
+    gap: 10px;
+    text-align: left;
+    justify-content: flex-start;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0;
+    height: auto;
+  }
+
+  #welcome-state .empty-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0;
+  }
+
+  #welcome-state h2 {
+    font-size: .9rem;
+    margin-bottom: 1px;
+  }
+
+  #welcome-state p {
+    font-size: .78rem;
+  }
+
+
+  #resize-handle {
+    display: none;
+  }
+
+  #search-panel {
+    min-width: auto;
+    min-height: 0;
+  }
+
+  .control-row {
+    gap: 8px;
+  }
+
+  .search-options-inline {
+    gap: 6px 10px;
+  }
+
+  .icon-btn-sm {
+    width: 28px;
+    height: 28px;
+  }
+
+  .icon-btn-sm .lucide {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* --- Mobile & Half Desktop (≤ 900px) --- */
+@media (max-width: 900px) {
+
+  /* ── Layout: body flex column, header shrinks, main fills ── */
+  body {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  #app-header {
+    flex-shrink: 0;
+    height: auto;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    padding: 0 14px;
+  }
+
+  #app-main {
+    flex: 1;
+    min-height: 0;
+    height: auto;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── Header row 1: logo kiri, pills kanan ─────────────── */
+  .header-top {
+    display: flex;
+    align-items: center;
+    height: 48px;
+    flex-shrink: 0;
+  }
+
+  .header-left {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .header-subtitle {
+    display: none;
+  }
+
+  .lang-pill,
+  .theme-pill {
+    height: 26px;
+  }
+
+  .lang-pill-opt,
+  .theme-pill-opt {
+    padding: 2px 7px;
+    font-size: .65rem;
+  }
+
+  /* ── Header row 2: nav tabs ───────────────────────────── */
+  #main-nav {
+    height: 36px;
+    flex-shrink: 0;
+    margin: 0 0 6px;
+    padding: 3px 4px;
+    gap: 2px;
+  }
+
+  .nav-tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: .65rem;
+    border-radius: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    padding: 0 4px;
+  }
+
+  .nav-full {
+    display: none;
+  }
+
+  .nav-short {
+    display: inline;
+  }
+
+  /* ── Search panel ─────────────────────────────────────── */
+  #search-panel {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  #search-scroll {
+    padding: 8px 12px 0;
+  }
+
+  /* ── Right panels: drawer dari kanan ─────────────────── */
+  #notes-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 88vw;
+    max-width: 360px;
+    height: 100dvh;
+    z-index: 140;
+    background: var(--bg-primary);
+    border-left: 1px solid var(--border-strong);
+    border-top: none;
+    transform: translateX(100%);
+    transition: transform .3s cubic-bezier(.4, 0, .2, 1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex: none;
+  }
+
+  #notes-panel.panel-open {
+    transform: translateX(0);
+  }
+
+  /* backdrop */
+  #panel-backdrop {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 139;
+    background-color: rgba(0, 0, 0, 0.5);
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+  }
+
+  #panel-backdrop.visible {
+    display: block;
+  }
+
+  /* ── Panel toggle (tab di kanan layar) ────────────────── */
+  .panel-toggle-btn {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 150;
+    width: 26px;
+    height: auto;
+    padding: 10px 0;
+    gap: 6px;
+    /* 80% berarti 80% solid, 20% tembus pandang. Sesuaikan persentasenya! */
+    background: color-mix(in srgb, var(--bg-secondary) 30%, transparent);
+    backdrop-filter: blur(0.8px);
+    -webkit-backdrop-filter: blur(0.8px);
+    /* Untuk Safari */
+    /* ----------------------- */
+    border: 1px solid var(--border-strong);
+    border-right: none;
+    border-radius: 8px 0 0 8px;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: .6rem;
+    font-weight: 700;
+    box-shadow: -3px 0 10px rgba(0, 0, 0, .15);
+    transition: right .3s cubic-bezier(.4, 0, .2, 1), background var(--transition), color var(--transition);
+    user-select: none;
+  }
+
+  .panel-toggle-icon,
+  .panel-toggle-chevron {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+  }
+
+  .panel-toggle-label {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    transform: rotate(180deg);
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .06em;
+    line-height: 1;
+  }
+
+  .panel-btn-open .panel-toggle-chevron {
+    transform: rotate(180deg);
+  }
+
+  .panel-toggle-btn.panel-btn-open {
+    right: min(88vw, 360px);
+    background: var(--accent);
+    color: #0f0f14;
+    border-color: var(--accent);
+    box-shadow: -4px 0 14px rgba(0, 0, 0, .35);
+  }
+
+  .panel-toggle-btn:hover,
+  .panel-toggle-btn:active {
+    background: var(--accent-subtle);
+    color: var(--accent);
+  }
+
+  .panel-toggle-btn.panel-btn-open:hover,
+  .panel-toggle-btn.panel-btn-open:active {
+    background: var(--accent);
+    color: #0f0f14;
+    opacity: .85;
+  }
+
+  /* ── Sutta dialog: full screen ────────────────────────── */
+  #sutta-dialog {
+    inset: 0;
+    border-radius: 0;
+    max-width: 100vw;
+    max-height: 100dvh;
+  }
+
+  .sutta-dialog-header {
+    padding: 12px 14px 6px;
+    gap: 8px;
+  }
+
+
+
+  .sutta-dialog-close {
+    top: 10px;
+    right: 10px;
+    width: 30px;
+    height: 30px;
+  }
+
+  .sutta-dialog-controls {
+    gap: 6px;
+  }
+
+  .sutta-dialog-lang-toggle {
+    min-width: 0;
+    flex-shrink: 1;
+  }
+
+  .sutta-dialog-sc-links {
+    order: 3;
+    margin-left: auto;
+    height: 30px;
+    display: flex;
+    align-items: center;
+  }
+
+  .sc-link-desktop {
+    display: none !important;
+  }
+
+  .sc-link-mobile {
+    display: block !important;
+    height: 30px;
+    margin: 0;
+    padding: 0 8px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: .8rem;
+    box-sizing: border-box;
+    line-height: 1;
+  }
+
+  .sutta-dialog-body {
+    padding: 8px 6px;
+  }
+
+  .sutta-segment {
+    padding: 6px 8px;
+  }
+
+  /* ── Search controls ──────────────────────────────────── */
+  .sutta-dialog-display-toggle {
+    order: 4;
+    width: 100%;
+    /* margin-top: 4px; */
+  }
+
+  /* Dialog popup mobile: satu baris — dropdown isi sisa, tombol toggle di kanan (sinkron dengan reader-controls-sticky) */
+  .sutta-dialog-header .sutta-dialog-controls {
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .sutta-dialog-header .sutta-dialog-lang-toggle {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .sutta-dialog-header .sutta-lang-dropdown {
+    width: 100%;
+  }
+
+  /* override: display toggle tetap inline di kanan, bukan full-width baris baru */
+  .sutta-dialog-header .sutta-dialog-display-toggle {
+    order: 0;
+    width: auto;
+    margin-top: 0;
+    flex-shrink: 0;
+  }
+
+  .reader-controls-sticky {
+    top: -8px;
+    padding: 8px 14px;
+  }
+
+  /* Sutta reader mobile: satu baris — dropdown isi sisa, tombol toggle (ikon) di kanan */
+  .reader-controls-sticky .sutta-dialog-controls {
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .reader-controls-sticky .reader-controls-row {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .reader-controls-sticky .sutta-dialog-lang-toggle {
+    flex: 1;
+  }
+
+  .reader-controls-sticky .sutta-lang-dropdown {
+    width: 100%;
+  }
+
+  /* override stack global: toggle display inline di kanan, bukan full-width baris baru */
+  .reader-controls-sticky .sutta-dialog-display-toggle {
+    order: 0;
+    width: auto;
+    margin-top: 0;
+    flex-shrink: 0;
+  }
+
+  /* Tombol aksi (Setelan & Halaman Teks) jadi icon-only di mobile */
+  .sutta-dialog-open-label {
+    display: none;
+  }
+
+  .control-row {
+    gap: 6px;
+    row-gap: 12px;
+  }
+
+  .control-group {
+    flex: 1;
+  }
+
+  .toggle-group {
+    width: 100%;
+  }
+
+  .toggle-btn {
+    flex: 1;
+    padding: 0 8px;
+    font-size: .75rem;
+    text-align: center;
+  }
+
+  .control-group-options {
+    flex: 1 1 100%;
+  }
+
+  .query-label-group {
+    margin-top: 8px;
+  }
+
+  #mode-group {
+    flex: 1 1 100%;
+  }
+
+  #mode-group .toggle-group {
+    width: 100%;
+  }
+
+  #mode-group .toggle-btn {
+    flex: 1;
+  }
+
+  .model-select-group {
+    min-width: 0;
+    flex: 1 1 100%;
+  }
+
+  .model-dual-select {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .cat-select {
+    width: 100%;
+    max-width: none;
+  }
+
+  /* ── Footer ───────────────────────────────────────────── */
+  .panel-footer {
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+    padding: 10px 0;
+  }
+
+  .footer-left {
+    justify-content: center;
+  }
+
+  .footer-center,
+  .footer-right {
+    text-align: center;
+    padding: 4px 0;
+    justify-content: center;
+  }
+
+  .footer-tentang-link {
+    display: inline-block !important;
+    padding: 6px 14px !important;
+    margin: 6px 0 !important;
+  }
+
+  .footer-info-group {
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 2px 8px;
+  }
+
+  .info-sep {
+    flex: 0 0 100%;
+    height: 0;
+    visibility: hidden;
+  }
+}
+
+/* ================================================================
+   SUTTA READER PAGE
+   ================================================================ */
+
+.toggle-btn.sc-link-btn {
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.toggle-btn.sc-link-btn.id {
+  color: #38bdf8;
+}
+
+.toggle-btn.sc-link-btn.en {
+  color: #34d399;
+}
+
+.toggle-btn.sc-link-btn.pli {
+  color: #facc15;
+}
+
+.toggle-btn.sc-link-btn:hover {
+  background: var(--bg-card);
+  filter: brightness(1.2);
+}
+
+/* Segment container */
+.sutta-segments {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Single segment */
+.sutta-segment {
+  position: relative;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  transition: background var(--transition), padding var(--transition);
+  line-height: 1.7;
+}
+
+html.show-seg-ref .sutta-segment {
+  padding-top: 24px;
+}
+
+.sutta-segment:hover {
+  background: var(--bg-tertiary);
+}
+
+.sutta-segment:target {
+  background: var(--accent-subtle);
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+
+.seg-text {
+  font-family: var(--font-sans);
+  font-size: .92rem;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.verse-num {
+  /* font-size: .68em; */
+  font-size: .70em;
+  color: var(--text-muted, var(--text-secondary, #888));
+  margin-right: 2px;
+  vertical-align: super;
+  line-height: 0;
+  /* font-weight: 100; */
+  font-weight: 700;
+  user-select: none;
+  display: none;
+}
+
+html.show-seg-ref .verse-num {
+  display: inline;
+}
+
+/* Pemisah bait (‖) */
+.verse-sep {
+  color: var(--text-muted);
+  opacity: 0.8;
+  margin: 0 4px;
+  font-weight: 300;
+  user-select: none;
+}
+
+html.show-seg-ref .verse-sep {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .verse-sep-cb-label {
+    order: 1;
+  }
+
+  .seg-ref-cb-label:not(.verse-sep-cb-label) {
+    order: 2;
+  }
+}
+
+.seg-untranslated {
+  opacity: 0.55;
+  font-style: italic;
+}
+
+.speaker {
+  display: inline-block;
+  color: var(--accent);
+  font-size: 0.75em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  /* margin-right: 2px; */
+  opacity: 0.9;
+}
+
+.seg-add-btn .short {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .seg-add-btn .full {
+    display: none;
+  }
+
+  .seg-add-btn .short {
+    display: inline;
+  }
+}
+
+.kw-short {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .kw-full {
+    display: none;
+  }
+
+  .kw-short {
+    display: inline;
+  }
+}
+
+/* Sutta heading levels */
+.sutta-heading-1 {
+  margin-top: 1.6em;
+}
+
+.sutta-heading-1 .seg-text,
+.sutta-heading-1 .seg-col {
+  font-size: 1.18rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 4px;
+}
+
+.sutta-heading-2 {
+  margin-top: 1em;
+}
+
+.sutta-heading-2 .seg-text,
+.sutta-heading-2 .seg-col {
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.sutta-heading-3 {
+  margin-top: 0.6em;
+}
+
+.sutta-heading-3 .seg-text,
+.sutta-heading-3 .seg-col {
+  font-size: .92rem;
+  font-weight: 600;
+  font-style: italic;
+  color: var(--text-secondary);
+}
+
+.sutta-heading-4 {
+  margin-top: 0.4em;
+}
+
+.sutta-heading-4 .seg-text,
+.sutta-heading-4 .seg-col {
+  font-size: .88rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.sutta-heading-5 {
+  margin-top: 0.3em;
+}
+
+.sutta-heading-5 .seg-text,
+.sutta-heading-5 .seg-col {
+  font-size: .84rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+/* Folded body heading rendered as a ".0" lead part inside a content segment
+   (chunker heading-merge). Mirrors .sutta-heading-* but scoped to the part itself,
+   since the segment around it is ordinary content (seg.heading === 0). */
+.seg-heading {
+  color: var(--text-primary);
+  line-height: 1.3;
+  margin: 0.2em 0 0.4em;
+}
+
+.seg-heading-1 {
+  font-size: 1.18rem;
+  font-weight: 700;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 4px;
+  /* margin-top: 1.6em; */
+}
+
+.seg-heading-2 {
+  font-size: 1.02rem;
+  font-weight: 600;
+  /* margin-top: 1em; */
+}
+
+.seg-heading-3 {
+  font-size: .92rem;
+  font-weight: 600;
+  font-style: italic;
+  color: var(--text-secondary);
+  /* margin-top: .6em; */
+}
+
+.seg-heading-4 {
+  font-size: .88rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  /* margin-top: .4em; */
+}
+
+.seg-heading-5 {
+  font-size: .84rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  /* margin-top: .3em; */
+}
+
+.seg-heading-6 {
+  font-size: .82rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  /* margin-top: .3em; */
+}
+
+/* Side-by-side */
+.sutta-segments.side-by-side .sutta-segment {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.seg-col {
+  font-family: var(--font-sans);
+  font-size: .88rem;
+  line-height: var(--reader-line-height, 1.7);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.seg-primary {
+  color: var(--text-primary);
+}
+
+.seg-secondary {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Segment ref badge — hidden by default, toggled via html.show-seg-ref */
+.seg-ref {
+  position: absolute;
+  top: 4px;
+  left: 12px;
+  /* font-size: .58rem; */
+  font-size: .60rem;
+  font-family: "Inter", sans-serif;
+  font-weight: 700;
+  color: var(--text-muted);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition);
+  background: var(--bg-secondary);
+  padding: 1px 5px;
+  border-radius: 4px;
+  white-space: nowrap;
+  /* max-width: 34px; */
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+html.show-seg-ref .seg-ref {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+html.show-seg-ref .sutta-segment:hover .seg-ref {
+  opacity: 0.85;
+}
+
+/* Add to notes button (appears on hover, always visible on touch) */
+.seg-add-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  font-size: .65rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-secondary);
+  color: var(--accent);
+  cursor: pointer;
+  opacity: 0;
+  transition: all var(--transition);
+}
+
+.sutta-segment:hover .seg-add-btn {
+  opacity: 1;
+}
+
+.seg-add-btn:hover {
+  opacity: 1;
+  background: var(--accent);
+  color: #0f0f14;
+  border-color: var(--accent);
+}
+
+@media (hover: none) {
+  .seg-add-btn {
+    opacity: .35;
+  }
+
+  .btn-add-note {
+    opacity: .35;
+  }
+}
+
+/* ================================================================
+   NAV TABS (Search / Browse)
+   ================================================================ */
+
+.nav-tabs {
+  display: flex;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-strong);
+  border-radius: 20px;
+  padding: 2px;
+  align-items: center;
+}
+
+.nav-tab {
+  background: transparent;
+  border: none;
+  border-radius: 18px;
+  padding: 5px 14px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: .8rem;
+  font-weight: 600;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+
+.nav-tab.active {
+  background: var(--accent);
+  color: #0f0f14;
+}
+
+.nav-tab:hover:not(.active) {
+  color: var(--text-primary);
+}
+
+
+/* ================================================================
+   BROWSE TREE
+   ================================================================ */
+.browse-container {
+  padding: 8px 4px;
+}
+
+.section-divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0 2px;
+  color: var(--text-muted);
+  font-size: .75rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.section-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── Piṭaka level (top) ── */
+.browse-nikaya {
+  margin-bottom: 6px;
+}
+
+.browse-nikaya-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-weight: 700;
+  font-size: .95rem;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--accent);
+  background: var(--accent-subtle);
+  border: 1px solid transparent;
+  transition: all var(--transition);
+  user-select: none;
+}
+
+.browse-nikaya-header:hover {
+  border-color: var(--accent);
+}
+
+.browse-nikaya-header .caret {
+  transition: transform .2s ease;
+  display: inline-flex;
+}
+
+.browse-nikaya-header .caret .lucide {
+  width: .7rem;
+  height: .7rem;
+}
+
+.browse-nikaya-header.open .caret {
+  transform: rotate(90deg);
+}
+
+.browse-nikaya-body {
+  display: none;
+  padding: 4px 0 4px 8px;
+  margin-left: 6px;
+  border-left: 2px solid var(--border-strong);
+}
+
+.browse-nikaya-body.open {
+  display: block;
+}
+
+/* ── Nikāya / Vagga level ── */
+.browse-vagga {
+  margin-bottom: 1px;
+}
+
+.browse-vagga-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: .88rem;
+  color: var(--text-secondary);
+  transition: all var(--transition);
+  user-select: none;
+}
+
+.browse-vagga-header:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.browse-vagga-header .caret {
+  transition: transform .2s ease;
+  display: inline-flex;
+  opacity: .5;
+}
+
+.browse-vagga-header .caret .lucide {
+  width: .55rem;
+  height: .55rem;
+}
+
+.browse-vagga-header:hover .caret {
+  opacity: 1;
+}
+
+.browse-vagga-header.open .caret {
+  transform: rotate(90deg);
+  opacity: .8;
+}
+
+.browse-vagga-body {
+  display: none;
+  padding: 2px 0 2px 10px;
+  margin-left: 6px;
+  border-left: 1px solid var(--border);
+}
+
+.browse-vagga-body.open {
+  display: block;
+}
+
+.browse-vagga-range {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-weight: 600;
+  font-size: .82rem;
+  color: var(--accent);
+  opacity: .8;
+  margin-left: 6px;
+  white-space: nowrap;
+}
+
+.browse-vagga-range .range-dash {
+  margin: 0 3px;
+  color: var(--text-secondary);
+  font-weight: 400;
+  font-size: 1em;
+  opacity: 0.5;
+  letter-spacing: -0.5px;
+}
+
+/* ── Sutta row ── */
+.browse-sutta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 1px 0;
+}
+
+.browse-sutta-link {
+  display: block;
+  flex: 1;
+  min-width: 0;
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  font-size: .88rem;
+  font-family: "Inter", sans-serif;
+  color: var(--text-primary);
+  font-weight: 500;
+  text-decoration: none;
+  transition: all var(--transition);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.browse-sutta-link:hover {
+  background: var(--accent-subtle);
+  color: var(--accent);
+}
+
+.browse-sutta-id {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--accent);
+  opacity: .8;
+}
+
+.browse-sutta-name {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+/* ── Language badges ── */
+.browse-badges {
+  display: inline-flex;
+  gap: 2px;
+  flex-shrink: 0;
+  padding-right: 4px;
+}
+
+.lang-badge {
+  display: inline-block;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: .6rem;
+  font-weight: 700;
+  text-decoration: none;
+  line-height: 1.5;
+  letter-spacing: .02em;
+  opacity: .7;
+  transition: opacity var(--transition);
+}
+
+.lang-badge:hover {
+  opacity: 1;
+}
+
+.lang-badge.badge-id {
+  color: var(--tag-id);
+  background: rgba(79, 195, 247, .12);
+}
+
+.lang-badge.badge-en {
+  color: var(--tag-en);
+  background: rgba(129, 199, 132, .12);
+}
+
+.lang-badge.badge-pli {
+  color: var(--tag-pli);
+  background: rgba(255, 183, 77, .12);
+}
+
+
+
+/* ================================================================
+   PANEL FOOTER (Non-sticky, inside scrollable area)
+   ================================================================ */
+.panel-footer {
+  flex-shrink: 0;
+  margin-top: auto;
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* FAB clearance on sutta reader page */
+#sutta-content~.panel-footer {
+  margin-bottom: 80px;
+}
+
+.footer-left {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.footer-logo,
+.rdib-circle {
+  transition: filter 0.1s ease, opacity 0.1s ease, transform 0.1s ease;
+}
+
+/* Light Mode: Normal (Full Color) */
+.footer-logo,
+.rdib-circle {
+  filter: none;
+  opacity: 1;
+}
+
+/* Dark Mode: Grayscale (Calmer) */
+[data-theme="dark"] .footer-logo,
+[data-theme="dark"] .rdib-circle {
+  filter: grayscale(1) opacity(0.6);
+}
+
+.footer-logo {
+  height: 28px;
+  width: auto;
+}
+
+/* Syailendra logo: emblem on a transparent background (white removed in
+   stab2.png). Light mode shows the blue line art as-is; dark mode whitens it so
+   it stays legible on the dark footer — a colored grayscale would be too faint. */
+[data-theme="dark"] .footer-logo-syl {
+  filter: brightness(0) invert(1) opacity(0.6);
+}
+
+[data-theme="dark"] .footer-logo-wrap:hover .footer-logo-syl,
+[data-theme="dark"] .footer-logo-syl:hover {
+  filter: brightness(0) invert(1) opacity(1) !important;
+}
+
+.footer-logo-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.footer-logo-wrap::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  transform: translateY(4px);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-strong);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  z-index: 100;
+}
+
+@media (max-width: 600px) {
+  .footer-logo-wrap::after {
+    left: 0;
+    right: auto;
+    white-space: normal;
+    max-width: 200px;
+  }
+
+
+}
+
+.footer-logo-wrap:hover::after {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.rdib-circle {
+  height: 30px;
+  width: 30px;
+  aspect-ratio: 1/1;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  background: white;
+}
+
+.footer-logo-wrap:hover .footer-logo,
+.footer-logo:hover,
+.rdib-circle:hover {
+  filter: grayscale(0) opacity(1) !important;
+  transform: scale(1.1);
+}
+
+.footer-center {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 16px;
+  line-height: 1.4;
+}
+
+.footer-tentang-link {
+  font-size: .72rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  padding: 3px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-tertiary);
+  transition: background .15s, border-color .15s, color .15s;
+  white-space: nowrap;
+}
+
+.footer-tentang-link:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.footer-right {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.footer-info-group {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+.info-item {
+  white-space: nowrap;
+}
+
+.info-sep {
+  margin: 0 20px;
+  opacity: 0.3;
+}
+
+.info-label {
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-right: 4px;
+}
+
+.info-value {
+  color: var(--text-secondary);
+}
+
+.info-value span {
+  cursor: help;
+  position: relative;
+  transition: color var(--transition);
+}
+
+.info-value span:hover {
+  color: var(--accent);
+}
+
+.info-value span[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  transform: translateY(4px);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  z-index: 100;
+}
+
+.info-value span[data-tooltip]:hover::after {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+
+@media (max-width: 650px) {
+  .panel-footer {
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+  }
+
+  .footer-center {
+    text-align: center;
+    padding: 4px 0;
+    justify-content: center;
+  }
+
+  .footer-right {
+    text-align: center;
+    padding: 4px 0;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .footer-info-group {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: 4px;
+  }
+
+  .info-sep {
+    display: none;
+  }
+}
+
+/* ================================================================
+   SUTTA DIALOG
+   ================================================================ */
+#sutta-dialog {
+  position: fixed;
+  inset: 16px;
+  width: auto;
+  height: auto;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 32px);
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, .5);
+  z-index: 1000;
+}
+
+#sutta-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+#sutta-dialog::backdrop {
+  background: rgba(0, 0, 0, .55);
+  backdrop-filter: blur(4px);
+}
+
+/* ==================== READER SETTINGS DIALOG ==================== */
+.reader-settings-dialog {
+  width: min(440px, calc(100vw - 32px));
+  margin: auto;
+  padding: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, .5);
+  z-index: 1000;
+}
+
+.reader-settings-dialog::backdrop {
+  background: rgba(0, 0, 0, .55);
+  backdrop-filter: blur(4px);
+}
+
+.rs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.rs-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.rs-title .lucide {
+  width: 18px;
+  height: 18px;
+  color: var(--accent);
+}
+
+.rs-body {
+  padding: 8px 18px 20px;
+}
+
+.rs-section-title {
+  margin: 8px 0 0;
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--text-muted);
+}
+
+.rs-font {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.rs-hint {
+  margin: -8px 0 0;
+  font-size: .76rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+/* Pratinjau tunggal: satu blok yang mencerminkan semua setelan pembaca
+   (segmen, gaya, ukuran, tinggi baris) sekaligus */
+.rs-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 10px 0 16px;
+  padding: 10px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.rs-preview-label {
+  color: var(--text-muted);
+  font-size: .7rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+/* Teks pratinjau ikut gaya huruf (sans/serif lewat .reader-serif), ukuran (zoom
+   diset via JS pada elemen ini), & tinggi baris aktif */
+.rs-preview-text {
+  margin: 0;
+  font-size: .8rem;
+  font-family: var(--font-sans);
+  color: var(--text-secondary);
+  line-height: var(--reader-line-height, 1.45);
+}
+
+.rs-preview.reader-serif .rs-preview-text {
+  font-family: var(--font-serif);
+}
+
+/* Toggle switch (Segmen) */
+.rs-switch {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.rs-switch input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.rs-switch-track {
+  position: relative;
+  width: 38px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  transition: background .15s, border-color .15s;
+}
+
+.rs-switch-track::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--text-secondary);
+  transition: transform .15s, background .15s;
+}
+
+.rs-switch input:checked+.rs-switch-track {
+  background: var(--accent-subtle);
+  border-color: var(--accent);
+}
+
+.rs-switch input:checked+.rs-switch-track::after {
+  transform: translateX(16px);
+  background: var(--accent);
+}
+
+.rs-switch input:focus-visible+.rs-switch-track {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Tombol gaya huruf tampil dengan font aslinya biar kelihatan bedanya */
+#font-family-sans {
+  font-family: var(--font-sans);
+}
+
+#font-family-serif {
+  font-family: var(--font-serif);
+}
+
+.rs-option {
+  padding: 14px 0;
+}
+
+.rs-option+.rs-option {
+  border-top: 1px solid var(--border);
+}
+
+.rs-option-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.rs-option-head input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.rs-option-title {
+  font-weight: 600;
+  font-size: .92rem;
+}
+
+.rs-option-desc {
+  margin: 6px 0 0 26px;
+  font-size: .82rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+/* Ruas pratinjau: badge ref melayang di pojok kiri-atas (mirip .seg-ref pembaca),
+   bukan inline. Beri ruang di atas teks saat "Segmen" aktif. */
+.rs-preview-seg {
+  position: relative;
+}
+
+html.show-seg-ref .rs-preview-seg {
+  padding-top: 18px;
+}
+
+.rs-ex-tag {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: none;
+  font-family: "Inter", sans-serif;
+  font-size: .62rem;
+  color: var(--text-muted);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  padding: 1px 5px;
+  border-radius: 4px;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+html.show-seg-ref .rs-ex-tag {
+  display: inline-block;
+}
+
+/* Nomor baris inline di awal teks (mirip .verse-num), tampil saat "Segmen" aktif */
+.rs-ex-sup {
+  display: none;
+  font-size: .68em;
+  color: var(--text-muted);
+  vertical-align: super;
+  margin-right: 2px;
+}
+
+html.show-seg-ref .rs-ex-sup {
+  display: inline;
+}
+
+#sutta-content {
+  padding: 0 24px 24px;
+}
+
+@media (max-width: 768px) {
+  #sutta-content {
+    padding: 0 6px 12px;
+  }
+
+  /* Nav atas ikut inset konten mobile (nav bawah sudah 0 + padding #sutta-content) */
+  .sp-nav.sutta-sp-nav {
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+}
+
+.sutta-dialog-header {
+  position: sticky;
+  z-index: 10;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 24px 12px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#search-scroll .sutta-dialog-header {
+  margin-left: -20px;
+  margin-right: -20px;
+  margin-top: -10px;
+}
+
+/* Reader: judul tidak sticky (biar ke-scroll); border bawah dipindah ke bar sticky */
+#reader-header {
+  border-bottom: none;
+  padding-bottom: 6px;
+}
+
+/* Bar kontrol (dropdown + toggle) — sticky di atas saat scroll.
+   top negatif = nutup padding-top #search-scroll (10px) biar nempel flush. */
+.reader-controls-sticky {
+  position: sticky;
+  top: -10px;
+  z-index: 11;
+  margin-left: -20px;
+  margin-right: -20px;
+  padding: 10px 24px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+}
+
+.reader-controls-sticky .sutta-dialog-controls {
+  margin: 0;
+}
+
+.sutta-header-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.sutta-header-top h2 {
+  min-width: 0;
+  flex: 1;
+}
+
+.sutta-dialog-header h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  padding-right: 44px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 768px) {
+  .sutta-dialog-header h2 {
+    font-size: .95rem;
+    padding-right: 40px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+}
+
+.dlg-title-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sutta-dialog-header h2 svg {
+  width: 20px;
+  height: 20px;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.dlg-formatted-id {
+  color: var(--accent);
+}
+
+.dlg-sutta-name {
+  font-weight: 400;
+  font-style: italic;
+  opacity: 0.75;
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
+.sutta-dialog-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.sutta-dialog-lang-toggle {
+  display: flex;
+  gap: 4px;
+  min-width: 0;
+  flex-shrink: 1;
+}
+
+.sutta-lang-dropdown {
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: .82rem;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: border-color var(--transition);
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sutta-lang-dropdown:hover,
+.sutta-lang-dropdown:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.sutta-dialog-lang-toggle .toggle-btn {
+  padding: 4px 12px;
+  font-size: .8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all var(--transition);
+}
+
+.sutta-dialog-lang-toggle .toggle-btn.active {
+  background: var(--accent);
+  color: #0f0f14;
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+.sutta-dialog-lang-toggle .toggle-btn:hover:not(.active) {
+  background: var(--bg-card-hover);
+}
+
+.sutta-dialog-sc-links {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+  align-items: center;
+}
+
+/* Mobile: native select dropdown, Desktop: individual links */
+.sc-link-mobile {
+  display: none;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-size: .75rem;
+  font-weight: 600;
+  font-family: var(--font-sans);
+}
+
+.sutta-dialog-sc-links a {
+  font-size: .75rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  transition: all var(--transition);
+}
+
+.sutta-dialog-sc-links a.id {
+  color: var(--tag-id);
+}
+
+.sutta-dialog-sc-links a.en {
+  color: var(--tag-en);
+}
+
+.sutta-dialog-sc-links a.pli {
+  color: var(--tag-pli);
+}
+
+.sutta-dialog-sc-links a:hover {
+  background: var(--bg-card);
+  filter: brightness(1.2);
+}
+
+.sutta-dialog-close {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+  z-index: 11;
+}
+
+.sutta-dialog-close svg {
+  width: 18px;
+  height: 18px;
+}
+
+.sutta-dialog-close:hover {
+  background: var(--danger);
+  color: #fff;
+  border-color: var(--danger);
+}
+
+/* Grup tombol aksi (Atur + Buka Sutta) — sebelah kiri close button */
+.sutta-dialog-actions {
+  position: absolute;
+  top: 12px;
+  right: 56px;
+  /* 32px (close) + 8px gap + 16px margin */
+  display: flex;
+  gap: 8px;
+  z-index: 11;
+}
+
+.sutta-dialog-open-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 10px;
+  height: 32px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: .78rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--transition);
+  z-index: 11;
+  white-space: nowrap;
+}
+
+.sutta-dialog-open-btn svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.sutta-dialog-open-btn:hover {
+  background: var(--accent-subtle);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.dlg-open-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 200;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  min-width: 160px;
+  overflow: hidden;
+}
+
+.dlg-open-popover .btn-ghost {
+  border-radius: 0;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-secondary);
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 9px 14px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  width: 100%;
+  margin-top: 0;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+}
+
+.dlg-open-popover .btn-ghost:last-child {
+  border-bottom: none;
+}
+
+.dlg-open-popover .btn-ghost:hover {
+  background: var(--accent-subtle);
+  color: var(--accent);
+}
+
+
+
+.sutta-dialog-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Reuse sutta segment styles inside dialog */
+#sutta-dialog .sutta-segments {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+
+
+/* Display mode toggle in dialog header */
+.sutta-dialog-display-toggle {
+  display: flex;
+  gap: 4px;
+}
+
+/* Saat kosong (teks Pāḷi / non-segmented), jangan sisakan ruang/margin hantu */
+.sutta-dialog-display-toggle:empty {
+  display: none;
+}
+
+/* Tombol mode tampil ter-disable (teks Pāḷi / non-segmented) */
+.sutta-dialog-display-toggle .toggle-btn:disabled {
+  opacity: .4;
+  cursor: not-allowed;
+}
+
+#reader-display-toggle,
+#sutta-dialog-display-toggle {
+  margin-left: auto;
+}
+
+.sutta-dialog-display-toggle .toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+  font-size: .75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.sutta-dialog-display-toggle .toggle-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.sutta-dialog-display-toggle .toggle-btn.active {
+  background: var(--accent-subtle);
+  color: var(--accent);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+.sutta-dialog-display-toggle .toggle-btn:hover:not(.active) {
+  background: var(--bg-card-hover);
+}
+
+/* Highlighted/target segment in dialog (from link with hash) or main page */
+#sutta-dialog .sutta-segment.dlg-target,
+.sutta-segment.target {
+  background: var(--accent-subtle);
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  animation: dlg-seg-glow 2s ease-out forwards;
+}
+
+@keyframes dlg-seg-glow {
+  0% {
+    box-shadow: 0 0 0 4px rgba(232, 168, 56, .4);
+  }
+
+  60% {
+    box-shadow: 0 0 0 8px rgba(232, 168, 56, .15);
+  }
+
+  100% {
+    box-shadow: none;
+  }
+}
+
+/* ================================================================
+   NOTES MANAGER DIALOG
+   ================================================================ */
+#notes-manager {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 680px;
+  max-width: calc(100vw - 32px);
+  max-height: 72vh;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-primary);
+  border-radius: var(--radius-md);
+  padding: 0;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, .5);
+  overflow: hidden;
+}
+
+#notes-manager[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+#notes-manager::backdrop {
+  background: rgba(0, 0, 0, .5);
+  backdrop-filter: blur(3px);
+}
+
+.nm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px 13px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.nm-header h3 {
+  margin: 0;
+  font-size: .95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.nm-close-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--text-secondary);
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  line-height: 1;
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+
+.nm-close-btn:hover {
+  background: var(--danger, #e05);
+  border-color: var(--danger, #e05);
+  color: #fff;
+}
+
+.nm-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 18px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  background: var(--bg-card);
+}
+
+.nm-select-all-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .8rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+}
+
+.nm-bulk-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.nm-bulk-btn {
+  padding: 4px 10px;
+  font-size: .75rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.nm-bulk-btn:not(:disabled):hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+.nm-bulk-btn.danger:not(:disabled):hover {
+  border-color: var(--danger, #e05);
+  color: var(--danger, #e05);
+  background: rgba(238, 0, 85, .08);
+}
+
+.nm-bulk-btn:disabled {
+  opacity: .35;
+  cursor: default;
+}
+
+.nm-list {
+  overflow-y: auto;
+  flex: 1;
+  padding: 0 8px 6px;
+}
+
+.nm-empty {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: .85rem;
+  padding: 24px 0;
+  opacity: .7;
+}
+
+.nm-list-header,
+.nm-item {
+  display: grid;
+  grid-template-columns: 18px 1fr 145px 145px 26px 26px 26px;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+}
+
+.nm-list-header {
+  font-size: .7rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-strong);
+  padding-bottom: 6px;
+  margin-bottom: 2px;
+  position: sticky;
+  top: 0;
+  background: var(--bg-primary);
+  z-index: 1;
+}
+
+.nm-sort-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: .7rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 0;
+  text-align: left;
+  white-space: nowrap;
+  transition: color var(--transition);
+}
+
+.nm-sort-btn:hover,
+.nm-sort-btn.active {
+  color: var(--accent);
+}
+
+.nm-item {
+  border-radius: var(--radius-sm);
+  transition: background var(--transition);
+}
+
+.nm-item:hover {
+  background: var(--bg-card-hover);
+}
+
+.nm-title-btn {
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-primary);
+  font-size: .85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 2px 0;
+  min-width: 0;
+}
+
+.nm-title-btn:hover {
+  color: var(--accent);
+}
+
+.nm-rename-input {
+  font-size: .85rem;
+  background: var(--bg-card);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  padding: 3px 8px;
+  color: var(--text-primary);
+  outline: none;
+  min-width: 0;
+}
+
+.nm-date-cell {
+  font-size: .7rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: .75;
+}
+
+.nm-action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 3px 5px;
+  border-radius: var(--radius-sm);
+  font-size: .78rem;
+  opacity: 0;
+  transition: opacity var(--transition), background var(--transition);
+  flex-shrink: 0;
+}
+
+.nm-item:hover .nm-action-btn {
+  opacity: .7;
+}
+
+.nm-action-btn:hover {
+  opacity: 1 !important;
+  background: var(--bg-card-hover);
+}
+
+.nm-action-btn.danger:hover {
+  color: var(--danger, #e05);
+}
+
+.btn-sm {
+  padding: 4px 10px;
+  font-size: .75rem;
+}
+
+@media (max-width: 768px) {
+
+  .nm-list-header,
+  .nm-item {
+    grid-template-columns: 18px 1fr 26px 26px 26px;
+  }
+
+  /* Sembunyikan kolom tanggal (kolom 3 & 4) */
+  .nm-list-header> :nth-child(3),
+  .nm-list-header> :nth-child(4),
+  .nm-item> :nth-child(3),
+  .nm-item> :nth-child(4) {
+    display: none;
+  }
+
+  .nm-action-btn {
+    opacity: .7;
+  }
+}
+
+/* ===== Tentang page ===== */
+.tentang-md {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px 20px 48px;
+  line-height: 1.7;
+}
+
+.tentang-md h1,
+.tentang-md h2,
+.tentang-md h3 {
+  margin-top: 1.6em;
+  margin-bottom: .4em;
+}
+
+.tentang-md p {
+  margin-bottom: .9em;
+}
+
+.tentang-md pre {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px 16px;
+  overflow-x: auto;
+}
+
+.tentang-md code {
+  font-family: monospace;
+  font-size: .88em;
+}
+
+.tentang-md :not(pre)>code {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 5px;
+}
+
+.tentang-md table {
+  border-collapse: collapse;
+  min-width: 100%;
+  margin-bottom: 1em;
+}
+
+.tentang-md .table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 1em;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.tentang-md .table-wrapper table {
+  margin-bottom: 0;
+  border: none;
+}
+
+.tentang-md .table-wrapper table {
+  margin-bottom: 0;
+}
+
+.tentang-md th,
+.tentang-md td {
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.tentang-md ul,
+.tentang-md ol {
+  padding-left: 1.6em;
+  margin-bottom: .9em;
+}
+
+.tentang-md li {
+  margin-bottom: .25em;
+}
+
+.tentang-md li>ul,
+.tentang-md li>ol {
+  margin-bottom: 0;
+}
+
+.tentang-toc-fab {
+  position: fixed;
+  top: calc(var(--banner-h, 28px) + var(--header-h) + 12px);
+  left: 16px;
+  z-index: 200;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: .8rem;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .18);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background .15s, box-shadow .15s, transform .1s;
+  white-space: nowrap;
+}
+
+.tentang-toc-fab:hover {
+  background: var(--bg-card-hover);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .25);
+}
+
+.tentang-toc-popover {
+  position: fixed;
+  top: calc(var(--banner-h, 28px) + var(--header-h) + 52px);
+  left: 16px;
+  z-index: 199;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, .22);
+  padding: 8px 0;
+  min-width: 220px;
+  max-width: 320px;
+  max-height: calc(100vh - var(--header-h) - 80px);
+  overflow-y: auto;
+  display: none;
+}
+
+.tentang-toc-popover.open {
+  display: block;
+}
+
+.tentang-toc-popover a {
+  display: block;
+  padding: 5px 16px;
+  font-size: .78rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  line-height: 1.35;
+  transition: background .1s, color .1s;
+}
+
+.tentang-toc-popover a:hover {
+  background: var(--bg-tertiary);
+  color: var(--accent);
+}
+
+.tentang-toc-popover a.toc-h2 {
+  padding-left: 28px;
+  font-size: .75rem;
+}
+
+.tentang-toc-popover a.toc-h3 {
+  padding-left: 42px;
+  font-size: .72rem;
+  color: var(--text-muted);
+}
+
+@media (max-width: 768px) {
+  .tentang-toc-fab {
+    top: auto !important;
+    left: auto !important;
+    bottom: 16px;
+    right: 16px;
+  }
+
+  .tentang-toc-popover {
+    top: auto !important;
+    left: 16px !important;
+    right: 16px;
+    bottom: 60px;
+    max-width: none;
+    max-height: 60vh;
+  }
+}
+
+/* ===== Suttaplex Breadcrumbs ===== */
+.breadcrumbs-outer {
+  margin: -10px -20px 0 -20px;
+  width: calc(100% + 40px);
+  /* 100% dari parent + kompensasi negative margin */
+}
+
+.suttaplex-breadcrumbs {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 4px;
+  padding: 8px 20px 10px 20px;
+  font-size: .78rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-secondary);
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: none;
+  /* Firefox — sembunyikan scrollbar */
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Chrome/Safari — sembunyikan scrollbar */
+.suttaplex-breadcrumbs::-webkit-scrollbar {
+  display: none;
+}
+
+.breadcrumb-link {
+  color: var(--text-secondary);
+  text-decoration: none;
+  padding: 3px 6px;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition), background var(--transition);
+  flex-shrink: 0;
+}
+
+.breadcrumb-link:hover {
+  color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+.breadcrumb-sep {
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.breadcrumb-sep .lucide {
+  width: .7em;
+  height: .7em;
+}
+
+.breadcrumb-current {
+  color: var(--text-primary);
+  font-weight: 600;
+  padding: 3px 6px;
+  flex-shrink: 0;
+}
+
+/* ===== Browse highlight ===== */
+@keyframes browse-highlight-in {
+  from {
+    background: var(--accent-subtle);
+    box-shadow: inset 3px 0 0 var(--accent);
+  }
+
+  to {
+    background: transparent;
+    box-shadow: inset 3px 0 0 transparent;
+  }
+}
+
+.browse-sutta-row.highlight-glow,
+.browse-vagga-header.highlight-glow,
+.browse-nikaya-header.highlight-glow {
+  animation: browse-highlight-in 2.5s ease-out forwards;
+  border-radius: var(--radius-sm);
+}
+
+/* ===== Suttaplex ===== */
+.suttaplex-wrap {
+  display: flex;
+  flex-direction: column;
+  padding: 20px 24px;
+  gap: 14px;
+}
+
+/* ── Header: Pali name + ID ── */
+.suttaplex-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.suttaplex-id-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sp-back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background .15s, border-color .15s, color .15s;
+}
+
+.sp-back-btn:hover {
+  background: var(--accent-subtle);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.sp-back-btn svg {
+  width: 15px;
+  height: 15px;
+}
+
+.suttaplex-id {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: .08em;
+  /* text-transform: uppercase; */
+}
+
+.suttaplex-pali-name {
+  font-family: var(--font-serif);
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text-primary);
+  margin: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.suttaplex-blurb {
+  font-size: .88rem;
+  color: var(--text-secondary);
+  line-height: 1.65;
+  margin: 0;
+  position: relative;
+  padding-bottom: 32px;
+}
+
+/* ── Language buttons ── */
+.suttaplex-langs {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.suttaplex-langs-label {
+  font-size: .7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 28px;
+  /* Gunakan height tetap biar nggak melar gara-gara tombol */
+}
+
+.suttaplex-langs-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.suttaplex-source-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.suttaplex-source-group {
+  flex: 1 1 140px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.suttaplex-langs-divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 0;
+}
+
+.suttaplex-lang-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  text-decoration: none;
+  color: var(--text-primary);
+  transition: background var(--transition), border-color var(--transition), transform .15s ease;
+}
+
+.suttaplex-lang-btn:not(.locked):hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.suttaplex-lang-btn.locked {
+  opacity: .45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.suttaplex-lang-btn.locked .lang-tag {
+  filter: grayscale(1);
+}
+
+.suttaplex-lang-btn .lang-tag {
+  font-size: .65rem;
+  padding: 2px 7px;
+  flex-shrink: 0;
+}
+
+.suttaplex-lang-label {
+  font-size: .85rem;
+  font-weight: 500;
+}
+
+@media (max-width: 600px) {
+  .suttaplex-source-group {
+    flex: 1 1 100%;
+  }
+}
+
+.suttaplex-lang-legend {
+  margin: 4px 0 0;
+  font-size: .72rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.suttaplex-none {
+  color: var(--text-muted);
+  font-size: .88rem;
+  text-align: center;
+  padding: 20px 0;
+}
+
+.suttaplex-sc-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+  font-size: .8rem;
+}
+
+.suttaplex-sc-label {
+  color: var(--text-muted);
+  font-size: .72rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  margin-right: 4px;
+}
+
+.suttaplex-sc-links a {
+  font-size: .72rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  transition: all .15s ease;
+}
+
+.suttaplex-sc-links a:hover {
+  background: var(--bg-card-hover);
+  border-color: currentColor;
+}
+
+.suttaplex-sc-links a.id {
+  color: var(--tag-id);
+}
+
+.suttaplex-sc-links a.en {
+  color: var(--tag-en);
+}
+
+.suttaplex-sc-links a.pli {
+  color: var(--tag-pli);
+}
+
+/* ── Suttaplex prev/next navigation ── */
+/* Nav prev/next halaman baca — sejajarkan dgn teks konten, padding vertikal simetris */
+.sp-nav.sutta-sp-nav {
+  padding: 20px 24px;
+}
+
+/* Nav bawah ada DI DALAM #sutta-content (sudah padding samping 24px),
+   jadi jangan dobel; cukup garis pemisah dari teks di atasnya. */
+#sutta-content .sp-nav.sutta-sp-nav {
+  padding-left: 0;
+  padding-right: 0;
+  border-top: 1px solid var(--border);
+}
+
+.sp-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px 20px;
+}
+
+.sp-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: .82rem;
+  max-width: 45%;
+  transition: background .15s, border-color .15s, color .15s;
+}
+
+.sp-nav-btn:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.sp-nav-btn svg {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+}
+
+.sp-nav-next {
+  margin-left: auto;
+  text-align: right;
+}
+
+.sp-nav-next .sp-nav-label {
+  align-items: flex-end;
+}
+
+.sp-nav-label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sp-nav-id {
+  font-weight: 600;
+  font-size: .8rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sp-nav-name {
+  font-size: .75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: .8;
+  max-width: 100%;
+}
+
+/* ── Reader (sutta page) header controls ── */
+.reader-controls-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+/* ================================================================
+   Custom Dialog (replaces native alert / confirm)
+   ================================================================ */
+#dk-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(.96);
+  width: 380px;
+  max-width: calc(100vw - 32px);
+  border: 1px solid var(--border-strong);
+  background: var(--bg-primary);
+  border-radius: 12px;
+  padding: 0;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .45);
+  opacity: 0;
+  transition: opacity .15s ease, transform .15s ease;
+  overflow: hidden;
+  color: var(--text-primary);
+}
+
+#dk-dialog[open] {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+#dk-dialog::backdrop {
+  background: rgba(0, 0, 0, .55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.dk-dlg-body {
+  padding: 24px 24px 8px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.dk-dlg-icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+.dk-dlg-icon.info {
+  background: var(--accent-subtle, rgba(212, 175, 55, .15));
+  color: var(--accent, #d4af37);
+}
+
+.dk-dlg-icon.warn {
+  background: rgba(245, 158, 11, .15);
+  color: #f59e0b;
+}
+
+.dk-dlg-msg {
+  font-size: .9rem;
+  line-height: 1.55;
+  padding-top: 6px;
+  word-break: break-word;
+}
+
+.dk-dlg-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 16px 24px 20px;
+}
+
+.dk-dlg-btn {
+  padding: 7px 18px;
+  border-radius: 7px;
+  font-size: .85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--border-strong);
+  transition: all .15s ease;
+}
+
+.dk-dlg-btn.cancel {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+}
+
+.dk-dlg-btn.cancel:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+}
+
+.dk-dlg-btn.primary {
+  background: var(--primary, var(--accent));
+  color: #0f0f14;
+  border-color: transparent;
+}
+
+.dk-dlg-btn.primary:hover {
+  filter: brightness(1.1);
+}
+
+.dk-dlg-btn.danger {
+  background: var(--danger, #e05);
+  color: #fff;
+  border-color: transparent;
+}
+
+.dk-dlg-btn.danger:hover {
+  filter: brightness(1.15);
+}
+
+/* ── Sutta floating button group (TOC + Seg) ── */
+.reader-fab-group {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  align-items: center;
+}
+
+.toc-fab {
+  position: static;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .25);
+  z-index: 50;
+  transition: transform .15s, box-shadow .15s;
+}
+
+.toc-fab:hover {
+  transform: scale(1.08);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .3);
+}
+
+.toc-fab svg {
+  width: 20px;
+  height: 20px;
+}
+
+.font-fab-label {
+  font-size: .95rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -.02em;
+}
+
+.font-panel-body {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.font-panel-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.font-panel-label {
+  font-size: .82rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.font-family-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.font-family-btn {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: 4px 12px;
+  font-size: .82rem;
+  line-height: 1.4;
+  transition: background .12s, border-color .12s, color .12s;
+}
+
+.font-family-btn:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent);
+}
+
+.font-family-btn.active {
+  background: var(--accent-subtle);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.font-panel-row-slider {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.font-slider-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.font-size-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.reader-serif .seg-text,
+.reader-serif .seg-col {
+  font-family: var(--font-serif);
+}
+
+#sutta-body .sutta-segment,
+#sutta-dialog-content .sutta-segment {
+  line-height: var(--reader-line-height, 1.7);
+}
+
+
+.font-reset-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: .78rem;
+  min-width: 28px;
+  min-height: 28px;
+  padding: 4px 6px;
+  margin-left: auto;
+  opacity: 0.7;
+  transition: opacity .12s, color .12s;
+}
+
+.font-reset-btn:hover {
+  opacity: 1;
+  color: var(--accent);
+}
+
+.font-size-a-small {
+  font-size: .75rem;
+  color: var(--text-secondary);
+  line-height: 1;
+}
+
+.font-size-a-large {
+  font-size: 1.15rem;
+  color: var(--text-secondary);
+  line-height: 1;
+}
+
+.font-size-slider {
+  flex: 1;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.toc-panel {
+  position: absolute;
+  bottom: 76px;
+  right: 24px;
+  width: 280px;
+  max-height: 60vh;
+  background: var(--bg-card);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, .18);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.toc-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px 8px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.toc-panel-title {
+  font-weight: 600;
+  font-size: .88rem;
+}
+
+.toc-list {
+  overflow-y: auto;
+  padding: 6px 0;
+}
+
+.toc-item {
+  display: block;
+  padding: 5px 14px;
+  font-size: .82rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: background .1s, color .1s;
+}
+
+.toc-item:hover {
+  background: var(--hover);
+  color: var(--accent);
+}
+
+/* Segment list item */
+.seg-list-item {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  white-space: normal;
+}
+
+.seg-list-ref {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: .74rem;
+  font-weight: 600;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.seg-list-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: .80rem;
+}
+
+/* Folded body-heading entries in the segment list (kept distinct from ".1" content). */
+.seg-list-heading .seg-list-text {
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: normal;
+}
+
+/* Speaker (".0") entries in the segment list — own row, like headings but lighter. */
+.seg-list-speaker .seg-list-text {
+  font-weight: 600;
+  color: var(--accent);
+  white-space: normal;
+}
+
+.toc-h1 {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.toc-h2 {
+  padding-left: 16px;
+}
+
+.toc-h3 {
+  padding-left: 30px;
+  font-size: .80rem;
+}
+
+.toc-h4 {
+  padding-left: 44px;
+  font-size: .78rem;
+}
+
+.toc-h5 {
+  padding-left: 56px;
+  font-size: .76rem;
+  color: var(--text-secondary);
+}
+
+/* Pitaka badge in search results */
+.sutta-pitaka-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  vertical-align: middle;
+  margin-right: 8px;
+  margin-bottom: 2px;
+}
+
+/* Grup-kanan header kartu: nama kitab + badge piṭaka (sinkron web-eval). */
+.sutta-card-meta {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+/* Nama kitab/koleksi (mis. Aṅguttaranikāya) di kanan badge piṭaka — chip netral
+   berpasangan dgn badge piṭaka (dimensi sama), warna kalem biar badge piṭaka
+   yg berwarna tetap dominan. Tidak uppercase: ini nama Pāli (Title-case asli). */
+.sutta-collection-badge {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 4px;
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  vertical-align: middle;
+  margin-right: 8px;
+  margin-bottom: 2px;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
+.sutta-pitaka-badge.sutta,
+.browse-nikaya:nth-child(1)>.browse-nikaya-header {
+  background-color: rgba(52, 152, 219, 0.15);
+  color: #2980b9;
+  border: 1px solid rgba(52, 152, 219, 0.3);
+}
+
+.sutta-pitaka-badge.vinaya,
+.browse-nikaya:nth-child(2)>.browse-nikaya-header {
+  background-color: rgba(231, 76, 60, 0.15);
+  color: #c0392b;
+  border: 1px solid rgba(231, 76, 60, 0.3);
+}
+
+.sutta-pitaka-badge.abhidhamma,
+.browse-nikaya:nth-child(3)>.browse-nikaya-header {
+  background-color: rgba(155, 89, 182, 0.15);
+  color: #8e44ad;
+  border: 1px solid rgba(155, 89, 182, 0.3);
+}
+
+[data-theme="dark"] .sutta-pitaka-badge.sutta {
+  color: #5dade2;
+}
+
+[data-theme="dark"] .sutta-pitaka-badge.vinaya {
+  color: #e74c3c;
+}
+
+[data-theme="dark"] .sutta-pitaka-badge.abhidhamma {
+  color: #af7ac5;
+}
+
+/* Responsive display utilities */
+.show-mobile {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .hide-mobile {
+    display: none !important;
+  }
+
+  .show-mobile {
+    display: inline-block !important;
+  }
+}
+
+/* ===== Search result: per-translator sub-group inside a grouped card ===== */
+.sutta-author-group {
+  border-left: 2px solid var(--border);
+  padding-left: 10px;
+  margin: 8px 0 4px;
+}
+
+.sutta-author-group-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm, 6px);
+  background: var(--surface-hover, var(--bg-tertiary));
+  color: var(--text-muted);
+  font-size: .75rem;
+  font-weight: 700;
+  /* text-transform: uppercase; */
+  letter-spacing: 0.03em;
+}
+
+.sutta-author-group-label i,
+.sutta-author-group-label svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* ===== Search result: sutta-card outline tinted by piṭaka ===== */
+/* Colors mirror the .sutta-pitaka-badge palette (sutta=blue, vinaya=red, abhidhamma=purple). */
+.sutta-card.pitaka-sutta {
+  border-color: rgba(52, 152, 219, 0.5);
+}
+
+.sutta-card.pitaka-vinaya {
+  border-color: rgba(231, 76, 60, 0.5);
+}
+
+.sutta-card.pitaka-abhidhamma {
+  border-color: rgba(155, 89, 182, 0.5);
+}
+
+.sutta-card.pitaka-sutta:hover {
+  border-color: rgba(52, 152, 219, 0.85);
+}
+
+.sutta-card.pitaka-vinaya:hover {
+  border-color: rgba(231, 76, 60, 0.85);
+}
+
+.sutta-card.pitaka-abhidhamma:hover {
+  border-color: rgba(155, 89, 182, 0.85);
+}
+
+/* ========== Toast notification (showToast di common.js) ==========
+   Toast generik (dipakai "Ditambahkan ke catatan", "Blok disalin", dll) -> netral,
+   pakai token tema biar adaptif dark/light. fade+slide mengandalkan transition ini
+   + pola double-rAF di showToast(). */
+#dk-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(16px);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: 10px 18px;
+  font-size: .82rem;
+  font-weight: 600;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s ease, transform .2s ease;
+  z-index: 9999;
+  white-space: nowrap;
+  box-shadow: var(--shadow-lg);
+}
+
+#dk-toast.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}

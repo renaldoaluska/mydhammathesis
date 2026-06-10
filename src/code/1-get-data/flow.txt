@@ -1,0 +1,44 @@
+================================================================================
+FLOW — TAHAP 1: GET-DATA (akuisisi korpus mentah + base model)
+Tujuan tahap: menyediakan SUMBER KEBENARAN mentah (read-only) untuk seluruh
+pipeline. Tidak ada keputusan ilmiah di sini — murni pengunduhan + pin versi.
+Output utama: src/output/1-get-data/{sc-raw, base-models}.
+Jalankan: bash src/code/1-get-data/run.sh
+================================================================================
+
+1-get-sc-bilara.py
+  APA  : unduh sc_bilara_data (Theravada/pli-ms) — teks Pali ROOT + terjemahan,
+         tersegmentasi per-baris (format bilara).
+  HASIL: sc-raw/sc_bilara_data/  (kanon ter-segmentasi, presisi struktur).
+  KENAPA LANJUT: ini tulang punggung korpus; jadi acuan ID segmen yang dipakai
+         chunker (3-praproses) untuk menyatukan teks + struktur.
+
+2-get-sc-htmltext.py
+  APA  : unduh html_text — terjemahan format HTML (id mis. Anggara; en non-bilara).
+  HASIL: sc-raw/html_text/<lang>/pli/<pitaka>/...
+  KENAPA LANJUT: sumber utama teks terjemahan id+en. Struktur HTML-nya (heading,
+         <p class>, <b>) justru yang dianalisis di 2-eksplor untuk menentukan rule
+         chunking. INI yang bikin "multibahasa" mungkin.
+
+3-get-sc-name.py / 4-get-sc-tree.py
+  APA  : nama sutta + hierarki nikaya (struktur browse).
+  HASIL: sc-raw/name/, sc-raw/tree/
+  KENAPA LANJUT: dipakai web (judul & navigasi); bukan jalur training.
+
+5-get-sc-info.py
+  APA  : metadata — author_edition.json (atribusi penerjemah) + language.json.
+  HASIL: sc-raw/author_edition.json, language.json
+  KENAPA LANJUT: chunker (3-praproses) memetakan author dari sini -> id unik per
+         terjemahan (cegah tabrakan segmen antar-penerjemah).
+
+6-get-base-models.py
+  APA  : snapshot base model REGISTRY (multilingual-e5, gte-multilingual, bge-m3)
+         ke lokal + PIN revisi.
+  HASIL: base-models/<model>/
+  KENAPA LANJUT: reproducibility + eval offline. Dibaca 2-eksplor/1-parameter
+         (feasibility) dan 4-training (titik awal adaptasi domain).
+
+────────────────────────────────────────────────────────────────────────────────
+JEMBATAN KE TAHAP 2 (eksplor): korpus mentah (sc-raw) + base-models kini tersedia.
+Sebelum di-chunk, struktur & cakupannya HARUS dipahami dulu -> itu tugas 2-eksplor.
+================================================================================

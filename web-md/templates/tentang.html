@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}Tentang — myDhamma{% endblock %}
+
+{% block header_subtitle %}
+<span class="header-subtitle">Tentang myDhamma</span>
+{% endblock %}
+
+{% block source_toggle %}{% endblock %}
+{% block right_panel %}{% endblock %}
+
+{% block head_extra %}
+<style>
+    #resize-handle {
+        display: none !important;
+    }
+
+    #search-panel {
+        flex: 1 1 100% !important;
+    }
+</style>
+{% endblock %}
+
+{% block main_panel %}
+<div id="tentang-app">
+    <div id="tentang-loading" class="empty-state">
+        <div class="spinner"></div>
+        <p>Memuat…</p>
+    </div>
+    <div id="tentang-content" class="tentang-md hidden"></div>
+</div>
+<button id="btn-toc" class="tentang-toc-fab" hidden><i data-lucide="menu"></i> <span id="btn-toc-label">Daftar
+        Isi</span></button>
+<div id="toc-popover" class="tentang-toc-popover"></div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+    (function () {
+        // Custom renderer: add id to headings so TOC anchor links work
+        const renderer = new marked.Renderer();
+        renderer.heading = function (token) {
+            const text = this.parser ? this.parser.parseInline(token.tokens) : token.text;
+            const level = token.depth;
+            const id = (token.raw || token.text)
+                .toLowerCase()
+                .replace(/[`*_[\](){}#!>]/g, "")
+                .trim()
+                .replace(/\s+/g, "-")
+                .replace(/[^\w-]/g, "");
+            return `<h${level} id="${id}">${text}</h${level}>\n`;
+        };
+        marked.use({ renderer });
+
+        const TOC_LABEL = { id: "Daftar Isi", en: "Table of Contents" };
+
+        function updateTocLabel() {
+            const lang = localStorage.getItem("dk-lang") || "id";
+            const lbl = document.getElementById("btn-toc-label");
+            if (lbl) lbl.textContent = TOC_LABEL[lang] || TOC_LABEL.id;
+        }
+
+        async function loadReadme() {
+            const lang = localStorage.getItem("dk-lang") || "id";
+            updateTocLabel();
+            const url = lang === "en" ? "/api/readme?lang=en" : "/api/readme";
+            const el = document.getElementById("tentang-content");
+            el.classList.add("hidden");
+            document.getElementById("tentang-loading").classList.remove("hidden");
+            const res = await fetch(url);
+            const md = await res.text();
+            document.getElementById("tentang-loading").classList.add("hidden");
+            el.innerHTML = marked.parse(md).replace(/src="web\/static\//g, 'src="/static/');
+            el.querySelectorAll("table").forEach(t => {
+                const w = document.createElement("div");
+                w.className = "table-wrapper";
+                t.parentNode.insertBefore(w, t);
+                w.appendChild(t);
+            });
+            // Remove README lang-switch links (the site has its own lang switcher)
+            el.querySelectorAll('a[href="README.md"], a[href="README_EN.md"]').forEach(a => {
+                const p = a.closest("p");
+                if (p) p.remove(); else a.remove();
+            });
+            el.classList.remove("hidden");
+
+            // Build TOC popover from headings
+            const tocBtn = document.getElementById("btn-toc");
+            const popover = document.getElementById("toc-popover");
+            const headings = el.querySelectorAll("h1, h2, h3");
+            if (headings.length) {
+                popover.innerHTML = "";
+                headings.forEach(h => {
+                    const a = document.createElement("a");
+                    a.href = "#" + h.id;
+                    a.textContent = h.textContent;
+                    a.className = "toc-" + h.tagName.toLowerCase();
+                    a.addEventListener("click", e => {
+                        e.preventDefault();
+                        popover.classList.remove("open");
+                        const scroller = document.getElementById("search-scroll");
+                        const target = document.getElementById(h.id);
+                        if (scroller && target) {
+                            scroller.scrollTo({ top: target.offsetTop - 12, behavior: "smooth" });
+                        }
+                    });
+                    popover.appendChild(a);
+                });
+                tocBtn.removeAttribute("hidden");
+                tocBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    popover.classList.toggle("open");
+                };
+                document.addEventListener("click", () => popover.classList.remove("open"));
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", loadReadme);
+        window.addEventListener("dk-lang-change", () => { updateTocLabel(); loadReadme(); });
+    })();
+</script>
+{% endblock %}

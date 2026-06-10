@@ -1,0 +1,48 @@
+================================================================================
+VERDICT — TAHAP 3 PRAPROSES (verifikasi hasil chunk)
+Grounded ke output run: 4-spot-check.txt, 3-panjang.txt, 2-statistik.txt.
+Status: AMAN & TERVERIFIKASI.
+================================================================================
+
+Total chunk: 444,247
+
+[A] CHUNKING BERSIH (sumber: 4-spot-check.txt bagian A)
+  Outlier >5.000 karakter: 4 chunk (0.0009%), max 7.420.
+  Keempatnya teks panjang yang SAH (aturan Vinaya pli-tv-bu-vb-pj3/kd13/pc8, mn113),
+  BUKAN artefak parsing (<p> tak tertutup / segmen tanpa <br>).
+  -> tidak ada chunk rusak.
+
+[B] TAGGING BERJALAN (sumber: 4-spot-check.txt bagian B)
+  distribusi heading: body=377.154 | h1=42.577 h2=8.810 h3=5.519 h4=4.221 h5=1.991 h6=3.975
+    (catatan: h4-h6 TERTANGKAP -> asumsi lama "h4-h6 terbuang" sudah tidak berlaku.)
+  penanda structural (ke-tag -> dikecualikan dari body-default + SUMBER latih GPL):
+    label=2.243 | end=1.330 | endsutta=1.040 | endsection=863 | pe=283 | endvagga=80
+    namo=31 | endbook=30 | colophon=17 | uddana-intro=15 | endkanda=7
+  -> rule chunk_rules.json + bold-label + kolofon BENAR diterapkan; angka konsisten
+     dengan temuan 2-eksplor/4-analisis-lanjutan.txt.
+
+[C] SISA LEAKAGE (sumber: 4-spot-check.txt bagian C)
+  "judul-pendek (<=5 kata)" = 21.856 (5,80% dari body); sebaran: sutta 16.934,
+  vinaya 3.180, abhidhamma 1.742.
+  Pembedahan sampel -> mayoritas BENIGN:
+   (1) Teks Paṭṭhāna (Abhidhamma) yang memang ringkas ("With", "Not", "Of") =
+       KONTEN kanonik sah, bukan sampah; tidak dibuang.
+   (2) Judul struktural dari korpus BILARA (mis. "Theravāda Collection on Monastic
+       Law", "The Nuns' Analysis", "Majority decision;") -> bocor karena chunker
+       BILARA (chunk_bilara) hanya menandai <hN>, belum mendapat perlakuan
+       class/header/bold seperti chunker HTML.
+  DAMPAK: kecil. Untuk TRAINING, GPL_MIN_WORDS=8 sudah menyaring judul-judul pendek
+  ini (mayoritas <8 kata). Untuk indeks, judul pendek jarang muncul di hasil kueri.
+
+[D] PANJANG TOKEN -> JUSTIFIKASI max_seq (sumber: 3-panjang.txt)
+  Mean 68,9 | P95 212 | P99 374 | Max 2.156 token; %<=512 = 99,7%.
+  -> GPL_MAX_SEQ = 384 token tepat (menutup ~99%+ chunk secara utuh, hemat memori).
+
+────────────────────────────────────────────────────────────────────────────────
+KETERBATASAN DIKETAHUI (known limitation):
+  Asimetri chunker BILARA vs HTML pada penandaan judul non-<hN> (lihat [C](2)).
+  Status: DIPARKIR — dampak training sudah ter-handle GPL_MIN_WORDS; opsi perbaikan
+  = samakan perlakuan header/class di chunk_bilara (pekerjaan lanjutan).
+
+KESIMPULAN: hasil chunk valid sebagai SUMBER training (4-training). Lanjut aman.
+================================================================================

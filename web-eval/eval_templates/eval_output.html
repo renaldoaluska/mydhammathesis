@@ -1,0 +1,92 @@
+{% extends "eval_base.html" %}
+
+{% block title %}Output Asesmen — myDhamma{% endblock %}
+
+{% block panel_toggle_icon %}sliders-horizontal{% endblock %}
+{% block panel_toggle_label %}<span data-i18n="panel_sidebar">Bilah Sisi</span>{% endblock %}
+
+{% block header_subtitle %}
+<span class="header-subtitle" data-i18n="hdr_subtitle_output">Output Asesmen</span>
+{% endblock %}
+
+{% block right_panel %}
+<section id="eval-sidebar">
+    <div class="eval-sidebar-inner">
+        <div class="eval-sidebar-card glass-panel">
+            <h3><i data-lucide="bar-chart-3"></i> Ringkasan</h3>
+            <div class="eval-sidebar-info-stack">
+                <div class="eval-sidebar-info-item horizontal">
+                    <label>Pakar GRA</label>
+                    <span id="eo-summary-files">—</span>
+                </div>
+                <div class="eval-sidebar-info-item horizontal">
+                    <label>Total Entri GRA</label>
+                    <span id="eo-summary-entries">—</span>
+                </div>
+
+            </div>
+        </div>
+        <div class="eval-sidebar-card glass-panel">
+            <h3><i data-lucide="folder-open"></i> File GRA</h3>
+            <div id="eo-file-nav" class="eval-sidebar-info-stack"></div>
+        </div>
+
+        <div class="eval-sidebar-card glass-panel">
+            <h3><i data-lucide="settings"></i> Konfigurasi</h3>
+            <details class="eo-config-details">
+                <summary><i data-lucide="file-text"></i> Kueri</summary>
+                <div class="eo-config-body">
+                    <textarea id="eo-queries-editor" class="eo-json-editor" spellcheck="false"></textarea>
+                    <div class="eo-config-actions">
+                        <button class="btn-primary btn-sm" onclick="eoCfgSave('queries')"><i data-lucide="save"></i>
+                            Simpan</button>
+                        <span id="eo-queries-msg" class="eo-cfg-msg"></span>
+                    </div>
+                </div>
+            </details>
+            <details class="eo-config-details">
+                <summary><i data-lucide="users"></i> Pakar</summary>
+                <div class="eo-config-body">
+                    <textarea id="eo-experts-editor" class="eo-json-editor" spellcheck="false"></textarea>
+                    <div class="eo-config-actions">
+                        <button class="btn-primary btn-sm" onclick="eoCfgSave('experts')"><i data-lucide="save"></i>
+                            Simpan</button>
+                        <span id="eo-experts-msg" class="eo-cfg-msg"></span>
+                    </div>
+                </div>
+            </details>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block main_panel %}
+<div class="eval-topbar">
+    <a href="/" class="sp-back-btn" title="Kembali ke Beranda"><i data-lucide="arrow-left"></i></a>
+</div>
+<div id="eo-app">
+    <div id="eo-loading" class="empty-state">
+        <div class="spinner"></div>
+        <p>Memuat data…</p>
+    </div>
+    <div id="eo-empty" class="empty-state hidden">
+        <div class="empty-icon"><i data-lucide="inbox"></i></div>
+        <h2>Belum Ada Data</h2>
+        <p>Belum ada file anotasi yang tersimpan.</p>
+    </div>
+    <div id="eo-summary-section" class="hidden">
+        <h2 class="eo-section-heading">Graded Relevance Assessment</h2>
+        <div id="eo-matrix-wrap"></div>
+    </div>
+    <div id="eo-content" class="hidden"></div>
+
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    window.EVAL_TYPE = parseInt("{{ eval_type|default(1) }}", 10);
+</script>
+<script src="{{ versioned_static('eval_output.js') }}"></script>
+{% endblock %}

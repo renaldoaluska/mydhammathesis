@@ -1,33 +1,61 @@
-=== PRAPROSES 4 — SPOT-CHECK CHUNK > 5,000 KARAKTER ===
+=== PRAPROSES 4 — VERIFIKASI POST-CHUNK ===
 
 Total chunk diproses : 444,247
-Chunk > 5,000 char  : 4
-Persentase            : 0.0009%
-Max karakter          : 7,420
 
-  #  Chars  Words  H Lang Source  Author             Base/UID                                
----------------------------------------------------------------------------------------------
-  1  7,420  1,260  0 en   bilara  brahmali           pli-tv-bu-vb-pj3                        
-  2  5,624    620  0 pli  bilara  ms                 mn113                                   
-  3  5,215    808  0 en   bilara  brahmali           pli-tv-kd13                             
-  4  5,022    887  0 en   bilara  brahmali           pli-tv-bu-vb-pc8                        
----------------------------------------------------------------------------------------------
+[A] OUTLIER > 5,000 karakter : 4  (0.0009%)
+    max karakter         : 7,420
+      #  Chars  Words  H Lang Source  Author           Base/UID                        
+    -----------------------------------------------------------------------------------
+      1  7,420  1,260  0 en   bilara  brahmali         pli-tv-bu-vb-pj3                
+      2  5,624    620  0 pli  bilara  ms               mn113                           
+      3  5,215    808  0 en   bilara  brahmali         pli-tv-kd13                     
+      4  5,022    887  0 en   bilara  brahmali         pli-tv-bu-vb-pc8                
 
-================================================================================
-PREVIEW TEKS (maks 200 char)
-================================================================================
+    preview teks (maks 200 char):
+     [1] pli-tv-bu-vb-pj3 (7,420 char, en, bilara/brahmali)
+         A piece of furniture: if a monk places a dagger in a piece of furniture, smears the furniture with poison, or makes it weak, or if he places it near a lake, a pit, or a cliff, thinking, “Falling …
+     [2] mn113 (5,624 char, pli, bilara/ms)
+         Puna caparaṁ, bhikkhave, asappuriso bahussuto hoti. So iti paṭisañcikkhati: ‘ahaṁ khomhi bahussuto, ime panaññe bhikkhū na bahussutā’ti. So tena bāhusaccena attānukkaṁseti, paraṁ vambheti. Ayampi, …
+     [3] pli-tv-kd13 (5,215 char, en, bilara/brahmali)
+         ‘Please, venerables, I ask the Sangha to listen. The monk Udāyī had committed one offense of intentional emission of semen, concealed for a half-month. He asked the Sangha for probation for a half- …
+     [4] pli-tv-bu-vb-pc8 (5,022 char, en, bilara/brahmali)
+         Tells: if a monk says to a person who is not fully ordained, “I attained the first absorption and the second absorption … I’m attaining … I’ve attained … I obtain … I master … I’ve realized the …
 
-[1] pli-tv-bu-vb-pj3  (7,420 char, en, bilara/brahmali)
-    A piece of furniture: if a monk places a dagger in a piece of furniture, smears the furniture with poison, or makes it weak, or if he places it near a lake, a pit, or a cliff, thinking, “Falling …
+[B] VERIFIKASI TAGGING
+    distribusi heading:
+      body(0)     : 377,154
+      heading=1   : 42,577
+      heading=2   : 8,810
+      heading=3   : 5,519
+      heading=4   : 4,221
+      heading=5   : 1,991
+      heading=6   : 3,975
+    penanda structural (ke-tag -> kebuang dari body-default + SUMBER latih):
+      label         : 2,243
+      end           : 1,330
+      endsutta      : 1,040
+      endsection    : 863
+      pe            : 283
+      endvagga      : 80
+      namo          : 31
+      endbook       : 30
+      colophon      : 17
+      uddana-intro  : 15
+      endkanda      : 7
 
-[2] mn113  (5,624 char, pli, bilara/ms)
-    Puna caparaṁ, bhikkhave, asappuriso bahussuto hoti. So iti paṭisañcikkhati: ‘ahaṁ khomhi bahussuto, ime panaññe bhikkhū na bahussutā’ti. So tena bāhusaccena attānukkaṁseti, paraṁ vambheti. Ayampi, …
-
-[3] pli-tv-kd13  (5,215 char, en, bilara/brahmali)
-    ‘Please, venerables, I ask the Sangha to listen. The monk Udāyī had committed one offense of intentional emission of semen, concealed for a half-month. He asked the Sangha for probation for a half- …
-
-[4] pli-tv-bu-vb-pc8  (5,022 char, en, bilara/brahmali)
-    Tells: if a monk says to a person who is not fully ordained, “I attained the first absorption and the second absorption … I’m attaining … I’ve attained … I obtain … I master … I’ve realized the …
+[C] SISA LEAKAGE di body murni (heading=0 & tanpa structural) — total body: 377,137
+    [judul-pendek (<=5 kata, tanpa akhiran kalimat)]  21,856  (5.80% dari body)
+       sebaran pitaka: {'sutta': 16934, 'vinaya': 3180, 'abhidhamma': 1742}
+       - kp1 | The three refuges formula
+       - pli-tv-bi-vb-as1:0.1 | Theravāda Collection on Monastic Law
+       - pli-tv-bi-vb-as1:0.2 | The Nuns’ Analysis
+       - pli-tv-bi-vb-as1:2.2 | Resolution face-to-face to be applied;
+       - pli-tv-bi-vb-as5:1.1 | Majority decision;
+       - pli-tv-bi-vb-as6:1.1 | Further penalty;
+       - pli-tv-bi-vb-np1:0.1 | Theravāda Collection on Monastic Law
+       - pli-tv-bi-vb-np1:0.2 | The Nuns’ Analysis
+       - pli-tv-bi-vb-np1:0.3 | The chapter on relinquishment
+       - pli-tv-bi-vb-np1:0.4 | The subchapter on almsbowls
 
 [INFO] /home/paps21/palisemantic5026221144/mydhamma/src/output/3-praproses/4-spot-check.txt
 === SELESAI ===

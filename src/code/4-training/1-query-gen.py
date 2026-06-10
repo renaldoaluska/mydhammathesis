@@ -7,12 +7,15 @@ Butuh : GPU (disarankan). Komponen: config.GPL_QUERY_GEN.
 """
 
 import os
-os.environ["HF_HUB_TRUST_REMOTE_CODE"] = "1"
+# NB: HF_HUB_TRUST_REMOTE_CODE sengaja TIDAK di-set; generate() pakai
+# num_return_sequences=1 loop agar tidak memicu Group Beam Search deprecated.
 
 import sys
+import re
 from pathlib import Path
 
 import torch
+from tqdm import tqdm
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))                                # _gpl (sedir)
@@ -21,7 +24,14 @@ sys.path.insert(0, str(_BASE))
 import config                                                  # noqa: E402
 import _gpl                                                    # noqa: E402
 
-BATCH = 32
+BATCH = 8
+
+# Token sampah lintas-skrip dari mT5 (vocab 100+ bahasa) yang nyempil saat sampling:
+# buang kueri yang mengandung skrip ASING (Yunani/Sirilik/Ibrani/Arab/Devanagari/Thai/
+# CJK/Hiragana-Katakana/Hangul). Latin + diakritik Pali (ā/ṁ/ñ/ṭ) TETAP lolos.
+_FOREIGN_SCRIPT = re.compile(
+    r"[Ͱ-ϿЀ-ӿ֐-׿؀-ۿ܀-ݏ"
+    r"ऀ-ॿ฀-๿぀-ヿ㐀-鿿가-힯]")
 
 
 def main():
@@ -45,23 +55,53 @@ def main():
     torch.manual_seed(config.GPL_SEED)
 
     n = config.GPL_QUERIES_PER_PASSAGE
+    n_gen = n * 2          # OVER-GENERATE: filter (skrip-asing/pendek/dedup/verbatim) bisa buang
+                           # sebagian; buffer ini cegah pasase berakhir 0 kueri (terutama id).
+    n_batches = (len(passages) + BATCH - 1) // BATCH
+    print(f"[query-gen] device={device}  n_gen={n_gen}  batches={n_batches:,}  "
+          f"(ini agak lama, ~{n_gen} generate call per batch)", flush=True)
+
     out = []
-    for i in range(0, len(passages), BATCH):
+    pbar = tqdm(range(0, len(passages), BATCH), total=n_batches,
+                desc="query-gen", unit="batch", dynamic_ncols=True)
+    for i in pbar:
         batch = passages[i:i + BATCH]
         enc = tok([p["text"] for p in batch], truncation=True, max_length=config.GPL_MAX_SEQ,
                   padding=True, return_tensors="pt").to(device)
         with torch.no_grad():
-            gen = model.generate(**enc, max_length=64, do_sample=True, top_k=10,
-                                  num_return_sequences=n)
+            # Nucleus (top-p) sampling. num_beams=1 WAJIB di transformers >= 5.x agar
+            # num_return_sequences > 1 tidak memicu Group Beam Search (deprecated).
+            gen = model.generate(**enc, max_length=64, do_sample=True,
+                                 top_p=0.92, top_k=0, repetition_penalty=1.2,
+                                 no_repeat_ngram_size=2,
+                                 num_return_sequences=n_gen, num_beams=1)
         dec = tok.batch_decode(gen, skip_special_tokens=True)
         for j, p in enumerate(batch):
-            for q in dec[j * n:(j + 1) * n]:
+            seen = set()
+            ptext = p["text"].lower()
+            kept = 0
+            for q in dec[j * n_gen:(j + 1) * n_gen]:
+                if kept >= n:                    # cukup n kueri BERSIH per pasase
+                    break
                 q = q.strip()
-                if q:
-                    out.append({"query": q, "pid": p["pid"]})
-        if (i // BATCH) % 20 == 0:
-            print(f"  {i + len(batch):,}/{len(passages):,} pasase ...")
+                ql = q.lower()
+                if _FOREIGN_SCRIPT.search(q):    # buang kueri ber-skrip asing (noise mT5)
+                    continue
+                if len(ql.split()) < 3:          # buang fragmen terlalu pendek
+                    continue
+                if ql in seen:                   # dedup antar-beam per pasase
+                    continue
+                if ql in ptext:                  # buang salinan verbatim pasase (bukan kueri asli)
+                    continue
+                seen.add(ql)
+                out.append({"query": q, "pid": p["pid"]})
+                kept += 1
+        pbar.set_postfix(kueri=f"{len(out):,}", refresh=True)
 
+    pids_with_q = {r["pid"] for r in out}
+    zero = len(passages) - len(pids_with_q)
+    print(f"[query-gen] pasase >=1 kueri: {len(pids_with_q):,}/{len(passages):,}  "
+          f"(0 kueri: {zero:,} = {100*zero/max(len(passages),1):.2f}%)")
     _gpl.write_jsonl(_gpl.QUERIES, out)
     print(f"[done] {len(out):,} kueri -> {_gpl.QUERIES}")
 

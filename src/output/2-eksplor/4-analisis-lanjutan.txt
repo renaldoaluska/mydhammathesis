@@ -1,0 +1,46 @@
+=== ANALISIS STRUKTURAL LANJUTAN (pola per-genre; PRA-chunk; NETRAL) ===
+
+[A] INVENTARIS <p class='...'> per pitaka (id+en digabung)
+    class                  sutta      vinaya  abhidhamma     TOTAL
+    end                      124         529         678     1,331
+    endsutta                 752         224          64     1,040
+    endsection               167          64         632       863
+    rule                       0         356           0       356
+    pe                         0           5         278       283
+    question                   0           0         279       279
+    speaker                   87           0           0        87
+    endvagga                  63          17           0        80
+    namo                      19           7           5        31
+    endbook                   15           2          13        30
+    subheading                29           0           0        29
+    add                       12           0          11        23
+    uddana-intro               0          15           0        15
+    endkanda                   0           7           0         7
+    vagga                      0           1           0         1
+
+[B] POLA LEMMA-TEBAL <p>/<li> (isi = cuma <b>/<strong>)  -> rule label chunker
+    sutta       : 0
+    vinaya      : 1,855
+    abhidhamma  : 160
+    sample (vinaya):
+      - pli-tv-bu-vb-pj1 | Seorang:
+      - pli-tv-bu-vb-pj1 | Bhikkhu:
+      - pli-tv-bu-vb-pj1 | Latihan:
+      - pli-tv-bu-vb-pj1 | Tanpa terlebih dulu meninggalkan latihan dan mengu
+      - pli-tv-bu-vb-pj1 | Hubungan seksual:
+      - pli-tv-bu-vb-pj1 | Melakukan:
+      - pli-tv-bu-vb-pj1 | Bahkan dengan seekor binatang betina:
+      - pli-tv-bu-vb-pj1 | Ia diusir:
+
+[C] POLA TANYA-JAWAB <p class='question'> per kitab
+    pp        : 279
+    sample:
+      - pp2.4 | PTS vp En 4.1 1. What sort of person is not a good man?
+      - pp2.4 | What sort of person is more “not a good man” than the “not good man”?
+      - pp2.4 | What sort of person is a good man?
+      - pp2.4 | What sort of person is a better man than the good man?
+      - pp2.4 | PTS vp En 4.2 2. What sort of person is wicked?
+      - pp2.4 | What sort of person is more wicked than the wicked?
+      - pp2.4 | What sort of person is of lovely disposition?
+      - pp2.4 | What sort of person is more lovely than one of lovely disposition?
+

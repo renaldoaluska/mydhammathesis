@@ -1,0 +1,59 @@
+================================================================================
+FLOW — TAHAP 2: EKSPLOR (karakterisasi PRA-chunk -> justifikasi rule chunking)
+Tujuan tahap: MEMAHAMI korpus mentah sebelum diolah, lalu MENURUNKAN rule chunking
+yang terjustifikasi data (bukan asumsi). Semua script cetak TEMUAN NETRAL (angka);
+interpretasi + keputusan ada di rangkuman.txt. Output mesin: chunk_rules.json.
+Jalankan: bash src/code/2-eksplor/run.sh   (PRA-chunk; bisa sebelum 3-praproses)
+================================================================================
+
+1-parameter.py
+  APA  : ukuran (jumlah parameter) tiap model REGISTRY.
+  HASIL: 1-parameter.txt
+  KENAPA LANJUT: gerbang FEASIBILITY — semua model skala juta (muat GPU 12GB).
+         Kalau tak muat, percuma lanjut. Lolos -> aman karakterisasi korpus.
+
+2-hierarki.py
+  APA  : struktur direktori korpus + MATRIKS cakupan file per bahasa x pitaka.
+  HASIL: 2-hierarki.txt
+  TEMUAN KUNCI: id punya Sutta+Vinaya, TAPI Abhidhamma=0 (hanya en).
+  KENAPA LANJUT: menetapkan CAKUPAN/scope. Temuan id-tanpa-Abhidhamma ini yang
+         membatasi klaim "multibahasa pada Kanon Pali" -> wajib dinyatakan, dan
+         menentukan scope adaptasi domain (4-training).
+
+3-analisis-korpus.py
+  APA  : karakteristik struktur UMUM mentah — distribusi heading (h1-h6), segmen
+         non-konten, file dgn <p> tak tertutup, distribusi panjang.
+  HASIL: 3-analisis-korpus.txt
+  KENAPA LANJUT: dari sini ketahuan korpus PUNYA heading berlevel & ada <p> tak
+         tertutup (-> chunker harus HTML-aware + tag heading). Memunculkan
+         pertanyaan: struktur KHAS apa lagi per-genre? -> dijawab langkah 4.
+
+4-analisis-lanjutan.py
+  APA  : LANJUTAN dari 3 — pola struktur PER-GENRE: inventaris <p class='...'>,
+         lemma-tebal <p><b>..</b></p>, pola tanya-jawab <p class=question>.
+  HASIL: 4-analisis-lanjutan.txt
+  TEMUAN KUNCI: lemma-tebal (Vinaya 1.855 + Abhidhamma 160), ~15 class struktural
+         ("sampah": end*/pe/namo/..), Q&A (Pp 279).
+  KENAPA LANJUT: tiap pola ini = kandidat RULE chunking (mana di-tag structural,
+         mana heading, mana konten). Daftar inilah yang dikurasi jadi policy.
+
+5-simulasi-chunk.py
+  APA  : dry-run chunk -> deteksi chunk RAKSASA (>5.000 karakter), kandidat artefak.
+  HASIL: 5-simulasi-chunk.txt
+  KENAPA LANJUT: identifikasi file yang butuh rule pemotongan khusus -> dievaluasi
+         di langkah 6.
+
+6-simulasi-lanjutan.py
+  APA  : evaluasi strategi pemotongan chunk raksasa (double-br/PTS/Horner) + KURASI
+         policy class (structural_classes & heading_classes, dari inventaris [A]).
+  HASIL: chunk_rules.json  (+ 6-simulasi-lanjutan.txt)
+  KENAPA LANJUT: chunk_rules.json = SATU file rule yang dibaca chunker. Semua
+         keputusan struktur tahap ini "membeku" di sini -> dipakai 3-praproses.
+
+────────────────────────────────────────────────────────────────────────────────
+rangkuman.txt = narasi kesimpulan (cakupan, rule lemma, Q&A, dst) grounded ke
+output di atas. (7-audit-struktural TIDAK di sini — itu POST-chunk, pindah ke
+3-praproses sebagai verifikasi.)
+JEMBATAN KE TAHAP 3 (praproses): chunk_rules.json + temuan struktur -> chunker
+mengeksekusi pemotongan & penandaan, lalu memverifikasi hasilnya.
+================================================================================

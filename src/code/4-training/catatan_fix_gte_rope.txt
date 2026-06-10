@@ -1,0 +1,90 @@
+======================================================================
+CATATAN: ERROR gte-multilingual-base SAAT TRAINING/ENCODE + FIX-nya
+(ditulis 2026-06-03, sesi debugging GPL langkah 4-train)
+======================================================================
+
+RINGKAS 1 KALIMAT
+-----------------
+gte (model ke-2) crash "CUDA error: device-side assert triggered" karena buffer
+RoPE-nya kebaca SAMPAH MEMORI di transformers v5; diperbaiki dgn me-materialize
+ulang buffer itu di SATU loader bersama: config.load_st_model().
+
+
+1. GEJALA
+---------
+- Model 1 (intfloat/multilingual-e5-base) latih lancar (~3 jam, loss turun normal).
+- Model 2 (Alibaba-NLP/gte-multilingual-base) MATI di step 0:
+    "CUDA error: device-side assert triggered"
+    .../IndexKernel.cu:94 ... Assertion `index out of bounds` failed
+- Traceback python yg keliatan NYASAR ke `torch.cuda.empty_cache()` —
+  itu cuma efek try/except/finally di script; bukan lokasi asli.
+
+
+2. DIAGNOSIS (lokasi asli + akar masalah)
+-----------------------------------------
+Lokasi asli (didapat dgn CUDA_LAUNCH_BLOCKING=1 + repro tanpa try/except):
+  modeling.py (kode-remote gte) baris ~392:
+      rope_cos = rope_cos[position_ids].unsqueeze(2)   <-- index out-of-bounds
+
+Hasil probe komponen model yg ke-load (di CPU, biar angka size keliatan):
+    position_ids buffer : (8192,) max = 7.3e18        <-- HARUSNYA arange 0..8191
+    rope_cos.shape      : (36, 64)                     <-- ini SUDAH BENAR
+    -> index 9.3e13 out of bounds for dimension 0 with size 36
+
+AKAR MASALAH:
+  Buffer RoPE gte (position_ids, cos_cached, sin_cached, inv_freq) di-register
+  dengan persistent=False (tidak ikut state_dict). Kode-remote gte ditulis untuk
+  transformers v4; di transformers 5.8.0 buffer non-persisten ini GAGAL
+  di-materialize ulang saat from_pretrained -> isinya jadi sampah memori
+  (angka acak besar/negatif) -> rope_cos[position_ids] keluar batas -> assert.
+
+KENAPA e5 AMAN, gte TIDAK:
+  e5 (XLM-R) menghitung posisi dari input_ids langsung, TIDAK pernah membaca
+  buffer position_ids itu. gte (arsitektur "NewModel") MEMBACA buffer mentah
+  -> kena. (Jadi ini perbedaan arsitektur, BUKAN perbedaan perlakuan.)
+
+DIKONFIRMASI:
+  Sampah muncul di SEMUA mode load (default, low_cpu_mem_usage=False, fp32) ->
+  bukan soal flag loading / bukan snapshot rusak, murni inkompatibilitas versi.
+
+
+3. FIX (seragam, satu sumber kebenaran)
+---------------------------------------
+Ditaruh di src/config.py (anchor "SATU sumber kebenaran"):
+
+  _fix_rope_buffers(model)  -> bangun ulang position_ids/cos/sin/inv_freq sesuai
+                               __init__ asli gte. NO-OP utk model tanpa rotary_emb
+                               (e5/LaBSE/bge -> posisi absolut, tak terdampak).
+  config.load_st_model(name, **kw) -> loader TUNGGAL: resolve_model + trust_remote_code
+                               + _fix_rope_buffers. Dipakai SEMUA tahap.
+
+PENTING: buffer ini persistent=False -> TIDAK ikut ter-save model. Jadi fix WAJIB
+diterapkan setiap kali model di-load. Maka SEMUA pemuatan model dialihkan ke
+config.load_st_model (tidak ada lagi SentenceTransformer(...) langsung):
+    - 4-training/4-train-marginmse.py   (training)
+    - 4-training/5-embed.py             (precompute embedding)
+    - 4-training/2-hard-neg.py          (hard-negative mining; e5 -> no-op)
+    - 5-eval/2-intrinsic.py             (eval intrinsik)
+    - 2-eksplor/1-parameter.py          (hitung parameter)
+    - web/search.py                     (engine web + web-eval cache)
+
+
+4. KENAPA INI ADIL SECARA AKADEMIS (apple-to-apple terjaga)
+-----------------------------------------------------------
+- Dua model tetap di transformers 5.8.0 yg SAMA, hyperparameter IDENTIK
+  (steps/lr/loss/batch/seq/seed dari config.py).
+- Fix ini hanya MEMULIHKAN gte ke perilaku terpublikasi (posisi RoPE benar).
+  Tanpa fix, gte literally menghitung sampah. Ini BUKAN tuning, BUKAN keunggulan.
+- e5 tidak butuh fix -> TIDAK perlu retrain; hasilnya tetap valid.
+- Re-run train script (versi baru) menghasilkan gte yg sama dgn run yg dipakai:
+  logika _fix_rope_buffers identik byte-for-byte dgn yg dijalankan.
+
+
+6. VERIFIKASI YG SUDAH DILAKUKAN
+--------------------------------
+- Probe shape: rope_cos benar (36,64); position_ids buffer sampah -> setelah fix
+  jadi arange 0..8191; cos_cached[0] kembali = 1.0 (cos(0)).
+- Forward gte setelah fix: OK (last_hidden_state shape wajar).
+- Training 3 step + 60 step pakai HYPERPARAMETER ASLI: loss finite, tidak nan/inf.
+- Run asli gte: lolos step 0 (titik crash lama), lanjut normal (GPU 100%).
+======================================================================

@@ -3,7 +3,7 @@
 
   --m  model GPL (output/4-training/models/gpl-*)  -> repo model per-model
   --e  embeddings (output/embeddings/)             -> dataset HF (subfolder embeddings/)
-  --c  search cache (output/5-eval/cache/)          -> dataset HF (subfolder cache/)
+  --c  search cache (output/5-eval/search_cache.pkl) -> dataset HF (cache/search_cache.pkl)
   --a  semua
   (tanpa argumen: DRY-RUN, cuma lihat apa yang akan di-push)
 
@@ -66,6 +66,21 @@ def push_dataset_dir(local_dir, path_in_repo, label, dry):
         print(f"    done: https://huggingface.co/datasets/{config.HF_CACHE_REPO}")
 
 
+def push_dataset_file(local_file, path_in_repo, label, dry):
+    print(f"=== {label} ===")
+    if not local_file.exists():
+        print(f"  {local_file} tidak ada, skip.")
+        return
+    print(f"  {local_file} -> {config.HF_CACHE_REPO}/{path_in_repo}")
+    if not dry:
+        api = HfApi()
+        api.create_repo(repo_id=config.HF_CACHE_REPO, repo_type="dataset",
+                        private=config.HF_PRIVATE, exist_ok=True)
+        api.upload_file(path_or_fileobj=str(local_file), path_in_repo=path_in_repo,
+                        repo_id=config.HF_CACHE_REPO, repo_type="dataset")
+        print(f"    done: https://huggingface.co/datasets/{config.HF_CACHE_REPO}")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--m", action="store_true", help="model GPL")
@@ -85,7 +100,7 @@ def main():
     if a.e or a.a or dry:
         push_dataset_dir(config.EMBEDDINGS_DIR, "embeddings", "EMBEDDINGS", dry)
     if a.c or a.a or dry:
-        push_dataset_dir(config.EVAL_DIR / "cache", "cache", "SEARCH CACHE", dry)
+        push_dataset_file(config.EVAL_DIR / "search_cache.pkl", "cache/search_cache.pkl", "SEARCH CACHE", dry)
     print("\nSelesai.")
 
 

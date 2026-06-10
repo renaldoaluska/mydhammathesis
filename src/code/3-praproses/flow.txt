@@ -1,0 +1,50 @@
+================================================================================
+FLOW — TAHAP 3: PRAPROSES (chunking + verifikasi hasil)
+Tujuan tahap: mengubah korpus mentah jadi UNIT RETRIEVAL (chunk) memakai rule dari
+2-eksplor, lalu MEMVERIFIKASI hasilnya bersih sebelum dipakai training.
+Input: sc-raw + chunk_rules.json (dari 2-eksplor). Output: *_chunked.jsonl.
+Jalankan: bash src/code/3-praproses/run.sh
+================================================================================
+
+_load.py  (helper, bukan langkah)
+  APA  : iterator chunk dari *_chunked.jsonl. Dipakai 3-panjang & 4-spot-check
+         (satu sumber, no redundan).
+
+1-chunk.py
+  APA  : chunking HTML-aware seluruh korpus. Menerapkan: pemotongan (chunk_rules:
+         pts/horner), penandaan heading (h1-h6/header), LEMMA-TEBAL -> structural,
+         CLASS struktural (end*/pe/namo/..) -> structural, CLASS subjudul -> heading,
+         speaker/verse, kolofon. Heading & structural DI-EXCLUDE dari body & training.
+  HASIL: src/output/3-praproses/{bilara,html}/<lang>/<author>_chunked.jsonl
+  KENAPA LANJUT: ini "produk" korpus. Sebelum dipercaya, harus dicek deskriptif +
+         panjang + kebersihan -> langkah 2,3,4.
+
+2-statistik.py
+  APA  : statistik deskriptif (dokumen/chunk per bahasa, ketersediaan per koleksi,
+         panjang karakter/kata) + verifikasi heading ter-tag & junk bersih.
+  HASIL: 2-statistik.txt (+ grafik)
+  KENAPA LANJUT: gambaran "Data" untuk skripsi; konfirmasi distribusi wajar sebelum
+         mengukur panjang token.
+
+3-panjang.py
+  APA  : panjang chunk FINAL dalam TOKEN per tokenizer tiap model.
+  HASIL: 3-panjang.txt
+  KENAPA LANJUT: justifikasi pemilihan max_seq_length training (mis. P99 ~ 375 ->
+         GPL_MAX_SEQ=384). Angka ini dipakai langsung di 4-training.
+
+4-spot-check.py  (VERIFIKASI MENYELURUH — gabungan, satu lintasan)
+  APA  : (A) OUTLIER >5.000 char (artefak parsing vs teks sah Jataka/uddana);
+         (B) VERIFIKASI TAGGING: distribusi heading + penanda structural (label,
+             end*, pe, ..) -> buktikan rule dari chunk_rules.json BENAR diterapkan;
+         (C) SISA LEAKAGE: pola non-konten yang masih lolos jadi body murni.
+  HASIL: 4-spot-check.txt
+  KENAPA LANJUT: gerbang mutu terakhir. (A) bersih = tak ada chunk rusak; (B) angka
+         structural cocok dgn temuan 2-eksplor = rule jalan; (C) kecil = body bersih.
+         Lolos -> korpus siap jadi SUMBER training.
+
+────────────────────────────────────────────────────────────────────────────────
+CATATAN: 4-spot-check menggantikan kebutuhan "audit struktural" terpisah —
+verifikasi panjang + struktural disatukan agar tidak loncat antar-file.
+JEMBATAN KE TAHAP 4 (training): *_chunked.jsonl yang sudah terverifikasi menjadi
+pasase sumber GPL (di-filter Sutta-only/canon-wide via config.GPL_SUTTA_ONLY).
+================================================================================

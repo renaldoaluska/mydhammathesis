@@ -1,0 +1,51 @@
+================================================================================
+FLOW & SINKRONISASI — LAPISAN WEB (engine bersama + 2 app)
+Folder: web/ (engine), web-md/ (app produk), web-eval/ (app asesmen pakar).
+Catatan ini menjelaskan SUMBER chunk & invarian sinkronisasi antar-komponen.
+================================================================================
+
+KOMPONEN
+  web/_corpus.py   : load_corpus(lang) — SATU sumber chunk = output 3-praproses
+                     (*_chunked.jsonl). SENGAJA tunggal (hindari 2 jalur chunking
+                     -> bug heading).
+  web/search.py    : engine. Makna=semantic (emb-cache 5-embed), KataKunci=BM25
+                     (load_corpus), Hybrid=RRF. e5 pakai prefix query:/passage:.
+  web-md/app.py    : APP produk. SEARCH didelegasi ke web/search.py. READER baca
+                     korpus MENTAH via reader.py (viewer sutta utuh).
+  web-md/reader.py : chunker paralel dari raw utk VIEWER (lihat invarian di bawah).
+  web-eval/eval_app.py : APP asesmen. NOL engine — sajikan search_cache.pkl beku.
+
+────────────────────────────────────────────────────────────────────────────────
+INVARIAN-1 — SATU SUMBER CHUNK UNTUK SEMUA SEARCH
+  3-praproses/1-chunk.py  ->  *_chunked.jsonl
+        |                          |
+        |                          +-- web/_corpus.load_corpus  (BM25 + meta)
+        +-- 4-training/5-embed (via _corpus) -> embeddings/web/*.pt
+                                   |
+        web/search.py  --(semantic emb + BM25 corpus)-->  web-md SEARCH
+        1-build-cache (panggil web/search.py) -> search_cache.pkl -> web-eval
+  => RANKING semua model (web-md & web-eval) memakai chunk JSONL yang SAMA.
+
+INVARIAN-2 — REBUILD ORDER (WAJIB setelah re-chunk)
+  Jika 3-praproses berubah (re-chunk), embedding & cache jadi BASI. Urutan:
+     3-praproses  ->  5-embed (re-encode)  ->  1-build-cache (rebuild search_cache.pkl)
+  Lewati salah satu => web-eval/web-md menyajikan chunk lama (tidak sinkron).
+
+INVARIAN-3 — READER (web-md/reader.py) vs CHUNKER (1-chunk.py)
+  reader.py = chunker PARALEL dari raw (untuk menampilkan sutta utuh saat diklik).
+  Yang HARUS 1:1 = chunk_ids/parts + urutan counter md# (partitioning), supaya ref
+  hasil search MENDARAT tepat di viewer. Ini DIJAGA: perubahan rule (bold-label /
+  structural-class / heading-class) hanya mengubah FLAG heading/structural SETELAH
+  id di-assign, TIDAK mengubah counter/parts -> chunk_ids tetap cocok.
+
+  Yang BOLEH BEDA (by design): nilai flag `heading`/`structural` pada lemma-tebal &
+  penanda struktural. Sebab kebutuhannya beda:
+    - READER  : tampilkan teks UTUH + outline navigasi bersih (heading asli saja).
+                Lemma/penanda tampil inline sebagai body -> outline tidak banjir.
+    - PIPELINE: lemma/penanda di-tag structural -> DIKECUALIKAN dari hasil retrieval
+                (include_titles) & SUMBER latih GPL.
+  Hasil tetap koheren: search tidak mengembalikan "Dalam kemarahan:" sebagai hasil,
+  namun reader tetap menampilkannya inline saat sutta dibuka.
+  -> Jadi: JANGAN paksa mirror flag heading ke reader (akan membanjiri outline
+     dengan ratusan lemma Vinaya). Cukup jaga chunk_ids 1:1.
+================================================================================

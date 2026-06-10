@@ -44,7 +44,14 @@ src/output/1-get-data/base-models/*
 # Model hasil training (GPL) — re-fetch via 6-sync-hf/2-pull-hf.py
 src/output/4-training/models/
 
-# ── Yang TETAP di-track (kecil, hasil analisis/eval) ──
+# Data training/praproses GENERATED — regenerate via pipeline, terlalu besar utk GitHub
+# (gpl/: train/triples/passages/queries.jsonl  •  chunk korpus  •  backup pkl  •  log run)
+src/output/4-training/gpl/
+*_chunked.jsonl
+*.pkl.bak
+*.log
+
+# Yang TETAP di-track (kecil, hasil analisis/eval) ──
 # src/output/2-eksplor/   -> statistik + analisis (txt/csv/png) : DI-TRACK
 # src/output/5-eval/      -> ringkasan & CSV grade pakar        : DI-TRACK
 # (jangan ignore folder ini; hanya artefak biner besar yang di-skip via aturan di atas)

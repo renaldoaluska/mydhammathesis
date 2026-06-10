@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% block title %}{{ formatted_id }}{% if sutta_name %}: {{ sutta_name }}{% endif %} — myDhamma{% endblock %}
+{% block header_subtitle %}
+<span class="header-subtitle">{{ formatted_id }}{% if sutta_name %}: {{ sutta_name }}{% endif %}</span>
+{% endblock %}
+
+{% block source_toggle %}{% endblock %}
+
+{% block scripts %}
+<script>
+    (function () {
+        function updateBlurb() {
+            const el = document.querySelector(".suttaplex-blurb");
+            if (!el) return;
+            const lang = localStorage.getItem("dk-lang") || "id";
+            const textId = el.dataset.blurbId;
+            const textEn = el.dataset.blurbEn;
+            const text = lang === "en" ? textEn : textId;
+            el.innerHTML = text || textEn || textId || "";
+
+            if (window.DK && window.DK.showNotePicker && (textId || textEn)) {
+                const addBtn = document.createElement("button");
+                addBtn.className = "btn-add-note";
+                addBtn.textContent = lang === "id" ? "+ Catatan" : "+ Notes";
+                addBtn.setAttribute("data-i18n", "btn_add_note");
+                
+                addBtn.addEventListener("click", (e) => {
+                    const pickedLang = [lang, 'id', 'en'].find(l => (l === 'id' && textId) || (l === 'en' && textEn));
+                    const texts = {};
+                    if (pickedLang) texts[pickedLang] = pickedLang === 'id' ? textId : textEn;
+                    
+                    window.DK.showNotePicker({
+                        type: "sutta",
+                        data: {
+                            sutta_id: "{{ sutta_id }}",
+                            formatted_id: "{{ formatted_id }}",
+                            sutta_name: "{{ sutta_name }}",
+                            ref: [],
+                            ref_display: "sinopsis",
+                            author: "blurb",
+                            source: "",
+                            texts: texts,
+                            parts: null,
+                            parts_lang: null,
+                            available_links: {
+                                id: "/{{ sutta_id }}/id",
+                                en: "/{{ sutta_id }}/en",
+                                pli: "/{{ sutta_id }}/pli"
+                            }
+                        }
+                    }, e.currentTarget);
+                });
+                el.appendChild(addBtn);
+            }
+        }
+        document.addEventListener("DOMContentLoaded", () => {
+            updateBlurb();
+            const nav = document.querySelector(".suttaplex-breadcrumbs");
+            if (nav) nav.scrollLeft = nav.scrollWidth;
+        });
+        window.addEventListener("dk-lang-change", updateBlurb);
+    })();
+</script>
+{% endblock %}
+
+{% block main_panel %}
+{% if breadcrumbs %}
+<div class="breadcrumbs-outer">
+    <nav class="suttaplex-breadcrumbs" aria-label="Breadcrumb">
+        {% for crumb in breadcrumbs %}
+        <a href="/?browse={{ crumb.id }}" class="breadcrumb-link">{{ crumb.label }}</a>
+        <span class="breadcrumb-sep"><i data-lucide="chevron-right"></i></span>
+        {% endfor %}
+        <span class="breadcrumb-current">{{ formatted_id }}{% if sutta_name %} — {{ sutta_name }}{% endif %}</span>
+    </nav>
+</div>
+{% endif %}
+<div class="suttaplex-wrap">
+    <div class="suttaplex-header">
+        <div class="suttaplex-id-row">
+            {% if breadcrumbs %}
+            <a href="/?browse={{ breadcrumbs[-1].id }}" class="sp-back-btn"
+                title="Kembali ke {{ breadcrumbs[-1].label }}">
+                <i data-lucide="arrow-left"></i>
+            </a>
+            {% else %}
+            <button class="sp-back-btn" onclick="history.back()" title="Kembali">
+                <i data-lucide="arrow-left"></i>
+            </button>
+            {% endif %}
+            <div class="suttaplex-id">{{ formatted_id }}</div>
+        </div>
+        {% if sutta_name %}
+        <h1 class="suttaplex-pali-name">{{ sutta_name }}</h1>
+        {% endif %}
+    </div>
+
+    {% if blurb_id or blurb_en %}
+    <p class="suttaplex-blurb" data-blurb-id="{{ blurb_id }}" data-blurb-en="{{ blurb_en }}"></p>
+    {% endif %}
+
+    {% if paths and not (paths|length == 1 and "sec" in paths) %}
+    <div class="suttaplex-langs">
+        <div class="suttaplex-source-row">
+            <div class="suttaplex-source-group">
+                <div class="suttaplex-langs-label">
+                    SuttaCentral
+                    <a href="https://suttacentral.net/{{ full_id }}" target="_blank" class="sc-link-suttaplex"
+                        title="Buka di SuttaCentral" style="margin: 0;"><i data-lucide="external-link"></i></a>
+                </div>
+                <div class="suttaplex-langs-grid">
+                    {% macro author_label(entry) -%}
+                    {%- if entry.source == "bilara" -%}
+                    {{ bilara_author_names.get(entry.uid, entry.uid) }}
+                    {%- else -%}
+                    {{ edition_author_names.get(entry.uid, entry.uid) }}
+                    {%- endif -%}
+                    {%- endmacro %}
+                    {% if "pli" in paths %}
+                    {% for entry in paths["pli"] %}
+                    <a href="/{{ sutta_id }}/pli/{{ entry.uid }}" class="suttaplex-lang-btn pli"
+                        title="{{ lang_names.get('pli', 'Pāli') }}">
+                        <span class="lang-tag pli">PLI</span>
+                        <span class="suttaplex-lang-label">{{ author_label(entry) }}</span>
+                    </a>
+                    {% endfor %}
+                    {% endif %}
+                    {% for lang, entries in paths.items() %}
+                    {% if lang != "pli" and lang != "sec" %}
+                    {% for entry in entries %}
+                    <a href="/{{ sutta_id }}/{{ lang }}/{{ entry.uid }}" class="suttaplex-lang-btn {{ lang }}"
+                        title="{{ lang_names.get(lang, lang) }}">
+                        <span class="lang-tag {{ lang }}">{{ lang|upper }}</span>
+                        <span class="suttaplex-lang-label">{{ author_label(entry) }}</span>
+                    </a>
+                    {% endfor %}
+                    {% endif %}
+                    {% endfor %}
+                </div>
+                {% set sc_langs = [] %}
+                {% if "pli" in paths %}{% set _ = sc_langs.append("pli") %}{% endif %}
+                {% for lang in paths %}{% if lang != "pli" and lang != "sec" %}{% set _ = sc_langs.append(lang) %}{%
+                endif %}{% endfor %}
+                {% if sc_langs %}
+                <p class="suttaplex-lang-legend">{{ sc_langs | map('upper') | join(' · ') }} — {% for lang in sc_langs
+                    %}{{ lang_names.get(lang, lang) }}{% if not loop.last %}, {% endif %}{% endfor %}</p>
+                {% endif %}
+            </div>
+            <div class="suttaplex-source-group">
+                <div class="suttaplex-langs-label">CSCD VRI</div>
+                <div class="suttaplex-langs-grid">
+                    <span class="suttaplex-lang-btn locked">
+                        <span class="lang-tag pli">PLI</span>
+                        <span class="suttaplex-lang-label">Mūla</span>
+                    </span>
+                    <span class="suttaplex-lang-btn locked">
+                        <span class="lang-tag pli">PLI</span>
+                        <span class="suttaplex-lang-label">Aṭṭhakathā</span>
+                    </span>
+                    <span class="suttaplex-lang-btn locked">
+                        <span class="lang-tag pli">PLI</span>
+                        <span class="suttaplex-lang-label">Ṭīkā</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <p class="suttaplex-none" data-i18n="sp_not_found">Sutta tidak tersedia dalam korpus.</p>
+    {% endif %}
+</div>
+
+{% if prev_sutta or next_sutta %}
+<div class="sp-nav">
+    {% if prev_sutta %}
+    <a href="/{{ prev_sutta.id }}" class="sp-nav-btn sp-nav-prev">
+        <i data-lucide="chevron-left"></i>
+        <span class="sp-nav-label">
+            <span class="sp-nav-id">{{ prev_sutta.label }}</span>
+            {% if prev_sutta.name %}<span class="sp-nav-name">{{ prev_sutta.name }}</span>{% endif %}
+        </span>
+    </a>
+    {% else %}<div></div>{% endif %}
+    {% if next_sutta %}
+    <a href="/{{ next_sutta.id }}" class="sp-nav-btn sp-nav-next">
+        <span class="sp-nav-label">
+            <span class="sp-nav-id">{{ next_sutta.label }}</span>
+            {% if next_sutta.name %}<span class="sp-nav-name">{{ next_sutta.name }}</span>{% endif %}
+        </span>
+        <i data-lucide="chevron-right"></i>
+    </a>
+    {% else %}<div></div>{% endif %}
+</div>
+{% endif %}
+{% endblock %}
