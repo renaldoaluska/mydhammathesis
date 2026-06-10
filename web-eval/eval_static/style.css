@@ -4747,6 +4747,26 @@ tr.eval-prog-current .eval-prog-num {
   margin-bottom: 2px;
 }
 
+/* Joined pill: pitaka + collection as one connected unit */
+.sutta-meta-pill {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  margin-bottom: 2px;
+}
+
+.sutta-meta-pill .sutta-pitaka-badge {
+  border-radius: 0 4px 4px 0;
+  margin: 0;
+  border-left: none;
+}
+
+.sutta-meta-pill .sutta-collection-badge {
+  border-radius: 4px 0 0 4px;
+  margin: 0;
+  border-right: none;
+}
+
 /* Grup-kanan header kartu: badge piṭaka + nama kitab + rank tampil. */
 .sutta-card-meta {
   display: inline-flex;

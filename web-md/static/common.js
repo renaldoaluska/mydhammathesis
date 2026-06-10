@@ -1123,7 +1123,7 @@
 
     let scoreHtml = "";
     let scoreTitle = "";
-    const hasSemantic = frag.score <= 1.0;
+    const hasSemantic = (frag.score_type || "cosine") !== "bm25";
     const hasKwData = frag.kw_count !== undefined;
 
     if (hasSemantic) {
@@ -1186,9 +1186,15 @@
     // Tint the whole card outline by piṭaka (colors come from style.css,
     // matching the .sutta-pitaka-badge palette).
     if (pitaka) card.classList.add("pitaka-" + pitaka);
-    const pitakaBadge = pitaka ? `<span class="sutta-pitaka-badge ${pitaka}">${pitaka.charAt(0).toUpperCase() + pitaka.slice(1)}</span>` : "";
     const collName = sutta.collection_name || "";
-    const collBadge = collName ? `<span class="sutta-collection-badge">${esc(collName)}</span>` : "";
+    let metaBadge = "";
+    if (pitaka && collName) {
+      metaBadge = `<span class="sutta-meta-pill"><span class="sutta-collection-badge">${esc(collName)}</span><span class="sutta-pitaka-badge ${pitaka}">${pitaka.charAt(0).toUpperCase() + pitaka.slice(1)}</span></span>`;
+    } else if (pitaka) {
+      metaBadge = `<span class="sutta-pitaka-badge ${pitaka}">${pitaka.charAt(0).toUpperCase() + pitaka.slice(1)}</span>`;
+    } else if (collName) {
+      metaBadge = `<span class="sutta-collection-badge">${esc(collName)}</span>`;
+    }
     // Kiri: nomor + nama sutta. Kanan: nama kitab + badge piṭaka (sinkron web-eval).
     header.innerHTML = `
       <span class="sutta-card-title">
@@ -1196,7 +1202,7 @@
           ${sutta.formatted_id}${nameSpan}
         </a>
       </span>
-      <span class="sutta-card-meta">${collBadge}${pitakaBadge}</span>`;
+      <span class="sutta-card-meta">${metaBadge}</span>`;
     card.appendChild(header);
     // Dedup overlapping context within this card: collect every matched-segment
     // text shown here, so a fragment's before/after context can be hidden when

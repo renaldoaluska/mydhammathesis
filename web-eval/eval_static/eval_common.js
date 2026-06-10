@@ -540,13 +540,21 @@
     // matching the .sutta-pitaka-badge palette).
     if (pitaka) card.classList.add("pitaka-" + pitaka);
     const pitakaBadge = pitaka ? `<span class="sutta-pitaka-badge ${pitaka}">${pitaka.charAt(0).toUpperCase() + pitaka.slice(1)}</span>` : "";
+    const collName = sutta.collection_name || "";
+    const collBadge = collName ? `<span class="sutta-collection-badge">${esc(collName)}</span>` : "";
+    let metaBadge = "";
+    if (pitaka && collName) {
+      metaBadge = `<span class="sutta-meta-pill">${collBadge}${pitakaBadge}</span>`;
+    } else {
+      metaBadge = `${pitakaBadge}${collBadge}`;
+    }
     header.innerHTML = `
       <span class="sutta-card-title">
-        ${pitakaBadge}
         <a href="${titleHref}"${titleTarget}${titleClick} style="color:inherit;text-decoration:none;">
           ${sutta.formatted_id}${nameSpan}
         </a>
-      </span>`;
+      </span>
+      <span class="sutta-card-meta">${metaBadge}</span>`;
     card.appendChild(header);
     // Dedup overlapping context within this card: collect every matched-segment
     // text shown here, so a fragment's before/after context can be hidden when

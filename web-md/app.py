@@ -167,6 +167,7 @@ def _group_suttas(entries: list) -> list:
             "source": e.get("source"),
             "file_base_name": e.get("file_base_name"),
             "parts": e.get("parts"),
+            "score_type": e.get("score_type", "cosine"),
         }
         g = by_sutta.setdefault(sid, {"max_score": -1e9, "fragments": []})
         g["fragments"].append(frag)
@@ -188,6 +189,25 @@ def _group_suttas(entries: list) -> list:
         })
     suttas.sort(key=lambda s: -s["max_score"])
     return suttas
+
+
+def _normalize_rrf_scores(suttas):
+    """Normalisasi skor RRF ke rentang 0-1 agar frontend bisa tampilkan sebagai persen.
+    Skor tertinggi jadi ~100%, sisanya proporsional."""
+    if not suttas:
+        return
+    has_rrf = any(f.get("score_type") == "rrf"
+                  for s in suttas for f in s["fragments"])
+    if not has_rrf:
+        return
+    max_score = max((f["score"] for s in suttas for f in s["fragments"]), default=0)
+    if max_score <= 0:
+        return
+    for s in suttas:
+        for f in s["fragments"]:
+            f["score"] = round(f["score"] / max_score, 4)
+        if s["fragments"]:
+            s["max_score"] = round(max(f["score"] for f in s["fragments"]), 4)
 
 
 def _fill_frag_context(frag, cache):
@@ -346,6 +366,7 @@ def api_search():
             fused = []
 
         suttas = _group_suttas(fused)
+        _normalize_rrf_scores(suttas)
         if set(pitaka_f) != set(PITAKAS):
             suttas = [s for s in suttas if s["pitaka"] in pitaka_f]
 

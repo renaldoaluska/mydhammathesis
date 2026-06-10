@@ -831,9 +831,15 @@
       const pitakaBadge = pitaka ? `<span class="sutta-pitaka-badge ${pitaka}">${pitaka.charAt(0).toUpperCase() + pitaka.slice(1)}</span>` : "";
       const collName = sutta.collection_name || "";
       const collBadge = collName ? `<span class="sutta-collection-badge">${DK.esc(collName)}</span>` : "";
+      let metaBadge = "";
+      if (pitaka && collName) {
+        metaBadge = `<span class="sutta-meta-pill">${collBadge}${pitakaBadge}</span>`;
+      } else {
+        metaBadge = `${collBadge}${pitakaBadge}`;
+      }
       header.innerHTML = `
         <span class="sutta-card-title">${sutta.formatted_id}${nameSpan}</span>
-        <span class="sutta-card-meta">${collBadge}${pitakaBadge}<span class="eval-display-rank">#${displayIdx + 1}</span></span>`;
+        <span class="sutta-card-meta">${metaBadge}<span class="eval-display-rank">#${displayIdx + 1}</span></span>`;
       const sourcesDiv = document.createElement("div");
       sourcesDiv.className = "eval-model-sources";
       sourcesDiv.style.display = state.adminMode ? "block" : "none";

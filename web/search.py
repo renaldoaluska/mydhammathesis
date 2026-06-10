@@ -110,7 +110,7 @@ def semantic_search(query, model_name, lang, top_k=10, include_titles=True, incl
         e = corpus[i]
         if not _ok(e, include_titles, include_blurb):
             continue
-        out.append({**e, "score": float(scores[i])})
+        out.append({**e, "score": float(scores[i]), "score_type": "cosine"})
         if len(out) >= top_k:
             break
     return out
@@ -129,7 +129,7 @@ def keyword_search(query, lang, top_k=10, include_titles=True, include_blurb=Tru
         e = corpus[i]
         if not _ok(e, include_titles, include_blurb):
             continue
-        out.append({**e, "score": float(scores[i])})
+        out.append({**e, "score": float(scores[i]), "score_type": "bm25"})
         if len(out) >= top_k:
             break
     return out
@@ -144,7 +144,7 @@ def rrf_fuse(result_lists, top_k=10, k=RRF_K):
                 agg[ref] = {"entry": e, "rrf": 0.0}
             agg[ref]["rrf"] += 1.0 / (k + rank + 1)
     fused = sorted(agg.values(), key=lambda x: -x["rrf"])
-    return [{**x["entry"], "score": round(x["rrf"], 6)} for x in fused[:top_k]]
+    return [{**x["entry"], "score": round(x["rrf"], 6), "score_type": "rrf"} for x in fused[:top_k]]
 
 
 def search(query, method, model_name, lang, top_k=10, include_titles=True, include_blurb=True):
