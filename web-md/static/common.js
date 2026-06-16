@@ -86,7 +86,7 @@
       btn_empty_new_note: "+ Buat Catatan Baru",
       btn_send: "Kirim",
       chat_subtitle: "Chat myDhamma AI",
-      chat_disclaimer: "⚠ Eksperimental — mungkin membuat kesalahan dalam menyimpulkan; selalu periksa rujukannya.",
+      chat_disclaimer: "⚠ AI mungkin membuat kesalahan dalam menyimpulkan; selalu periksa rujukannya.",
       sutta_not_found: "Sutta tidak ditemukan.",
       loading_sutta: "Memuat teks…",
       sp_not_found: "Sutta tidak tersedia dalam korpus.",
@@ -2182,7 +2182,7 @@
       if (e.target !== gotoDlg) return;            // klik anak (input/tombol) -> jangan tutup
       const r = gotoDlg.getBoundingClientRect();
       const inside = e.clientX >= r.left && e.clientX <= r.right &&
-                     e.clientY >= r.top && e.clientY <= r.bottom;
+        e.clientY >= r.top && e.clientY <= r.bottom;
       if (!inside) gotoDlg.close();                // hanya backdrop sejati yang menutup
     });
 

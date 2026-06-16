@@ -276,7 +276,7 @@
             </div>
             <button type="submit" class="btn-primary chat-send">${esc(tt("btn_send", "Kirim"))}</button>
           </form>
-          <div class="chat-disclaimer">${esc(tt("chat_disclaimer", "⚠ Eksperimental — mungkin membuat kesalahan dalam menyimpulkan; selalu periksa rujukannya."))}</div>
+          <div class="chat-disclaimer">${esc(tt("chat_disclaimer", "⚠ AI mungkin membuat kesalahan dalam menyimpulkan; selalu periksa rujukannya."))}</div>
         </div>
       </div>
     `;
@@ -307,8 +307,8 @@
       const disc = container.querySelector(".chat-disclaimer");
       if (disc) disc.textContent = tt("chat_disclaimer",
         isEN()
-          ? "⚠ Experimental — may make mistakes; always check the citations."
-          : "⚠ Eksperimental — mungkin membuat kesalahan; selalu periksa rujukannya.");
+          ? "⚠ AI may make mistakes; always check the citations."
+          : "⚠ AI mungkin membuat kesalahan; selalu periksa rujukannya.");
     }
     window.addEventListener("dk-lang-change", applyLangToChat);
 
@@ -724,27 +724,27 @@
     function renderBotAnswer(botElement, answerText, results) {
       answerText = answerText || "";
       let thinks = [];
-      let textWithoutThink = answerText.replace(/<think>([\s\S]*?)<\/think>\n*/gi, function(match, p1) {
-          thinks.push(mdLite(p1));
-          return `__THINK_BLOCK_${thinks.length - 1}__\n`;
-      }).replace(/<think>([\s\S]*)$/gi, function(match, p1) {
-          thinks.push(mdLite(p1));
-          return `__THINK_BLOCK_${thinks.length - 1}_OPEN__\n`;
+      let textWithoutThink = answerText.replace(/<think>([\s\S]*?)<\/think>\n*/gi, function (match, p1) {
+        thinks.push(mdLite(p1));
+        return `__THINK_BLOCK_${thinks.length - 1}__\n`;
+      }).replace(/<think>([\s\S]*)$/gi, function (match, p1) {
+        thinks.push(mdLite(p1));
+        return `__THINK_BLOCK_${thinks.length - 1}_OPEN__\n`;
       });
-      
+
       let filteredAns = enforceTheravadaTerms(textWithoutThink);
       // Force-replace kalimat basa-basi "Berdasarkan kutipan yang Anda berikan..." dengan kalimat berwibawa
       filteredAns = filteredAns.replace(/^\s*(?:Berdasarkan|Menurut|Dari|Based on|According to)[^\n]{1,50}(?:kutip|dokumen|teks|referensi|sutta|passage|quote|text)[^\n]{1,50}(?:Anda|kamu|diberi|diserta|dikutip|di atas|sedia|provided|above|you)[^\n]*?(?:[:,]|\n)\s*/i, "Dalam ajaran Buddha, ");
       let ansHtml = mdLite(filteredAns);
-      
-      ansHtml = ansHtml.replace(/<p>__THINK_BLOCK_(\d+)__<\/p>/gi, function(match, idx) {
-          return `<details class="chat-think"><summary>🤔 Proses Berpikir AI...</summary><div class="chat-think-content">${thinks[idx]}</div></details>\n`;
-      }).replace(/__THINK_BLOCK_(\d+)__/gi, function(match, idx) {
-          return `<details class="chat-think"><summary>🤔 Proses Berpikir AI...</summary><div class="chat-think-content">${thinks[idx]}</div></details>\n`;
-      }).replace(/<p>__THINK_BLOCK_(\d+)_OPEN__<\/p>/gi, function(match, idx) {
-          return `<details class="chat-think" open><summary>🤔 Sedang Berpikir...</summary><div class="chat-think-content">${thinks[idx]}</div></details>\n`;
-      }).replace(/__THINK_BLOCK_(\d+)_OPEN__/gi, function(match, idx) {
-          return `<details class="chat-think" open><summary>🤔 Sedang Berpikir...</summary><div class="chat-think-content">${thinks[idx]}</div></details>\n`;
+
+      ansHtml = ansHtml.replace(/<p>__THINK_BLOCK_(\d+)__<\/p>/gi, function (match, idx) {
+        return `<details class="chat-think"><summary>🤔 Proses Berpikir AI...</summary><div class="chat-think-content">${thinks[idx]}</div></details>\n`;
+      }).replace(/__THINK_BLOCK_(\d+)__/gi, function (match, idx) {
+        return `<details class="chat-think"><summary>🤔 Proses Berpikir AI...</summary><div class="chat-think-content">${thinks[idx]}</div></details>\n`;
+      }).replace(/<p>__THINK_BLOCK_(\d+)_OPEN__<\/p>/gi, function (match, idx) {
+        return `<details class="chat-think" open><summary>🤔 Sedang Berpikir...</summary><div class="chat-think-content">${thinks[idx]}</div></details>\n`;
+      }).replace(/__THINK_BLOCK_(\d+)_OPEN__/gi, function (match, idx) {
+        return `<details class="chat-think" open><summary>🤔 Sedang Berpikir...</summary><div class="chat-think-content">${thinks[idx]}</div></details>\n`;
       });
 
       ansHtml = ansHtml.replace(/([A-Za-z\-]+\s+\d+(?:\.\d+)*(?:-\d+)?)(?::([a-zA-Z0-9\.\-]+))?(?:\s*\([a-z]{2,3}\/[^)]+\))?/gi, (match, bookId, segment) => {
@@ -781,20 +781,20 @@
               const btn = document.createElement("button");
               btn.className = "chat-followup-chip";
               btn.textContent = li.textContent.trim();
-              
+
               btn.onclick = () => {
                 input.value = btn.textContent;
                 input.style.height = "auto";
-                if(typeof syncBackdrop === 'function') syncBackdrop();
+                if (typeof syncBackdrop === 'function') syncBackdrop();
                 input.focus();
                 form.requestSubmit();
               };
               chipsWrap.appendChild(btn);
             });
-            
+
             el.className = "chat-followups-title";
             el.innerHTML = txt.includes("rekomendasi") ? "Rekomendasi Pertanyaan" : "Follow-up Questions";
-            
+
             // Pindahkan header dan chip wrap ke kontainer baru, cabut dari aliran teks normal
             followUpContainer.appendChild(el);
             followUpContainer.appendChild(chipsWrap);
@@ -809,7 +809,7 @@
           const fullTarget = btn.getAttribute("data-full-target");
           let foundCard = null;
           let foundSeg = null;
-          
+
           botElement.parentElement.querySelectorAll(".sutta-card").forEach(card => {
             const l = card.querySelector(".sutta-card-link");
             if (l && l.textContent.includes(target)) {
@@ -824,7 +824,7 @@
               }
             }
           });
-          
+
           let highlightEl = foundSeg || foundCard;
           if (highlightEl) {
             if (foundSeg && foundSeg.classList.contains("hidden-frag")) {
@@ -1114,7 +1114,7 @@
         // Setelah jawaban tampil: lipat semua langkah proses (understand/retrieve/dst)
         // jadi spoiler <details> tertutup yg bisa dibuka-tutup — transparan tapi ringkas.
         if (stepsContainer && stepsContainer.children.length &&
-            !stepsContainer.querySelector(".chat-steps-spoiler")) {
+          !stepsContainer.querySelector(".chat-steps-spoiler")) {
           const steps = Array.from(stepsContainer.children);
           const det = document.createElement("details");
           det.className = "chat-steps-spoiler";

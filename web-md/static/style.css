@@ -1606,6 +1606,11 @@ a:hover {
   border-radius: 3px;
 }
 
+.suttaplex-blurb .btn-add-note {
+  bottom: 8px;
+  top: auto;
+}
+
 /* Add to notes button */
 .btn-add-note {
   position: absolute;
@@ -4289,14 +4294,14 @@ html.show-seg-ref .rs-ex-sup {
 }
 
 @media (max-width: 768px) {
-  .sp-chat-link span {
+  /* .sp-chat-link span {
     display: none;
-  }
+  } */
 
   /* mobile: ikon saja */
-  .sp-chat-link {
+  /* .sp-chat-link {
     padding: 4px 7px;
-  }
+  } */
 }
 
 .dlg-open-popover {
