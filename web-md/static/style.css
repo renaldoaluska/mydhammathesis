@@ -1548,6 +1548,8 @@ a:hover {
 }
 
 .lang-tag.id {
+  /* border: 1px solid var(--tag-id);
+  color: var(--tag-id); */
   background: var(--tag-id);
   color: #fff;
 }
@@ -1555,6 +1557,8 @@ a:hover {
 .lang-tag.en {
   background: var(--tag-en);
   color: #fff;
+  /* border: 1px solid var(--tag-en);
+  color: var(--tag-en); */
 }
 
 .lang-tag.pli {
@@ -1611,12 +1615,12 @@ a:hover {
   /* background: var(--bg-secondary); */
   background: none;
   /* border: 1px solid var(--border); */
-  border: 1px solid var(--accent);
+  border: 1px solid var(--text-muted);
   border-radius: var(--radius-sm);
   padding: 2px 8px;
   font-size: .65rem;
   cursor: pointer;
-  color: var(--accent);
+  color: var(--text-muted);
   font-weight: 600;
   /* opacity: 0.4; */
   opacity: 1;
@@ -1658,8 +1662,8 @@ a:hover {
 .btn-add-note:hover,
 .btn-add-note:active {
   opacity: 1;
-  background: var(--accent);
-  color: #0f0f14;
+  /* background: var(--accent); */
+  color: var(--accent);
   border-color: var(--accent);
 }
 
@@ -2968,7 +2972,8 @@ html.show-seg-ref .sutta-segment:hover .seg-ref {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--bg-secondary);
-  color: var(--accent);
+  color: var(--text-muted);
+  /* color: var(--accent); */
   cursor: pointer;
   opacity: 0;
   transition: all var(--transition);
