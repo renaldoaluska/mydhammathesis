@@ -1605,8 +1605,8 @@ a:hover {
 /* Add to notes button */
 .btn-add-note {
   position: absolute;
-  /* top: 8px; */
-  bottom: 8px;
+  top: 8px;
+  /* bottom: 8px; */
   right: 8px;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
@@ -4241,6 +4241,7 @@ html.show-seg-ref .rs-ex-sup {
   .btn-chat-ai.icon-only-mobile span {
     display: none;
   }
+
   .btn-chat-ai.icon-only-mobile {
     padding: 0 8px;
   }
@@ -4267,18 +4268,27 @@ html.show-seg-ref .rs-ex-sup {
   white-space: nowrap;
   transition: all var(--transition);
 }
+
 .sp-chat-link svg {
   width: 13px;
   height: 13px;
   flex-shrink: 0;
 }
+
 .sp-chat-link:hover {
   color: var(--accent);
   border-color: var(--accent);
 }
+
 @media (max-width: 768px) {
-  .sp-chat-link span { display: none; }   /* mobile: ikon saja */
-  .sp-chat-link { padding: 4px 7px; }
+  .sp-chat-link span {
+    display: none;
+  }
+
+  /* mobile: ikon saja */
+  .sp-chat-link {
+    padding: 4px 7px;
+  }
 }
 
 .dlg-open-popover {

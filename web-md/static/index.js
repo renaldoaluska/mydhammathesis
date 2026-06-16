@@ -759,7 +759,7 @@
         dom.searchLegend.classList.remove("hidden");
         if (dom.aiCta) {
           dom.aiCta.classList.remove("hidden");
-          const aiBtn = dom.aiCta.querySelector(".btn-primary");
+          const aiBtn = dom.aiCta.querySelector(".btn-chat-ai-q");
           if (aiBtn) {
             const q = dom.searchInput ? dom.searchInput.value.trim() : "";
             if (q) aiBtn.href = `/chat?q=${encodeURIComponent(q)}`;
