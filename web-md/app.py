@@ -776,12 +776,18 @@ def api_readme():
 # Chat (Agentic RAG) — helper: LLM (Ollama) + retrieval + post-proses
 # ============================================================
 # Model & endpoint Ollama. Ganti model = ubah env, tak perlu sentuh kode.
-CHAT_MODEL = os.environ.get("MYDHAMMA_CHAT_MODEL", "qwen2.5:14b")
+CHAT_MODEL = os.environ.get("MYDHAMMA_CHAT_MODEL", "qwen3:14b")
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/")
 # Thinking mode default MATI: qwen3 dgn thinking 3-6x lebih lambat (sapaan bisa 30s) tanpa
 # manfaat nyata utk RAG ini. Set MYDHAMMA_CHAT_THINK=1 utk menyalakan. think:false aman utk
 # model non-thinking (qwen2.5 balas 200, param diabaikan).
 _CHAT_THINK = os.environ.get("MYDHAMMA_CHAT_THINK", "").lower() in ("1", "true", "yes")
+# num_ctx: Ollama default cuma 2048 -> prompt RAG (system + answer-guide + 9+ passage + reminder)
+# tembus jauh, dan Ollama MEMOTONG DIAM-DIAM DARI DEPAN. Akibatnya passage terbaik (mis. AN 9.64
+# yg ngelist lengkap) kebuang, model cuma liat ekor prompt -> under-answer/ngawur. Set cukup besar
+# agar seluruh prompt muat. WAJIB sama di semua call ke model yg sama, beda num_ctx = Ollama reload
+# model tiap request (lambat). 8192 ~+1.5GB KV cache utk 14b, aman di 12GB.
+CHAT_NUM_CTX = int(os.environ.get("MYDHAMMA_CHAT_NUM_CTX", "8192"))
 
 
 def _sse(obj: dict) -> str:
@@ -845,7 +851,13 @@ _CHAT_SYSTEM = {
         "Kapitalkan kata ganti Sang Buddha.\n"
         "5. SALAM: JIKA memberi salam, gunakan HANYA salam Buddhis Pali — 'Sotthi hotu' atau 'Sukhī hotu'. DILARANG KERAS "
         "memakai salam tradisi agama lain (mis. Assalamualaikum, Shalom, Om Swastiastu, Salam sejahtera). JIKA pengguna "
-        "sekadar bertanya kabar ('apa kabar?'), jawablah dengan natural, santai, dan ramah tanpa kaku mengulang salam."
+        "sekadar bertanya kabar ('apa kabar?'), jawablah dengan natural, santai, dan ramah tanpa kaku mengulang salam.\n"
+        "6. KERANGKA THERAVĀDA: Jawab SELALU dari sudut pandang Tipiṭaka Theravāda. DILARANG KERAS melabeli atau "
+        "mengaitkan konsep dengan agama lain secara eksplisit (mis. JANGAN menulis 'ini ajaran Hindu', 'menurut Islam', "
+        "'dalam agama X') — termasuk saat membahas kasta/varna, brahmana, petapa, atau dewa: itu adalah konteks "
+        "India kuno di dalam Tipiṭaka, BUKAN milik 'agama Hindu' atau agama lain mana pun. Jangan membandingkan dengan, "
+        "menilai, atau membahas ajaran agama lain; jika pengguna memintanya, tolak dengan sopan dan arahkan kembali ke "
+        "Dhamma Theravāda. Bila ada perbedaan tafsir, selalu berpihak pada tradisi Theravāda."
     ),
     "en": (
         "Your name is 'myDhamma AI', a Dhamma assistant by the myDhamma team (never mention Qwen, "
@@ -861,7 +873,13 @@ _CHAT_SYSTEM = {
         "4. Use Pali terms (Nibbāna, Kamma, Dhamma), not Sanskrit (Nirvana, Karma, Dharma).\n"
         "5. GREETINGS: IF greeting, use ONLY the Buddhist Pali salutation — 'Sotthi hotu' or 'Sukhī hotu'. NEVER "
         "use another religion's greeting (e.g. Assalamualaikum, Shalom). IF the user just asks 'how are you?', "
-        "answer naturally, warmly, and casually without rigidly forcing a Pali greeting."
+        "answer naturally, warmly, and casually without rigidly forcing a Pali greeting.\n"
+        "6. THERAVĀDA FRAME: ALWAYS answer from the Theravāda Tipiṭaka standpoint. STRICTLY DO NOT explicitly "
+        "label or attribute concepts to other religions (e.g. NEVER write 'this is Hindu teaching', 'according to "
+        "Islam', 'in religion X') — including when discussing caste/varna, brahmins, ascetics, or devas: these are "
+        "ancient Indian context WITHIN the Tipiṭaka, NOT 'Hinduism' or any other religion. Do not compare to, judge, "
+        "or discuss other religions' teachings; if asked, politely decline and steer back to the Theravāda Dhamma. "
+        "When interpretations differ, always side with the Theravāda tradition."
     ),
 }
 
@@ -869,15 +887,16 @@ _CHAT_SYSTEM = {
 # supaya fase keputusan tetap ringkas (tool-forward), tapi jawaban akhir kaya & terstruktur.
 _CHAT_ANSWER_GUIDE = {
     "id": (
-        "Sekarang TULIS JAWABAN FINAL untuk pengguna berdasarkan teks yg ditemukan di atas. Buat "
+        "Sekarang TULIS JAWABAN FINAL untuk pengguna. Anda adalah asisten Dhamma yang piawai. PENTING: JANGAN PERNAH mengatakan 'Berdasarkan kutipan yang Anda berikan' karena ANDA sendirilah yang mencari sutta tersebut, bukan pengguna! Jika Anda ingin merujuk pada hasil pencarian, gunakan frasa 'Berdasarkan sutta yang saya temukan...' atau langsung ke inti materi. Buat "
         "LENGKAP, jelas, dan terstruktur:\n"
         "- Buka dgn inti jawaban/definisi konsepnya secara langsung.\n"
         "- PRIORITASKAN penggunaan poin-poin (bullet points) untuk menguraikan isi teks. Jangan gunakan paragraf panjang yang sulit dibaca.\n"
         "- Tutup dgn ringkasan/intisari praktis 1-2 kalimat bila relevan. LANGSUNG tulis intisarinya TANPA kalimat pengantar/bridging kaku seperti 'Sebagai ringkasan praktis...', 'Berikut adalah intisarinya...', atau semacamnya.\n"
         "- Setelah penutup, WAJIB buat daftar 3 Rekomendasi Pertanyaan Lanjutan (format bullet) yang relevan untuk eksplorasi lebih dalam. Setidaknya satu rekomendasi WAJIB men-tag sutta yang terkait, misal: 'Jelasin isi @MN10' atau 'Apa kata @SN56.11 tentang ini'. Gunakan heading '**Rekomendasi Pertanyaan Lanjutan:**'. DILARANG menggunakan tanda titik (.) di akhir kalimat rekomendasi pertanyaan. PENTING: Jangan menyertakan nomor segmen (seperti :md3 atau :1.2) saat men-tag sutta di pertanyaan lanjutan; cukup tag nama suttanya utuh tanpa segmen. ATURAN REKOMENDASI: Jika pengguna SECARA EKSPLISIT bertanya tentang sutta tertentu (misal '@SN 12.60'), JANGAN rekomendasikan sutta itu lagi. Namun, jika kamu merujuk suatu sutta untuk menjawab pertanyaan konseptual, kamu SANGAT DIANJURKAN membuat rekomendasi agar pengguna menggali isi sutta tersebut (misal 'Jelaskan isi @SuttaTsb secara detail').\n"
         "ATURAN RUJUKAN (WAJIB):\n"
+        "- DILARANG KERAS menggunakan frasa seperti 'Berdasarkan teks yang Anda berikan', 'Berdasarkan kutipan di atas', atau 'Menurut dokumen ini'. Ingat: Pengguna mengira ANDALAH yang mencari sutta-sutta tersebut, bukan menerima contekan dari sistem/tools lain. Jawablah dengan natural seolah Anda mengetahuinya dari hasil pencarian Anda sendiri dan langsung sebut nama suttanya (misal: 'Dalam MN 10 dijelaskan...').\n"
         "- DILARANG KERAS membuat bagian/daftar 'Referensi:', 'Daftar Rujukan:', atau semacamnya di akhir jawaban. Semua rujukan HARUS diselipkan langsung di dalam kalimat (inline). SETIAP kali kamu membahas suatu poin/segmen, kamu WAJIB menyebutkan Sutta/Segmen asalnya di teks tersebut!\n"
-        "- Rujuk HANYA dgn token rujukan PERSIS yg diberikan tiap blok (SALIN apa adanya, mis. 'MN 10:1.5' atau 'Bu-Pj 1'). Jangan kaku menambahkan tanda kurung jika menyebut di tengah kalimat.\n"
+        "- Rujuk HANYA dgn token rujukan PERSIS yg diberikan tiap blok (SALIN apa adanya, mis. 'MN 10:1.5' atau 'Bu-Pj 1'). DILARANG KERAS menambahkan spasi di sekitar tanda titik dua (contoh BENAR: 'MN 10:1.5', contoh SALAH: 'MN 10 : 1.5'). Jika ada spasi, link rujukan akan rusak!\n"
         "- UTAMAKAN rujukan tingkat SEGMEN: jika token rujukan blok menyertakan nomor segmen (mis. 'MN 10:1.5'), kamu WAJIB merujuk dengan segmen itu, JANGAN cuma nama sutta utuh ('MN 10'). Tag segmen yang spesifik untuk SETIAP klaim/poin agar pembaca bisa langsung ke kalimat sumbernya.\n"
         "- Jika menyebut rentang atau beberapa segmen berurutan, WAJIB mengulang nama sutta-nya secara utuh (contoh BENAR: 'SN 54.10:md6 sampai SN 54.10:md8'. Contoh SALAH: 'SN 54.10:md6 sampai md8'). Hal ini sangat penting agar link rujukan bisa di-klik.\n"
         "- JIKA satu-satunya teks yg tersedia untuk sutta yg diminta hanya berbahasa Pāli (blok bertanda '⚠️ HANYA tersedia teks PĀLI') DAN kamu tidak benar-benar memahami isinya, DILARANG KERAS menebak/mengarang artinya. Katakan jujur & sopan: 'Mohon maaf, untuk [nama/ID sutta] belum ada terjemahan yang bisa saya pahami. Silakan coba sutta lain.'\n"
@@ -887,22 +906,23 @@ _CHAT_ANSWER_GUIDE = {
         "- Awalan rujukan: 'Bu-' = bhikkhu (biksu PRIA), 'Bi-' = bhikkhunī (biksu WANITA). Jangan "
         "tertukar — aturan untuk bhikkhu tidak otomatis berlaku untuk bhikkhunī dan sebaliknya.\n"
         "- STRUKTUR JAWABAN: Jika ada teks yang bertanda '⭐ DIMINTA USER' (artinya pengguna menyebut teks ini secara spesifik), FOKUSKAN seluruh jawabanmu secara utama pada teks tersebut! Jelaskan isinya secara detail dan urut. Namun, kamu SANGAT DIIZINKAN untuk menggunakan teks rujukan lain tanpa bintang sebagai pelengkap (supplement) untuk memperluas atau mengklarifikasi jawaban jika penjelasan di teks utama kurang lengkap.\n"
-        "- KELOMPOKKAN & SURVEI (PENTING): JIKA TIDAK ADA teks bertanda '⭐ DIMINTA USER', bahas SEMUA blok yang relevan — JANGAN cuma ambil 1 sutta lalu mengabaikan sisanya yang juga relevan. Jika beberapa blok membahas topik/kategori yang sama (mis. pertanyaan 'empat jenis manusia' dan ADA BANYAK sutta yang relevan), sajikan sebagai SURVEI: SATU poin (bullet) per sutta, masing-masing DENGAN rujukannya, agar pengguna melihat ragam sumbernya. Hanya buang blok yang benar-benar tidak relevan.\n"
-        "- BATASAN ELABORASI: Ini sangat KRITIS! Jika kamu memberikan penjelasan tambahan, definisi rincian, atau penjabaran makna yang TIDAK TERTULIS EKSPLISIT di teks rujukan (misalnya mendaftar rincian padahal teksnya cuma menyebut nama konsepnya), kamu WAJIB MUTLAK mendeklarasikan bahwa itu adalah tambahan dari AI (misal: '*Sebagai penjelasan tambahan dari myDhamma AI...*' atau '*Catatan: Rincian ini tidak disebutkan di sutta, namun...*'). JANGAN PERNAH menyajikan penjelasan eksternal seolah-olah itu adalah isi asli dari sutta.\n"
+        "- KELOMPOKKAN & SURVEI (PENTING): JIKA TIDAK ADA teks bertanda '⭐ DIMINTA USER', bahas SEMUA blok yang relevan — JANGAN cuma ambil 1 sutta lalu mengabaikan sisanya yang juga relevan. KHUSUS pertanyaan enumeratif (mis. 'empat jenis manusia', 'lima rintangan'): SADARI sering ADA BEBERAPA KATEGORISASI BERBEDA dengan jumlah sama tetapi ISI BERBEDA (mis. 'empat jenis manusia' versi gelap/terang di satu sutta, versi arus/melawan-arus di sutta lain). JANGAN menggabung atau memaksakannya jadi satu daftar tunggal! Sajikan sebagai SURVEI di JAWABAN UTAMA: SATU poin (bullet) per skema/sutta, masing-masing DENGAN rujukannya dan ringkasan isi skema itu (mis. 'Versi gelap/terang (SN 3.21): ...', 'Versi menyiksa diri/orang lain (MN 51): ...'), agar pengguna melihat ragam kategorisasinya. DILARANG cuma membahas SATU skema lalu menyembunyikan skema lain di bagian rekomendasi/pertanyaan lanjutan — semua skema berbeda yang relevan WAJIB jadi poin terpisah di jawaban utama. Hanya buang blok yang benar-benar tidak relevan.\n"
+        "- BATASAN ELABORASI & KEJUJURAN (SUPER KRITIS!): Jika Anda memberikan penjelasan tambahan, definisi rincian, perumpamaan, atau penjabaran makna yang TIDAK TERTULIS SECARA EKSPLISIT di teks rujukan yang disediakan, ANDA WAJIB MEMBERI TANDA bahwa itu adalah tambahan/elaborasi Anda sendiri (misal: '*Sebagai tambahan penjelasan...*', '*Meski tidak disebutkan secara eksplisit di sutta ini...*', atau '*Catatan tambahan dari AI...*'). JANGAN PERNAH menyajikan penjelasan atau ingatan eksternal Anda seolah-olah itu adalah isi asli dari sutta yang sedang dikutip!\n"
         "- Bila teks rujukan utama tampak hanya SEBAGIAN (tidak lengkap), katakan jujur bahwa kamu tidak "
         "membaca seluruh isinya, lalu beri gambaran umum dari bagian yg tersedia.\n"
         "Bahasa Indonesia natural, hangat, informatif. DILARANG KERAS MENGARANG ATAU MENEBAK ISTILAH PALI! Jangan pernah menyisipkan istilah Pali (misalnya dengan embel-embel 'atau [Pali] dalam bahasa Pali') KECUALI teks sumber secara harfiah dan eksplisit menyebutkan pasangan kata tersebut. Jika teks aslinya HANYA menulis terjemahan Indonesianya saja, MAKA KAMU HARUS MENULIS INDONESIANYA SAJA TANPA SOK TAHU MENAMBAHKAN BAHASA PALI. Ini adalah kitab suci yang wajib dijaga keakuratannya, menebak istilah adalah kesalahan fatal. DILARANG memakai kata 'di mana' sebagai kata hubung intrakalimat. Jangan menyebut 'tool' "
         "atau 'hasil pencarian'. ATURAN PENGGUNAAN TEKS: Jika teks rujukan membahas topik yang relevan secara konsep tetapi TIDAK menggunakan kata persis yang dicari pengguna (misal: teks membahas 'semangat' saat pengguna mencari 'kemalasan'), KAMU WAJIB MENJELASKAN HUBUNGAN LOGISNYA SECARA EKSPLISIT (contoh: 'Meskipun sutta ini tidak menyebut kemalasan secara langsung, sutta ini menjelaskan cara memunculkan semangat, yang merupakan kunci mengatasi kemalasan...'). Jangan asal melompat menyimpulkan seolah-olah teks itu menyebut kata pengguna secara harfiah! DILARANG KERAS halusinasi. Jangan pernah mengarang isi."
     ),
     "en": (
-        "Now WRITE THE FINAL ANSWER for the user based on the passages found above. Make it COMPLETE, "
+        "Now WRITE THE FINAL ANSWER for the user. You are an expert Dhamma assistant. IMPORTANT: NEVER say 'Based on the quotes you provided' because YOU searched for the suttas yourself! If you want to refer to the source, use phrases like 'Based on the suttas I found...' or jump straight to the core matter. Make it COMPLETE, "
         "clear, and structured:\n"
         "- Open with the core answer/definition directly.\n"
         "- PRIORITIZE using bullet points to explain the text. Avoid long, dense paragraphs.\n"
         "- Close with a short practical takeaway (1-2 sentences) when relevant.\n"
         "- After the closing, you MUST generate a list of 3 Follow-up Questions (bulleted) for deeper exploration. At least one question MUST tag a relevant sutta, e.g., 'Explain the contents of @MN10' or 'What does @SN56.11 say about this?'. Use the heading '**Recommended Follow-up Questions:**'. IMPORTANT: Do not include segment IDs (like :md3 or :1.2) when tagging suttas in the follow-up questions; just tag the base sutta name. RECOMMENDATION RULE: If the user EXPLICITLY asked about a specific sutta (e.g. '@SN 12.60'), DO NOT recommend asking about that sutta again. However, if you cited a sutta to answer a general conceptual question, you are HIGHLY ENCOURAGED to recommend a follow-up question for the user to dive deeper into that cited sutta (e.g. 'Explain the contents of @ThatSutta in detail').\n"
         "CITATION RULES (MANDATORY):\n"
-        "- Cite ONLY with the EXACT reference token given in each block (copy it verbatim, e.g. 'MN 10:1.5' or 'Bu-Pj 1'). Don't rigidly use parentheses if mentioning it mid-sentence.\n"
+        "- STRICTLY FORBIDDEN to use phrases like 'Based on the text you provided', 'According to the provided document', or 'Based on the quotes'. Remember: The user thinks YOU searched for these suttas yourself, not that you received them from another tool/system. Answer naturally as if you found them yourself, and directly cite the sutta name (e.g., 'In MN 10, it is explained...').\n"
+        "- Cite ONLY with the EXACT reference token given in each block (copy it verbatim, e.g. 'MN 10:1.5' or 'Bu-Pj 1'). STRICTLY NO spaces around the colon (CORRECT: 'MN 10:1.5', WRONG: 'MN 10 : 1.5'). Adding spaces breaks the citation links!\n"
         "- PREFER SEGMENT-LEVEL citations: if a block's reference token includes a segment number (e.g. 'MN 10:1.5'), you MUST cite with that segment, NOT just the bare sutta name ('MN 10'). Tag the specific segment for EACH claim/point so the reader can jump straight to the source line.\n"
         "- When citing a range or multiple consecutive segments, you MUST repeat the full sutta name for each segment (CORRECT: 'SN 54.10:md6 to SN 54.10:md8'. WRONG: 'SN 54.10:md6 to md8'). This is critical so the citation links work properly.\n"
         "- IF the only available text for a requested sutta is in Pāli (a block tagged '⚠️ HANYA tersedia teks PĀLI') AND you do not genuinely understand it, you are STRICTLY FORBIDDEN from guessing/inventing its meaning. Say honestly and politely: 'I'm sorry, there is no translation of [sutta name/ID] available that I can understand yet. Please try another sutta.'\n"
@@ -913,6 +933,7 @@ _CHAT_ANSWER_GUIDE = {
         "rule for bhikkhus does not automatically apply to bhikkhunīs and vice versa.\n"
         "- FOCUS: if a block is tagged ⭐ DIMINTA USER, that is what the user directly asked for — focus your main answer on it. However, you are HIGHLY ENCOURAGED to use other provided blocks as supplementary context to expand or clarify your answer if the main text is insufficient.\n"
         "- GROUPING & SURVEY (IMPORTANT): if there's NO ⭐ DIMINTA USER tag, discuss ALL relevant blocks — do NOT just pick 1 sutta and ignore the rest that are also relevant. If several blocks cover the same topic/category (e.g. a question about 'the four kinds of people' with MANY relevant suttas), present a SURVEY: ONE bullet per sutta, each WITH its citation, so the user sees the range of sources. Only drop blocks that are truly irrelevant.\n"
+        "- ELABORATION & HONESTY BOUNDARIES (SUPER CRITICAL!): If you provide any additional explanations, detailed definitions, analogies, or elaborations that are NOT EXPLICITLY WRITTEN in the provided reference texts, YOU MUST DECLARE that it is your own addition (e.g., '*As an additional explanation...*', '*Although not explicitly mentioned in this sutta...*', or '*Additional note from AI...*'). NEVER present your external knowledge or elaborations as if they were the original contents of the cited sutta!\n"
         "- If the main referenced text appears only PARTIAL, honestly say you couldn't read the whole "
         "thing, then give a general picture from what's available.\n"
         "Natural, warm, informative English. Use Pali terms (Nibbāna, Kamma), but NEVER invent Pali terms yourself. Don't mention a 'tool' or "
@@ -928,6 +949,22 @@ _THERAVADA_MAP = [
     (r"vijnana", "viññāṇa"), (r"samskara", "saṅkhāra"), (r"trishna", "taṇhā"),
     (r"anatman", "anattā"), (r"bhikshus?", "bhikkhu"), (r"sutras?", "sutta"),
     (r"bodhisattva", "bodhisatta"), (r"arhat", "arahant"), (r"nirv[aā]na", "Nibbāna"),
+]
+
+# Normalisasi DIAKRITIK istilah Pali "telanjang" -> ejaan korpus yg benar. Model kecil sering
+# menulis tanpa diakritik (satipatthana, nibbana) walau sumber pakai diakritik. Ini BUKAN mengarang
+# (kata sama, ejaan benar). Kurasi: hanya istilah frekuensi tinggi & rendah-tabrakan dgn kata Indonesia
+# (sengaja TIDAK memasukkan "sila"/"mara"/"nana" yg ambigu). Pola panjang ditaruh dulu (parinibbana
+# sebelum nibbana) — aman krn \b\b, tapi urutan dijaga utk jelas.
+_PALI_DIACRITIC_MAP = [
+    (r"satipatthana", "satipaṭṭhāna"), (r"parinibbana", "parinibbāna"), (r"nibbana", "nibbāna"),
+    (r"paticcasamuppada", "paṭiccasamuppāda"), (r"brahmavihara", "brahmavihāra"),
+    (r"vipassana", "vipassanā"), (r"samadhi", "samādhi"), (r"jhana", "jhāna"),
+    (r"panna", "paññā"), (r"metta", "mettā"), (r"karuna", "karuṇā"), (r"mudita", "muditā"),
+    (r"upekkha", "upekkhā"), (r"tanha", "taṇhā"), (r"anatta", "anattā"), (r"sankhara", "saṅkhāra"),
+    (r"nikaya", "nikāya"), (r"tipitaka", "tipiṭaka"), (r"patimokkha", "pātimokkha"),
+    (r"sotapanna", "sotāpanna"), (r"sakadagami", "sakadāgāmī"), (r"anagami", "anāgāmī"),
+    (r"kasina", "kasiṇa"),
 ]
 
 # Kata umum yg TIDAK boleh memicu pencocokan nama-sutta (anti false-positive).
@@ -953,6 +990,8 @@ def _enforce_theravada_terms(text: str) -> str:
             return rep
         return f
     for pat, rep in _THERAVADA_MAP:
+        text = re.sub(rf"\b{pat}\b", make_repl(rep), text, flags=re.IGNORECASE)
+    for pat, rep in _PALI_DIACRITIC_MAP:
         text = re.sub(rf"\b{pat}\b", make_repl(rep), text, flags=re.IGNORECASE)
     # Calque "di mana" sbg konjungsi intrakalimat (pola ", di mana <klausa>") -> pecah jadi kalimat
     # baru. Soft-rule di prompt sering dilanggar model kecil; ini penegakan deterministik.
@@ -1000,7 +1039,7 @@ def _ollama_json(messages: list, fmt: str = "json", temperature: float = 0.2) ->
     try:
         r = requests.post(f"{OLLAMA_URL}/api/chat", timeout=120, json={
             "model": CHAT_MODEL, "messages": messages, "stream": False, "think": _CHAT_THINK,
-            "format": fmt, "options": {"temperature": temperature},
+            "format": fmt, "options": {"temperature": temperature, "num_ctx": CHAT_NUM_CTX},
         })
         return ((r.json().get("message") or {}).get("content") or "").strip()
     except Exception:
@@ -1012,11 +1051,12 @@ def _ollama_chat(messages: list, tools: list = None) -> dict:
     Non-stream sengaja: qwen sering emit konten basa-basi BARENG tool_calls — dgn non-stream
     keputusan (panggil tool atau jawab) terbaca utuh, tak perlu menebak urutan token."""
     payload = {"model": CHAT_MODEL, "messages": messages, "stream": False,
-               "think": _CHAT_THINK, "options": {"temperature": 0.3}}
+               "think": _CHAT_THINK, "options": {"temperature": 0.3, "num_ctx": CHAT_NUM_CTX}}
     if tools:
         payload["tools"] = tools
+
     try:
-        r = requests.post(f"{OLLAMA_URL}/api/chat", json=payload, timeout=300)
+        r = requests.post(f"{OLLAMA_URL}/api/chat", json=payload, timeout=60)
         return r.json().get("message") or {}
     except Exception as e:
         return {"content": f"[Tidak bisa menghubungi LLM lokal: {e}]"}
@@ -1027,7 +1067,7 @@ def _ollama_stream(messages: list):
     menyelip, streaming bersih). Yield potongan teks; konten kosong diabaikan."""
     payload = {"model": CHAT_MODEL, "messages": messages, "stream": True,
                "think": _CHAT_THINK,
-               "options": {"temperature": 0.45}}  # sedikit lebih tinggi: jawaban final lebih kaya
+               "options": {"temperature": 0.35, "num_ctx": CHAT_NUM_CTX}}  # turun dari 0.45: kurangi wandering/halusinasi
     try:
         resp = requests.post(f"{OLLAMA_URL}/api/chat", json=payload, stream=True, timeout=300)
     except Exception as e:
@@ -1119,7 +1159,20 @@ def _inject_missing_blurbs(suttas: list):
         })
 
 
-def _passages_for_prompt(suttas: list, prompt_db: str, expand: set = None) -> list:
+# Intent enumeratif: user minta DAFTAR (mis. "sebutkan empat jenis manusia", "apa saja faktor ..."). Dipakai
+# utk (a) narik chunk lebih banyak per sutta (list utuh, bukan 1 aspek), (b) memicu panduan framing
+# di answer-guide (sajikan tiap kategorisasi terpisah). Sinyal kuat: angka/kata-bilangan + kata-kategori.
+_ENUM_INTENT_RE = re.compile(
+    r'\b(?:satu|dua|tiga|empat|lima|enam|tujuh|delapan|sembilan|sepuluh|berapa|\d+|'
+    r'two|three|four|five|six|seven|eight|nine|ten|how\s+many)\s+'
+    r'(?:jenis|macam|tipe|golongan|kelompok|kategori|kelas|jalan|landasan|faktor|unsur|cara|tingkat|sifat|'
+    r'kualitas|aspek|types?|kinds?|factors?|grounds?|ways?|categories|categorie)\b'
+    r'|\b(?:sebutkan|rincikan|daftar(?:kan)?|uraikan\s+semua|jelaskan\s+semua|apa\s+saja(?:kah)?|'
+    r'list\s+(?:the|all)|what\s+are\s+the)\b',
+    re.IGNORECASE)
+
+
+def _passages_for_prompt(suttas: list, prompt_db: str, expand: set = None, enum: bool = False) -> list:
     """Ratakan suttas -> daftar passage utk teks-tool LLM. Tiap passage: formatted_id (dgn segmen),
     sutta_name, pitaka, synopsis (blurb), text (fragmen terbaik pd bahasa prompt_db).
     `expand` = set formatted-id sutta yg di-mention eksplisit -> gabung BANYAK fragmen (baca
@@ -1152,8 +1205,10 @@ def _passages_for_prompt(suttas: list, prompt_db: str, expand: set = None) -> li
         text, text_lang = "", None
         
         if bodies:
-            # Jika eksplisit (expand), ambil semua. Jika biasa, ambil hingga 5 chunk terbaik agar informasinya lebih utuh.
-            limit = None if fid in expand else 5
+            # Jika eksplisit (expand), ambil semua. Kueri enumeratif ('sebutkan empat jenis ...') butuh
+            # daftar UTUH -> ambil lebih banyak chunk (8) biar list lengkap kebawa, bukan 1 aspek doang.
+            # Selain itu 5 chunk terbaik.
+            limit = None if fid in expand else (8 if enum else 5)
             bodies_subset = bodies if limit is None else bodies[:limit]
             # Urutkan berdasarkan segmen dari kecil ke besar secara logis (natural sort)
             bodies_sorted = sorted(bodies_subset, key=_seg_sort_key)
@@ -1188,7 +1243,7 @@ def _passages_for_prompt(suttas: list, prompt_db: str, expand: set = None) -> li
                     parts.append(ctx_a)
                     seen_texts.add(ctx_a)
                 
-            max_len = 4000 if fid in expand else 2000
+            max_len = 4000 if fid in expand else (3200 if enum else 2000)
             text = "\n".join(parts)[:max_len]
             text_lang = next((L for L in part_langs if L != "pli"), "pli" if part_langs else None)
         else:
@@ -1217,7 +1272,9 @@ def _cited_only(answer: str, suttas: list) -> list:
     seen, out = set(), []
     for s in suttas:
         base = (s.get("formatted_id") or "").split(":")[0]
-        if base and base in answer and base not in seen:
+        # Word-boundary + lookahead (?!\d): cegah "DN 2" cocok di dalam "DN 22",
+        # "MN 1" di "MN 10", dst. Substring naif (base in answer) bikin kartu salah lolos.
+        if base and base not in seen and re.search(r'\b' + re.escape(base) + r'(?!\d)', answer):
             seen.add(base)
             out.append(s)
     return out
@@ -1270,10 +1327,25 @@ def api_chat():
         mentions = re.findall(_MENTION_RE, t_query + " " + query, re.IGNORECASE)
         mentions = list(dict.fromkeys(m.strip() for m in mentions))
         carried_ctx = False
-        # Auto-carry loop dihapus karena menyebabkan "lock-in" permanen.
-        # Kini kita sepenuhnya mengandalkan LLM: jika user ganti topik, t_query dari LLM tidak akan
-        # membawa nama sutta lagi, sehingga pencarian hybrid bisa kembali berjalan. Jika user lanjut
-        # membahas sutta yang sama, LLM umumnya akan menyisipkan nama sutta di t_query-nya.
+        # Auto-carry LAMA (selalu carry) dihapus krn lock-in permanen. Andalan utama: LLM menyisipkan
+        # kode sutta di t_query saat follow-up. JARING PENGAMAN deiktik di bawah: kalau LLM lupa & user
+        # JELAS merujuk balik ("sutta itu", "teks tersebut", "di situ"), tarik kode sutta dari giliran
+        # asisten terakhir. Sengaja pakai pola referent-noun + kata tunjuk, BUKAN "itu" telanjang —
+        # supaya idiom "apa itu X" (pertanyaan baru) tidak salah memicu carry (anti lock-in).
+        if not mentions and history:
+            _DEICTIC_RE = re.compile(
+                r'\b(?:sutta|teks|ayat|bagian|kisah|cerita|perumpamaan|khotbah|kotbah|wejangan|uraian|bab|isi(?:nya)?)\s+(?:itu|ini|tersebut|tadi)\b'
+                r'|\bdi\s+(?:situ|sana)\b'
+                r'|\b(?:itu|tersebut)\s+(?:sutta|teks)\b', re.IGNORECASE)
+            if _DEICTIC_RE.search(query):
+                for h in reversed(history):
+                    if h.get("role") != "assistant":
+                        continue
+                    prev = re.findall(_MENTION_RE, h.get("content") or "", re.IGNORECASE)
+                    if prev:
+                        mentions = list(dict.fromkeys(m.strip() for m in prev))[:2]
+                        carried_ctx = True
+                        break
         q_norm = _strip_diacritics(t_query.lower())
         q_words = [w for w in dict.fromkeys(re.split(r'\W+', q_norm)) if len(w) >= 5 and w not in _NAME_MATCH_STOPWORDS]
         
@@ -1371,13 +1443,16 @@ def api_chat():
                 if "context_after" not in fr: fr["context_after"] = {}
                 _fill_frag_context(fr, ctx_cache)
                 
-        passages = _passages_for_prompt(unique_suttas, prompt_db, expand=mention_cites)
+        passages = _passages_for_prompt(unique_suttas, prompt_db, expand=mention_cites,
+                                        enum=bool(_ENUM_INTENT_RE.search(query)))
         
         # Format Passages to Tool Text. Kategori dari pitaka (andal utk Bu- DAN Bi-);
         # token rujukan eksplisit supaya model menyalin PERSIS (cegah ref ngarang/ga nge-link).
         blocks = []
         for i, p in enumerate(passages, 1):
             cite = p["formatted_id"].split(":")[0]
+            if "/" in cite:
+                cite = cite.split("/")[-1].split(".")[0].upper()
             is_vinaya = p.get("pitaka") == "vinaya" or cite[:3] in ("Bu-", "Bi-")
             kind = "VINAYA (aturan monastik, BUKAN sutta)" if is_vinaya else "SUTTA"
             star = "⭐ DIMINTA USER — " if p.get("is_expand") else ""
@@ -1478,8 +1553,39 @@ def api_chat():
         # jawaban lengkap & terstruktur, tanpa membebani fase keputusan. Frontend meng-enforce
         # istilah Pali per-chunk; final.answer dipakai utk filter kartu rujukan & history.
         yield _sse({"stage": "generate"})
-        gen_messages = messages + [{"role": "system",
-                                    "content": _CHAT_ANSWER_GUIDE.get(lang, _CHAT_ANSWER_GUIDE["id"])}]
+        gen_messages = list(messages)
+        if gen_messages and gen_messages[0].get("role") == "system":
+            gen_messages[0] = {
+                "role": "system",
+                "content": gen_messages[0]["content"] + "\n\n" + _CHAT_ANSWER_GUIDE.get(lang, _CHAT_ANSWER_GUIDE["id"])
+            }
+        else:
+            gen_messages.insert(0, {"role": "system", "content": _CHAT_ANSWER_GUIDE.get(lang, _CHAT_ANSWER_GUIDE["id"])})
+            
+        # Trik "System Prompt Reinforcement": Kita taruh panduan utama di atas agar alurnya logis.
+        # PENTING: Jangan membuat pesan 'system' baru di akhir karena bisa memutus rantai attention model
+        # terhadap pesan 'tool'. Sebaliknya, kita APPEND pengingat kritis ke pesan terakhir (pesan 'tool').
+        reminder = (
+            f"\n\n--- PENGINGAT KRITIS DARI SISTEM ---\n"
+            f"Jawablah pertanyaan pengguna berikut: '{query}'.\n"
+            f"1) Jawab HANYA menggunakan informasi yang EKSPLISIT TERTULIS di teks hasil pencarian. Jika teks pencarian TIDAK merinci suatu hal, DILARANG KERAS melengkapinya dari ingatan Anda! Cukup sampaikan sebatas info yang ada.\n"
+            f"2) LANGSUNG masuk ke inti materi tanpa kalimat pengantar apa pun (basa-basi dilarang keras).\n"
+            f"3) Anda WAJIB menyertakan token rujukan sutta (yang BENAR-BENAR ADA di teks hasil pencarian) DI DALAM SETIAP kalimat/poin klaim yang Anda buat!\n"
+            f"4) Rujuk teks yang benar-benar MENJELASKAN/merinci klaim Anda, BUKAN teks yang hanya menyebut istilahnya sambil lalu (mis. dalam syair). Jika sebuah daftar/penjelasan datang dari teks A, kutiplah teks A — jangan tempelkan ke teks lain yang kebetulan memuat frasa serupa."
+        )
+        # Pertanyaan enumeratif: dorong SURVEI multi-skema di posisi atensi tertinggi (akhir pesan tool).
+        # Klausa di answer-guide sering diabaikan model; pengingat di sini lebih dipatuhi.
+        # Guard anti-ngarang: kalau hasil cuma punya SATU skema, bahas satu saja (jangan paksakan skema palsu).
+        if _ENUM_INTENT_RE.search(query):
+            reminder += (
+                f"\n5) PERTANYAAN INI ENUMERATIF. Hasil pencarian sering memuat BEBERAPA KATEGORISASI "
+                f"BERBEDA dengan jumlah sama tetapi ISI BERBEDA (mis. beberapa versi 'empat jenis manusia' "
+                f"dari sutta berlainan). JAWABAN UTAMA-mu WAJIB membahas SETIAP kategorisasi berbeda yang "
+                f"relevan sebagai bagian/poin TERPISAH, masing-masing dengan suttanya. DILARANG membahas "
+                f"hanya satu skema lalu menyembunyikan skema lain di bagian rekomendasi. TETAPI jangan "
+                f"mengarang: kalau di hasil pencarian memang hanya ada SATU skema, bahas satu saja dengan jujur."
+            )
+        gen_messages[-1]["content"] += reminder
         parts = []
         for piece in _ollama_stream(gen_messages):
             parts.append(piece)
@@ -1496,6 +1602,17 @@ def api_chat():
                 _cited_bases.add(base)
                 _forced.append(s)
         cited = _forced + cited
+        # Jangan percaya 100% kutipan model: qwen sering nempel rujukan ke sutta yg salah
+        # (mis. ngutip frasa verbatim dari Snp 1.3 padahal isi list datang dari AN 9.64).
+        # Pad kartu dgn kandidat retrieval skor tertinggi yg belum masuk, sampai max_suttas,
+        # supaya sumber real tetap tampil walau model lupa/salah mengutipnya.
+        for s in sorted(all_unique_suttas, key=lambda x: x.get("max_score", 0) or 0, reverse=True):
+            if len(cited) >= max_suttas:
+                break
+            base = (s.get("formatted_id") or "").split(":")[0]
+            if base and base not in _cited_bases:
+                _cited_bases.add(base)
+                cited.append(s)
         # Konteks n-1/n+1 utk kartu chat (sama spt hasil pencarian home; dedup tetangga yg
         # redundan ditangani frontend renderSuttaCardsTo). Hanya utk kartu yg dikutip -> ringan.
         ctx_cache = {}

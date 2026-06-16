@@ -94,7 +94,7 @@
       panel_sidebar: "Bilah Sisi",
       select_corpus: "— Pilih korpus —",
       btn_goto: "Lompat ke Teks",
-      btn_chat_ai: "Chat dengan AI",
+      btn_chat_ai: "Tanya AI",
       goto_title: "Lompat ke Teks",
       goto_collection_ph: "mis. MN, DN",
       goto_number_ph: "mis. 22, 56.11",
@@ -193,7 +193,7 @@
       research_banner: "IN DEVELOPMENT — FOR RESEARCH PURPOSES ONLY ",
       select_corpus: "— Select corpus —",
       btn_goto: "Jump to Text",
-      btn_chat_ai: "Chat with AI",
+      btn_chat_ai: "Ask AI",
       goto_title: "Go to Text",
       goto_collection_ph: "e.g. MN, DN",
       goto_number_ph: "e.g. 22, 56.11",
@@ -1908,6 +1908,8 @@
     let lastColUid = "";    // resolved collection uid for number suggestions
     let validNumsMap = new Map(); // maps '22' -> 'mn22' (full leaf id)
     let validTitlesMap = new Map(); // maps 'Alagaddūpamasutta' -> 'mn22'
+    let leafIdsCache = null;        // hasil collectLeafIds (di-cache; pohon tak berubah)
+    let titlesBuilt = false;        // datalist judul (~8rb opsi) dibangun SEKALI, lazy
 
     // Create datalists
     const dlCol = document.createElement("datalist");
@@ -1934,6 +1936,12 @@
         Object.values(node).forEach(v => ids.push(...collectLeafIds(v)));
       }
       return ids;
+    }
+
+    // Walk pohon mahal (~8rb leaf) — cache sekali; browseData tidak berubah selama sesi.
+    function getLeafIds() {
+      if (!leafIdsCache) leafIdsCache = browseData ? collectLeafIds(browseData) : [];
+      return leafIdsCache;
     }
 
     function extractNumber(id, prefix) {
@@ -1972,7 +1980,7 @@
       const prefix = col.uid;
       lastColUid = prefix;
 
-      const allIds = collectLeafIds(browseData);
+      const allIds = getLeafIds();
       allIds.forEach(id => {
         const n = extractNumber(id, prefix);
         if (n && !validNumsMap.has(n)) {
@@ -1989,11 +1997,14 @@
     }
 
     function populateTitleSuggestions() {
+      // Build SEKALI saja (lazy): ~8rb <option> mahal; pohon & nama tak berubah selama sesi.
+      if (titlesBuilt) return;
+      if (!browseData || !suttaNames) return;
       dlTitle.innerHTML = "";
       validTitlesMap.clear();
-      if (!browseData || !suttaNames) return;
 
-      const allIds = collectLeafIds(browseData);
+      const allIds = getLeafIds();
+      const frag = document.createDocumentFragment();
       allIds.forEach(id => {
         if (suttaNames[id]) {
           const title = suttaNames[id];
@@ -2010,10 +2021,12 @@
             if (normalized !== title.toLowerCase()) {
               opt.textContent = normalized;
             }
-            dlTitle.appendChild(opt);
+            frag.appendChild(opt);
           }
         }
       });
+      dlTitle.appendChild(frag);   // satu kali append (bukan 8rb reflow)
+      titlesBuilt = true;
     }
 
     async function ensureBrowseData() {
@@ -2141,13 +2154,7 @@
         btnGo.style.cursor = "not-allowed";
       }
 
-      await ensureCollections();
-      await ensureBrowseData();
-      await ensureSuttaNames();
-      populateCollectionSuggestions();
-      populateNumberSuggestions();
-      populateTitleSuggestions();
-      updatePreview();
+      // Tampilkan dialog DULU (instan) — jangan tunggu fetch. Data diisi di latar belakang.
       gotoDlg.showModal();
       refreshIcons();
       setTimeout(() => {
@@ -2156,10 +2163,28 @@
           inpCol.focus();
         }
       }, 50);
+
+      // Lalu muat data & isi saran di latar belakang (fetch paralel; di-cache utk buka berikutnya).
+      await Promise.all([ensureCollections(), ensureBrowseData(), ensureSuttaNames()]);
+      if (!gotoDlg.open) return;   // user keburu nutup -> jangan kerja sia-sia
+      populateCollectionSuggestions();   // ringan (~20 koleksi)
+      // Saran ANGKA sengaja TIDAK dibangun di sini — lazy, baru jalan setelah user
+      // memilih koleksi (DN/MN/AN/...) lewat listener input inpCol -> populateNumberSuggestions().
+      // Saran JUDUL juga lazy (saat fokus field judul). Dua-duanya mahal kalau eager.
+      updatePreview();
     });
 
     if (btnClose) btnClose.addEventListener("click", () => gotoDlg.close());
-    gotoDlg.addEventListener("click", e => { if (e.target === gotoDlg) gotoDlg.close(); });
+    // Tutup HANYA kalau klik benar-benar di luar kotak dialog (backdrop). Cek e.target===dialog
+    // saja keliru: klik di area PADDING dialog juga lolos -> dialog "ilang" pas klik-klik di dalam.
+    // Pakai bounding-rect: tutup cuma kalau koordinat klik di luar kotak konten.
+    gotoDlg.addEventListener("click", e => {
+      if (e.target !== gotoDlg) return;            // klik anak (input/tombol) -> jangan tutup
+      const r = gotoDlg.getBoundingClientRect();
+      const inside = e.clientX >= r.left && e.clientX <= r.right &&
+                     e.clientY >= r.top && e.clientY <= r.bottom;
+      if (!inside) gotoDlg.close();                // hanya backdrop sejati yang menutup
+    });
 
     if (inpCol) {
       inpCol.addEventListener("input", () => {
@@ -2186,7 +2211,11 @@
       });
     }
     if (inpTitle) {
+      // Lazy: bangun datalist judul (~8rb opsi) saat user pertama fokus ke field ini,
+      // bukan saat dialog dibuka. Banyak user pakai Koleksi+Nomor, tak perlu bayar ongkos ini.
+      inpTitle.addEventListener("focus", populateTitleSuggestions);
       inpTitle.addEventListener("input", () => {
+        populateTitleSuggestions();    // guard titlesBuilt -> murah setelah build pertama
         if (inpCol) inpCol.value = ""; // clear col
         if (inpNum) inpNum.value = ""; // clear num
         updatePreview();

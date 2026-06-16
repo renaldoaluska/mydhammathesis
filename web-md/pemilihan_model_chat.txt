@@ -1,140 +1,118 @@
 ================================================================================
 PEMILIHAN MODEL CHAT LLM — myDhamma (Ollama)
 ================================================================================
-Tanggal catatan : 2026-06-15
-Lokasi config   : web-md/app.py (OLLAMA_URL, CHAT_MODEL)
-Override env    : MYDHAMMA_OLLAMA_URL, MYDHAMMA_CHAT_MODEL
+Update terakhir : 2026-06-16
+Config          : web-md/app.py  (CHAT_MODEL, OLLAMA_URL, CHAT_NUM_CTX, _CHAT_THINK)
+Override env    : MYDHAMMA_CHAT_MODEL, OLLAMA_URL, MYDHAMMA_CHAT_NUM_CTX, MYDHAMMA_CHAT_THINK
+
 
 --------------------------------------------------------------------------------
-1. KONTEKS & MASALAH AWAL
+1. MODEL FINAL
 --------------------------------------------------------------------------------
-Error yang muncul:
-  "LLM tidak tersedia (Ollama: gemma2:9b). Connection refused"
+CHAT_MODEL  = qwen3:14b          (default di app.py)
+OLLAMA_URL  = http://127.0.0.1:11434   (Ollama service sistem, BUKAN :11435)
+num_ctx     = 8192               (CHAT_NUM_CTX; JANGAN di bawah ~6144)
+thinking    = MATI (think:false) (qwen3 thinking 3-6x lebih lambat, tanpa manfaat utk RAG ini)
+temperature = 0.3 (decision) / 0.35 (jawaban final)
 
-Penyebab:
-  a) OLLAMA_URL default salah port — app mengarah ke :11435, sedangkan Ollama
-     service sistem jalan di :11434.
-  b) Model gemma2:9b belum di-pull saat itu (hanya gemma3:4b yang ada).
+Dipilih lewat A/B head-to-head di query nyata: "lima rintangan batin",
+"sebutkan empat jenis manusia", dan follow-up deiktik ("...di sutta itu?").
 
-Catatan: start-dev.sh TIDAK menjalankan Ollama. Ollama diharapkan jalan
-sebagai service terpisah (bukan window tmux). Tmux hanya menjalankan web-eval,
-web-md, dan cloudflared.
+Alasan qwen3:14b menang:
+  - Paling PATUH instruksi: sitasi tingkat-segmen, multi-sumber per klaim.
+  - Faithfulness terbaik — tidak mengarang istilah/isi.
+  - Tool-calling native (penting: /api/chat agentic, manggil tool search_sutta).
+  - Indonesia kuat, lisensi Apache-2.0, muat 12GB GPU.
 
---------------------------------------------------------------------------------
-2. KONFIGURASI SAAT INI (SETELAH PERBAIKAN)
---------------------------------------------------------------------------------
-OLLAMA_URL  = http://127.0.0.1:11434/api/chat
-CHAT_MODEL  = gemma2:9b
+Catatan VRAM: qwen3:14b @ num_ctx 8192 = ~12.0 GB, full GPU, headroom ~NOL.
+Kalau OOM / lemot karena GPU direbut proses lain (mis. Ollama user :11435),
+turunkan num_ctx ke ~6144.
 
-Model gemma2:9b sudah di-pull ke Ollama lokal.
-Restart web-md diperlukan agar proses yang sudah jalan memuat config baru.
-
---------------------------------------------------------------------------------
-3. MODEL GEMMA YANG TERSEDIA DI OLLAMA (SERVER)
---------------------------------------------------------------------------------
-Model berlabel "gemma" yang ter-pull:
-  • gemma3:4b   (~4.3B)
-  • gemma2:9b   (~9B)   ← default chat saat ini
-
-Model lain yang juga ter-pull (bukan Gemma):
-  • qwen3:8b          (8.2B)
-  • llama3.1:latest   (8.0B)
-  • deepseek-r1:14b   (14.8B)
-  • rbac-model:latest (3.2B)
-
-Target produksi jangka panjang (belum dipakai): gemma4:12b
-  — butuh Ollama >= 0.24 + `ollama pull gemma4:12b`
 
 --------------------------------------------------------------------------------
-4. LOGIKA APP: MODEL KECIL vs BESAR
+2. MODEL YANG SUDAH DITOLAK  (JANGAN DICOBA LAGI)
 --------------------------------------------------------------------------------
-Di app.py, model kecil masuk daftar _SMALL_CHAT_MODELS:
-  gemma3:4b, gemma3:1b, gemma2:2b, llama3.2:1b, llama3.2:3b
+gemma3:12b  -> DITOLAK TEGAS.
+  Prosanya rapi & SECARA TAMPILAN paling "rajin" (bahkan kelihatan nyurvei
+  beberapa skema "empat jenis manusia"), TAPI ISINYA HALUSINASI PARAH:
+    - Ngarang istilah Pali: "Atta-paresam vedanam", "Ativecanam" (tidak ada).
+    - Ngarang isi sutta: klaim AN 3.21 = "Bisu/Berdosa/Beruntung/Bijaksana" (fiktif;
+      bahkan salah arti — Pandita = bijaksana, ditulis "Berdosa").
+    - Salah daftar lima rintangan (nyebut "pandangan salah" & "keacuhan").
+    - Format sitasi rusak: "@AnguttaraNikaya3.21" tidak nge-link.
+    - Tool-calling lemah -> jatuh ke forced-retrieval safety-net.
+  PELAJARAN: survei yang "kelihatan lengkap" tapi PALSU lebih berbahaya daripada
+  jawaban yang collapse ke satu skema tapi JUJUR. Untuk kitab suci, faithfulness
+  di atas segalanya. Gemma (semua varian) HINDARI: tool-call lemah + terbukti ngarang.
 
-gemma2:9b TIDAK masuk daftar itu → dianggap model besar.
+qwen2.5:14b -> kalah dari qwen3.
+  Benar & jujur, tapi sitasi lebih tipis (sering 1 sumber/item) dan kurang patuh
+  aturan sitasi-per-klaim dibanding qwen3.
 
-Dampaknya:
-
-  Model KECIL (gemma3:4b):
-  - Query craft LLM dimatikan → pencarian pakai query mentah user.
-  - LLM kecil sering gagal output SKIP_SEARCH / merusak kueri semantik
-    (contoh: suntik "sutta", "kutipan", atau istilah Sanskerta).
-  - Regex rule-based tetap menangkap sapaan umum (halo, makasih, dll).
-
-  Model BESAR (gemma2:9b):
-  - Query craft LLM aktif → LLM merapikan kueri sebelum retrieval.
-  - Lebih patuh instruksi SKIP_SEARCH & identitas myDhamma AI.
-  - Inference sedikit lebih lambat, RAM lebih besar.
-
---------------------------------------------------------------------------------
-5. HASIL SIMULASI HEAD-TO-HEAD (2026-06-15)
---------------------------------------------------------------------------------
-Metode: prompt yang sama persis dengan _REWRITE_SYS dan skenario RAG di app.py,
-       dipanggil langsung ke Ollama :11434 (bukan teori).
-
-  Test                          gemma3:4b              gemma2:9b
-  ─────────────────────────────────────────────────────────────────
-  "halo"                        ❌ output "asd"        ✅ SKIP_SEARCH
-  "kamu siapa"                  ❌ echo query          ✅ SKIP_SEARCH
-  "kutipin sutta tentang        ❌ "sutta tentang     ❌ "kutipan tentang
-   penderitaan dong"               penderitaan"            penderitaan"
-  "aku lagi sedih banget"       ✅ mengatasi kesedihan ✅ mengatasi kesedihan
-  "makasih ya infonya"          ❌ salah interpretasi  ❌ tidak SKIP
-  RAG: apa itu dukkha?          ✅ rujuk SN 56.11      ✅ rujuk SN 56.11
-                                  (~5.6s)                (~7.4s)
-
-Skor query rewrite : gemma2:9b 2/5, gemma3:4b 1/5
-Skor RAG           : imbang (keduanya rujuk SN 56.11 dengan benar)
-
-Catatan simulasi:
-  - Untuk sapaan ("halo", "makasih"), gemma3:4b gagal di LLM tapi di app
-    nyata tetap aman karena regex _SKIP_PATTERNS menangkap sebelum LLM dipanggil.
-  - Keduanya masih gagal strip meta-word ("sutta"/"kutipan") pada query rewrite;
-    itu isu prompt, bukan sekadar ukuran model.
-  - gemma3:4b di produksi lebih buruk untuk retrieval karena query craft off
-    → kirim string mentah "kutipin sutta tentang penderitaan dong" ke retriever.
 
 --------------------------------------------------------------------------------
-6. KEPUTUSAN
+3. KANDIDAT CADANGAN  (BELUM diuji — kalau qwen3 suatu saat kurang)
 --------------------------------------------------------------------------------
-Default chat dipilih: gemma2:9b
+  - Mistral Nemo 12B   : tool-call ok + lebih hemat VRAM (napas lebih lega).
+  - Llama 3.3 / 3.1 8B : tool-call ok, kecil; Indonesia di bawah Qwen.
+  - Hermes 3 (8B)      : jago agentic/tool-call; Indonesia ikut Llama (sedang).
+  - Command-R7B        : dirancang utk RAG+sitasi+tool, TAPI lisensi CC-BY-NC
+                         (haram kalau app publik/komersil).
+  Urutan rekomendasi kalau eksperimen lagi: Mistral Nemo 12B dulu.
 
-Alasan (berdasarkan simulasi + logika app):
-  1. Query craft aktif (gemma3:4b mem-bypass LLM rewrite).
-  2. Lebih patuh SKIP_SEARCH & deteksi identitas di uji LLM langsung.
-  3. Kualitas RAG setara; latency sedikit lebih tinggi (~+2s) masih acceptable.
-  4. Ukuran 9B masuk kategori "model besar" menurut _query_craft_ok().
-
-Trade-off diterima:
-  - Lebih lambat & boros RAM vs gemma3:4b.
-  - Query meta-strip belum sempurna di kedua model (perlu perbaikan prompt).
-
-Alternatif jika gemma2:9b terlalu berat:
-  • qwen3:8b (8.2B, sudah ter-pull) — uji dulu sebelum switch.
-  • gemma3:4b — hanya untuk dev/cepat jalan; query craft off.
 
 --------------------------------------------------------------------------------
-7. CARA GANTI MODEL (TANPA EDIT KODE)
+4. PERBAIKAN PIPELINE CHAT  (2026-06-16, terkait kualitas jawaban)
 --------------------------------------------------------------------------------
-  export MYDHAMMA_OLLAMA_URL="http://127.0.0.1:11434/api/chat"
-  export MYDHAMMA_CHAT_MODEL="gemma2:9b"    # atau gemma3:4b, qwen3:8b, dll.
-  python web-md/app.py
+Banyak gejala "model ngawur/ga dengerin prompt" ternyata BUKAN murni model:
 
-Atau lewat tmux:
-  ./start-dev.sh stop && ./start-dev.sh
-  (tambahkan export di start-dev.sh jika perlu override permanen)
+  a) num_ctx (BIANG UTAMA): Ollama default 2048 -> prompt RAG (system +
+     answer-guide + 9+ passage + reminder) kepotong diam-diam DARI DEPAN ->
+     passage terbaik (mis. AN 9.64 yg ngelist lengkap) kebuang -> model cuma
+     lihat ekor prompt -> under-answer. FIX: CHAT_NUM_CTX=8192 di semua call
+     Ollama (_ollama_json, _ollama_chat, _ollama_stream); harus SAMA di semua
+     call (beda num_ctx = Ollama reload model tiap request).
 
-Cek model ter-pull:
-  curl -s http://127.0.0.1:11434/api/tags | python3 -m json.tool
+  b) Kartu sumber (_cited_only): dulu kartu = HANYA sutta yg di-kutip model di
+     teks. Kalau model salah kutip, sumber asli ILANG. FIX: (1) word-boundary
+     regex (cegah "DN 2" cocok di "DN 22"); (2) PAD kartu dgn kandidat retrieval
+     skor tertinggi -> sumber real tetap tampil walau model salah/lupa kutip.
 
-Pull model baru:
-  ollama pull gemma2:9b
+  c) Diakritik Pali: model kecil sering nulis tanpa diakritik (satipatthana,
+     nibbana). FIX: map normalisasi (_PALI_DIACRITIC_MAP di app.py +
+     enforceTheravadaTerms di static/chat.js) -> satipatthana -> satipatthana[diakritik],
+     metta -> metta[diakritik], dst. Kurasi rendah-tabrakan (TANPA sila/mara/nana).
+
+  d) Follow-up context (deiktik): kalau user merujuk balik ("...di sutta itu?")
+     tapi LLM lupa nyelipin kode sutta, kartu drift ke sutta lain. FIX: carry
+     kode sutta dari giliran asisten terakhir HANYA kalau ada pola deiktik
+     (referent-noun + kata tunjuk: "sutta itu", "teks tersebut", "di situ");
+     idiom "apa itu X" sengaja TIDAK memicu (anti lock-in).
+
+  e) Enumerasi (granularity): kueri "sebutkan/empat jenis ..." butuh daftar
+     UTUH. FIX: _ENUM_INTENT_RE -> _passages_for_prompt ambil 8 chunk (bukan 5)
+     & cap 3200 char (bukan 2000), biar list lengkap kebawa.
+
+  f) Temperature jawaban final diturunkan 0.45 -> 0.35 (kurangi wandering).
+
 
 --------------------------------------------------------------------------------
-8. RIWAYAT PERUBAHAN CONFIG
+5. SURVEI MULTI-SKEMA ENUMERATIF  (SUDAH SELESAI — 2026-06-16)
 --------------------------------------------------------------------------------
-  Sebelum  : OLLAMA_URL :11435, CHAT_MODEL gemma2:9b (model belum ada → error)
-  Sementara: OLLAMA_URL :11434, CHAT_MODEL gemma3:4b (quick fix, model ada)
-  Sekarang : OLLAMA_URL :11434, CHAT_MODEL gemma2:9b (setelah pull + simulasi)
+Kasus: "empat jenis manusia" punya beberapa kategorisasi berbeda isi (siksa
+diri/orang-lain, apa yg dihargai, tingkat kecelaan, cara memahami, status di
+Sangha, kearifan, dst). Dulu model collapse ke SATU skema dominan.
 
-================================================================================
+DIAGNOSIS (penting): bottleneck-nya BUKAN retrieval kurang ragam — passage yg
+dikirim ke model SUDAH beragam. Masalahnya POSISI ATENSI instruksi: klausa SURVEI
+di answer-guide kependem di tembok teks -> diabaikan model.
+
+FIX yang berhasil: inject pengingat enum-survei di REMINDER AKHIR (di-append ke
+pesan tool terakhir = atensi tertinggi), DAN hanya saat _ENUM_INTENT_RE match,
+DENGAN guard anti-ngarang ("kalau cuma ada satu skema, bahas satu saja").
+Hasil di qwen3:14b: jawaban kini menyurvei 5-6 skema BERBEDA, masing-masing
+dengan sutta + sitasi segmen, dan ISINYA AKURAT (bukan halusinasi).
+=> query-expansion yg dulu direncanakan TIDAK jadi perlu.
+
+Catatan: kadang ada sedikit redundansi sub-bullet (minor). Faithfulness tetap
+dijaga oleh guard + sifat qwen3 (beda total dgn gemma yg ngarang skema palsu).

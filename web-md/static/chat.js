@@ -66,7 +66,32 @@
         [/\bMaitri\b/gi, "mettā"],
         [/\bDuhkha\b/gi, "dukkha"],
         [/\bKlesha(s)?\b/gi, "kilesa"],
-        [/\bPratityasamutpada\b/gi, "paṭiccasamuppāda"]
+        [/\bPratityasamutpada\b/gi, "paṭiccasamuppāda"],
+        // Restore DIAKRITIK Pali "telanjang" (model kecil sering nulis tanpa diakritik).
+        // Kurasi rendah-tabrakan dgn kata Indonesia (sengaja TANPA "sila"/"mara"/"nana").
+        [/\bSatipatthana\b/gi, "satipaṭṭhāna"],
+        [/\bParinibbana\b/gi, "parinibbāna"],
+        [/\bNibbana\b/gi, "nibbāna"],
+        [/\bPaticcasamuppada\b/gi, "paṭiccasamuppāda"],
+        [/\bBrahmavihara\b/gi, "brahmavihāra"],
+        [/\bVipassana\b/gi, "vipassanā"],
+        [/\bSamadhi\b/gi, "samādhi"],
+        [/\bJhana\b/gi, "jhāna"],
+        [/\bPanna\b/gi, "paññā"],
+        [/\bMetta\b/gi, "mettā"],
+        [/\bKaruna\b/gi, "karuṇā"],
+        [/\bMudita\b/gi, "muditā"],
+        [/\bUpekkha\b/gi, "upekkhā"],
+        [/\bTanha\b/gi, "taṇhā"],
+        [/\bAnatta\b/gi, "anattā"],
+        [/\bSankhara\b/gi, "saṅkhāra"],
+        [/\bNikaya\b/gi, "nikāya"],
+        [/\bTipitaka\b/gi, "tipiṭaka"],
+        [/\bPatimokkha\b/gi, "pātimokkha"],
+        [/\bSotapanna\b/gi, "sotāpanna"],
+        [/\bSakadagami\b/gi, "sakadāgāmī"],
+        [/\bAnagami\b/gi, "anāgāmī"],
+        [/\bKasina\b/gi, "kasiṇa"]
       ];
       let res = text;
       for (const [pat, rep] of replacements) {
@@ -669,6 +694,21 @@
       } catch (e) { console.warn("Failed to save chat history", e); }
     }
 
+    const _initParams = new URLSearchParams(window.location.search);
+    const _qParam = _initParams.get("q");
+    const _tagParam = _initParams.get("tag");
+
+    history = [];
+    try {
+      if (_qParam || _tagParam) {
+        // CLEAR history if navigating from external link to start a fresh context
+        localStorage.removeItem("dhammachat_history");
+      } else {
+        const saved = localStorage.getItem("dhammachat_history");
+        if (saved) history = JSON.parse(saved);
+      }
+    } catch (e) { console.warn("Failed to load chat history", e); }
+
     function restoreHistory() {
       history.forEach(item => {
         if (item.role === "user") {
@@ -693,6 +733,8 @@
       });
       
       let filteredAns = enforceTheravadaTerms(textWithoutThink);
+      // Force-replace kalimat basa-basi "Berdasarkan kutipan yang Anda berikan..." dengan kalimat berwibawa
+      filteredAns = filteredAns.replace(/^\s*(?:Berdasarkan|Menurut|Dari|Based on|According to)[^\n]{1,50}(?:kutip|dokumen|teks|referensi|sutta|passage|quote|text)[^\n]{1,50}(?:Anda|kamu|diberi|diserta|dikutip|di atas|sedia|provided|above|you)[^\n]*?(?:[:,]|\n)\s*/i, "Dalam ajaran Buddha, ");
       let ansHtml = mdLite(filteredAns);
       
       ansHtml = ansHtml.replace(/<p>__THINK_BLOCK_(\d+)__<\/p>/gi, function(match, idx) {
@@ -705,12 +747,13 @@
           return `<details class="chat-think" open><summary>🤔 Sedang Berpikir...</summary><div class="chat-think-content">${thinks[idx]}</div></details>\n`;
       });
 
-      ansHtml = ansHtml.replace(/([A-Za-z\-]+\s+\d+(?:\.\d+)*(?:-\d+)?)(?::[a-zA-Z0-9\.\-]+)?(?:\s*\([a-z]{2,3}\/[^)]+\))?/gi, (match, bookId) => {
-        if (match.trim() === bookId.trim()) {
+      ansHtml = ansHtml.replace(/([A-Za-z\-]+\s+\d+(?:\.\d+)*(?:-\d+)?)(?::([a-zA-Z0-9\.\-]+))?(?:\s*\([a-z]{2,3}\/[^)]+\))?/gi, (match, bookId, segment) => {
+        const fullId = segment ? `${bookId.trim()}:${segment.trim()}` : bookId.trim();
+        if (fullId === bookId.trim()) {
           const found = results.some(r => r.formatted_id.toLowerCase() === bookId.trim().toLowerCase() || r.sutta_id.toLowerCase() === bookId.trim().toLowerCase());
           if (!found) return match;
         }
-        return `<button type="button" class="chat-inline-cite" data-target="${esc(bookId.trim())}">${esc(match)}</button>`;
+        return `<button type="button" class="chat-inline-cite" data-target="${esc(bookId.trim())}" data-full-target="${esc(fullId)}">${esc(match)}</button>`;
       });
       botElement.innerHTML = ansHtml;
 
@@ -763,14 +806,33 @@
       botElement.querySelectorAll(".chat-inline-cite").forEach(btn => {
         btn.addEventListener("click", () => {
           const target = btn.getAttribute("data-target");
-          let found = null;
-          botElement.parentElement.querySelectorAll(".sutta-card-link").forEach(l => {
-            if (l.textContent.includes(target)) found = l.closest(".sutta-card");
+          const fullTarget = btn.getAttribute("data-full-target");
+          let foundCard = null;
+          let foundSeg = null;
+          
+          botElement.parentElement.querySelectorAll(".sutta-card").forEach(card => {
+            const l = card.querySelector(".sutta-card-link");
+            if (l && l.textContent.includes(target)) {
+              foundCard = card;
+              // Try to find the specific segment
+              if (fullTarget && fullTarget !== target) {
+                card.querySelectorAll(".fragment-ref").forEach(ref => {
+                  if (ref.textContent.includes(fullTarget)) {
+                    foundSeg = ref.closest(".fragment");
+                  }
+                });
+              }
+            }
           });
-          if (found) {
-            found.scrollIntoView({ behavior: "smooth", block: "center" });
-            found.style.boxShadow = "0 0 0 2px var(--accent)";
-            setTimeout(() => found.style.boxShadow = "", 2000);
+          
+          let highlightEl = foundSeg || foundCard;
+          if (highlightEl) {
+            if (foundSeg && foundSeg.classList.contains("hidden-frag")) {
+              foundSeg.classList.remove("hidden-frag");
+            }
+            highlightEl.scrollIntoView({ behavior: "smooth", block: "center" });
+            highlightEl.style.boxShadow = "0 0 0 2px var(--accent)";
+            setTimeout(() => highlightEl.style.boxShadow = "", 2000);
           }
         });
       });
