@@ -268,7 +268,7 @@
           // else (pra-restart): approx — clamp x<=y, sisanya dianggap excluded.
           const graded = hasExact ? allG : (total ? Math.min(allG, total) : allG);
           const excl = hasExact ? (exclData[key] || 0) : Math.max(0, allG - total);
-          const exclLabel = excl ? `<br><span class="eo-sum-excl" title="${excl} pasase dinilai, di luar pool top-10">+${excl}</span>` : "";
+          const exclLabel = ""; // badge "+N" (di luar pool top-10) dihapus dari tampilan
           if (doneSet.has(key)) {
             const countLabel = total ? `<br><span class="eo-sum-prog-label">(${graded}/${total})</span>` : "";
             tbody += `<td class="eo-sum-td eo-sum-check" title="${esc(q.query)} / ${db.toUpperCase()} — ${graded}/${total || "?"} in-pool, ${excl} di luar pool"><i data-lucide="check" class="lucide-sm"></i>${countLabel}${exclLabel}</td>`;

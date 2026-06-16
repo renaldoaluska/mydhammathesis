@@ -88,6 +88,13 @@
                                 o.classList.toggle("active", o.dataset.lang === lang);
                             });
                         }
+                        var savedW = localStorage.getItem("dk-notes-width");
+                        if (savedW && window.innerWidth >= 769) {
+                            var w = parseInt(savedW);
+                            if (w >= 280 && w <= 600) {
+                                document.documentElement.style.setProperty("--notes-panel-w", w + "px");
+                            }
+                        }
                     })();
                 </script>
             </div><!-- /.header-right -->
@@ -210,8 +217,8 @@
                 <div class="empty-icon"><i data-lucide="pen-line"></i></div>
                 <p data-i18n-html="notes_empty">Pilih atau buat catatan baru<br>untuk mulai menyusun pembabaran Dhamma.
                 </p>
-
-
+                <button id="btn-empty-new-note" class="btn-secondary btn-sm" data-i18n="btn_empty_new_note"
+                    title="Buat catatan baru">+ Buat Catatan Baru</button>
             </div>
         </section>
         {% endblock %}
@@ -223,6 +230,10 @@
         <div class="sutta-dialog-header">
             <button id="sutta-dialog-close" class="sutta-dialog-close" title="Tutup"><i data-lucide="x"></i></button>
             <div class="sutta-dialog-actions">
+                <a id="sutta-dialog-chat-link" href="#" class="btn-chat-ai" title="Chat dengan AI">
+                    <i data-lucide="sparkles"></i><span class="sutta-dialog-open-label"
+                        data-i18n="btn_chat_ai">Chat dengan AI</span>
+                </a>
                 <button id="sutta-dialog-settings-btn" class="sutta-dialog-open-btn" data-i18n-title="rs_title"
                     title="Setelan">
                     <i data-lucide="settings-2"></i><span class="sutta-dialog-open-label"
@@ -244,7 +255,7 @@
         <div class="sutta-dialog-body">
             <div id="sutta-dialog-loading" class="empty-state hidden">
                 <div class="spinner"></div>
-                <p>Memuat sutta…</p>
+                <p>Memuat teks…</p>
             </div>
             <div id="sutta-dialog-error" class="empty-state hidden">
                 <div class="empty-icon"><i data-lucide="triangle-alert"></i></div>
@@ -332,6 +343,43 @@
             </div>
         </div>
         <div id="nm-list" class="nm-list"></div>
+    </dialog>
+
+    <!-- ===== Dialog "Lompat ke Teks" (global, dibuka dari header) ===== -->
+    <dialog id="goto-dialog" class="dk-dialog"
+        style="width: 380px; max-width: 90vw; padding: 20px; border-radius: 8px; border: 1px solid var(--border-strong); background: var(--bg-primary); color: var(--text); position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); margin: 0; box-shadow: 0 16px 48px rgba(0,0,0,0.5);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <h3 style="margin: 0; font-size: 1.05rem;"><i data-lucide="milestone"
+                    style="vertical-align: -2px; margin-right: 4px;"></i> <span data-i18n="goto_title">Lompat ke
+                    Teks</span></h3>
+            <button class="nm-close-btn" id="btn-close-goto"><i data-lucide="x"
+                    style="width:16px; height:16px;"></i></button>
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <input type="text" id="goto-collection" data-i18n-placeholder="goto_collection_ph" placeholder="mis. MN, DN"
+                autocomplete="off"
+                style="flex: 1; min-width: 0; padding: 8px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-strong); background: var(--bg-tertiary); color: var(--text); font-size: 0.9rem;">
+            <input type="text" id="goto-number" data-i18n-placeholder="goto_number_ph" placeholder="mis. 22, 56.11"
+                autocomplete="off"
+                style="flex: 1; min-width: 0; padding: 8px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-strong); background: var(--bg-tertiary); color: var(--text); font-size: 0.9rem;">
+        </div>
+        <div style="display: flex; align-items: center; text-align: center; margin: 12px 0; color: var(--text-muted); font-size: 0.75rem;">
+            <hr style="flex: 1; border: none; border-top: 1px solid var(--border); margin-right: 8px;">
+            <span data-i18n="goto_or">atau</span>
+            <hr style="flex: 1; border: none; border-top: 1px solid var(--border); margin-left: 8px;">
+        </div>
+        <div>
+            <input type="text" id="goto-title" data-i18n-placeholder="goto_title_ph" placeholder="Cari berdasarkan judul..."
+                autocomplete="off"
+                style="width: 100%; padding: 8px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-strong); background: var(--bg-tertiary); color: var(--text); font-size: 0.9rem;">
+        </div>
+        <hr style="border: none; border-top: 1px solid var(--border); margin: 14px 0 10px 0;">
+        <div id="goto-preview"
+            style="min-height: 1.3em; font-size: 0.85rem; color: var(--text-muted);"></div>
+        <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+            <button type="button" class="btn-primary" id="btn-goto-go" style="padding: 6px 18px;"><span
+                    data-i18n="goto_btn_open">Buka</span></button>
+        </div>
     </dialog>
 
     <script id="dk-bilara-author-names" type="application/json">{{ bilara_author_names | tojson }}</script>

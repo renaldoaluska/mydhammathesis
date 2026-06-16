@@ -27,6 +27,15 @@ from _corpus import load_corpus                                # noqa: E402
 EMB_DIR = config.EMBEDDINGS_DIR / "web"
 RRF_K   = 60
 
+# ── Kata-Kunci sadar-frasa (HANYA web-md, BUKAN baseline eval) ────────────────
+# web-eval & metrik (5-eval/1-build-cache.py) pakai keyword_search() MURNI = BM25
+# Okapi [12], beku. keyword_search_phrase() di bawah = peningkatan PRODUK web-md:
+# BM25 + bonus frasa-utuh + bonus cakupan-kata. Bobot di-skala idf biar adil
+# lintas-kueri & length-independent (nambal Ud 8.3 yg ke-penalti panjang).
+W_PHRASE    = 3.0   # bonus per kemunculan frasa query utuh (× idf frasa)
+W_COVERAGE  = 1.0   # bonus per kata-query distinct yg hadir   (× idf kata)
+PHRASE_CAP  = 3     # saturasi: frasa berulang >3× tak nambah skor
+
 _model_cache: dict = {}
 _emb_cache: dict = {}      # (clean_model, lang) -> (corpus, embeddings)
 _bm25_cache: dict = {}     # lang -> (corpus, bm25)
@@ -50,6 +59,19 @@ def _needs_prefix(name):
 def _ok(entry, include_titles, include_blurb):
     if not include_titles and entry.get("heading", 0) > 0:
         return False
+        
+    # Buang semua chunk yang kurang dari 3 kata, TAPI KHUSUS dari kitab Vinaya
+    # (karena Vinaya yang paling banyak isi sub-judul pendek kayak "Definisi", "Brahmana")
+    words = [w for w in entry.get("text", "").split() if w.strip()]
+    
+    # 1. Buang judul yang cuma sepotong huruf/simbol/angka di SEMUA kitab
+    if len(words) == 1 and len(words[0]) <= 1:
+        return False
+        
+    # 2. Buang judul pendek (< 3 kata) khusus Vinaya
+    if len(words) < 3 and entry.get("file_base_name", "").startswith(("pli-tv-", "pli-vi-")):
+        return False
+        
     if not include_blurb and entry.get("author") == "blurb":
         return False
     return True
@@ -58,7 +80,11 @@ def _ok(entry, include_titles, include_blurb):
 # ── loaders (cached) ─────────────────────────────────────────────────────────
 def _load_model(name):
     if name not in _model_cache:
-        _model_cache[name] = config.load_st_model(name)
+        # EMBED_DEVICE (mis. "cpu") -> taruh embedding di CPU; default biarkan ST auto-pilih
+        # (cuda kalau ada). web-md set "cpu" supaya GPU 12GB dipakai penuh chat LLM 14b.
+        _dev = os.environ.get("EMBED_DEVICE")
+        _kw = {"device": _dev} if _dev else {}
+        _model_cache[name] = config.load_st_model(name, **_kw)
     return _model_cache[name]
 
 
@@ -86,8 +112,11 @@ def _load_bm25(lang):
     from rank_bm25 import BM25Okapi
     corpus = load_corpus(lang)
     bm25 = BM25Okapi([_tok(c["text"]) for c in corpus]) if corpus else None
-    _bm25_cache[lang] = (corpus, bm25)
-    return corpus, bm25
+    # teks ter-normalisasi (lower/no-diakritik/1-spasi) utk substring frasa & cek kata.
+    # keyword_search() murni tak memakainya; cuma keyword_search_phrase (web-md).
+    stripped = [_strip(c["text"]) for c in corpus]
+    _bm25_cache[lang] = (corpus, bm25, stripped)
+    return corpus, bm25, stripped
 
 
 # ── metode ───────────────────────────────────────────────────────────────────
@@ -100,9 +129,12 @@ def semantic_search(query, model_name, lang, top_k=10, include_titles=True, incl
     model = _load_model(model_name)
     q = f"query: {query}" if _needs_prefix(model_name) else query
     qe = model.encode(q, convert_to_tensor=True, normalize_embeddings=True)
-    # cache korpus selalu di CPU (map_location="cpu"); query bisa mendarat di GPU
-    # kalau model ke-load di cuda -> samakan device biar cos_sim tidak mismatch.
-    qe = qe.to(emb.device)
+    # Samakan device DAN dtype query ke embedding korpus sebelum cos_sim:
+    # - device: cache korpus selalu CPU, query bisa mendarat di GPU (model cuda).
+    # - dtype : embedding gte di-precompute fp16, e5/bge fp32. Loader kini pin model
+    #   ke fp32 (kompat transformers v5) → query fp32; cast ke dtype korpus biar
+    #   torch.mm tak "Float != Half". Cast di query (kecil) → korpus tak disalin.
+    qe = qe.to(device=emb.device, dtype=emb.dtype)
     scores = util.cos_sim(qe, emb)[0]
     idx = torch.topk(scores, min(len(corpus), top_k * 5)).indices.tolist()
     out = []
@@ -110,28 +142,140 @@ def semantic_search(query, model_name, lang, top_k=10, include_titles=True, incl
         e = corpus[i]
         if not _ok(e, include_titles, include_blurb):
             continue
-        out.append({**e, "score": float(scores[i]), "score_type": "cosine"})
+        # corpus_idx = posisi chunk di korpus (dibangun urut dokumen per-file),
+        # dipakai konsumen utk sort fragmen dalam-sutta secara urutan-baca.
+        out.append({**e, "score": float(scores[i]), "score_type": "cosine", "corpus_idx": i})
         if len(out) >= top_k:
             break
     return out
 
 
 def keyword_search(query, lang, top_k=10, include_titles=True, include_blurb=True):
-    corpus, bm25 = _load_bm25(lang)
+    corpus, bm25, _stripped = _load_bm25(lang)
     if not bm25:
         return []
     scores = bm25.get_scores(_tok(query))
-    order = sorted(range(len(corpus)), key=lambda i: -scores[i])
+    import torch
+    import numpy as np
+    scores_t = torch.tensor(np.array(scores))
+    k_needed = min(len(corpus), top_k * 5)
+    if k_needed == 0:
+        return []
+    top = torch.topk(scores_t, k_needed)
+    
     out = []
-    for i in order:
-        if scores[i] <= 0:
+    for i, score in zip(top.indices.tolist(), top.values.tolist()):
+        if score <= 0:
             break
         e = corpus[i]
         if not _ok(e, include_titles, include_blurb):
             continue
-        out.append({**e, "score": float(scores[i]), "score_type": "bm25"})
+        out.append({**e, "score": float(score), "score_type": "bm25", "corpus_idx": i})
         if len(out) >= top_k:
             break
+    return out
+
+
+def keyword_search_phrase(query, lang, top_k=10, include_titles=True, include_blurb=True):
+    """Kata-Kunci sadar-frasa untuk web-md (BUKAN baseline eval).
+    skor = BM25 + W_PHRASE·frasa_utuh·idf_frasa + W_COVERAGE·Σidf(kata hadir).
+    Bonus di-skala idf → length-independent: pasase yg memuat frasa query utuh
+    (mis. Ud 8.3 'yang tidak dilahirkan') terangkat walau panjang/ke-saturasi BM25.
+    Tiap entri membawa kw_count (kata-query distinct hadir) & phrase_count (frasa)."""
+    import numpy as np
+    corpus, bm25, stripped = _load_bm25(lang)
+    if not bm25:
+        return []
+    q_tokens = _tok(query)
+    if not q_tokens:
+        return []
+    q_terms   = list(dict.fromkeys(q_tokens))            # distinct, urutan dipertahankan
+    q_phrase  = _strip(query)
+    multiword = len(q_tokens) > 1
+    term_idf  = {t: max(bm25.idf.get(t, 0.0), 0.0) for t in q_terms}
+    phrase_idf = sum(term_idf.values()) or 1.0
+
+    bm = bm25.get_scores(q_tokens)
+    if len(corpus) == 0:
+        return []
+    # Kandidat = top-N BM25 ∪ semua dokumen yg memuat frasa utuh (yg BM25 mungkin
+    # kubur karena penalti panjang). Sisanya tak mungkin menang setelah bonus.
+    n_top = min(len(corpus), max(top_k * 8, 80))
+    cand = set(np.argsort(-bm)[:n_top].tolist())
+    if multiword:
+        cand.update(i for i, s in enumerate(stripped) if q_phrase in s)
+
+    # Hitung kata/frasa pakai word-boundary regex (BUKAN split) supaya tanda baca
+    # yg nempel — "dilahirkan," — tetap kehitung. _strip tak buang tanda baca; itu
+    # bug laten tokenisasi lama, TAPI baseline BM25 (_tok) tak diutak agar eval beku.
+    term_re   = {t: re.compile(r"(?<!\w)" + re.escape(t) + r"(?!\w)") for t in q_terms}
+    phrase_re = re.compile(r"(?<!\w)" + re.escape(q_phrase) + r"(?!\w)") if multiword else None
+
+    scored = []
+    for i in cand:
+        text = stripped[i]
+        pc = min(len(phrase_re.findall(text)), PHRASE_CAP) if phrase_re else 0
+        present = [t for t in q_terms if term_re[t].search(text)]
+        kc = len(present)
+        cov_idf = sum(term_idf[t] for t in present)
+        score = float(bm[i]) + W_PHRASE * pc * phrase_idf + W_COVERAGE * cov_idf
+        scored.append((score, i, kc, pc))
+    scored.sort(key=lambda x: -x[0])
+
+    out = []
+    for score, i, kc, pc in scored:
+        if score <= 0:
+            break
+        e = corpus[i]
+        if not _ok(e, include_titles, include_blurb):
+            continue
+        out.append({**e, "score": float(score), "score_type": "bm25",
+                    "corpus_idx": i, "kw_count": kc, "phrase_count": pc})
+        if len(out) >= top_k:
+            break
+    return out
+
+
+def exact_sutta_match(sutta_id, lang, max_chunks=5, query=None):
+    """Pencarian eksak (bypass) untuk memaksa sutta ID spesifik selalu nomor 1."""
+    corpus, bm25, _ = _load_bm25(lang)
+    if not corpus:
+        return []
+    out = []
+    
+    # 1. Cari blurb/sinopsis dulu (karena secara abjad file author mungkin di bawah)
+    # File blurb itu gabungan koleksi (misal mn-blurbs), jadi cek dari ref-nya
+    for i, e in enumerate(corpus):
+        if e.get("author") == "blurb" and sutta_id in e.get("ref", []):
+            out.append({**e, "score": 1.0, "score_type": "exact", "corpus_idx": i})
+            
+    # 2. Cari semua teks utama untuk sutta ini
+    main_chunks = []
+    for i, e in enumerate(corpus):
+        if e.get("file_base_name") == sutta_id and e.get("author") != "blurb":
+            # Buang chunk yang isinya kurang dari 5 kata (biasanya cuma judul/nomor urut)
+            if len(e.get("text", "").split()) < 5:
+                continue
+            main_chunks.append((i, e))
+            
+    # 3. Urutkan chunk: jika ada kueri, pakai relevansi BM25; jika tidak, berdasar panjang teks
+    if query and bm25 and main_chunks:
+        q_tokens = _tok(query)
+        if q_tokens:
+            import numpy as np
+            scores = bm25.get_scores(q_tokens)
+            # Pasangkan score dengan chunk, urutkan berdasar score BM25 tertinggi
+            scored_chunks = [(scores[i], i, e) for i, e in main_chunks]
+            scored_chunks.sort(key=lambda x: (x[0], len(x[2].get("text", ""))), reverse=True)
+            main_chunks = [(i, e) for s, i, e in scored_chunks]
+        else:
+            main_chunks.sort(key=lambda x: len(x[1].get("text", "")), reverse=True)
+    else:
+        main_chunks.sort(key=lambda x: len(x[1].get("text", "")), reverse=True)
+        
+    for idx, (i, e) in enumerate(main_chunks[:max_chunks]):
+        out.append({**e, "score": 1.0 - (len(out) * 0.001), "score_type": "exact", "corpus_idx": i})
+                
     return out
 
 
@@ -140,20 +284,32 @@ def rrf_fuse(result_lists, top_k=10, k=RRF_K):
     for results in result_lists:
         for rank, e in enumerate(results):
             ref = tuple(e.get("ref") or [e.get("file_base_name")])
-            if ref not in agg:
-                agg[ref] = {"entry": e, "rrf": 0.0}
-            agg[ref]["rrf"] += 1.0 / (k + rank + 1)
+            slot = agg.get(ref)
+            if slot is None:
+                slot = agg[ref] = {"entry": dict(e), "rrf": 0.0}
+            else:
+                # RRF cuma menggabung skor; entri yg disimpan = yg pertama terlihat
+                # (mis. kaki semantik di hybrid). Tapi kw_count/phrase_count cuma
+                # ada di kaki Kata-Kunci → bawa-serta dari entri manapun yg punya,
+                # jika slot belum punya, biar badge frasa/kata tak ikut hilang.
+                for kf in ("kw_count", "phrase_count"):
+                    if slot["entry"].get(kf) is None and e.get(kf) is not None:
+                        slot["entry"][kf] = e[kf]
+            slot["rrf"] += 1.0 / (k + rank + 1)
     fused = sorted(agg.values(), key=lambda x: -x["rrf"])
     return [{**x["entry"], "score": round(x["rrf"], 6), "score_type": "rrf"} for x in fused[:top_k]]
 
 
-def search(query, method, model_name, lang, top_k=10, include_titles=True, include_blurb=True):
-    """method: 'semantic' | 'keyword' | 'hybrid'. lang: satu korpus (id/en/pli)."""
+def search(query, method, model_name, lang, top_k=10, include_titles=True, include_blurb=True,
+           phrase_aware=False):
+    """method: 'semantic' | 'keyword' | 'hybrid'. lang: satu korpus (id/en/pli).
+    phrase_aware=True → kaki keyword pakai keyword_search_phrase (HANYA web-md)."""
+    _kw = keyword_search_phrase if phrase_aware else keyword_search
     if method == "semantic":
         return semantic_search(query, model_name, lang, top_k, include_titles, include_blurb)
     if method == "keyword":
-        return keyword_search(query, lang, top_k, include_titles, include_blurb)
+        return _kw(query, lang, top_k, include_titles, include_blurb)
     # hybrid
     sem = semantic_search(query, model_name, lang, top_k * 3, include_titles, include_blurb)
-    kw  = keyword_search(query, lang, top_k * 3, include_titles, include_blurb)
+    kw  = _kw(query, lang, top_k * 3, include_titles, include_blurb)
     return rrf_fuse([sem, kw], top_k)

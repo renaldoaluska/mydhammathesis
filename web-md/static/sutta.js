@@ -108,6 +108,7 @@
   }
 
   async function loadSutta() {
+    document.body.classList.add("is-loading-sutta");
     dom.suttaLoading().classList.remove("hidden");
     dom.suttaError().classList.add("hidden");
     dom.suttaBody().classList.add("hidden");
@@ -121,14 +122,6 @@
       // const data = state.suttaData;
 
       // const displayTitle = data.formatted_id + (data.sutta_name ? ": " + data.sutta_name : "");
-      // const nameHtml = data.sutta_name ? `<div class="dlg-sutta-name">${data.sutta_name}</div>` : "";
-
-      // // const authorHtml = data.author ? `<div class="dlg-sutta-author" style="font-size: 0.85em; opacity: 0.7; margin-top: 4px;">${data.author}</div>` : "";
-
-      // dom.subtitle().innerHTML = `<div class="dlg-title-top"><i data-lucide="book-open"></i> <span class="dlg-formatted-id">${data.formatted_id}</span></div>${nameHtml}`;
-      // if (window.lucide) window.lucide.createIcons({ root: dom.subtitle() });
-      // document.title = `${displayTitle} — ${DK.authorLongName(state.suttaData.author)} (${DK.langName(state.suttaLang)}) — myDhamma`;
-
       const data = state.suttaData;
       const displayTitle = data.formatted_id + (data.sutta_name ? ": " + data.sutta_name : "");
       const nameHtml = data.sutta_name ? `<div class="dlg-sutta-name">${data.sutta_name}</div>` : "";
@@ -141,19 +134,44 @@
       dom.subtitle().innerHTML = `<div class="dlg-title-top"><i data-lucide="book-open"></i> <span class="dlg-formatted-id">${data.formatted_id}</span></div>${nameHtml}`;
       if (window.lucide) window.lucide.createIcons({ root: dom.subtitle() });
 
+      // Tag chat pakai formatted_id ("MN 10") yg lebih rapi drpd fallback sutta_id Jinja
+      const chatLink = document.getElementById("reader-chat-link");
+      if (chatLink && data.formatted_id)
+        chatLink.href = "/chat?tag=" + encodeURIComponent(data.formatted_id);
+
       // Inject langsung dengan format: ID [lang]: Nama — Author — myDhamma
       document.title = `${data.formatted_id} [${state.suttaLang}]${data.sutta_name ? `: ${data.sutta_name}` : ""}${authorLabel} — myDhamma`;
+
+      try {
+          let history = JSON.parse(localStorage.getItem("dk-recent-suttas") || "[]");
+          const newItem = {
+              id: state.suttaId,
+              lang: state.suttaLang,
+              author: data.author || "",
+              formatted_id: data.formatted_id,
+              name: data.sutta_name || "",
+              // Tanpa timestamp, sort riwayat gabungan di home menganggap 0
+              // -> item selalu kalah & tak pernah tampil.
+              timestamp: Date.now()
+          };
+          history = history.filter(item => !(item.id === newItem.id && item.lang === newItem.lang));
+          history.unshift(newItem);
+          if (history.length > 5) history = history.slice(0, 5);
+          localStorage.setItem("dk-recent-suttas", JSON.stringify(history));
+      } catch (e) { console.error(e); }
 
       buildLangToggle();
       refreshDisplayToggle();
       renderSutta();
-      buildBreadcrumbs(data);
+      await buildBreadcrumbs(data);
 
+      document.body.classList.remove("is-loading-sutta");
       dom.suttaLoading().classList.add("hidden");
       dom.suttaBody().classList.remove("hidden");
 
       setTimeout(handleHashChange, 100);
     } catch (e) {
+      document.body.classList.remove("is-loading-sutta");
       dom.suttaLoading().classList.add("hidden");
       dom.suttaErrorMsg().textContent = e.message || t("sutta_not_found");
       dom.suttaError().classList.remove("hidden");

@@ -17,8 +17,11 @@ import re
 import sys
 import json
 import uuid
+import unicodedata
 from datetime import datetime
 from pathlib import Path
+
+import requests
 
 from flask import (Flask, jsonify, request, redirect, render_template,
                    send_from_directory, abort)
@@ -27,9 +30,13 @@ from flask import (Flask, jsonify, request, redirect, render_template,
 BASE_DIR = Path(__file__).resolve().parent                 # mydhamma/web-md
 _SRC = next(p / "src" for p in BASE_DIR.parents if (p / "src" / "config.py").exists())
 sys.path.insert(0, str(_SRC))
-import config                                               # noqa: E402
+import config                                               # type: ignore # noqa: E402
 sys.path.insert(0, str(_SRC.parent / "web"))               # engine bersama
-import search as engine                                    # noqa: E402  (web/search.py)
+# GPU 12GB dipakai penuh chat LLM (qwen2.5:14b) -> embedding model ke CPU biar tak rebutan VRAM.
+# Query encoding ringan & vektor korpus sudah precomputed (cache CPU), jadi CPU aman/cepat.
+# Override eksplisit lewat env EMBED_DEVICE bila perlu (mis. EMBED_DEVICE=cuda).
+os.environ.setdefault("EMBED_DEVICE", "cpu")
+import search as engine                                    # type: ignore # noqa: E402  (web/search.py)
 sys.path.insert(0, str(BASE_DIR))
 import reader                                               # noqa: E402
 
@@ -96,10 +103,11 @@ def _load_engine_config() -> dict:
         return {}
 
 
-def _ensemble_models(db: str, query_lang: str) -> list:
-    cfg = _load_engine_config()
-    row = cfg.get(query_lang) if isinstance(cfg.get(query_lang), dict) else {}
-    return [m for m in (row.get(db) or []) if m]
+def _ensemble_models(db: str, cfg: dict = None) -> list:
+    """Model semantik utk korpus `db` dari konfig FLAT {target:[models]}.
+    `cfg` = override per-request (ensemble_config dari browser); None -> config.json server."""
+    cfg = cfg if isinstance(cfg, dict) else _load_engine_config()
+    return [m for m in (cfg.get(db) or []) if m]
 
 
 def _available_links(sid: str) -> dict:
@@ -339,7 +347,7 @@ def api_search():
     pitaka_f = body.get("pitaka", list(PITAKAS))
     if isinstance(pitaka_f, str):
         pitaka_f = [p.strip() for p in pitaka_f.split(",") if p.strip()]
-    query_lang = body.get("query_lang") if body.get("query_lang") in ("id", "en") else "id"
+    ens_cfg = body.get("ensemble_config") if isinstance(body.get("ensemble_config"), dict) else None
 
     methods = method if isinstance(method, list) else [method]
     has_sem, has_kw = "semantic" in methods, "keyword" in methods
@@ -353,7 +361,7 @@ def api_search():
             if eng_method == "keyword":
                 result_lists.append(_run_one(query, "keyword", None, db, pool, inc_titles, inc_blurb))
             else:
-                models = _ensemble_models(db, query_lang) if model_name == "ensemble" else [model_name]
+                models = _ensemble_models(db, ens_cfg) if model_name == "ensemble" else [model_name]
                 for mdl in models:
                     result_lists.append(_run_one(query, eng_method, mdl, db, pool, inc_titles, inc_blurb))
 
@@ -500,6 +508,42 @@ def api_browse():
 @app.route("/api/sutta-names")
 def api_sutta_names():
     return jsonify(reader._sutta_names)
+
+
+@app.route("/api/sutta-names/<pitaka>")
+def api_sutta_names_pitaka(pitaka):
+    return jsonify(reader.sutta_names_for_pitaka(pitaka))
+
+
+@app.route("/api/collections")
+def api_collections():
+    return jsonify(reader.collections_list())
+
+
+# Pola teks Pali kanonik yg layak di-@mention: nikaya (butuh angka) + vinaya bu/bi
+# (pli-tv-b[iu]-...). Terjemahan non-Pali (lzh-*/san-*/xct-*) sengaja dibuang.
+_MENTIONABLE_RE = re.compile(r'^((dn|mn|sn|an|kn|dhp|ud|iti|snp|vv|pv|thag|thig)\d|pli-tv-b[iu]-)', re.IGNORECASE)
+
+
+@app.route("/api/mentionable")
+def api_mentionable():
+    """Daftar LENGKAP teks (Pali kanonik) yg punya file & bisa di-@mention di chat:
+    {collections:[{abbr,name}], suttas:[{abbr,name,id}]}. Sumber = peta file reader."""
+    avail = set(reader._RAW_FILE_MAP) | set(reader._HTML_FILE_MAP)
+    suttas, cols = [], {}
+    for sid in avail:
+        if not _MENTIONABLE_RE.match(sid):
+            continue
+        suttas.append({"abbr": reader.format_sutta_id(sid),
+                       "name": reader._sutta_names.get(sid, ""),
+                       "id": reader.shorten_sutta_id(sid)})
+        book = reader._SUTTA_BOOK.get(sid)
+        if book:
+            cols.setdefault(book, reader._sutta_names.get(book, ""))
+    suttas.sort(key=lambda s: s["abbr"])
+    collections = [{"abbr": reader.format_sutta_id(b), "name": n or reader.format_sutta_id(b)}
+                   for b, n in sorted(cols.items())]
+    return jsonify({"collections": collections, "suttas": suttas})
 
 
 @app.route("/api/availability")
@@ -726,6 +770,767 @@ def api_readme():
         return p.read_text(encoding="utf-8"), 200, {"Content-Type": "text/markdown; charset=utf-8"}
     return ("# myDhamma\n\nREADME belum tersedia.", 200,
             {"Content-Type": "text/markdown; charset=utf-8"})
+
+
+# ============================================================
+# Chat (Agentic RAG) — helper: LLM (Ollama) + retrieval + post-proses
+# ============================================================
+# Model & endpoint Ollama. Ganti model = ubah env, tak perlu sentuh kode.
+CHAT_MODEL = os.environ.get("MYDHAMMA_CHAT_MODEL", "qwen2.5:14b")
+OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/")
+# Thinking mode default MATI: qwen3 dgn thinking 3-6x lebih lambat (sapaan bisa 30s) tanpa
+# manfaat nyata utk RAG ini. Set MYDHAMMA_CHAT_THINK=1 utk menyalakan. think:false aman utk
+# model non-thinking (qwen2.5 balas 200, param diabaikan).
+_CHAT_THINK = os.environ.get("MYDHAMMA_CHAT_THINK", "").lower() in ("1", "true", "yes")
+
+
+def _sse(obj: dict) -> str:
+    """Bungkus dict jadi satu event Server-Sent Events (dipakai gen() streaming)."""
+    return f"data: {json.dumps(obj, ensure_ascii=False)}\n\n"
+
+
+# Tool yang ditawarkan ke LLM. Agen memutuskan sendiri kapan & dgn argumen apa
+# memanggil search_sutta (query wajib; pitaka/language opsional).
+_CHAT_TOOLS = [{
+    "type": "function",
+    "function": {
+        "name": "search_sutta",
+        "description": ("Cari teks di korpus Tipiṭaka (Sutta/Vinaya/Abhidhamma) berdasarkan kata "
+                        "kunci atau topik. WAJIB dipanggil sebelum menjelaskan Dhamma agar jawaban "
+                        "bersumber pada teks, bukan ingatan model."),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string",
+                          "description": "Kata kunci / topik yg dicari, mis. 'empat kebenaran mulia' atau 'sigalovada'."},
+                "pitaka": {"type": "string", "enum": ["sutta", "vinaya", "abhidhamma"],
+                           "description": "Opsional: batasi pencarian ke satu kitab."},
+                "language": {"type": "string", "enum": ["id", "en"],
+                             "description": "Bahasa korpus yg dicari (default id)."},
+            },
+            "required": ["query"],
+        },
+    },
+}, {
+    "type": "function",
+    "function": {
+        "name": "ask_clarification",
+        "description": "Gunakan HANYA jika pertanyaan pengguna terlalu ambigu dan Anda tidak yakin apakah mereka masih membahas sutta dari turn sebelumnya atau berganti topik.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "question": {"type": "string", "description": "Pertanyaan klarifikasi yang ramah untuk ditanyakan ke pengguna."}
+            },
+            "required": ["question"]
+        }
+    }
+}]
+
+# System prompt RINGKAS & tool-forward. Model 7b (qwen2.5) jauh lebih patuh memanggil
+# tool kalau mandat tool ada di depan & prompt tidak bertele-tele (prompt 8-aturan lama
+# bikin tool_calls tak pernah terpicu — model malah menjawab dari ingatan).
+_CHAT_SYSTEM = {
+    "id": (
+        "Nama Anda 'myDhamma AI', asisten Dhamma buatan tim myDhamma (jangan pernah menyebut Qwen, "
+        "Google, atau OpenAI).\n"
+        "Anda AGEN yang menjawab pertanyaan Dhamma tradisi Theravada dan punya tool `search_sutta`.\n\n"
+        "ATURAN:\n"
+        "1. Untuk pertanyaan APA PUN soal Dhamma/Buddhisme/sutta/Tipiṭaka, Anda WAJIB memanggil tool "
+        "`search_sutta` LEBIH DULU. DILARANG menjawab dari ingatan. Jika pertanyaan user adalah pertanyaan lanjutan (follow-up) mengenai sutta dari obrolan sebelumnya, Anda WAJIB menyisipkan kode/nama sutta tersebut ke dalam argumen query tool (misal: 'MN 21 perumpamaan gergaji'). Jika user berganti topik, jangan sertakan kode suttanya. Jika niat user sangat ambigu (Anda ragu apakah ia lanjut atau ganti topik), panggil tool `ask_clarification`.\n"
+        "2. HANYA jika user sekadar menyapa, berterima kasih, atau basa-basi, jawab langsung TANPA tool.\n"
+        "3. Setelah hasil tool ada, jawab dalam Bahasa Indonesia natural dan WAJIB merujuk sutta yg "
+        "Anda pakai secara eksplisit. Sebutkan secara natural (misal 'Dalam SN 56.11...' atau dengan namanya 'Dalam Dhammacakkappavattana Sutta (SN 56.11)...'). "
+        "Jangan mengaku memakai 'tool' atau 'pencarian'.\n"
+        "4. Gunakan istilah Pali (Nibbāna, Kamma, Dhamma), bukan Sanskerta (Nirvana, Karma, Dharma). "
+        "Kapitalkan kata ganti Sang Buddha.\n"
+        "5. SALAM: JIKA memberi salam, gunakan HANYA salam Buddhis Pali — 'Sotthi hotu' atau 'Sukhī hotu'. DILARANG KERAS "
+        "memakai salam tradisi agama lain (mis. Assalamualaikum, Shalom, Om Swastiastu, Salam sejahtera). JIKA pengguna "
+        "sekadar bertanya kabar ('apa kabar?'), jawablah dengan natural, santai, dan ramah tanpa kaku mengulang salam."
+    ),
+    "en": (
+        "Your name is 'myDhamma AI', a Dhamma assistant by the myDhamma team (never mention Qwen, "
+        "Google, or OpenAI).\n"
+        "You are an AGENT answering Theravada Dhamma questions and you have the `search_sutta` tool.\n\n"
+        "RULES:\n"
+        "1. For ANY question about Dhamma/Buddhism/suttas/Tipiṭaka you MUST call `search_sutta` FIRST. "
+        "Never answer from memory. If the user's question is a follow-up about a sutta from the previous turn, you MUST include the sutta code/name in the tool query argument (e.g. 'MN 21 simile of the saw'). If the user changes the topic, do not include the sutta code. If the user's intent is highly ambiguous (you're unsure if they are continuing or changing the topic), call the `ask_clarification` tool.\n"
+        "2. ONLY if the user merely greets, thanks, or makes small talk, answer directly WITHOUT the tool.\n"
+        "3. Once tool results arrive, answer in natural English and you MUST cite the suttas you use "
+        "explicitly. Mention it naturally (e.g. 'In SN 56.11...' or by name 'In the Dhammacakkappavattana Sutta (SN 56.11)...'). "
+        "Don't admit using a 'tool' or 'search'.\n"
+        "4. Use Pali terms (Nibbāna, Kamma, Dhamma), not Sanskrit (Nirvana, Karma, Dharma).\n"
+        "5. GREETINGS: IF greeting, use ONLY the Buddhist Pali salutation — 'Sotthi hotu' or 'Sukhī hotu'. NEVER "
+        "use another religion's greeting (e.g. Assalamualaikum, Shalom). IF the user just asks 'how are you?', "
+        "answer naturally, warmly, and casually without rigidly forcing a Pali greeting."
+    ),
+}
+
+# Panduan GAYA jawaban final (fase 2, call tanpa tools). Dipisah dari _CHAT_SYSTEM
+# supaya fase keputusan tetap ringkas (tool-forward), tapi jawaban akhir kaya & terstruktur.
+_CHAT_ANSWER_GUIDE = {
+    "id": (
+        "Sekarang TULIS JAWABAN FINAL untuk pengguna berdasarkan teks yg ditemukan di atas. Buat "
+        "LENGKAP, jelas, dan terstruktur:\n"
+        "- Buka dgn inti jawaban/definisi konsepnya secara langsung.\n"
+        "- PRIORITASKAN penggunaan poin-poin (bullet points) untuk menguraikan isi teks. Jangan gunakan paragraf panjang yang sulit dibaca.\n"
+        "- Tutup dgn ringkasan/intisari praktis 1-2 kalimat bila relevan. LANGSUNG tulis intisarinya TANPA kalimat pengantar/bridging kaku seperti 'Sebagai ringkasan praktis...', 'Berikut adalah intisarinya...', atau semacamnya.\n"
+        "- Setelah penutup, WAJIB buat daftar 3 Rekomendasi Pertanyaan Lanjutan (format bullet) yang relevan untuk eksplorasi lebih dalam. Setidaknya satu rekomendasi WAJIB men-tag sutta yang terkait, misal: 'Jelasin isi @MN10' atau 'Apa kata @SN56.11 tentang ini'. Gunakan heading '**Rekomendasi Pertanyaan Lanjutan:**'. DILARANG menggunakan tanda titik (.) di akhir kalimat rekomendasi pertanyaan. PENTING: Jangan menyertakan nomor segmen (seperti :md3 atau :1.2) saat men-tag sutta di pertanyaan lanjutan; cukup tag nama suttanya utuh tanpa segmen. ATURAN REKOMENDASI: Jika pengguna SECARA EKSPLISIT bertanya tentang sutta tertentu (misal '@SN 12.60'), JANGAN rekomendasikan sutta itu lagi. Namun, jika kamu merujuk suatu sutta untuk menjawab pertanyaan konseptual, kamu SANGAT DIANJURKAN membuat rekomendasi agar pengguna menggali isi sutta tersebut (misal 'Jelaskan isi @SuttaTsb secara detail').\n"
+        "ATURAN RUJUKAN (WAJIB):\n"
+        "- DILARANG KERAS membuat bagian/daftar 'Referensi:', 'Daftar Rujukan:', atau semacamnya di akhir jawaban. Semua rujukan HARUS diselipkan langsung di dalam kalimat (inline). SETIAP kali kamu membahas suatu poin/segmen, kamu WAJIB menyebutkan Sutta/Segmen asalnya di teks tersebut!\n"
+        "- Rujuk HANYA dgn token rujukan PERSIS yg diberikan tiap blok (SALIN apa adanya, mis. 'MN 10:1.5' atau 'Bu-Pj 1'). Jangan kaku menambahkan tanda kurung jika menyebut di tengah kalimat.\n"
+        "- UTAMAKAN rujukan tingkat SEGMEN: jika token rujukan blok menyertakan nomor segmen (mis. 'MN 10:1.5'), kamu WAJIB merujuk dengan segmen itu, JANGAN cuma nama sutta utuh ('MN 10'). Tag segmen yang spesifik untuk SETIAP klaim/poin agar pembaca bisa langsung ke kalimat sumbernya.\n"
+        "- Jika menyebut rentang atau beberapa segmen berurutan, WAJIB mengulang nama sutta-nya secara utuh (contoh BENAR: 'SN 54.10:md6 sampai SN 54.10:md8'. Contoh SALAH: 'SN 54.10:md6 sampai md8'). Hal ini sangat penting agar link rujukan bisa di-klik.\n"
+        "- JIKA satu-satunya teks yg tersedia untuk sutta yg diminta hanya berbahasa Pāli (blok bertanda '⚠️ HANYA tersedia teks PĀLI') DAN kamu tidak benar-benar memahami isinya, DILARANG KERAS menebak/mengarang artinya. Katakan jujur & sopan: 'Mohon maaf, untuk [nama/ID sutta] belum ada terjemahan yang bisa saya pahami. Silakan coba sutta lain.'\n"
+        "DILARANG KERAS mengarang, menambah, atau mengubah nomor rujukan.\n"
+        "- Bedakan jenis teks: blok bertanda VINAYA adalah ATURAN MONASTIK — sebut 'aturan Vinaya', "
+        "JANGAN sebut 'sutta'. Blok bertanda SUTTA baru boleh disebut sutta.\n"
+        "- Awalan rujukan: 'Bu-' = bhikkhu (biksu PRIA), 'Bi-' = bhikkhunī (biksu WANITA). Jangan "
+        "tertukar — aturan untuk bhikkhu tidak otomatis berlaku untuk bhikkhunī dan sebaliknya.\n"
+        "- STRUKTUR JAWABAN: Jika ada teks yang bertanda '⭐ DIMINTA USER' (artinya pengguna menyebut teks ini secara spesifik), FOKUSKAN seluruh jawabanmu secara utama pada teks tersebut! Jelaskan isinya secara detail dan urut. Namun, kamu SANGAT DIIZINKAN untuk menggunakan teks rujukan lain tanpa bintang sebagai pelengkap (supplement) untuk memperluas atau mengklarifikasi jawaban jika penjelasan di teks utama kurang lengkap.\n"
+        "- KELOMPOKKAN & SURVEI (PENTING): JIKA TIDAK ADA teks bertanda '⭐ DIMINTA USER', bahas SEMUA blok yang relevan — JANGAN cuma ambil 1 sutta lalu mengabaikan sisanya yang juga relevan. Jika beberapa blok membahas topik/kategori yang sama (mis. pertanyaan 'empat jenis manusia' dan ADA BANYAK sutta yang relevan), sajikan sebagai SURVEI: SATU poin (bullet) per sutta, masing-masing DENGAN rujukannya, agar pengguna melihat ragam sumbernya. Hanya buang blok yang benar-benar tidak relevan.\n"
+        "- BATASAN ELABORASI: Ini sangat KRITIS! Jika kamu memberikan penjelasan tambahan, definisi rincian, atau penjabaran makna yang TIDAK TERTULIS EKSPLISIT di teks rujukan (misalnya mendaftar rincian padahal teksnya cuma menyebut nama konsepnya), kamu WAJIB MUTLAK mendeklarasikan bahwa itu adalah tambahan dari AI (misal: '*Sebagai penjelasan tambahan dari myDhamma AI...*' atau '*Catatan: Rincian ini tidak disebutkan di sutta, namun...*'). JANGAN PERNAH menyajikan penjelasan eksternal seolah-olah itu adalah isi asli dari sutta.\n"
+        "- Bila teks rujukan utama tampak hanya SEBAGIAN (tidak lengkap), katakan jujur bahwa kamu tidak "
+        "membaca seluruh isinya, lalu beri gambaran umum dari bagian yg tersedia.\n"
+        "Bahasa Indonesia natural, hangat, informatif. DILARANG KERAS MENGARANG ATAU MENEBAK ISTILAH PALI! Jangan pernah menyisipkan istilah Pali (misalnya dengan embel-embel 'atau [Pali] dalam bahasa Pali') KECUALI teks sumber secara harfiah dan eksplisit menyebutkan pasangan kata tersebut. Jika teks aslinya HANYA menulis terjemahan Indonesianya saja, MAKA KAMU HARUS MENULIS INDONESIANYA SAJA TANPA SOK TAHU MENAMBAHKAN BAHASA PALI. Ini adalah kitab suci yang wajib dijaga keakuratannya, menebak istilah adalah kesalahan fatal. DILARANG memakai kata 'di mana' sebagai kata hubung intrakalimat. Jangan menyebut 'tool' "
+        "atau 'hasil pencarian'. ATURAN PENGGUNAAN TEKS: Jika teks rujukan membahas topik yang relevan secara konsep tetapi TIDAK menggunakan kata persis yang dicari pengguna (misal: teks membahas 'semangat' saat pengguna mencari 'kemalasan'), KAMU WAJIB MENJELASKAN HUBUNGAN LOGISNYA SECARA EKSPLISIT (contoh: 'Meskipun sutta ini tidak menyebut kemalasan secara langsung, sutta ini menjelaskan cara memunculkan semangat, yang merupakan kunci mengatasi kemalasan...'). Jangan asal melompat menyimpulkan seolah-olah teks itu menyebut kata pengguna secara harfiah! DILARANG KERAS halusinasi. Jangan pernah mengarang isi."
+    ),
+    "en": (
+        "Now WRITE THE FINAL ANSWER for the user based on the passages found above. Make it COMPLETE, "
+        "clear, and structured:\n"
+        "- Open with the core answer/definition directly.\n"
+        "- PRIORITIZE using bullet points to explain the text. Avoid long, dense paragraphs.\n"
+        "- Close with a short practical takeaway (1-2 sentences) when relevant.\n"
+        "- After the closing, you MUST generate a list of 3 Follow-up Questions (bulleted) for deeper exploration. At least one question MUST tag a relevant sutta, e.g., 'Explain the contents of @MN10' or 'What does @SN56.11 say about this?'. Use the heading '**Recommended Follow-up Questions:**'. IMPORTANT: Do not include segment IDs (like :md3 or :1.2) when tagging suttas in the follow-up questions; just tag the base sutta name. RECOMMENDATION RULE: If the user EXPLICITLY asked about a specific sutta (e.g. '@SN 12.60'), DO NOT recommend asking about that sutta again. However, if you cited a sutta to answer a general conceptual question, you are HIGHLY ENCOURAGED to recommend a follow-up question for the user to dive deeper into that cited sutta (e.g. 'Explain the contents of @ThatSutta in detail').\n"
+        "CITATION RULES (MANDATORY):\n"
+        "- Cite ONLY with the EXACT reference token given in each block (copy it verbatim, e.g. 'MN 10:1.5' or 'Bu-Pj 1'). Don't rigidly use parentheses if mentioning it mid-sentence.\n"
+        "- PREFER SEGMENT-LEVEL citations: if a block's reference token includes a segment number (e.g. 'MN 10:1.5'), you MUST cite with that segment, NOT just the bare sutta name ('MN 10'). Tag the specific segment for EACH claim/point so the reader can jump straight to the source line.\n"
+        "- When citing a range or multiple consecutive segments, you MUST repeat the full sutta name for each segment (CORRECT: 'SN 54.10:md6 to SN 54.10:md8'. WRONG: 'SN 54.10:md6 to md8'). This is critical so the citation links work properly.\n"
+        "- IF the only available text for a requested sutta is in Pāli (a block tagged '⚠️ HANYA tersedia teks PĀLI') AND you do not genuinely understand it, you are STRICTLY FORBIDDEN from guessing/inventing its meaning. Say honestly and politely: 'I'm sorry, there is no translation of [sutta name/ID] available that I can understand yet. Please try another sutta.'\n"
+        "NEVER invent, add, or alter a reference number.\n"
+        "- Distinguish text types: a block tagged VINAYA is a MONASTIC RULE — call it a 'Vinaya rule', "
+        "do NOT call it a 'sutta'. Only blocks tagged SUTTA may be called suttas.\n"
+        "- Reference prefixes: 'Bu-' = bhikkhu (MONK), 'Bi-' = bhikkhunī (NUN). Don't confuse them — a "
+        "rule for bhikkhus does not automatically apply to bhikkhunīs and vice versa.\n"
+        "- FOCUS: if a block is tagged ⭐ DIMINTA USER, that is what the user directly asked for — focus your main answer on it. However, you are HIGHLY ENCOURAGED to use other provided blocks as supplementary context to expand or clarify your answer if the main text is insufficient.\n"
+        "- GROUPING & SURVEY (IMPORTANT): if there's NO ⭐ DIMINTA USER tag, discuss ALL relevant blocks — do NOT just pick 1 sutta and ignore the rest that are also relevant. If several blocks cover the same topic/category (e.g. a question about 'the four kinds of people' with MANY relevant suttas), present a SURVEY: ONE bullet per sutta, each WITH its citation, so the user sees the range of sources. Only drop blocks that are truly irrelevant.\n"
+        "- If the main referenced text appears only PARTIAL, honestly say you couldn't read the whole "
+        "thing, then give a general picture from what's available.\n"
+        "Natural, warm, informative English. Use Pali terms (Nibbāna, Kamma), but NEVER invent Pali terms yourself. Don't mention a 'tool' or "
+        "'search results'. STRICTLY NO hallucinations or forced connections: if the passages aren't truly "
+        "relevant, don't force a connection; just use them as supplementary facts or say so honestly — never fabricate content."
+    ),
+}
+
+# Kamus Sanskerta -> Pali (deterministik; ditegakkan pada jawaban akhir LLM).
+_THERAVADA_MAP = [
+    (r"nirvana", "Nibbāna"), (r"karma", "Kamma"), (r"dharma", "Dhamma"),
+    (r"skandhas?", "khandha"), (r"dhyana", "jhāna"), (r"prajna", "paññā"),
+    (r"vijnana", "viññāṇa"), (r"samskara", "saṅkhāra"), (r"trishna", "taṇhā"),
+    (r"anatman", "anattā"), (r"bhikshus?", "bhikkhu"), (r"sutras?", "sutta"),
+    (r"bodhisattva", "bodhisatta"), (r"arhat", "arahant"), (r"nirv[aā]na", "Nibbāna"),
+]
+
+# Kata umum yg TIDAK boleh memicu pencocokan nama-sutta (anti false-positive).
+_NAME_MATCH_STOPWORDS = {
+    "tentang", "kepada", "dengan", "untuk", "yaitu", "adalah", "bagaimana", "mengapa",
+    "mengenai", "dalam", "sebuah", "seorang", "tersebut", "menurut", "sutta", "nikaya",
+    "tipitaka", "dhamma", "buddha", "about", "which", "there", "their", "these", "those",
+    "could", "would", "should", "theravada", "explain", "meaning",
+}
+
+
+def _enforce_theravada_terms(text: str) -> str:
+    """Ganti istilah Sanskerta -> Pali, pertahankan kapitalisasi token aslinya."""
+    if not text:
+        return text
+    def make_repl(rep):
+        def f(m):
+            s = m.group(0)
+            if s.isupper():
+                return rep.upper()
+            if s[:1].isupper():
+                return rep[:1].upper() + rep[1:]
+            return rep
+        return f
+    for pat, rep in _THERAVADA_MAP:
+        text = re.sub(rf"\b{pat}\b", make_repl(rep), text, flags=re.IGNORECASE)
+    # Calque "di mana" sbg konjungsi intrakalimat (pola ", di mana <klausa>") -> pecah jadi kalimat
+    # baru. Soft-rule di prompt sering dilanggar model kecil; ini penegakan deterministik.
+    # Hanya pola berkoma (hampir pasti calque); "tahu di mana"/"di mana-mana" yg sah tak tersentuh.
+    text = re.sub(r",\s*di\s+mana\s+(\S)", lambda m: ". " + m.group(1).upper(), text, flags=re.IGNORECASE)
+    return text
+
+
+_PALI_DIACRITICS = set("āīūṁṃṅñṭḍṇḷ")
+_EN_HINT = set("the of and to is what how why who which are can does in on for about".split())
+_ID_HINT = set("apa bagaimana mengapa siapa yang adalah bisa apakah kenapa gimana dan ke dari tentang".split())
+
+
+def detect_query_lang(query: str) -> str:
+    """Heuristik bahasa kueri: diakritik Pali -> 'pli'; selisih kata-petunjuk -> 'en'/'id'."""
+    q = (query or "").lower()
+    if any(c in _PALI_DIACRITICS for c in q):
+        return "pli"
+    words = set(re.findall(r"[a-z]+", q))
+    return "en" if len(words & _EN_HINT) > len(words & _ID_HINT) else "id"
+
+
+# Sapaan/basa-basi: dideteksi DETERMINISTIK (bukan LLM — qwen sering salah menandai
+# pertanyaan Dhamma sbg basa-basi). Bias ke "cari": hanya pesan PENDEK yg jelas diawali
+# sapaan yg dilewati retrieval; sisanya selalu di-retrieve agar jawaban grounded.
+_SMALLTALK_RE = re.compile(
+    r"^\s*(hai|halo+|hallo|h[ae]llo|hi+|hey+|selamat\s+(pagi|siang|sore|malam)|pagi|siang|sore|malam|"
+    r"terima\s*kasih|makasih\w*|thank(s| you)?|thx|namo\s+buddhaya|assalam\w*|"
+    r"(kamu|anda)\s+siapa|siapa\s+(kamu|anda|kau)|who\s+are\s+you|apa\s+kabar|how\s+are\s+you|"
+    r"ok(e|ay)?|sip\w*|mantap|baik|bagus|test+|tes+)\b", re.IGNORECASE)
+
+
+def _is_smalltalk(query: str) -> bool:
+    """True hanya utk pesan pendek (≤5 kata) yg diawali pola sapaan/basa-basi."""
+    q = (query or "").strip()
+    if not q:
+        return True
+    if len(q.split()) > 5:
+        return False
+    return bool(_SMALLTALK_RE.match(q))
+
+
+def _ollama_json(messages: list, fmt: str = "json", temperature: float = 0.2) -> str:
+    """Panggilan Ollama non-stream (utk query-rewrite). Balas string content; '' bila gagal."""
+    try:
+        r = requests.post(f"{OLLAMA_URL}/api/chat", timeout=120, json={
+            "model": CHAT_MODEL, "messages": messages, "stream": False, "think": _CHAT_THINK,
+            "format": fmt, "options": {"temperature": temperature},
+        })
+        return ((r.json().get("message") or {}).get("content") or "").strip()
+    except Exception:
+        return ""
+
+
+def _ollama_chat(messages: list, tools: list = None) -> dict:
+    """Panggilan Ollama non-stream. Balas message dict {content, tool_calls?}; {} bila gagal.
+    Non-stream sengaja: qwen sering emit konten basa-basi BARENG tool_calls — dgn non-stream
+    keputusan (panggil tool atau jawab) terbaca utuh, tak perlu menebak urutan token."""
+    payload = {"model": CHAT_MODEL, "messages": messages, "stream": False,
+               "think": _CHAT_THINK, "options": {"temperature": 0.3}}
+    if tools:
+        payload["tools"] = tools
+    try:
+        r = requests.post(f"{OLLAMA_URL}/api/chat", json=payload, timeout=300)
+        return r.json().get("message") or {}
+    except Exception as e:
+        return {"content": f"[Tidak bisa menghubungi LLM lokal: {e}]"}
+
+
+def _ollama_stream(messages: list):
+    """Stream jawaban FINAL token-demi-token (TANPA tools -> tak ada preamble/tool_call
+    menyelip, streaming bersih). Yield potongan teks; konten kosong diabaikan."""
+    payload = {"model": CHAT_MODEL, "messages": messages, "stream": True,
+               "think": _CHAT_THINK,
+               "options": {"temperature": 0.45}}  # sedikit lebih tinggi: jawaban final lebih kaya
+    try:
+        resp = requests.post(f"{OLLAMA_URL}/api/chat", json=payload, stream=True, timeout=300)
+    except Exception as e:
+        yield f"[Tidak bisa menghubungi LLM lokal: {e}]"
+        return
+    for line in resp.iter_lines():
+        if not line:
+            continue
+        try:
+            data = json.loads(line)
+        except Exception:
+            continue
+        piece = (data.get("message") or {}).get("content")
+        if piece:
+            yield piece
+        if data.get("done"):
+            break
+
+
+def _rewrite_query(query: str, lang: str, failed: list = None, history: list = None):
+    """Ekspansi kueri user -> 3-5 variasi kueri (sinonim/parafrase) + saran pitaka. SKIP_SEARCH HANYA utk
+    sapaan (deteksi deterministik). LLM cuma mengekspansi, TIDAK berwenang memutus skip —
+    mencegah pertanyaan Dhamma salah dilewati. Error/timeout -> fallback ([query], None)."""
+    if _is_smalltalk(query):
+        return ["SKIP_SEARCH"], None
+    sys_p = (
+        "Anda mesin reformulasi kueri pencarian korpus Tipiṭaka. Jika user bercerita/bertanya panjang, ekstrak SEMUA aspek/emosi/masalah utama dari cerita tersebut dan "
+        "hasilkan 3-5 variasi kueri pencarian ATOMIK (pecah menjadi kueri-kueri sangat singkat yang masing-masing HANYA fokus pada satu aspek spesifik secara terpisah). "
+        "Kueri PERTAMA WAJIB berupa definisi konsep utama menggunakan kata 'adalah' atau 'pengertian' (misal: 'sedih adalah', 'pengertian kamma'). "
+        "Kueri selanjutnya mengeksplorasi aspek-aspek lain dari cerita user secara ringkas (misal: 'cara mengatasi sedih', 'penyebab penderitaan'). JANGAN membuat kalimat panjang. "
+        "DILARANG memasukkan kata-kata redundan seperti 'dalam agama Buddha', 'menurut Buddha', 'Buddhisme', atau 'Theravada' karena korpus ini sudah spesifik Tipiṭaka.\n"
+        'Balas HANYA JSON: {"queries":["...","..."],"pitaka":null|"sutta"|"vinaya"|"abhidhamma"}.'
+    )
+    user_p = f"Pertanyaan ({lang}): {query}"
+    if history:
+        hist_str = "\n".join(f"{h['role']}: {h['content'][:200]}" for h in history[-4:])
+        user_p = f"Konteks obrolan sebelumnya:\n{hist_str}\n\nPertanyaan baru ({lang}): {query}\n\nJadikan pertanyaan baru ini sebagai kueri yang utuh (gabungkan konteks jika pertanyaan baru menggunakan kata ganti atau merupakan pertanyaan lanjutan)."
+    if failed:
+        user_p += f"\nKueri yg sudah dicoba & gagal: {failed}. Cari sudut kata kunci yg BERBEDA."
+    raw = _ollama_json([{"role": "system", "content": sys_p}, {"role": "user", "content": user_p}])
+    try:
+        d = json.loads(raw)
+        qs = [q.strip() for q in (d.get("queries") or []) if isinstance(q, str) and q.strip()]
+        hint = d.get("pitaka") if d.get("pitaka") in ("sutta", "vinaya", "abhidhamma") else None
+        return (qs[:5] or [query]), hint
+    except Exception:
+        return [query], None
+
+
+def _retrieve_suttas(query: str, db: str, max_suttas: int = 6, pitaka=None) -> list:
+    """Hybrid (semantic ensemble + BM25) -> RRF -> grouping per-sutta. Bentuk keluaran
+    SAMA dgn _group_suttas (punya formatted_id/sutta_name/pitaka/max_score/fragments)."""
+    dbs = _parse_db(db)
+    pool = max(max_suttas * 6, 60)
+    lists = []
+    for d in dbs:
+        models = _ensemble_models(d) or [config.REGISTRY[0]["name"]]
+        for mdl in models:
+            lists.append(_run_one(query, "hybrid", mdl, d, pool, True, True))
+    nonempty = [l for l in lists if l]
+    if len(nonempty) == 1:
+        fused = nonempty[0]
+    elif len(nonempty) > 1:
+        fused = engine.rrf_fuse(nonempty, top_k=pool)
+    else:
+        fused = []
+    suttas = _group_suttas(fused)
+    _normalize_rrf_scores(suttas)
+    if pitaka:
+        pits = pitaka if isinstance(pitaka, list) else [pitaka]
+        suttas = [s for s in suttas if s["pitaka"] in pits]
+    return suttas[:max_suttas]
+
+
+def _inject_missing_blurbs(suttas: list):
+    """Sisipkan fragmen blurb (sinopsis) utk sutta yg belum punya — biar LLM dpt konteks ringkas."""
+    for s in suttas:
+        if any(f.get("author") == "blurb" for f in s.get("fragments", [])):
+            continue
+        sid = reader.resolve_sutta_id(s.get("sutta_id", ""))
+        blurb = reader._blurbs.get((sid, "id")) or reader._blurbs.get((sid, "en"))
+        if not blurb:
+            continue
+        s.setdefault("fragments", []).insert(0, {
+            "score": s.get("max_score", 0), "ref": [sid], "ref_display": s.get("formatted_id", sid),
+            "texts": {"id": blurb if reader._blurbs.get((sid, "id")) else "",
+                      "en": blurb if not reader._blurbs.get((sid, "id")) else "", "pli": ""},
+            "author": "blurb", "db_source": "id", "models": ["blurb"], "score_type": "blurb",
+        })
+
+
+def _passages_for_prompt(suttas: list, prompt_db: str, expand: set = None) -> list:
+    """Ratakan suttas -> daftar passage utk teks-tool LLM. Tiap passage: formatted_id (dgn segmen),
+    sutta_name, pitaka, synopsis (blurb), text (fragmen terbaik pd bahasa prompt_db).
+    `expand` = set formatted-id sutta yg di-mention eksplisit -> gabung BANYAK fragmen (baca
+    lebih penuh, dipotong ~4000 char) alih-alih 1 fragmen, agar LLM bisa fokus mendalam."""
+    expand = expand or set()
+    def _ftext(f):
+        """Teks fragmen + bahasa yg dipakai. Fallback berurutan: prompt_db -> id -> en -> pli
+        (mis. sutta yg di-mention tanpa terjemahan Indo ambil Inggris, lalu Pāli sbg upaya terakhir)."""
+        tx = f.get("texts", {})
+        for L in (prompt_db, "id", "en", "pli"):
+            t = (tx.get(L) or "").strip()
+            if t:
+                return t, L
+        return "", None
+
+    def _seg_sort_key(f):
+        refs = f.get("ref") or []
+        if not refs: return ()
+        return tuple((-(len(x) - len(x.lstrip('0'))), int(x)) if x.isdigit() else x for x in re.split(r'(\d+)', refs[0]))
+
+    out = []
+    for s in suttas:
+        frags = s.get("fragments", [])
+        blurb = next((f for f in frags if f.get("author") == "blurb"), None)
+        bodies = [f for f in frags if f.get("author") != "blurb"]
+        synopsis = ""
+        if blurb:
+            synopsis, _ = _ftext(blurb)
+        fid = s.get("formatted_id", "")
+        text, text_lang = "", None
+        
+        if bodies:
+            # Jika eksplisit (expand), ambil semua. Jika biasa, ambil hingga 5 chunk terbaik agar informasinya lebih utuh.
+            limit = None if fid in expand else 5
+            bodies_subset = bodies if limit is None else bodies[:limit]
+            # Urutkan berdasarkan segmen dari kecil ke besar secara logis (natural sort)
+            bodies_sorted = sorted(bodies_subset, key=_seg_sort_key)
+            
+            parts, part_langs = [], []
+            core_texts = set()
+            for f in bodies_sorted:
+                t, _ = _ftext(f)
+                if t: core_texts.add(t)
+                
+            seen_texts = set()
+            for f in bodies_sorted:
+                t, L = _ftext(f)
+                if not t: continue
+                part_langs.append(L)
+                refs = f.get("ref") or []
+                f_seg = ""
+                if refs and ":" in refs[0]:
+                    f_seg = ":" + refs[0].split(":", 1)[1]
+                    
+                ctx_b = f.get("context_before", {}).get(L)
+                if ctx_b and ctx_b not in seen_texts and ctx_b not in core_texts:
+                    parts.append(ctx_b)
+                    seen_texts.add(ctx_b)
+                
+                if t not in seen_texts:
+                    parts.append(f"[{fid}{f_seg}] {t}")
+                    seen_texts.add(t)
+                
+                ctx_a = f.get("context_after", {}).get(L)
+                if ctx_a and ctx_a not in seen_texts and ctx_a not in core_texts:
+                    parts.append(ctx_a)
+                    seen_texts.add(ctx_a)
+                
+            max_len = 4000 if fid in expand else 2000
+            text = "\n".join(parts)[:max_len]
+            text_lang = next((L for L in part_langs if L != "pli"), "pli" if part_langs else None)
+        else:
+            text = synopsis
+            synopsis = ""
+            
+        if not text and not synopsis:
+            continue
+            
+        out.append({
+            "formatted_id": fid,
+            "sutta_name": s.get("sutta_name", ""),
+            "pitaka": s.get("pitaka", "sutta"),
+            "synopsis": synopsis,
+            "text": text,
+            "lang": text_lang,
+            "is_expand": fid in expand
+        })
+    return out
+
+
+def _cited_only(answer: str, suttas: list) -> list:
+    """Hanya sutta yg base-id-nya (mis. 'MN 4') benar-benar muncul di jawaban LLM."""
+    if not answer:
+        return []
+    seen, out = set(), []
+    for s in suttas:
+        base = (s.get("formatted_id") or "").split(":")[0]
+        if base and base in answer and base not in seen:
+            seen.add(base)
+            out.append(s)
+    return out
+
+
+# ============================================================
+# Routes — Chat (Agentic RAG)
+# ============================================================
+@app.route("/chat")
+def chat_ui():
+    """Halaman Utama Chat (Frontend)."""
+    return render_template("chat.html")
+
+@app.route("/api/chat", methods=["POST"])
+def api_chat():
+    from flask import Response, stream_with_context
+    import json
+    import re
+    import unicodedata
+    import concurrent.futures
+
+    body = request.get_json(force=True) or {}
+    query = (body.get("message") or body.get("query") or "").strip()
+    if not query:
+        return jsonify({"error": "Pertanyaan kosong"}), 400
+
+    lang = body.get("lang") or detect_query_lang(query)
+    if lang == "pli":
+        lang = "id"
+    # Scope (bahasa korpus & pitaka) ditentukan agen sendiri via argumen tool, bukan filter UI.
+    # db_pref hanya menentukan bahasa jawaban/pasase (prompt_db); default ikut bahasa terdeteksi.
+    db_pref = body.get("db") or ("en" if lang == "en" else "id")
+    max_suttas = int(body.get("top_k", 6))
+    history = body.get("history") or []
+    sel_dbs = _parse_db(db_pref)
+    prompt_db = lang if lang in sel_dbs else sel_dbs[0]
+
+    def _strip_diacritics(s):
+        return unicodedata.normalize("NFD", s).encode("ascii", "ignore").decode()
+
+    # Fungsi Wrapper Tool
+    def execute_search_tool(t_query, t_pitaka, t_lang):
+        eff_db = "en" if t_lang == "en" else "id"
+        eff_dbs = _parse_db(eff_db)
+        eff_db_str = ",".join(eff_dbs)
+        
+        # Ekstraksi mentions (rujukan eksplisit) dari kueri agen DAN kueri asli user —
+        # supaya "@MN10" selalu dihormati walau agen menulis ulang kuerinya.
+        _MENTION_RE = r'@?\b((?:dn|mn|sn|an|kn|dhp|ud|iti|snp|vv|pv|thag|thig|bu-[a-z]+)\s*\d+(?:\.\d+)?)\b'
+        mentions = re.findall(_MENTION_RE, t_query + " " + query, re.IGNORECASE)
+        mentions = list(dict.fromkeys(m.strip() for m in mentions))
+        carried_ctx = False
+        # Auto-carry loop dihapus karena menyebabkan "lock-in" permanen.
+        # Kini kita sepenuhnya mengandalkan LLM: jika user ganti topik, t_query dari LLM tidak akan
+        # membawa nama sutta lagi, sehingga pencarian hybrid bisa kembali berjalan. Jika user lanjut
+        # membahas sutta yang sama, LLM umumnya akan menyisipkan nama sutta di t_query-nya.
+        q_norm = _strip_diacritics(t_query.lower())
+        q_words = [w for w in dict.fromkeys(re.split(r'\W+', q_norm)) if len(w) >= 5 and w not in _NAME_MATCH_STOPWORDS]
+        
+        _PALI_ID_RE = re.compile(r'^(dn|mn|sn|an|kn|dhp|ud|iti|snp|vv|pv|thag|thig|bu-|bi-|pli-tv-)', re.IGNORECASE)
+        name_hits = []
+        for sid, sname in reader._sutta_names.items():
+            if not sname: continue
+            if not _PALI_ID_RE.match(sid): continue
+            sname_norm = _strip_diacritics(sname.lower())
+            core = re.sub(r'(sutta|nikaya|nikaya|samyutta|vagga|pannasaka)$', '', sname_norm).strip()
+            if len(core) < 4: continue
+            
+            match_found = False
+            if re.search(r'\b' + re.escape(core) + r'\b', q_norm):
+                match_found = True
+            else:
+                for w in q_words:
+                    if len(w) >= 4 and w in core:
+                        match_found = True
+                        break
+            
+            if match_found:
+                name_hits.append(sid)
+                
+        if name_hits:
+            name_hits = sorted(name_hits, key=len)[:5]
+            existing_norms = {m.lower().replace(" ","") for m in mentions}
+            name_hits = [sid for sid in name_hits if sid not in existing_norms]
+
+        # Jejak transparansi: apa yg sebetulnya dilakukan tool (dipancarkan sbg step).
+        trace = []
+        if mentions:
+            _mlabel = "Melanjutkan konteks sutta: " if carried_ctx else "Rujukan eksplisit terdeteksi: "
+            trace.append(_mlabel + ", ".join(dict.fromkeys(m.strip() for m in mentions)))
+        if name_hits:
+            trace.append("Kecocokan nama sutta: " + ", ".join(reader.format_sutta_id(s) for s in name_hits))
+
+        # Sutta yg di-mention eksplisit: tarik JAUH lebih banyak chunk (baca hampir penuh utk
+        # mayoritas sutta) & tandai sbg fokus utama. mention_cites = formatted-id utk tanda ⭐.
+        exact_suttas = []
+        mention_cites = set()
+        # Fallback bahasa utk mention: korpus pilihan -> id -> en -> pli, supaya sutta yg
+        # di-mention tetap kebawa walau tak ada terjemahan Indo (ambil Inggris, lalu Pāli).
+        _mention_langs = [eff_dbs[0]] + [L for L in ("id", "en", "pli") if L != eff_dbs[0]]
+        for m in mentions:
+            mclean = m.lower().replace(" ", "")
+            m_hits = []
+            for _L in _mention_langs:
+                m_hits = engine.exact_sutta_match(mclean, _L, max_chunks=24, query=t_query)
+                if any(h.get("author") != "blurb" for h in m_hits):
+                    break   # dapat teks isi (bukan cuma blurb) -> berhenti di bahasa ini
+            exact_suttas.extend(m_hits)
+            mention_cites.add(reader.format_sutta_id(reader.resolve_sutta_id(mclean)))
+        for sid in name_hits:
+            exact_suttas.extend(engine.exact_sutta_match(sid, eff_db_str, max_chunks=3, query=t_query))
+
+        suttas = _group_suttas(exact_suttas)
+        _inject_missing_blurbs(suttas)
+        
+        # Semantic
+        if mentions:
+            pass # "Pencarian hybrid untuk konteks tambahan" dilewati sesuai permintaan jika ada rujukan eksplisit
+        else:
+            sq_list, _ = _rewrite_query(t_query, t_lang, [], history)
+            if "SKIP_SEARCH" not in sq_list:
+                if name_hits:
+                    trace.append("Pencarian hybrid untuk konteks tambahan: " + "  ·  ".join(f"“{q}”" for q in sq_list))
+                else:
+                    trace.append("Pencarian hybrid: " + "  ·  ".join(f"“{q}”" for q in sq_list))
+                with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+                    futures = [executor.submit(_retrieve_suttas, sq, eff_db_str, max_suttas, t_pitaka) for sq in sq_list]
+                    for future in concurrent.futures.as_completed(futures):
+                        suttas.extend(future.result())
+
+        seen = {}; unique_suttas = []
+        for s in sorted(suttas, key=lambda x: x.get("score", 0) if isinstance(x.get("score"), (int, float)) else x.get("max_score", 0), reverse=True):
+            fid = s["formatted_id"]
+            if fid not in seen:
+                seen[fid] = len(unique_suttas)
+                unique_suttas.append(s)
+            else:
+                existing = unique_suttas[seen[fid]]
+                if not any(f.get("author") == "blurb" for f in existing.get("fragments", [])):
+                    nb = [f for f in s.get("fragments", []) if f.get("author") == "blurb"]
+                    if nb: existing["fragments"] = nb + existing["fragments"]
+        
+        unique_suttas = unique_suttas[:max_suttas * 2]
+        # Tandai sutta yg di-mention eksplisit -> kartunya WAJIB tampil walau model lupa/salah mengutip.
+        ctx_cache = {}
+        for s in unique_suttas:
+            if s.get("formatted_id", "").split(":")[0] in mention_cites:
+                s["mentioned"] = True
+            for fr in s.get("fragments", []):
+                if "context_before" not in fr: fr["context_before"] = {}
+                if "context_after" not in fr: fr["context_after"] = {}
+                _fill_frag_context(fr, ctx_cache)
+                
+        passages = _passages_for_prompt(unique_suttas, prompt_db, expand=mention_cites)
+        
+        # Format Passages to Tool Text. Kategori dari pitaka (andal utk Bu- DAN Bi-);
+        # token rujukan eksplisit supaya model menyalin PERSIS (cegah ref ngarang/ga nge-link).
+        blocks = []
+        for i, p in enumerate(passages, 1):
+            cite = p["formatted_id"].split(":")[0]
+            is_vinaya = p.get("pitaka") == "vinaya" or cite[:3] in ("Bu-", "Bi-")
+            kind = "VINAYA (aturan monastik, BUKAN sutta)" if is_vinaya else "SUTTA"
+            star = "⭐ DIMINTA USER — " if p.get("is_expand") else ""
+            name = cite + (f" — {p['sutta_name']}" if p.get("sutta_name") else "")
+            pli_note = " | ⚠️ HANYA tersedia teks PĀLI (belum ada terjemahan id/en)" if p.get("lang") == "pli" else ""
+
+            lines = [f"[{i}] {star}{kind} | {name} | rujuk segmen spesifik per klaim sesuai tag dalam teks (mis. {cite}:1.2){pli_note}"]
+            if p.get("synopsis"): lines.append(f"Sinopsis: {p['synopsis']}")
+            lines.append(f">> {p.get('text', '')}")
+            blocks.append("\n".join(lines))
+        
+        return (("\n\n".join(blocks) if blocks else "Tidak ada teks Tipiṭaka yang ditemukan."),
+                unique_suttas, trace)
+
+    def gen():
+        # Build initial messages
+        sys_content = _CHAT_SYSTEM.get(lang, _CHAT_SYSTEM["id"])
+        messages = [{"role": "system", "content": sys_content}]
+        for h in (history or [])[-6:]:
+            role = h.get("role")
+            content = (h.get("content") or "").strip()
+            if role in ("user", "assistant") and content:
+                messages.append({"role": role, "content": content})
+        messages.append({"role": "user", "content": query})
+
+        all_unique_suttas = []
+        search_q_str = ""
+        yield _sse({"stage": "understand"})
+
+        # FASE 1 — keputusan tool (non-stream + tools). Satu putaran; model boleh
+        # mengeluarkan >1 tool_call. Jaring pengaman: bila tak memanggil tool padahal
+        # bukan sapaan, paksa satu retrieval agar jawaban tetap grounded.
+        msg = _ollama_chat(messages, tools=_CHAT_TOOLS)
+        tcs = msg.get("tool_calls")
+        if not tcs and not _is_smalltalk(query):
+            tcs = [{"function": {"name": "search_sutta", "arguments": {"query": query}}}]
+
+        if tcs:
+            clarify = next((tc for tc in tcs if tc.get("function", {}).get("name") == "ask_clarification"), None)
+            if clarify:
+                args = clarify.get("function", {}).get("arguments", {})
+                if isinstance(args, str):
+                    try: args = json.loads(args)
+                    except Exception: args = {}
+                q = args.get("question", "Maaf, bisa diperjelas maksud pertanyaannya?")
+                yield _sse({"stage": "generate"})
+                yield _sse({"type": "chunk", "text": q})
+                yield _sse({"type": "final", "answer": q, "results": [], "query": query, "search_query": "", "model": CHAT_MODEL, "lang": lang})
+                return
+
+            # Konten preamble pd giliran-tool dibuang (tak relevan & bisa bias konteks).
+            messages.append({"role": "assistant", "content": "", "tool_calls": tcs})
+            for tc in tcs:
+                func = tc.get("function", {})
+                if func.get("name") != "search_sutta":
+                    continue
+                args = func.get("arguments", {})
+                if isinstance(args, str):
+                    try: args = json.loads(args)
+                    except Exception: args = {}
+                t_query = args.get("query", query)
+                t_pitaka = args.get("pitaka")
+                t_lang = args.get("language", lang)
+                # Step transparan: tampilkan kueri + scope (pitaka/bahasa) yg dipakai agen.
+                scope = [s for s in (t_pitaka if isinstance(t_pitaka, list) else [t_pitaka]) if s]
+                if t_lang and t_lang != lang:
+                    scope.append(f"korpus {t_lang}")
+                scope_s = f"  ·  [{', '.join(scope)}]" if scope else ""
+                yield _sse({"stage": "retrieve", "query": f"Mencari: {t_query}{scope_s}"})
+                search_q_str += (t_query + " | ")
+                tool_result_text, usuttas, trace = execute_search_tool(t_query, t_pitaka, t_lang)
+                # Step transparan: jejak apa yg tool kerjakan (mention/nama/kueri ekspansi).
+                for tlabel in trace:
+                    yield _sse({"stage": "tool", "label": tlabel})
+                all_unique_suttas.extend(usuttas)
+                # Step transparan: berapa SUTTA kandidat ketemu + daftarnya (jumlah cocok dgn list).
+                ids = [s.get("formatted_id", "") for s in usuttas if s.get("formatted_id")]
+                if ids:
+                    shown = ids[:8]
+                    more = f"  (+{len(ids) - len(shown)} lagi)" if len(ids) > len(shown) else ""
+                    yield _sse({"stage": "found", "label": f"Menemukan {len(ids)} teks kandidat: {', '.join(shown)}{more}"})
+                else:
+                    yield _sse({"stage": "found", "label": "Tidak menemukan teks yang cocok"})
+                messages.append({"role": "tool", "name": "search_sutta",
+                                 "content": tool_result_text})
+        else:
+            # Sapaan/basa-basi: konten keputusan = jawaban final, kirim langsung (pendek).
+            yield _sse({"stage": "generate"})
+            answer = _enforce_theravada_terms(msg.get("content") or "")
+            yield _sse({"type": "chunk", "text": answer})
+            yield _sse({"type": "final", "answer": answer, "results": [],
+                        "query": query, "search_query": "",
+                        "model": CHAT_MODEL, "lang": lang})
+            return
+
+        # FASE 2 — jawaban final di-STREAM token-demi-token (tools dimatikan -> streaming
+        # bersih tanpa preamble/tool_call menyelip). Panduan gaya disuntik di sini supaya
+        # jawaban lengkap & terstruktur, tanpa membebani fase keputusan. Frontend meng-enforce
+        # istilah Pali per-chunk; final.answer dipakai utk filter kartu rujukan & history.
+        yield _sse({"stage": "generate"})
+        gen_messages = messages + [{"role": "system",
+                                    "content": _CHAT_ANSWER_GUIDE.get(lang, _CHAT_ANSWER_GUIDE["id"])}]
+        parts = []
+        for piece in _ollama_stream(gen_messages):
+            parts.append(piece)
+            yield _sse({"type": "chunk", "text": piece})
+        answer = _enforce_theravada_terms("".join(parts))
+        cited = _cited_only(answer, all_unique_suttas)
+        # Sutta yg di-mention eksplisit user SELALU ditampilkan kartunya (di atas), walau model
+        # lupa mengutipnya atau malah halusinasi ref lain. Dedup terhadap yg sudah dikutip.
+        _cited_bases = {(s.get("formatted_id") or "").split(":")[0] for s in cited}
+        _forced = []
+        for s in all_unique_suttas:
+            base = (s.get("formatted_id") or "").split(":")[0]
+            if s.get("mentioned") and base and base not in _cited_bases:
+                _cited_bases.add(base)
+                _forced.append(s)
+        cited = _forced + cited
+        # Konteks n-1/n+1 utk kartu chat (sama spt hasil pencarian home; dedup tetangga yg
+        # redundan ditangani frontend renderSuttaCardsTo). Hanya utk kartu yg dikutip -> ringan.
+        ctx_cache = {}
+        for s in cited:
+            if s.get("fragments"):
+                s["fragments"] = sorted(
+                    s["fragments"],
+                    key=lambda f: (0 if f.get("author") == "blurb" else 1,
+                                   tuple((-(len(x) - len(x.lstrip('0'))), int(x)) if x.isdigit() else x for x in re.split(r'(\d+)', (f.get("ref") or [""])[0])))
+                )
+            for fr in s.get("fragments", []):
+                _fill_frag_context(fr, ctx_cache)
+        yield _sse({"type": "final", "answer": answer,
+                    "results": cited,
+                    "query": query, "search_query": search_q_str.strip(" | "),
+                    "model": CHAT_MODEL, "lang": lang})
+        return
+                
+    if body.get("stream"):
+        return Response(stream_with_context(gen()), mimetype="text/event-stream",
+                        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+    
+    # Non-stream fallback
+    gen_iter = gen()
+    final_res = {}
+    for ev in gen_iter:
+        if ev.startswith("data: "):
+            try:
+                data = json.loads(ev[6:])
+                if data.get("type") == "final":
+                    final_res = data
+            except: pass
+    if not final_res:
+        return jsonify({"error": "No final response"}), 500
+    return jsonify(final_res)
 
 
 if __name__ == "__main__":

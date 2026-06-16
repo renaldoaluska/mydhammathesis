@@ -26,9 +26,11 @@
       def_corpus_term: "Korpus",
       def_corpus_desc_html: "<strong>ID</strong> = teks Indonesia, <strong>EN</strong> = teks Inggris.",
       def_query_term: "Kueri",
-      def_query_desc_html: "Pertanyaan atau topik pencarian yang diuji pada sistem pencarian semantik, sebagai <i>input</i> untuk model.",
+      def_query_desc_html: "Pertanyaan atau topik pencarian yang diuji pada sistem pencarian semantik (berbasis makna), sebagai <i>input</i> untuk model.",
       def_passage_term: "Pasase",
       def_passage_desc_html: "Bagian atau pasal yang dikutip dari sebuah korpus. Istilah ini merupakan terjemahan dari <i>passage</i>.",
+      passage_example_caption: "Contoh tampilan sebuah pasase:",
+      tip_appearance: "Tip: Anda dapat mengaktifkan <strong>mode gelap</strong> dan menyesuaikan <strong>ukuran teks</strong> (A−/A+) melalui tombol di pojok kanan atas, sesuai kenyamanan Anda.",
       // def_extra_term: "Informasi Ekstra",
       // def_extra_desc: "Informasi lain di dalam pasase yang tidak berkaitan dengan kueri, sehingga jawaban yang ada menjadi terselip atau sulit ditemukan.",
       section_criteria: "Kriteria Penilaian",
@@ -40,6 +42,7 @@
       grade_2_desc: "Pasase memuat jawaban untuk kueri, tetapi jawabannya mungkin sedikit kurang jelas, atau tersembunyi di antara informasi yang tidak relevan.",
       grade_3_title: "Relevan Sempurna",
       grade_3_desc: "Pasase berfokus khusus pada kueri dan memuat jawaban yang tepat.",
+      criteria_honest_note: "Mohon memberikan penilaian <strong>apa adanya</strong> sesuai kriteria di atas. Apabila suatu pasase memang tidak relevan, nilailah demikian <strong>tanpa rasa sungkan</strong>. Penilaian ini digunakan sebagai acuan kebenaran (<em>ground truth</em>) untuk mengevaluasi sistem, sehingga objektivitas penilaian sangat menentukan kualitas hasil.",
       section_start: "Mulai Asesmen",
       lbl_expert: "Nama Pakar",
       select_expert: "— Pilih nama pakar —",
@@ -69,6 +72,7 @@
       step_query: "Kueri",
       step_corpus: "Korpus",
       step_of: "dari",
+      attention_query: "Kueri saat ini:",
       sidebar_query: '<i data-lucide="search"></i> Kueri',
       sidebar_criteria: '<i data-lucide="clipboard-list"></i> Kriteria Penilaian',
       lbl_corpus_select: "Korpus",
@@ -92,6 +96,8 @@
       def_query_desc_html: "A question or search topic tested on the semantic search system, as <i>input</i> to the model.",
       def_passage_term: "Passage",
       def_passage_desc_html: "A section or paragraph quoted from a corpus.",
+      passage_example_caption: "Example of how a passage looks:",
+      tip_appearance: "Tip: You can switch to <strong>dark mode</strong> and adjust the <strong>text size</strong> (A−/A+) using the controls at the top-right, for your comfort.",
       // def_extra_term: "Extra Information",
       // def_extra_desc: "Other content within the passage that is unrelated to the query, causing the answer to be buried or hard to find.",
       section_criteria: "Grading Criteria",
@@ -103,6 +109,7 @@
       grade_2_desc: "The passage has some answer for the query, but the answer may be a bit unclear, or hidden amongst extraneous information.",
       grade_3_title: "Perfectly Relevant",
       grade_3_desc: "The passage is dedicated to the query and contains the exact answer.",
+      criteria_honest_note: "Please grade <strong>as-is</strong> according to the criteria above. If a passage is genuinely irrelevant, rate it as such <strong>without hesitation</strong>. These judgments serve as the ground truth for evaluating the system, so objective grading directly determines the quality of the results.",
       section_start: "Start Evaluation",
       lbl_expert: "Expert Name",
       select_expert: "— Select expert —",
@@ -132,6 +139,7 @@
       step_query: "Query",
       step_corpus: "Corpus",
       step_of: "of",
+      attention_query: "Current query:",
       sidebar_query: '<i data-lucide="search"></i> Query',
       sidebar_criteria: '<i data-lucide="clipboard-list"></i> Grading Criteria',
       lbl_corpus_select: "Corpus",
@@ -437,6 +445,24 @@
     if (section) section.appendChild(el);
   }
 
+  // Kalau pakar belum dipilih: bawa fokus ke dropdown pakar — scroll ke sana,
+  // sorot (flash), fokuskan, dan (kalau didukung) langsung buka pilihannya.
+  function focusExpertPicker() {
+    const sel = $("#eval-expert-select");
+    if (!sel) return;
+    (sel.closest(".control-group") || sel).scrollIntoView({ behavior: "smooth", block: "center" });
+    sel.classList.remove("eval-query-flash");
+    void sel.offsetWidth; // paksa reflow biar animasi bisa diputar ulang
+    sel.classList.add("eval-query-flash");
+    sel.addEventListener("animationend", () => sel.classList.remove("eval-query-flash"), { once: true });
+    setTimeout(() => {
+      sel.focus({ preventScroll: true });
+      if (typeof sel.showPicker === "function") {
+        try { sel.showPicker(); } catch (_) { /* butuh gesture / tak didukung — fokus saja */ }
+      }
+    }, 350); // tunggu smooth-scroll settle dulu
+  }
+
   // ========== Intro ==========
   function setupIntro() {
     const startBtn = $("#btn-eval-start");
@@ -464,7 +490,7 @@
 
     if (startBtn) {
       startBtn.addEventListener("click", () => {
-        if (!state.expert) { DK.alert(t("alert_expert")); return; }
+        if (!state.expert) { focusExpertPicker(); return; }
         if (!state.selectedCorpus) { DK.alert(t("alert_corpus")); return; }
         if (!state.steps.length) return;
         startEval();
@@ -560,10 +586,57 @@
     goToStep(state.stepIndex);
   }
 
+  // Sorot kueri sebentar (animasi kelap-kelip) tiap ganti ke KUERI baru — biar
+  // penilai ngeh konteks pertanyaan berganti, bukan cuma pindah korpus/step yg sama.
+  // Kena dua-duanya: kartu kueri di bilah sisi (desktop) + baris kueri sticky (mobile).
+  function flashQueryEls() {
+    [$("#eval-sidebar-query-card"), $("#eval-sticky-query")].forEach((el) => {
+      if (!el) return;
+      el.classList.remove("eval-query-flash");
+      void el.offsetWidth; // paksa reflow biar animasi bisa diputar ulang
+      el.classList.add("eval-query-flash");
+    });
+  }
+
+  // Overlay "spotlight": blur + dim seisi halaman, tampilkan pesan + kueri di tengah,
+  // lalu auto-hilang (atau di-tap). Begitu pudar, elemen kueri asli (sidebar/sticky)
+  // nge-glow biar penilai tahu di mana letak kuerinya.
+  let _attnTimer = null;
+  function announceNewQuery(queryText) {
+    let ov = document.getElementById("eval-query-attention");
+    if (!ov) {
+      ov = document.createElement("div");
+      ov.id = "eval-query-attention";
+      ov.innerHTML =
+        '<div class="eqa-card">' +
+        '<div class="eqa-title"></div>' +
+        '<div class="eqa-query"></div>' +
+        "</div>";
+      document.body.appendChild(ov);
+    }
+    ov.querySelector(".eqa-title").textContent = t("attention_query");
+    ov.querySelector(".eqa-query").textContent = `"${queryText}"`;
+
+    const dismiss = () => {
+      clearTimeout(_attnTimer);
+      _attnTimer = null;
+      ov.classList.remove("show");
+      ov.onclick = null;
+      flashQueryEls(); // tandai letak kueri asli setelah overlay pudar
+    };
+    // restart animasi tiap dipanggil
+    ov.classList.remove("show");
+    void ov.offsetWidth;
+    ov.classList.add("show");
+    ov.onclick = dismiss; // tap di mana saja buat tutup lebih cepat
+    clearTimeout(_attnTimer);
+    _attnTimer = setTimeout(dismiss, 1800);
+  }
+
   // ========== Navigation ==========
   async function goToStep(idx, fromReviewModeBounce = false) {
     if (idx < 0 || idx >= state.totalSteps) return;
-    
+
     // Kalau navigasi manual (bukan lemparan dari "Selanjutnya" di ujung), matikan review mode.
     if (!fromReviewModeBounce) {
       state.isReviewMode = false;
@@ -571,7 +644,7 @@
 
     state.stepIndex = idx;
     const step = getStep(idx);
-    
+
     // Smooth scroll ke atas tiap kali pindah kueri
     window.scrollTo({ top: 0, behavior: "smooth" });
     const results = $("#eval-results");
@@ -598,7 +671,7 @@
       stickyStepDisp.textContent = `${idx + 1} / ${state.totalSteps}`;
     }
     if (stickyQueryDisp) {
-      stickyQueryDisp.innerHTML = `${t("step_query")}: <strong>${DK.esc(step.query.query)}</strong><span class="eval-sticky-expert-inline">${DK.esc(state.expert)}</span>`;
+      stickyQueryDisp.innerHTML = `<span class="eval-sticky-expert-inline">${t("done_lbl_expert")}: <strong>${DK.esc(state.expert)}</strong></span><span class="eval-sticky-query-text">${t("step_query")}: <strong>${DK.esc(step.query.query)}</strong></span>`;
     }
     if (infoDisp) {
       infoDisp.innerHTML = `
@@ -610,6 +683,13 @@
     refreshIcons();
     if (queryDisp) {
       queryDisp.innerHTML = `"${DK.esc(step.query.query)}"`;
+    }
+
+    // Kelap-kelip cuma pas KUERI-nya beneran ganti (bukan tiap re-render / step korpus
+    // yg kuerinya sama). Pemuatan pertama (_lastFlashQuery undefined) ikut nge-flash.
+    if (state._lastFlashQuery !== step.query.query) {
+      state._lastFlashQuery = step.query.query;
+      announceNewQuery(step.query.query);
     }
 
     // Determine which models support this corpus
@@ -740,7 +820,7 @@
       // Restore grade from server if not already in memory
       const passageRef = passageKey(frag.ref_display || (frag.ref || []).join(","), frag.author);
       const isGraded = state.grades[sKey][displayIdx] !== undefined || savedForStep[passageRef] !== undefined;
-      
+
       if (state.grades[sKey][displayIdx] === undefined && savedForStep[passageRef] !== undefined) {
         state.grades[sKey][displayIdx] = savedForStep[passageRef];
       }
@@ -877,7 +957,7 @@
     const prevBtns = $$(".btn-eval-prev");
     const nextBtns = $$(".btn-eval-next");
     const infos = $$(".eval-nav-info");
-    
+
     const isDemo = (state.expert || "").toLowerCase().includes("demo");
     const topNav = $("#eval-nav-top");
     if (topNav) {
@@ -885,7 +965,7 @@
     }
 
     prevBtns.forEach(btn => btn.disabled = state.stepIndex === 0);
-    
+
     let hasOtherIncomplete = false;
     for (let i = 0; i < state.totalSteps; i++) {
       if (i !== state.stepIndex && isStepIncomplete(i)) {
@@ -895,7 +975,7 @@
     }
 
     const isLastAction = !hasOtherIncomplete;
-    
+
     nextBtns.forEach(btn => {
       if (isLastAction) {
         btn.innerHTML = t("btn_submit");
@@ -903,7 +983,7 @@
         btn.innerHTML = `<span class="nav-full">${DK.esc(t("btn_next_full"))}</span><span class="nav-short">${DK.esc(t("btn_next_short"))}</span> <i data-lucide="chevron-right"></i>`;
       }
     });
-    
+
     infos.forEach(info => info.textContent = `${state.stepIndex + 1} ${t("step_of")} ${state.totalSteps}`);
     refreshIcons();
   }
@@ -1003,7 +1083,7 @@
           sutta_id: sutta.sutta_id,
           ref: frag.ref_display || (frag.ref || []).join(","),
           author: frag.author || "",
-          retrieved_text: mainText.substring(0, 500),
+          retrieved_text: mainText,
           cosine_sim: score,
           grade,
         });
@@ -1038,22 +1118,39 @@
     }
     // Bottom bar: per pasase in current step
     updatePassageBar();
-    // Label
+    // Label: progress KUERI (X/Y) + jumlah PASASE agregat SEMUA kueri (bukan kueri ini).
     const info = $("#eval-sticky-step-info");
     if (info) {
-      const sKey = state.stepIndex;
-      const graded = Object.keys(state.grades[sKey] || {}).length;
-      const total = state.currentResults ? state.currentResults.length : 0;
-      info.innerHTML = `${t("step_query")} ${state.stepIndex + 1}/${state.totalSteps} &middot; ${graded}/${total} pasase`;
+      const ps = passageStatsAll();
+      info.innerHTML = `${t("step_query")} ${state.stepIndex + 1}/${state.totalSteps} &middot; ${ps.graded}/${ps.total} pasase`;
     }
+  }
+
+  // Agregat pasase LINTAS SEMUA KUERI (step) di korpus terpilih, bukan cuma kueri aktif.
+  // Per step: graded = max(grade lokal sesi ini, partial dari summary), capped ke total step.
+  // Sumber total/partial = summary (step_totals/partial), keduanya sudah top-5 aware (EVAL_PASSAGE_K).
+  function passageStatsAll() {
+    const partial = (state._summaryData && state._summaryData.partial && state._summaryData.partial[state.expert]) || {};
+    const totals = (state._summaryData && state._summaryData.step_totals) || {};
+    let graded = 0, total = 0;
+    for (let i = 0; i < state.totalSteps; i++) {
+      const sk = stepKey(i);
+      let st = totals[sk] || 0;
+      // Kueri aktif: kalau summary belum punya total-nya, pakai jumlah hasil yg termuat.
+      if (st === 0 && i === state.stepIndex && state.currentResults) st = state.currentResults.length;
+      if (st === 0) continue;
+      const localCount = state.grades[i] ? Object.keys(state.grades[i]).length : 0;
+      const backendCount = partial[sk] || 0;
+      total += st;
+      graded += Math.min(Math.max(localCount, backendCount), st);
+    }
+    return { graded, total };
   }
 
   function updatePassageBar() {
     const bar = $("#eval-passage-bar");
     if (!bar) return;
-    const sKey = state.stepIndex;
-    const graded = Object.keys(state.grades[sKey] || {}).length;
-    const total = state.currentResults ? state.currentResults.length : 0;
+    const { graded, total } = passageStatsAll();
     const pct = total > 0 ? (graded / total) * 100 : 0;
     bar.style.width = `${pct}%`;
   }
@@ -1153,7 +1250,7 @@
     const partial = (state._summaryData && state._summaryData.partial && state._summaryData.partial[state.expert]) || {};
     const totals = (state._summaryData && state._summaryData.step_totals) || {};
     const sk = stepKey(idx);
-    
+
     const localCount = state.grades[idx] ? Object.keys(state.grades[idx]).length : 0;
     const backendCount = partial[sk] || 0;
     const graded = Math.max(localCount, backendCount);

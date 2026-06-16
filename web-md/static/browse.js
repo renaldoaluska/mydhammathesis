@@ -16,39 +16,62 @@
   const state = {
     browseData: null,
     suttaNames: {},
-    availability: {},
+    loadedPitakas: new Set(),   // piṭaka yg nama-nya sudah di-load (lazy per-piṭaka)
   };
+
+  // Load nama untuk SATU piṭaka, lalu tempel ke node yg sudah ter-render. Dipanggil
+  // saat piṭaka pertama kali di-expand -> buka Sutta gak narik nama Vinaya/Abhidhamma.
+  function ensurePitakaNames(pitaka) {
+    if (!pitaka || state.loadedPitakas.has(pitaka)) return Promise.resolve();
+    state.loadedPitakas.add(pitaka);
+    return fetch(`/api/sutta-names/${encodeURIComponent(pitaka)}`)
+      .then(r => r.ok ? r.json() : {})
+      .then(names => { Object.assign(state.suttaNames, names || {}); applyNames(); })
+      .catch(() => { state.loadedPitakas.delete(pitaka); });   // izinkan retry
+  }
+
+  // Tempel nama ke node yg SUDAH ter-render (race: nama datang setelah node dibuat).
+  // Node yg di-render SETELAH nama ada otomatis kebaca dari state.suttaNames.
+  function applyNames() {
+    const names = state.suttaNames || {};
+    dom.browseTree.querySelectorAll(".browse-sutta-row[data-browse-id]").forEach(row => {
+      const nm = names[row.dataset.browseId];
+      if (!nm) return;
+      const link = row.querySelector(".browse-sutta-link");
+      if (link && !link.querySelector(".browse-sutta-name")) {
+        link.appendChild(document.createTextNode(" "));
+        const sp = document.createElement("span");
+        sp.className = "browse-sutta-name";
+        sp.textContent = nm;
+        link.appendChild(sp);
+      }
+    });
+    dom.browseTree.querySelectorAll(".browse-node-label[data-label-id]").forEach(lbl => {
+      const nm = names[lbl.dataset.labelId];
+      if (nm) lbl.textContent = nm;
+    });
+  }
 
   // ========== Browse ==========
   async function loadBrowseTree() {
     dom.browseLoading.classList.remove("hidden");
     dom.browseTree.classList.add("hidden");
     try {
-      const [res, namesRes, availRes] = await Promise.all([
-        fetch("/api/browse"),
-        fetch("/api/sutta-names"),
-        fetch("/api/availability")
-      ]);
+      const res = await fetch("/api/browse");
       if (!res.ok) throw new Error("Failed to load browse tree");
       state.browseData = await res.json();
-      state.suttaNames = namesRes.ok ? await namesRes.json() : {};
-      state.availability = availRes.ok ? await availRes.json() : {};
+
+      // Render tree dulu TANPA nama (payload kecil ~108KB) -> langsung tampil.
       renderBrowseTree();
       dom.browseLoading.classList.add("hidden");
       dom.browseTree.classList.remove("hidden");
-      // Handle ?browse=<id> from breadcrumb navigation (was /browse/<id>)
+
+      // Deep-link (?browse=<id>) cuma butuh data-browse-id buat cari & expand path —
+      // TIDAK butuh nama. Highlight jalan langsung; nama piṭaka target ke-load otomatis
+      // saat path-nya di-expand (ensurePitakaNames di renderNikaBody), jadi tetap cepat.
+      // Tanpa deep-link: nama juga lazy per-piṭaka saat manual di-expand.
       const browseParam = new URLSearchParams(window.location.search).get("browse");
-      if (browseParam) {
-        highlightBrowseItem(decodeURIComponent(browseParam));
-      } else {
-        // Default: do not auto expand Sutta Piṭaka, keep everything collapsed
-        // const suttaEl = dom.browseTree.querySelector('[data-browse-id="sutta"]');
-        // if (suttaEl) {
-        //   const hd = suttaEl.querySelector(":scope > .browse-nikaya-header");
-        //   const bd = suttaEl.querySelector(":scope > .browse-nikaya-body");
-        //   if (hd && bd) { hd.classList.add("open"); if (bd._renderChildren) bd._renderChildren(); bd.classList.add("open"); }
-        // }
-      }
+      if (browseParam) await highlightBrowseItem(decodeURIComponent(browseParam));
     } catch (e) {
       console.error("Browse error:", e);
       const errLabel = (window.DK && window.DK.t) ? window.DK.t("error_prefix") : "Error";
@@ -183,7 +206,7 @@
         }
       }
 
-      gHead.innerHTML = `<span class="caret"><i data-lucide="chevron-right"></i></span> <span>${label}</span>${rangeHtml}`;
+      gHead.innerHTML = `<span class="caret"><i data-lucide="chevron-right"></i></span> <span class="browse-node-label" data-label-id="${name}">${label}</span>${rangeHtml}`;
       const gBody = document.createElement("div"); gBody.className = "browse-vagga-body";
 
       function renderChildren() {
@@ -211,7 +234,7 @@
       const nEl = document.createElement("div"); nEl.className = "browse-nikaya";
       nEl.dataset.browseId = pitaka;
       const nHead = document.createElement("div"); nHead.className = "browse-nikaya-header";
-      nHead.innerHTML = `<span class="caret"><i data-lucide="chevron-right"></i></span> <span>${displayName(pitaka)}</span>`;
+      nHead.innerHTML = `<span class="caret"><i data-lucide="chevron-right"></i></span> <span class="browse-node-label" data-label-id="${pitaka}">${displayName(pitaka)}</span>`;
       const nBody = document.createElement("div"); nBody.className = "browse-nikaya-body";
 
       function renderNikaBody() {
@@ -223,7 +246,7 @@
             const knGroup = document.createElement("div"); knGroup.className = "browse-vagga";
             knGroup.dataset.browseId = "kn";
             const knHead = document.createElement("div"); knHead.className = "browse-vagga-header";
-            knHead.innerHTML = `<span class="caret"><i data-lucide="chevron-right"></i></span> <span>${displayName("kn")}</span>`;
+            knHead.innerHTML = `<span class="caret"><i data-lucide="chevron-right"></i></span> <span class="browse-node-label" data-label-id="kn">${displayName("kn")}</span>`;
             const knBody = document.createElement("div"); knBody.className = "browse-vagga-body";
             function renderKnChildren() {
               if (knBody._rendered) return;
@@ -255,9 +278,45 @@
 
       nHead.addEventListener("click", () => {
         const opening = !nHead.classList.contains("open");
-        if (opening) { closeSiblings(nEl); renderNikaBody(); }
-        nHead.classList.toggle("open");
-        nBody.classList.toggle("open");
+        if (opening) {
+          closeSiblings(nEl);
+          if (!state.loadedPitakas.has(pitaka)) {
+            nBody.innerHTML = `
+              <div class="browse-vagga" style="pointer-events: none;">
+                  <div class="browse-vagga-header" style="animation: skeleton-pulse 1.5s infinite ease-in-out;">
+                      <span class="caret" style="width: 16px; height: 16px; border-radius: 4px; background: var(--border-strong); display: inline-block; margin-right: 8px;"></span>
+                      <span style="width: 120px; height: 14px; border-radius: 4px; background: var(--border-strong); display: inline-block;"></span>
+                  </div>
+              </div>
+              <div class="browse-vagga" style="pointer-events: none;">
+                  <div class="browse-vagga-header" style="animation: skeleton-pulse 1.5s infinite ease-in-out; animation-delay: 0.15s;">
+                      <span class="caret" style="width: 16px; height: 16px; border-radius: 4px; background: var(--border-strong); display: inline-block; margin-right: 8px;"></span>
+                      <span style="width: 90px; height: 14px; border-radius: 4px; background: var(--border-strong); display: inline-block;"></span>
+                  </div>
+              </div>
+              <div class="browse-vagga" style="pointer-events: none;">
+                  <div class="browse-vagga-header" style="animation: skeleton-pulse 1.5s infinite ease-in-out; animation-delay: 0.3s;">
+                      <span class="caret" style="width: 16px; height: 16px; border-radius: 4px; background: var(--border-strong); display: inline-block; margin-right: 8px;"></span>
+                      <span style="width: 140px; height: 14px; border-radius: 4px; background: var(--border-strong); display: inline-block;"></span>
+                  </div>
+              </div>
+            `;
+            nHead.classList.add("open");
+            nBody.classList.add("open");
+            ensurePitakaNames(pitaka).then(() => {
+              nBody.innerHTML = "";
+              nBody._rendered = false;
+              renderNikaBody();
+            });
+          } else {
+            renderNikaBody();
+            nHead.classList.add("open");
+            nBody.classList.add("open");
+          }
+        } else {
+          nHead.classList.remove("open");
+          nBody.classList.remove("open");
+        }
       });
 
       nEl.appendChild(nHead); nEl.appendChild(nBody);
@@ -305,7 +364,10 @@
   }
 
   // Render only the ancestors along the path to the target (fast, targeted).
-  function renderAncestorPath(ancestorKeys) {
+  async function renderAncestorPath(ancestorKeys) {
+    if (ancestorKeys.length > 0) {
+      await ensurePitakaNames(ancestorKeys[0]);
+    }
     for (const key of ancestorKeys) {
       const el = dom.browseTree.querySelector(`[data-browse-id="${CSS.escape(key)}"]`);
       if (!el) continue;
@@ -314,7 +376,12 @@
     }
   }
 
-  function highlightBrowseItem(targetId) {
+  async function highlightBrowseItem(targetId) {
+    const path = findAncestorPath(targetId);
+    if (path && path.length > 0) {
+      await ensurePitakaNames(path[0]);
+    }
+
     function findTarget() {
       let t = dom.browseTree.querySelector(`[data-browse-id="${CSS.escape(targetId)}"]`);
       if (!t) {
@@ -328,9 +395,8 @@
     }
 
     let target = findTarget();
-    if (!target) {
-      const path = findAncestorPath(targetId);
-      if (path) renderAncestorPath(path);
+    if (!target && path) {
+      await renderAncestorPath(path);
       target = findTarget();
     }
     if (!target) return;

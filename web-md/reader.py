@@ -39,6 +39,9 @@ _AUTHOR_UID_MAP: dict = {}
 _LANG_NAME_MAP: dict = {}
 _BILARA_AUTHOR_UIDS: set = set()
 _html_chunk_cache: dict = {}
+_tree_cache = None            # memo build_tree() (korpus statis selama proses; ganti -> restart)
+_tree_by_pitaka: dict = {}    # {pitaka: [(book, children, leaves)]} — sumber prev/next + breadcrumb tanpa baca disk ulang
+_tree_ids_cache = None        # set id (leaf + kunci grup) yg muncul di build_tree() -> trim /api/sutta-names
 
 PITAKAS = ("sutta", "vinaya", "abhidhamma")
 
@@ -170,23 +173,28 @@ def _build_pitaka_map():
             except Exception:
                 continue
             children = raw[book] if isinstance(raw, dict) and book in raw else raw
-            for leaf in _collect_leaves(children):
+            leaves = _collect_leaves(children)
+            for leaf in leaves:
                 _SUTTA_PITAKA.setdefault(leaf, pitaka)
                 _SUTTA_BOOK.setdefault(leaf, book)
             _SUTTA_PITAKA.setdefault(book, pitaka)
             _SUTTA_BOOK.setdefault(book, book)
+            _tree_by_pitaka.setdefault(pitaka, []).append((book, children, leaves))
+
+    ORDER = {
+        "sutta": ["dn", "mn", "sn", "an", "kp", "dhp", "ud", "iti", "snp", "vv", "pv", "thag", "thig", "tha-ap", "thi-ap", "bv", "cp", "ja", "mnd", "cnd", "ps", "ne", "pe", "mil"],
+        "vinaya": ["pli-tv-bu-vb", "pli-tv-bi-vb", "pli-tv-kd", "pli-tv-pvr", "pli-tv-bu-pm", "pli-tv-bi-pm"],
+        "abhidhamma": ["ds", "vb", "dt", "pp", "kv", "ya", "patthana"]
+    }
+    for p, items in _tree_by_pitaka.items():
+        order_list = ORDER.get(p, [])
+        order_idx = {k: i for i, k in enumerate(order_list)}
+        items.sort(key=lambda x: order_idx.get(x[0], 999))
 
 
 def _get_prev_next(sutta_id):
     for pitaka in PITAKAS:
-        p_dir = TREE_DIR / pitaka
-        if not p_dir.exists():
-            continue
-        for fp in sorted(p_dir.glob("*-tree.json")):
-            book = fp.stem.replace("-tree", "")
-            raw = json.loads(fp.read_text(encoding="utf-8"))
-            children = raw[book] if isinstance(raw, dict) and book in raw else raw
-            leaves = _collect_leaves(children)
+        for book, children, leaves in _tree_by_pitaka.get(pitaka, []):
             if sutta_id in leaves:
                 i = leaves.index(sutta_id)
                 return (leaves[i - 1] if i > 0 else None,
@@ -200,13 +208,7 @@ _KN_BOOKS = {"kp", "dhp", "ud", "iti", "snp", "vv", "pv", "thag", "thig",
 
 def _get_breadcrumbs(sutta_id):
     for pitaka in PITAKAS:
-        p_dir = TREE_DIR / pitaka
-        if not p_dir.exists():
-            continue
-        for fp in p_dir.glob("*-tree.json"):
-            book = fp.stem.replace("-tree", "")
-            raw = json.loads(fp.read_text(encoding="utf-8"))
-            children = raw[book] if isinstance(raw, dict) and book in raw else raw
+        for book, children, leaves in _tree_by_pitaka.get(pitaka, []):
             found = [] if sutta_id == book else _find_in_tree(children, sutta_id, [])
             if found is not None:
                 crumbs = [{"id": pitaka, "label": _sutta_names.get(pitaka, pitaka.title())}]
@@ -295,7 +297,6 @@ def _normalize_author_from_meta(meta_str: str) -> str:
 def _build_html_file_map():
     if not HTMLTEXT_DIR.exists():
         return
-    _group_author = {}
     for html_file in HTMLTEXT_DIR.rglob("*.html"):
         parts = list(html_file.relative_to(HTMLTEXT_DIR).parts)
         if len(parts) < 3 or parts[1] != "pli":
@@ -309,11 +310,12 @@ def _build_html_file_map():
                 author = p.replace("_", "-").replace(" ", "-")
                 break
         if author is None:
-            gk = (lang, inner)
-            if gk not in _group_author:
-                meta = _read_meta_author_html(html_file)
-                _group_author[gk] = _normalize_author_from_meta(meta) if meta else "unknown"
-            author = _group_author[gk]
+            # Meta author WAJIB dibaca per file — satu folder bisa campuran
+            # penerjemah (mis. en/pli/sutta/dn: dn1 Bodhi, dn3 Rhys Davids,
+            # dn16 Ānandajoti). Cache per folder bikin semua file ikut author
+            # file pertama; konsisten dgn deteksi per-file di 3-praproses.
+            meta = _read_meta_author_html(html_file)
+            author = _normalize_author_from_meta(meta) if meta else "unknown"
         _HTML_FILE_MAP.setdefault(stem, {})[(lang, author)] = html_file
         if stem not in _RAW_FILE_MAP and stem not in _SHORT_TO_FULL:
             _SHORT_TO_FULL[shorten_sutta_id(stem)] = stem
@@ -358,6 +360,20 @@ def _load_author_lang_names():
                     _LANG_NAME_MAP[rec["uid"]] = rec["name"]
     except Exception as e:
         print(f"[reader] warn language.json: {e}")
+    try:
+        # Fallback terakhir: uid yang tidak punya display name dari sumber
+        # resmi (_author.json / author_edition.json). Tidak menimpa yang
+        # sudah resolve, dan TIDAK menambah _AUTHOR_UID_MAP — slug harus
+        # tetap sama dengan korpus search hasil 3-praproses.
+        p = Path(__file__).resolve().parent / "custom_author.json"
+        if p.exists():
+            for uid, name in json.loads(p.read_text(encoding="utf-8")).items():
+                if uid.startswith("_"):
+                    continue
+                if uid not in _BILARA_AUTHOR_LONG_NAMES and uid not in _EDITION_AUTHOR_LONG_NAMES:
+                    _EDITION_AUTHOR_LONG_NAMES[uid] = name
+    except Exception as e:
+        print(f"[reader] warn custom_author.json: {e}")
 
 
 def _load_blurbs():
@@ -549,6 +565,10 @@ def _get_sutta_from_raw(sutta_id, target_lang, author=None):
 # Tree untuk /api/browse
 # ============================================================
 def build_tree():
+    global _tree_cache
+    if _tree_cache is not None:
+        return _tree_cache
+
     def _extract(data, name):
         if isinstance(data, list):
             return data
@@ -597,7 +617,49 @@ def build_tree():
                     if pm in p_raw:
                         p_raw[pm] = pm
             tree[pitaka] = _ordered(p_raw, order)
+    _tree_cache = tree
     return tree
+
+
+def sutta_names_for_pitaka(pitaka):
+    """Nama (leaf + kunci grup/vagga) yg muncul di build_tree()[pitaka] saja —
+    dipakai /api/sutta-names/<pitaka> utk lazy-load per-piṭaka (payload kecil)."""
+    pit = build_tree().get(pitaka)
+    if not pit:
+        return {}
+    ids = {pitaka}
+    def _walk(node):
+        if isinstance(node, str):
+            ids.add(node)
+        elif isinstance(node, list):
+            for n in node:
+                _walk(n)
+        elif isinstance(node, dict):
+            for k, v in node.items():
+                ids.add(k)
+                _walk(v)
+    _walk(pit)
+    return {i: _sutta_names[i] for i in ids if i in _sutta_names}
+
+
+def collections_list():
+    """Koleksi yg bisa di-alamatkan via kitab+nomor di "Lompat ke Teks":
+    [{uid, display}] — uid = prefix leaf (mn, dhp, bu-pj, …), display = format_sutta_id(uid)."""
+    prefixes = {}
+    def _walk(node):
+        if isinstance(node, str):
+            m = re.match(r"^([a-z][a-z\-]*?)[0-9]", shorten_sutta_id(node))
+            if m:
+                uid = m.group(1).rstrip("-")
+                prefixes.setdefault(uid, format_sutta_id(uid))
+        elif isinstance(node, list):
+            for n in node:
+                _walk(n)
+        elif isinstance(node, dict):
+            for v in node.values():
+                _walk(v)
+    _walk(build_tree())
+    return [{"uid": u, "display": d} for u, d in sorted(prefixes.items())]
 
 
 # ============================================================

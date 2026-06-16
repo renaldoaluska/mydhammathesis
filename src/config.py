@@ -129,7 +129,7 @@ def _fix_rope_buffers(model) -> bool:
     emb.register_buffer("position_ids", torch.arange(pid.shape[0], device=dev), persistent=False)
     rot = emb.rotary_emb
     rot.inv_freq = 1.0 / (rot.base ** (torch.arange(0, rot.dim, 2, device=dev).float() / rot.dim))
-    rot._set_cos_sin_cache(rot.max_seq_len_cached, dev, torch.get_default_dtype())
+    rot._set_cos_sin_cache(rot.max_seq_len_cached, dev, emb.word_embeddings.weight.dtype)
     return True
 
 
@@ -140,8 +140,16 @@ def load_st_model(name, *, quiet: bool = False, **kwargs):
     (lihat _fix_rope_buffers). SATU sumber kebenaran -> fix tak ter-copy & tak terlupa.
     """
     from sentence_transformers import SentenceTransformer
+    import transformers
+    transformers.logging.set_verbosity_error()
     kwargs.setdefault("trust_remote_code", True)
     model = SentenceTransformer(resolve_model(name), **kwargs)
+    # transformers v5 kini menghormati `torch_dtype` di config.json checkpoint →
+    # gte (config-nya fp16) ke-load Half, tak seragam dgn e5 & embedding korpus
+    # precompute (fp32) → "self and mat2 must have the same dtype: Float vs Half"
+    # saat encode. Pin fp32 di SATU loader → seragam semua tahap (train mixed-prec
+    # tetap benar: Trainer pakai autocast di atas master-weight fp32).
+    model.float()
     if _fix_rope_buffers(model) and not quiet:
         print(f"  [config.load_st_model] buffer RoPE gte di-materialize ulang ({name}; kompat transformers v5)")
     return model

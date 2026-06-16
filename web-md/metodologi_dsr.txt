@@ -1,0 +1,90 @@
+METODOLOGI PENELITIAN — myDhamma
+==========================================
+
+Metode : Design Science Research (DSR), kerangka DSRM (Peffers et al., 2007).
+         STANDALONE untuk SELURUH alur penelitian — tidak ada SDLC ter-nest
+         (bukan Prototyping/Waterfall/UCD di dalam box mana pun).
+Alur   : diagram tahapan penelitian (rencana) DIPERTAHANKAN apa adanya;
+         DSRM hanya MELABELI tiap box sebagai aktivitas DSR, tidak
+         menggambar ulang alur. (Peffers: urutan DSRM "nominally
+         sequential" — iterasi & multi-siklus sah.)
+Artefak: (1) model retrieval GPL-adapted, (2) prototipe web-md =
+         INSTANSIASI (instantiation, Hevner et al., 2004).
+
+ALASAN PENGGANTIAN (dari model Prototyping/Pressman):
+  Prototyping = paradigma proses perangkat lunak penuh; fase komunikasi/
+  perencanaan/umpan-balik-nya menduplikasi & menimpa alur penelitian yang
+  sudah ada. DSRM tidak mempreskripsikan metode pengembangan di dalam
+  Design & Development — konstruksi dideskripsikan langsung sebagai
+  pembuatan artefak.
+
+
+PEMETAAN BOX DIAGRAM -> AKTIVITAS DSRM
+=============================================================================
+
+  Studi Literatur                  -> 1. Identifikasi Masalah & Motivasi
+                                      2. Tujuan Solusi
+       (sistem existing leksikal; solusi = pencarian semantik lintas bahasa)
+
+  Pengumpulan Data                 -> 3. Design & Development (persiapan)
+  Eksplorasi Data                  -> 3. Design & Development (persiapan)
+  Praproses Data                   -> 3. Design & Development (persiapan)
+
+  Pelatihan GPL                    -> 3. Design & Development
+                                      (ARTEFAK 1: model GPL-adapted)
+
+  Pembuatan Web Evaluasi           -> 3. Design & Development
+                                      (instrumen evaluasi pakar)
+
+  Evaluasi Intrinsik               -> 5. Evaluation (model; otomatis/dev)
+  Evaluasi Relevansi               -> 4. Demonstration + 5. Evaluation
+                                      (model; pakar, graded 0-3, nDCG@10)
+  Analisis Hasil                   -> 5. Evaluation (analisis)
+                                      -> OUTPUT: model terpilih
+
+  Pembuatan Prototipe              -> 3. Design & Development
+                                      (ARTEFAK 2: web-md, instansiasi)
+  Evaluasi Kebergunaan             -> 4. Demonstration + 5. Evaluation
+                                      (SUS, pengguna)
+
+  Penulisan laporan/skripsi        -> 6. Communication
+
+CATATAN SIKLUS: dua siklus build-evaluate (model -> eval relevansi;
+prototipe -> eval kebergunaan) = pola build-evaluate loop yang lazim di
+DSR (Hevner et al., 2004); panah balik Analisis Hasil -> Pembuatan
+Prototipe = iterasi antar-aktivitas yang diizinkan DSRM.
+
+
+BAGIAN "PEMBUATAN PROTOTIPE" (Design & Development, artefak 2)
+=============================================================================
+TANPA metode bernama — deskripsi perancangan + konstruksi langsung:
+
+  Perancangan : arsitektur berlapis (engine retrieval bersama `web/` +
+                app Flask `web-md/`), rancangan konfigurasi engine/model,
+                mockup antarmuka.
+  Konstruksi  : pencarian 3 metode (Makna / Kata Kunci-BM25 / Hybrid-RRF),
+                selektor model & bahasa, reader (segmentasi 1:1 dengan
+                korpus), browse tree, suttaplex, breadcrumbs.
+  Konfigurasi : model retrieval terpilih (output Analisis Hasil) dipasang
+                sebagai config — pemilihan model bukan bagian box ini.
+  Deploy      : md.renaldo.my.id (masuk Demonstration).
+
+EVALUASI KEBERGUNAAN (Evaluation, artefak 2):
+  - Instrumen : kuesioner SUS 10 item, skala Likert 1-5.
+  - Skor      : 0-100 (~68 = rata-rata; skala adjektif/grade).
+  - Objek     : antarmuka web-md (BUKAN kualitas model).
+  - Responden : pengguna (BUKAN pakar penilai relevansi).
+
+
+SITASI
+=============================================================================
+- Peffers, K., Tuunanen, T., Rothenberger, M. A., & Chatterjee, S. (2007).
+  A Design Science Research Methodology for Information Systems Research.
+  Journal of Management Information Systems, 24(3), 45-77.   (kerangka DSRM)
+- Hevner, A. R., March, S. T., Park, J., & Ram, S. (2004). Design Science in
+  Information Systems Research. MIS Quarterly, 28(1), 75-105.   (DSR;
+  build-evaluate loop; artefak tipe instansiasi)
+- Brooke, J. (1996). SUS: A 'quick and dirty' usability scale. In Usability
+  Evaluation in Industry.   (instrumen SUS)
+- Bangor, A., Kortum, P., & Miller, J. (2009). Determining What Individual SUS
+  Scores Mean: Adding an Adjective Rating Scale. JUS.   (interpretasi skor SUS)

@@ -93,6 +93,12 @@
         {% if sutta_name %}
         <h1 class="suttaplex-pali-name">{{ sutta_name }}</h1>
         {% endif %}
+        <div class="suttaplex-actions">
+            <a href="/chat?tag={{ formatted_id|urlencode }}" class="btn-chat-ai"
+                title="Chat dengan AI tentang {{ formatted_id }}">
+                <i data-lucide="sparkles"></i> <span data-i18n="btn_chat_ai">Chat dengan AI</span>
+            </a>
+        </div>
     </div>
 
     {% if blurb_id or blurb_en %}

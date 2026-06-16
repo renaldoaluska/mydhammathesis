@@ -1,0 +1,140 @@
+================================================================================
+PEMILIHAN MODEL CHAT LLM — myDhamma (Ollama)
+================================================================================
+Tanggal catatan : 2026-06-15
+Lokasi config   : web-md/app.py (OLLAMA_URL, CHAT_MODEL)
+Override env    : MYDHAMMA_OLLAMA_URL, MYDHAMMA_CHAT_MODEL
+
+--------------------------------------------------------------------------------
+1. KONTEKS & MASALAH AWAL
+--------------------------------------------------------------------------------
+Error yang muncul:
+  "LLM tidak tersedia (Ollama: gemma2:9b). Connection refused"
+
+Penyebab:
+  a) OLLAMA_URL default salah port — app mengarah ke :11435, sedangkan Ollama
+     service sistem jalan di :11434.
+  b) Model gemma2:9b belum di-pull saat itu (hanya gemma3:4b yang ada).
+
+Catatan: start-dev.sh TIDAK menjalankan Ollama. Ollama diharapkan jalan
+sebagai service terpisah (bukan window tmux). Tmux hanya menjalankan web-eval,
+web-md, dan cloudflared.
+
+--------------------------------------------------------------------------------
+2. KONFIGURASI SAAT INI (SETELAH PERBAIKAN)
+--------------------------------------------------------------------------------
+OLLAMA_URL  = http://127.0.0.1:11434/api/chat
+CHAT_MODEL  = gemma2:9b
+
+Model gemma2:9b sudah di-pull ke Ollama lokal.
+Restart web-md diperlukan agar proses yang sudah jalan memuat config baru.
+
+--------------------------------------------------------------------------------
+3. MODEL GEMMA YANG TERSEDIA DI OLLAMA (SERVER)
+--------------------------------------------------------------------------------
+Model berlabel "gemma" yang ter-pull:
+  • gemma3:4b   (~4.3B)
+  • gemma2:9b   (~9B)   ← default chat saat ini
+
+Model lain yang juga ter-pull (bukan Gemma):
+  • qwen3:8b          (8.2B)
+  • llama3.1:latest   (8.0B)
+  • deepseek-r1:14b   (14.8B)
+  • rbac-model:latest (3.2B)
+
+Target produksi jangka panjang (belum dipakai): gemma4:12b
+  — butuh Ollama >= 0.24 + `ollama pull gemma4:12b`
+
+--------------------------------------------------------------------------------
+4. LOGIKA APP: MODEL KECIL vs BESAR
+--------------------------------------------------------------------------------
+Di app.py, model kecil masuk daftar _SMALL_CHAT_MODELS:
+  gemma3:4b, gemma3:1b, gemma2:2b, llama3.2:1b, llama3.2:3b
+
+gemma2:9b TIDAK masuk daftar itu → dianggap model besar.
+
+Dampaknya:
+
+  Model KECIL (gemma3:4b):
+  - Query craft LLM dimatikan → pencarian pakai query mentah user.
+  - LLM kecil sering gagal output SKIP_SEARCH / merusak kueri semantik
+    (contoh: suntik "sutta", "kutipan", atau istilah Sanskerta).
+  - Regex rule-based tetap menangkap sapaan umum (halo, makasih, dll).
+
+  Model BESAR (gemma2:9b):
+  - Query craft LLM aktif → LLM merapikan kueri sebelum retrieval.
+  - Lebih patuh instruksi SKIP_SEARCH & identitas myDhamma AI.
+  - Inference sedikit lebih lambat, RAM lebih besar.
+
+--------------------------------------------------------------------------------
+5. HASIL SIMULASI HEAD-TO-HEAD (2026-06-15)
+--------------------------------------------------------------------------------
+Metode: prompt yang sama persis dengan _REWRITE_SYS dan skenario RAG di app.py,
+       dipanggil langsung ke Ollama :11434 (bukan teori).
+
+  Test                          gemma3:4b              gemma2:9b
+  ─────────────────────────────────────────────────────────────────
+  "halo"                        ❌ output "asd"        ✅ SKIP_SEARCH
+  "kamu siapa"                  ❌ echo query          ✅ SKIP_SEARCH
+  "kutipin sutta tentang        ❌ "sutta tentang     ❌ "kutipan tentang
+   penderitaan dong"               penderitaan"            penderitaan"
+  "aku lagi sedih banget"       ✅ mengatasi kesedihan ✅ mengatasi kesedihan
+  "makasih ya infonya"          ❌ salah interpretasi  ❌ tidak SKIP
+  RAG: apa itu dukkha?          ✅ rujuk SN 56.11      ✅ rujuk SN 56.11
+                                  (~5.6s)                (~7.4s)
+
+Skor query rewrite : gemma2:9b 2/5, gemma3:4b 1/5
+Skor RAG           : imbang (keduanya rujuk SN 56.11 dengan benar)
+
+Catatan simulasi:
+  - Untuk sapaan ("halo", "makasih"), gemma3:4b gagal di LLM tapi di app
+    nyata tetap aman karena regex _SKIP_PATTERNS menangkap sebelum LLM dipanggil.
+  - Keduanya masih gagal strip meta-word ("sutta"/"kutipan") pada query rewrite;
+    itu isu prompt, bukan sekadar ukuran model.
+  - gemma3:4b di produksi lebih buruk untuk retrieval karena query craft off
+    → kirim string mentah "kutipin sutta tentang penderitaan dong" ke retriever.
+
+--------------------------------------------------------------------------------
+6. KEPUTUSAN
+--------------------------------------------------------------------------------
+Default chat dipilih: gemma2:9b
+
+Alasan (berdasarkan simulasi + logika app):
+  1. Query craft aktif (gemma3:4b mem-bypass LLM rewrite).
+  2. Lebih patuh SKIP_SEARCH & deteksi identitas di uji LLM langsung.
+  3. Kualitas RAG setara; latency sedikit lebih tinggi (~+2s) masih acceptable.
+  4. Ukuran 9B masuk kategori "model besar" menurut _query_craft_ok().
+
+Trade-off diterima:
+  - Lebih lambat & boros RAM vs gemma3:4b.
+  - Query meta-strip belum sempurna di kedua model (perlu perbaikan prompt).
+
+Alternatif jika gemma2:9b terlalu berat:
+  • qwen3:8b (8.2B, sudah ter-pull) — uji dulu sebelum switch.
+  • gemma3:4b — hanya untuk dev/cepat jalan; query craft off.
+
+--------------------------------------------------------------------------------
+7. CARA GANTI MODEL (TANPA EDIT KODE)
+--------------------------------------------------------------------------------
+  export MYDHAMMA_OLLAMA_URL="http://127.0.0.1:11434/api/chat"
+  export MYDHAMMA_CHAT_MODEL="gemma2:9b"    # atau gemma3:4b, qwen3:8b, dll.
+  python web-md/app.py
+
+Atau lewat tmux:
+  ./start-dev.sh stop && ./start-dev.sh
+  (tambahkan export di start-dev.sh jika perlu override permanen)
+
+Cek model ter-pull:
+  curl -s http://127.0.0.1:11434/api/tags | python3 -m json.tool
+
+Pull model baru:
+  ollama pull gemma2:9b
+
+--------------------------------------------------------------------------------
+8. RIWAYAT PERUBAHAN CONFIG
+--------------------------------------------------------------------------------
+  Sebelum  : OLLAMA_URL :11435, CHAT_MODEL gemma2:9b (model belum ada → error)
+  Sementara: OLLAMA_URL :11434, CHAT_MODEL gemma3:4b (quick fix, model ada)
+  Sekarang : OLLAMA_URL :11434, CHAT_MODEL gemma2:9b (setelah pull + simulasi)
+
+================================================================================

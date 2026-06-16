@@ -4,27 +4,71 @@
 <span class="header-subtitle" data-i18n="subtitle">Pencarian Tipiṭaka berbasis makna</span>
 {% endblock %}
 {% block main_panel %}
+<!-- ===== RIWAYAT (chips 1 baris, scroll horizontal) ===== -->
+<div id="recent-sutta-wrapper" class="hidden">
+    <div class="section-divider">
+        <span data-i18n="history_divider">Riwayat Anda</span>
+    </div>
+    <div id="recent-sutta-container" class="history-bar-chips"></div>
+</div>
 <div class="section-divider">
     <span data-i18n="browse_sutta_divider">Telusuri Teks</span>
+    <button id="btn-goto-sutta" class="section-divider-action" data-i18n-title="goto_title" title="Lompat ke Teks">
+        <i data-lucide="milestone" style="width:12px; height:12px;"></i> <span data-i18n="btn_goto">Lompat ke
+            Teks</span>
+    </button>
 </div>
 <!-- ===== BROWSE SECTION ===== -->
 <div id="browse-section">
-    <div id="browse-loading" class="empty-state">
-        <div class="spinner"></div>
-        <p data-i18n="loading_browse">Memuat daftar sutta…</p>
+    <div id="browse-loading" class="browse-container">
+        <div class="browse-nikaya" style="pointer-events: none; border-top: 1px solid var(--border);">
+            <div class="browse-nikaya-header" style="animation: skeleton-pulse 1.5s infinite ease-in-out;">
+                <span class="caret"
+                    style="width: 16px; height: 16px; border-radius: 4px; background: var(--border-strong); display: inline-block; margin-right: 8px;"></span>
+                <span
+                    style="width: 60px; height: 14px; border-radius: 4px; background: var(--border-strong); display: inline-block;"></span>
+            </div>
+        </div>
+        <div class="browse-nikaya" style="pointer-events: none;">
+            <div class="browse-nikaya-header"
+                style="animation: skeleton-pulse 1.5s infinite ease-in-out; animation-delay: 0.15s;">
+                <span class="caret"
+                    style="width: 16px; height: 16px; border-radius: 4px; background: var(--border-strong); display: inline-block; margin-right: 8px;"></span>
+                <span
+                    style="width: 80px; height: 14px; border-radius: 4px; background: var(--border-strong); display: inline-block;"></span>
+            </div>
+        </div>
+        <div class="browse-nikaya" style="pointer-events: none;">
+            <div class="browse-nikaya-header"
+                style="animation: skeleton-pulse 1.5s infinite ease-in-out; animation-delay: 0.3s;">
+                <span class="caret"
+                    style="width: 16px; height: 16px; border-radius: 4px; background: var(--border-strong); display: inline-block; margin-right: 8px;"></span>
+                <span
+                    style="width: 100px; height: 14px; border-radius: 4px; background: var(--border-strong); display: inline-block;"></span>
+            </div>
+        </div>
     </div>
     <div id="browse-tree" class="browse-container hidden"></div>
 </div>
 <div class="section-divider">
     <span data-i18n="or_search_directly">atau langsung cari</span>
+    <a href="/chat" id="btn-chat-ai" class="section-divider-action" data-i18n-title="chat_ai_title"
+        title="Chat dengan myDhamma AI">
+        <i data-lucide="sparkles" style="width:12px; height:12px;"></i> <span data-i18n="btn_chat_ai">Chat myDhamma
+            AI</span>
+    </a>
 </div>
 <!-- ===== SEARCH TAB ===== -->
 <div id="tab-search">
-    <!-- Search Bar FIRST — primary action -->
+    <!-- Diisi JS: 6 kueri acak dari pool RECOMMENDED_QUERIES (index.js) -->
+    <div id="recommended-queries" class="recommended-queries" style="margin-bottom: 8px;"></div>
     <div id="search-bar">
         <div class="search-bar-inner">
             <input type="text" id="search-input" data-i18n-placeholder="ph_search_semantic"
                 placeholder="Ketik topik, misal: cara mengatasi kemarahan…" autocomplete="off">
+            <button id="btn-clear-search" type="button" class="btn-clear-input hidden" title="Hapus pencarian">
+                <i data-lucide="x"></i>
+            </button>
             <button id="btn-search" class="btn-primary" data-i18n-html="btn_search" title="Cari"><i
                     data-lucide="search"></i>
                 Cari</button>
@@ -80,8 +124,8 @@
                     </span>
                     <div class="toggle-group" id="pitaka-toggle" data-multi="true">
                         <button class="toggle-btn active" data-value="sutta">Sutta</button>
-                        <button class="toggle-btn" data-value="vinaya">Vinaya</button>
-                        <button class="toggle-btn" data-value="abhidhamma">Abhidhamma</button>
+                        <button class="toggle-btn active" data-value="vinaya">Vinaya</button>
+                        <button class="toggle-btn active" data-value="abhidhamma">Abhidhamma</button>
                     </div>
                 </div>
                 <div class="control-group control-group-options">
@@ -98,7 +142,7 @@
                     </div>
                     <div class="search-options-inline">
                         <label class="checkbox-label" data-i18n-title="tt_cb_titles"><input type="checkbox"
-                                id="cb-titles" checked><span data-i18n="cb_titles">Judul</span></label>
+                                id="cb-titles"><span data-i18n="cb_titles">Judul</span></label>
                         <label class="checkbox-label" data-i18n-title="tt_cb_blurbs"><input type="checkbox"
                                 id="cb-blurbs" checked><span data-i18n="cb_blurbs">Sinopsis</span></label>
                         <label class="checkbox-label" data-i18n-title="tt_cb_group"><input type="checkbox" id="cb-group"
@@ -170,19 +214,75 @@
     </details>
     <!-- Results Area -->
     <div id="search-results">
-        <div id="loading-state" class="empty-state hidden">
-            <div class="spinner"></div>
-            <p data-i18n="loading_text">Mencari sutta…</p>
+        <div id="loading-state" class="hidden" style="margin-top: 12px;">
+            <div class="sutta-card"
+                style="pointer-events: none; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 12px; background: var(--bg-card);">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; animation: skeleton-pulse 1.5s infinite ease-in-out;">
+                    <span
+                        style="width: 140px; height: 18px; border-radius: 4px; background: var(--border-strong); display: inline-block;"></span>
+                    <span
+                        style="width: 80px; height: 14px; border-radius: 4px; background: var(--border-strong); display: inline-block;"></span>
+                </div>
+                <div style="animation: skeleton-pulse 1.5s infinite ease-in-out;">
+                    <div
+                        style="width: 100%; height: 14px; border-radius: 4px; background: var(--border-strong); margin-bottom: 6px;">
+                    </div>
+                    <div
+                        style="width: 80%; height: 14px; border-radius: 4px; background: var(--border-strong); margin-bottom: 6px;">
+                    </div>
+                    <div style="width: 90%; height: 14px; border-radius: 4px; background: var(--border-strong);"></div>
+                </div>
+            </div>
+            <div class="sutta-card"
+                style="pointer-events: none; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 12px; background: var(--bg-card);">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; animation: skeleton-pulse 1.5s infinite ease-in-out; animation-delay: 0.15s;">
+                    <span
+                        style="width: 120px; height: 18px; border-radius: 4px; background: var(--border-strong); display: inline-block;"></span>
+                    <span
+                        style="width: 60px; height: 14px; border-radius: 4px; background: var(--border-strong); display: inline-block;"></span>
+                </div>
+                <div style="animation: skeleton-pulse 1.5s infinite ease-in-out; animation-delay: 0.15s;">
+                    <div
+                        style="width: 90%; height: 14px; border-radius: 4px; background: var(--border-strong); margin-bottom: 6px;">
+                    </div>
+                    <div
+                        style="width: 85%; height: 14px; border-radius: 4px; background: var(--border-strong); margin-bottom: 6px;">
+                    </div>
+                    <div style="width: 70%; height: 14px; border-radius: 4px; background: var(--border-strong);"></div>
+                </div>
+            </div>
+            <div class="sutta-card"
+                style="pointer-events: none; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 12px; background: var(--bg-card);">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; animation: skeleton-pulse 1.5s infinite ease-in-out; animation-delay: 0.3s;">
+                    <span
+                        style="width: 160px; height: 18px; border-radius: 4px; background: var(--border-strong); display: inline-block;"></span>
+                    <span
+                        style="width: 70px; height: 14px; border-radius: 4px; background: var(--border-strong); display: inline-block;"></span>
+                </div>
+                <div style="animation: skeleton-pulse 1.5s infinite ease-in-out; animation-delay: 0.3s;">
+                    <div
+                        style="width: 95%; height: 14px; border-radius: 4px; background: var(--border-strong); margin-bottom: 6px;">
+                    </div>
+                    <div
+                        style="width: 100%; height: 14px; border-radius: 4px; background: var(--border-strong); margin-bottom: 6px;">
+                    </div>
+                    <div style="width: 60%; height: 14px; border-radius: 4px; background: var(--border-strong);"></div>
+                </div>
+            </div>
         </div>
-        <!-- "Mungkin maksud Anda…" — query-language detection + manual switch.
-             Placed at the very top of the results area (like Google's "did you mean"). -->
-        <div id="query-lang-bar"
-            style="display:none; align-items:center; gap:10px; flex-wrap:wrap; margin:12px auto 0; padding:7px 12px; background:var(--bg-tertiary); border-left:3px solid var(--accent); border-radius:var(--radius-md); font-size:0.8rem; color:var(--text-secondary);">
+        <div id="search-context-info" class="hidden"
+            style="margin: 8px auto 0; padding: 7px 14px; background: var(--bg-tertiary); border-radius: var(--radius-md); max-width: 100%; font-size: 0.7rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 3px; cursor: pointer;">
+        </div>
+        <div id="query-lang-bar" class="hidden"
+            style="align-items:center; gap:10px; flex-wrap:wrap; margin:12px auto 0; padding:7px 12px; background:var(--bg-tertiary); border-left:3px solid var(--accent); border-radius:var(--radius-md); font-size:0.8rem; color:var(--text-secondary); display:flex;">
         </div>
         <!-- Symbol legend: always visible, single compact line (not collapsible —
              a collapsible version got mistaken for a search option). -->
         <div id="search-legend" class="hidden"
-            style="margin: 8px auto 12px; padding: 7px 14px; background: var(--bg-tertiary); border-radius: var(--radius-md); max-width: 100%; font-size: 0.7rem; color: var(--text-muted); display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px;">
+            style="margin: 8px auto 16px; padding: 7px 14px; background: var(--bg-tertiary); border-radius: var(--radius-md); max-width: 100%; font-size: 0.7rem; color: var(--text-muted); display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px;">
             <span style="font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;"
                 data-i18n-html="legend_title">Legenda</span>
             <span style="display: inline-flex; align-items: center; gap: 5px;"><i data-lucide="map-pin"
@@ -194,7 +294,24 @@
                     data-i18n="legend_similarity">Kemiripan Makna</span></span>
             <span id="legend-count" style="display: inline-flex; align-items: center; gap: 5px;"><i
                     data-lucide="bar-chart-3" style="width:13px; height:13px;"></i> <span
-                    data-i18n="legend_count">Jumlah Kecocokan</span></span>
+                    data-i18n="legend_count">Kecocokan Kata Kunci</span></span>
+        </div>
+        <div id="ai-cta-container" class="hidden"
+            style="margin: 8px auto 16px; padding: 10px 14px; background: var(--bg-tertiary); border-radius: var(--radius-md); max-width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 14px; border: 1px solid var(--accent-subtle);">
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+                <span
+                    style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
+                    <i data-lucide="sparkles" style="color: var(--accent); width: 14px; height: 14px;"></i>
+                    myDhamma AI <span data-i18n="cta_badge"
+                        style="font-size: 0.65rem; background: var(--accent); color: white; padding: 2px 6px; border-radius: 10px; font-weight: bold;">Eksperimental</span>
+                </span>
+                <span style="font-size: 0.7rem; color: var(--text-muted);" data-i18n="cta_tagline">Kurang puas dengan hasilnya? Chat dengan
+                    myDhamma AI.</span>
+            </div>
+            <a href="/chat?q=Apa+pesan+utama+dalam+Dhammapada%3F" class="btn-primary"
+                style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 16px; font-size: 0.8rem; text-decoration: none; white-space: nowrap; border-radius: 20px;" data-i18n="cta_btn">
+                Chat Sekarang
+            </a>
         </div>
         <div id="results-container" class="hidden"></div>
         <div id="pagination" class="hidden">
@@ -244,6 +361,7 @@
     <i data-lucide="chevron-up"></i>
 </button>
 {% endblock %}
+
 {% block scripts %}
 <script src="{{ versioned_static('browse.js') }}"></script>
 <script src="{{ versioned_static('index.js') }}"></script>

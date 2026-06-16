@@ -7,9 +7,25 @@
 {% endblock %}
 
 {% block main_panel %}
-<div id="browse-loading" class="empty-state">
-    <div class="spinner"></div>
-    <p data-i18n="loading_browse">Memuat daftar sutta…</p>
+<div id="browse-loading" class="browse-container">
+    <div class="browse-nikaya" style="pointer-events: none; border-top: 1px solid var(--border);">
+        <div class="browse-nikaya-header" style="animation: skeleton-pulse 1.5s infinite ease-in-out;">
+            <span class="caret" style="width: 16px; height: 16px; border-radius: 4px; background: var(--border-strong); display: inline-block; margin-right: 8px;"></span>
+            <span style="width: 60px; height: 14px; border-radius: 4px; background: var(--border-strong); display: inline-block;"></span>
+        </div>
+    </div>
+    <div class="browse-nikaya" style="pointer-events: none;">
+        <div class="browse-nikaya-header" style="animation: skeleton-pulse 1.5s infinite ease-in-out; animation-delay: 0.15s;">
+            <span class="caret" style="width: 16px; height: 16px; border-radius: 4px; background: var(--border-strong); display: inline-block; margin-right: 8px;"></span>
+            <span style="width: 80px; height: 14px; border-radius: 4px; background: var(--border-strong); display: inline-block;"></span>
+        </div>
+    </div>
+    <div class="browse-nikaya" style="pointer-events: none;">
+        <div class="browse-nikaya-header" style="animation: skeleton-pulse 1.5s infinite ease-in-out; animation-delay: 0.3s;">
+            <span class="caret" style="width: 16px; height: 16px; border-radius: 4px; background: var(--border-strong); display: inline-block; margin-right: 8px;"></span>
+            <span style="width: 100px; height: 14px; border-radius: 4px; background: var(--border-strong); display: inline-block;"></span>
+        </div>
+    </div>
 </div>
 <div id="browse-tree" class="browse-container hidden"></div>
 

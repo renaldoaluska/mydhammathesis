@@ -73,7 +73,11 @@ def main():
             emb = model.encode([pref(c["text"]) for c in corpus], batch_size=64,
                                convert_to_tensor=True, show_progress_bar=True,
                                normalize_embeddings=True)
-            torch.save(emb.cpu(), emb_p)
+            # Pin dtype simpan ke fp32 EKSPLISIT — jangan biarkan ikut dtype-muat
+            # model (gte native fp16 vs e5 fp32) supaya output embed DETERMINISTIK &
+            # seragam, tak berubah gara-gara perubahan loader. Lihat
+            # CATATAN-dtype-embedding.txt. (fp16<->fp32 identik ~1e-6, jadi aman.)
+            torch.save(emb.float().cpu(), emb_p)
             with open(meta_p, "wb") as f:
                 pickle.dump(corpus, f)
             print(f"    -> {emb_p.name} ({len(corpus):,} chunk)")

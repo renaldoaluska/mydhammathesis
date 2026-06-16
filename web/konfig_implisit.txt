@@ -1,0 +1,112 @@
+===============================================================================
+DOKUMENTASI KONFIGURASI IMPLISIT (NON-EKSPLISIT) MESIN PENCARI myDhamma
+===============================================================================
+Dokumen ini mencatat berbagai aturan "tersembunyi", filter, dan perilaku 
+bawaan sistem yang tidak terlihat langsung di antarmuka (UI) pengguna, 
+namun sangat menentukan bagaimana hasil pencarian disaring dan disajikan.
+
+-------------------------------------------------------------------------------
+1. FILTER "JUNK" PADA TAHAP PRAPROSES (CHUNK)
+Lokasi: `src/config.py` -> fungsi `is_junk_body()`
+-------------------------------------------------------------------------------
+- Regex Junk: `^(?:[\W_]+|\d+\.?|[a-zA-Z])$`
+- Mesin HANYA membuang chunk non-heading (body) yang isinya 100% murni simbol, 
+  angka, atau CUMA SATU HURUF. 
+- TIDAK ADA syarat panjang minimal kata (min-length) di tahap praproses. 
+  Teks yang terdiri dari minimal 2 huruf (misal: "Di", "Brahmana") 
+  TIDAK dianggap junk dan tetap masuk ke database.
+- Alasan Desain: Untuk melindungi bait-bait puisi suci (Gāthā) pendek 
+  (seperti di Dhammapada atau Udana) agar tidak terpotong atau hilang dari korpus.
+
+-------------------------------------------------------------------------------
+2. PENANGANAN HEADING & "TITLES" DI SEARCH ENGINE
+Lokasi: `web/search.py` -> fungsi `_ok()`
+-------------------------------------------------------------------------------
+- Pengelompokan UI: Opsi "Titles" (Judul) di web UI secara sapujagat menghidupkan 
+  atau mematikan SEMUA teks yang berstatus `heading > 0` (mulai dari <h1> judul utama 
+  hingga <h6> sub-judul). 
+- DEFAULT UI: Opsi "Titles" dimatikan (false) secara default agar pencarian awam 
+  fokus pada isi khotbah (body), bukan terganggu oleh sub-judul.
+- FILTER IMPLISIT (HARD-CODED): Meskipun user menyalakan opsi "Titles", mesin akan 
+  OTOMATIS MEMBUANG hasil pencarian jika:
+    a. Teksnya berstatus heading (heading > 0)
+    b. Panjang teks KURANG DARI 3 KATA (misal: "Definisi", "Uddāna")
+    c. Teks tersebut berasal dari kitab VINAYA (file_base_name berawalan pli-tv- / pli-vi-)
+- Alasan Desain: Kitab Vinaya sangat padat dengan sub-judul pendek seperti "Definisi" 
+  yang secara semantik sering menjadi "parasit" dan nyangkut ke kueri tanya-jawab umum.
+
+-------------------------------------------------------------------------------
+3. BRIDGING EVALUASI PAKAR VS IMPLEMENTASI WEB (UNTUK TUGAS AKHIR)
+-------------------------------------------------------------------------------
+Evaluasi pakar dilakukan dengan `INCLUDE_TITLES = False` untuk menguji murni kualitas
+semantik paragraf isi (body). Dari evaluasi tersebut, ditemukan fenomena anomali:
+- Temuan Pakar: Chunk yang secara natural sangat pendek (1-2 kata) namun berstatus "body" 
+  (karena sisa parsing atau struktur checklist seperti di MN 117), sering lolos ditarik oleh 
+  mesin. Pakar secara konsisten memberi nilai relevansi rendah (0) untuk teks sepotong ini 
+  karena kehilangan konteks makna. Di sisi lain, kata parasit seperti "Definisi" dari Vinaya
+  juga merusak pencarian berkonsep.
+  
+- Trade-off Panjang Teks (The Length Threshold Dilemma): 
+  Peneliti mencoba mengimplementasikan *heuristic filter* `< 3 kata` untuk membuang anomali 
+  tersebut. Namun, hal ini memunculkan trade-off klasik Information Retrieval:
+  a. Jika diterapkan pukul rata: Noise dari MN 117 bersih (Precision naik), tapi judul/ayat 
+     pendek yang krusial (misal 2 kata seperti "Pandangan Benar" di SN 15.12) ikut terhapus 
+     (Recall turun parah / False Negative).
+  b. Jika diterapkan KHUSUS di Vinaya: Parasit utama hancur (Recall Sutta selamat), tapi 
+     noise minor dari Sutta (seperti MN 117) tetap lolos (False Positive yang bisa ditoleransi).
+
+- Keputusan Akhir (*Final Design Decision*):
+  Berdasarkan teori pencarian teks suci, *RECALL* (menyelamatkan teks yang bermakna) jauh 
+  lebih diprioritaskan daripada menekan *noise* secara absolut. User lebih bisa menoleransi 
+  1-2 hasil "sampah" di urutan bawah daripada kehilangan akses untuk menemukan ayat penting.
+  Oleh karena itu, pada implementasi Web UI final:
+  1. Opsi "Titles" DINYALAKAN sebagai *default* agar user bisa mencari berdasarkan Sutta.
+  2. Filter `< 3 kata` HANYA ditembakkan secara selektif ke kitab Vinaya. Anomali di Sutta 
+     (MN 117) dibiarkan lolos sebagai *acceptable noise* demi menyelamatkan *chunk* krusial 
+     di SN 15.12 dkk.
+
+-------------------------------------------------------------------------------
+4. JEBAKAN SEMANTIK (DENSE RETRIEVAL ANOMALIES)
+  "apa itu kebahagiaan" saat masa training, yang menyebabkan kemiripan paksa (skor mendekati 1.0).
+- Solusi Implisit: Sistem selalu merekomendasikan HYBRID SEARCH (Semantik + BM25) sebagai 
+  metode default untuk meng-counter halusinasi model semantik ini menggunakan pencocokan kata persis (BM25).
+
+-------------------------------------------------------------------------------
+5. REKOMENDASI FORMAT KUERI PENCARIAN
+(Diperbarui 2026-06-11 — hasil uji ±85 kueri kandidat chip rekomendasi via
+/api/search hybrid ensemble db=id, dinilai di level sutta DAN pasase.)
+-------------------------------------------------------------------------------
+- Paling Optimal: Kata Benda / Konsep SPESIFIK yang punya istilah khas atau
+  sutta dedikasi (contoh: "perenungan kematian", "lima rintangan batin",
+  "bhikkhu menerima uang").
+  Alasan: Sangat presisi untuk Semantik (memetakan konsep murni) dan maksimal
+  untuk BM25 karena bebas kata hubung (stopword).
+- Optimal untuk Konsep Abstrak: Kalimat Deklaratif "X adalah" (contoh:
+  "moralitas adalah", "kebijaksanaan adalah", "kemalasan adalah").
+  NAIK KELAS dari "Menengah" berdasarkan uji pasase: kata benda abstrak
+  telanjang ("kebijaksanaan", "kotoran batin") cenderung match ke judul sutta
+  / chunk heading sehingga fragmennya tipis, sementara "X adalah" menarik
+  pasase definisi/nasihat yang berisi (menyerupai struktur teks jawaban di
+  korpus). Catatan: hanya berlaku bila korpus memang punya pasase definisi
+  untuk konsep itu — untuk konsep periferal ("kesombongan adalah", "iri hati
+  adalah") tambahan "adalah" tidak menolong, bahkan menambah noise.
+- Kurang Optimal: Pertanyaan QA (contoh: "apa itu kebahagiaan?").
+  Alasan: "Apa" dan "itu" adalah stopword yang diabaikan BM25, sementara Semantik sering
+  terjebak pada struktur definisi hukum di Vinaya atau halusinasi antonim.
+- Jebakan format lain (dari uji yang sama):
+  * Kata bermakna ganda menyeret ke Vinaya: "perumah tangga", "kediaman",
+    "latihan" -> aturan vihāra/pātimokkha.
+  * Kata urutan kena keyword match: "khotbah PERTAMA buddha" -> semua sutta
+    berawalan "Paṭhama-".
+  * "perumpamaan X" hanya jalan untuk perumpamaan terkenal yang punya sutta
+    dedikasi (rakit, gergaji, anak panah: bagus; buih: terdistraksi ke
+    perumpamaan lain).
+
+-------------------------------------------------------------------------------
+6. MARKER LAINNYA DI DATABASE
+Lokasi: `src/code/3-praproses/1-chunk.py`
+-------------------------------------------------------------------------------
+- Kolofon: Kata-kata penutup ("Akhir dari...", "Selesai", "Tamat") terdeteksi 
+  dan ditandai dengan metadata `structural="colophon"`.
+- Label Kamus: Teks yang dicetak tebal sepenuhnya (mirip entri kamus) ditandai 
+  sebagai `structural="label"` dan dipaksa menjadi `heading=1` agar terpisah dari body.

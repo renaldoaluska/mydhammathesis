@@ -24,6 +24,13 @@
                 Anda akan menilai kualitas hasil pencarian untuk setiap kueri terhadap setiap model.
             </p>
 
+            <div class="eval-notice">
+                <i data-lucide="palette"></i>
+                <span data-i18n-html="tip_appearance">Tip: Anda dapat mengaktifkan <strong>mode gelap</strong> dan
+                    menyesuaikan <strong>ukuran teks</strong> (A−/A+) melalui tombol di pojok kanan atas, sesuai
+                    kenyamanan Anda.</span>
+            </div>
+
             <div class="eval-section">
                 <h3 data-i18n="section_definitions">Definisi Istilah</h3>
                 <dl class="eval-definitions">
@@ -33,13 +40,65 @@
                         terjemahan Inggris).</dd>
                     <dt data-i18n="def_query_term">Kueri</dt>
                     <dd data-i18n-html="def_query_desc_html">Pertanyaan atau topik pencarian yang diuji pada sistem
-                        pencarian semantik, sebagai <i>input</i> untuk model.</dd>
+                        pencarian semantik (berbasis makna), sebagai <i>input</i> untuk model.</dd>
                     <dt data-i18n="def_passage_term">Pasase</dt>
                     <dd data-i18n-html="def_passage_desc_html">Bagian atau pasal yang dikutip dari sebuah korpus.</dd>
                     <!-- <dt data-i18n="def_extra_term">Informasi Ekstra</dt>
                     <dd data-i18n="def_extra_desc">Informasi lain di dalam pasase yang tidak berkaitan dengan kueri,
                         sehingga jawaban yang ada menjadi terselip atau sulit ditemukan.</dd> -->
                 </dl>
+
+                <!-- Contoh tampilan pasase (statis) — meniru kartu hasil yang akan dinilai. -->
+                <div class="eval-passage-example">
+                    <span class="eval-example-caption" data-i18n="passage_example_caption">Contoh tampilan sebuah
+                        pasase:</span>
+                    <div class="sutta-card pitaka-sutta">
+                        <div class="sutta-card-header">
+                            <span class="sutta-card-title">MN 10 <span
+                                    class="sutta-card-name">Satipaṭṭhānasutta</span></span>
+                            <span class="sutta-card-meta">
+                                <span class="sutta-meta-pill">
+                                    <span class="sutta-collection-badge">Majjhimanikāya</span>
+                                    <span class="sutta-pitaka-badge sutta">Sutta</span>
+                                </span>
+                            </span>
+                        </div>
+                        <div class="fragment">
+                            <div class="fragment-meta">
+                                <span class="fragment-ref"><i data-lucide="map-pin"></i> MN 10:12.3</span>
+                                <span class="fragment-author"><i data-lucide="user"></i> Indra Anggara</span>
+                            </div>
+                            <div class="fragment-texts">
+                                <div class="fragment-text-line">… seorang bhikkhu pergi ke hutan, ke bawah pohon, atau ke
+                                    gubuk kosong, lalu duduk bersila, menegakkan tubuhnya tegak, dan memunculkan
+                                    perhatian penuh kewaspadaan.</div>
+                            </div>
+                        </div>
+                        <div class="eval-grade-row">
+                            <span class="eval-grade-label" data-i18n="lbl_grade">Nilai</span>
+                            <label class="eval-grade-option">
+                                <input type="radio" name="grade_example" disabled>
+                                <span class="eval-grade-badge grade-0">0</span>
+                                <span class="eval-grade-desc" data-i18n="grade_0_title">Tidak Relevan</span>
+                            </label>
+                            <label class="eval-grade-option">
+                                <input type="radio" name="grade_example" disabled>
+                                <span class="eval-grade-badge grade-1">1</span>
+                                <span class="eval-grade-desc" data-i18n="grade_1_title">Terkait</span>
+                            </label>
+                            <label class="eval-grade-option">
+                                <input type="radio" name="grade_example" disabled>
+                                <span class="eval-grade-badge grade-2">2</span>
+                                <span class="eval-grade-desc" data-i18n="grade_2_title">Sangat Relevan</span>
+                            </label>
+                            <label class="eval-grade-option">
+                                <input type="radio" name="grade_example" disabled>
+                                <span class="eval-grade-badge grade-3">3</span>
+                                <span class="eval-grade-desc" data-i18n="grade_3_title">Relevan Sempurna</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="eval-section">
@@ -69,6 +128,14 @@
                                 data-i18n="grade_3_desc">Pasase berfokus khusus pada kueri dan memuat jawaban yang
                                 tepat.</span></div>
                     </div>
+                </div>
+                <div class="eval-notice" style="margin-top:14px;">
+                    <i data-lucide="scale"></i>
+                    <span data-i18n-html="criteria_honest_note">Mohon memberikan penilaian <strong>apa adanya</strong>
+                        sesuai kriteria di atas. Apabila suatu pasase memang tidak relevan, nilailah demikian
+                        <strong>tanpa rasa sungkan</strong>. Penilaian ini digunakan sebagai acuan kebenaran
+                        (<em>ground truth</em>) untuk mengevaluasi sistem, sehingga objektivitas penilaian sangat
+                        menentukan kualitas hasil.</span>
                 </div>
             </div>
 
@@ -141,7 +208,8 @@
             <div id="eval-sticky-query"></div>
         </div>
         <div id="eval-exit-row-top" class="eval-exit-row-top">
-            <a href="/" class="eval-exit-btn"><i data-lucide="log-out"></i> <span data-i18n="btn_exit_form">Keluar dari Form</span></a>
+            <a href="/" class="eval-exit-btn"><i data-lucide="log-out"></i> <span data-i18n="btn_exit_form">Keluar dari
+                    Form</span></a>
         </div>
         <div id="eval-nav-top" class="eval-nav hidden">
             <button class="btn-secondary btn-eval-prev"><i data-lucide="chevron-left"></i> <span class="nav-full"
@@ -181,7 +249,8 @@
             <p data-i18n="done_body">Terima kasih atas partisipasi Anda.<br>Data penilaian telah tersimpan.</p>
             <div id="eval-done-summary"></div>
             <div id="eval-exit-row" style="margin-top:20px">
-                <a href="/" class="eval-exit-btn"><i data-lucide="log-out"></i> <span data-i18n="btn_exit_form">Keluar dari Form</span></a>
+                <a href="/" class="eval-exit-btn"><i data-lucide="log-out"></i> <span data-i18n="btn_exit_form">Keluar
+                        dari Form</span></a>
             </div>
         </div>
     </div>

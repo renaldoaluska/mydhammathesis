@@ -15,7 +15,7 @@
       btn_semantic: "Makna",
       btn_keyword: "Kata Kunci",
       lbl_link_source: "Sumber Link",
-      loading_browse: "Memuat daftar sutta…",
+      loading_browse: "Memuat daftar teks…",
       lbl_language: "Target Bahasa",
       lbl_options: "Tampilkan",
       cb_titles: "Judul",
@@ -23,7 +23,7 @@
       cb_group: "Grup per Teks",
       cb_preview: "Konteks",
       lbl_search: "Kueri",
-      ph_search_semantic: "Ketik topik, misal: bahaya kemarahan; bolehkah biksu pegang uang; empat jenis manusia",
+      ph_search_semantic: "Ketik topik, misal: bahaya kemarahan; bolehkah bhikkhu pegang uang; empat jenis manusia",
       ph_search_keyword: "Ketik kata yang ingin dicari, misal: dukkha…",
       btn_search: '<i data-lucide="search"></i> Cari',
       welcome_title: "Selamat Datang!",
@@ -59,16 +59,16 @@
       lbl_pitaka: "Piṭaka",
       tt_pitaka: "Filter hasil berdasarkan Piṭaka (bisa lebih dari satu):\n• Sutta: Sutta Piṭaka\n• Vinaya: Vinaya Piṭaka\n• Abhidhamma: Abhidhamma Piṭaka",
       or_search_directly: "atau langsung cari",
+      btn_chat_ai: "Chat myDhamma AI",
+      chat_ai_title: "Chat myDhamma AI",
       browse_sutta_divider: "Telusuri Tipiṭaka",
-      lbl_search_options: "Opsi Pencarian (Metode, Target Bahasa, Piṭaka, dsb.)",
-      lang_name_id: "Indonesia",
-      lang_name_en: "Inggris",
-      lang_bar_detected: "Bahasa topik terdeteksi",
-      lang_bar_manual: "Bahasa topik dipilih",
-      lang_bar_switch: "Bukan {x}? Cari sebagai {y}",
-      ens_query_lang: "Bahasa Topik",
-      ens_query_lang_hint: "Pilih bahasa topik, lalu atur model untuk tiap target di bawahnya.",
-      ens_incompat_legend: "tak cocok untuk kombinasi bahasa topik → target ini (hasil bisa kurang relevan)",
+      history_divider: "Riwayat Anda",
+      lbl_search_options: "Opsi Pencarian (Metode, Bahasa, Piṭaka, dll)",
+      try_query: "Ayat Tipiṭaka tentang:",
+      ens_incompat_legend: "tak cocok untuk korpus target ini (hasil bisa kurang relevan)",
+      cta_badge: "Eksperimental",
+      cta_tagline: "Kurang puas dengan hasilnya? Chat dengan myDhamma AI.",
+      cta_btn: "Chat Sekarang",
     },
     en: {
       subtitle: "Tipiṭaka Search based on meaning",
@@ -77,7 +77,7 @@
       btn_semantic: "Semantic",
       btn_keyword: "Keyword",
       lbl_link_source: "Link Source",
-      loading_browse: "Loading sutta list…",
+      loading_browse: "Loading text list…",
       lbl_language: "Target Language",
       lbl_options: "Display",
       cb_titles: "Titles",
@@ -100,6 +100,7 @@
       btn_reset_opts: "Reset Options",
       confirm_reset_opts: "Reset all search options to default settings?",
       confirm_clear_results: "Changing this setting will discard your current search results. To re-search, you have to press the Search button again. Continue?",
+      try_query: "Tipiṭaka verses about:",
       tt_method: "Select search method:\n• Hybrid: Combines Semantic + Keyword (recommended).\n• Semantic: Search based on meaning or context.\n• Keyword: Search based on exact word match.",
       tt_language: "Select target language (multiple allowed):\n• ID: Indonesian\n• EN: English\n• PLI: Pāli",
       tt_options: "Additional search options:\n• Titles: Include sutta titles in search.\n• Blurbs: Include sutta summaries (blurbs) in search.\n• Group by Text: Group results from the same text.\n• Context: Show text before and after results (additional context).",
@@ -121,16 +122,16 @@
       lbl_pitaka: "Piṭaka",
       tt_pitaka: "Filter results by Piṭaka (multiple allowed):\n• Sutta: Sutta Piṭaka\n• Vinaya: Vinaya Piṭaka\n• Abhidhamma: Abhidhamma Piṭaka",
       or_search_directly: "or search directly",
+      btn_chat_ai: "Chat myDhamma AI",
+      chat_ai_title: "Chat myDhamma AI — ask the Dhamma, answers from Sutta excerpts",
       browse_sutta_divider: "Browse Tipiṭaka",
+      history_divider: "Your History",
       lbl_search_options: "Search Options (Method, Target Language, Piṭaka, etc.)",
-      lang_name_id: "Indonesian",
-      lang_name_en: "English",
-      lang_bar_detected: "Detected query language",
-      lang_bar_manual: "Query language set to",
-      lang_bar_switch: "Not {x}? Search as {y}",
-      ens_query_lang: "Query Language",
-      ens_query_lang_hint: "Pick the query language, then configure models per target below.",
-      ens_incompat_legend: "not suitable for this query language → target combination (results may be less relevant)",
+      try_query: "Tipiṭaka verses about:",
+      ens_incompat_legend: "not suitable for this target corpus (results may be less relevant)",
+      cta_badge: "Experimental",
+      cta_tagline: "Not satisfied with the results? Chat with myDhamma AI.",
+      cta_btn: "Chat Now",
     },
   };
 
@@ -168,8 +169,6 @@
     // Query-language routing (ensemble/semantic). null => auto-detect on the
     // server. Set by the "did you mean …?" switch; reset when the query text
     // changes. Not persisted.
-    queryLangOverride: null,
-    overrideForQuery: "",
   };
 
   // ========== Preferences persistence ==========
@@ -214,6 +213,18 @@
       if (p.searchLevel) state.searchLevel = p.searchLevel;
       if (typeof p.searchOptionsOpen === "boolean") state.searchOptionsOpen = p.searchOptionsOpen;
     } catch (e) { /* ignore */ }
+
+    // Override with URL params if present (for shareable links)
+    try {
+      const u = new URLSearchParams(window.location.search);
+      if (u.has("m")) {
+        const m = u.get("m");
+        state.method = m === "hybrid" ? ["semantic", "keyword"] : [m];
+        if (m === "keyword") state.searchLevel = "simple";
+      }
+      if (u.has("t")) state.db = u.get("t").split(",");
+      if (u.has("p")) state.pitaka = u.get("p").split(",");
+    } catch (e) { }
   }
 
   // ========== DOM ==========
@@ -236,6 +247,7 @@
     model2Group: $("#model2-group"),
     searchInput: $("#search-input"),
     searchBtn: $("#btn-search"),
+    btnClearSearch: $("#btn-clear-search"),
     btnAdvancedToggle: $("#btn-advanced-toggle"),
     btnResetOpts: $("#btn-reset-opts"),
     advancedToggleGroup: $("#advanced-toggle-group"),
@@ -253,8 +265,10 @@
     loadingState: $("#loading-state"),
     resultsContainer: $("#results-container"),
     searchLegend: $("#search-legend"),
+    searchContextInfo: $("#search-context-info"),
     queryLangBar: $("#query-lang-bar"),
     mainNav: $("#main-nav"),
+    aiCta: $("#ai-cta-container"),
 
     // Ensemble Manager
     btnEnsembleConfig: $("#btn-ensemble-config"),
@@ -295,9 +309,8 @@
     );
     if (window.refreshIcons) window.refreshIcons();
     if (dom.searchInput) updateSearchPlaceholder();
-    // The query-language bar is built with dynamic innerHTML (not data-i18n),
-    // so re-render it on language change to keep its text in sync.
-    renderLangBar(lastLangBarData);
+    // Chips rekomendasi dirender dinamis per bahasa UI (bukan data-i18n).
+    renderRecommendedQueries();
   }
 
   function updateSearchPlaceholder() {
@@ -315,8 +328,12 @@
     }
     dom.resultsContainer.innerHTML = "";
     dom.resultsContainer.classList.add("hidden");
-    if (dom.searchLegend) dom.searchLegend.classList.add("hidden");
-    if (dom.queryLangBar) dom.queryLangBar.style.display = "none";
+    if (dom.searchLegend) {
+      dom.searchLegend.classList.add("hidden");
+      if (dom.aiCta) dom.aiCta.classList.add("hidden");
+    }
+    if (dom.searchContextInfo) dom.searchContextInfo.classList.add("hidden");
+    if (dom.queryLangBar) dom.queryLangBar.classList.add("hidden");
     dom.loadingState.classList.add("hidden");
     dom.pagination.classList.add("hidden");
     return true;
@@ -470,49 +487,135 @@
     }
   }
 
-  // ===== "Mungkin maksud Anda…" — query-language switch (Google-style) =====
-  let lastLangBarData = null; // remember last search's lang info so the bar can
-  // be re-rendered when the UI language changes
+  // ========== Search ==========
+
+
   function renderLangBar(sr) {
     const bar = dom.queryLangBar;
     if (!bar) return;
-    lastLangBarData = sr || null;
-    const lang = sr && sr.query_lang;
-    if (lang !== "id" && lang !== "en") { bar.style.display = "none"; bar.innerHTML = ""; return; }
-    const other = lang === "id" ? "en" : "id";
-    const nameCur = t("lang_name_" + lang);
-    const nameOther = t("lang_name_" + other);
-    const leadKey = sr.query_lang_source === "manual" ? "lang_bar_manual" : "lang_bar_detected";
-    const switchTxt = t("lang_bar_switch").replace("{x}", nameCur).replace("{y}", nameOther);
-    bar.innerHTML =
-      `<i data-lucide="languages" style="width:15px;height:15px;color:var(--text-muted);"></i>` +
-      `<span>${t(leadKey)}: <strong>${nameCur}</strong></span>` +
-      `<button type="button" id="btn-switch-lang" style="background:transparent;border:none;color:var(--accent);cursor:pointer;font-weight:600;font-size:0.85rem;text-decoration:underline;padding:0;">${switchTxt}</button>`;
-    bar.style.display = "flex";
+
+    const detectedLang = sr && sr.query_lang;
+    if (!detectedLang) {
+      bar.classList.add("hidden");
+      bar.innerHTML = "";
+      return;
+    }
+
+    const nameDetected = detectedLang === "id" ? "Indonesia" : (detectedLang === "pli" ? "Pali" : "Inggris");
+    const btnAddTxt = `Tambah target bahasa ${nameDetected}`;
+    const btnSwitchTxt = `Cari di target bahasa ${nameDetected} saja`;
+
+    // If it's the only language selected, we don't need to show the bar at all
+    if (state.db.length === 1 && state.db[0] === detectedLang) {
+      bar.classList.add("hidden");
+      bar.innerHTML = "";
+      return;
+    }
+
+    const showAddBtn = !state.db.includes(detectedLang);
+
+    let html = `<i data-lucide="languages" style="width:15px;height:15px;color:var(--text-muted);"></i>` +
+      `<span style="margin-left:4px;">Bahasa topik terdeteksi: <strong>${nameDetected}</strong>.</span>`;
+
+    if (showAddBtn) {
+      html += `<button type="button" id="btn-add-lang" style="background:transparent;border:none;color:var(--accent);cursor:pointer;font-weight:600;font-size:0.85rem;text-decoration:underline;padding:0;margin-left:8px;">${btnAddTxt}</button>` +
+        `<span style="color:var(--text-muted); margin-left:8px;">atau</span>`;
+    }
+
+    html += `<button type="button" id="btn-switch-lang" style="background:transparent;border:none;color:var(--accent);cursor:pointer;font-weight:600;font-size:0.85rem;text-decoration:underline;padding:0;margin-left:8px;">${btnSwitchTxt}</button>`;
+
+    bar.innerHTML = html;
+    bar.classList.remove("hidden");
+    if (typeof lucide !== "undefined") lucide.createIcons({ root: bar });
+
+    if (showAddBtn) {
+      bar.querySelector("#btn-add-lang").addEventListener("click", () => {
+        if (!state.db.includes(detectedLang)) {
+          state.db.push(detectedLang);
+          if (dom.dbToggle) {
+            dom.dbToggle.querySelectorAll(".toggle-btn").forEach(cb => {
+              if (cb.dataset.value === detectedLang) cb.classList.add("active");
+            });
+          }
+          savePrefs();
+          if (typeof applyUIFromState === "function") applyUIFromState();
+          doSearch(1);
+        }
+      });
+    }
+
     bar.querySelector("#btn-switch-lang").addEventListener("click", () => {
-      state.queryLangOverride = other;
-      state.overrideForQuery = dom.searchInput.value.trim();
+      state.db = [detectedLang];
+      if (dom.dbToggle) {
+        dom.dbToggle.querySelectorAll(".toggle-btn").forEach(cb => {
+          cb.classList.toggle("active", cb.dataset.value === detectedLang);
+        });
+      }
+      savePrefs();
+      if (typeof applyUIFromState === "function") applyUIFromState();
       doSearch(1);
     });
-    refreshIcons();
+
+    bar.classList.remove("hidden");
+    if (typeof lucide !== "undefined") lucide.createIcons({ root: bar });
   }
 
-  // ========== Search ==========
   async function doSearch(page) {
     const query = dom.searchInput.value.trim();
     if (!query) return;
-    // Reset language override whenever the query text changes (a fresh query
-    // should be auto-detected again).
-    if (state.overrideForQuery !== query) {
-      state.queryLangOverride = null;
-      state.overrideForQuery = query;
+
+
+    const optionsDetails = document.getElementById("search-options-details");
+    if (optionsDetails && optionsDetails.open) {
+      optionsDetails.removeAttribute("open");
     }
+
+    // Sync state to URL for sharing
+    try {
+      const params = new URLSearchParams(window.location.search);
+      params.set("q", query);
+      params.delete("browse"); // Clear browse mode if they search
+
+      if (state.method.length === 2) params.set("m", "hybrid");
+      else params.set("m", state.method[0] || "semantic");
+
+      if (state.db.join(",") === "id,en,pli") params.delete("t");
+      else params.set("t", state.db.join(","));
+
+      if (state.pitaka.length === 3) params.delete("p");
+      else params.set("p", state.pitaka.join(","));
+
+      const newUrl = window.location.pathname + "?" + params.toString();
+      window.history.replaceState(null, "", newUrl);
+    } catch (e) { }
+
     if (!page) { state.currentPage = 1; page = 1; }
+
+    // Save to search history
+    try {
+      let sh = JSON.parse(localStorage.getItem("dk-recent-searches") || "[]");
+      // Convert old strings to objects
+      sh = sh.map(item => typeof item === "string" ? { query: item, timestamp: 0 } : item);
+      sh = sh.filter(q => q.query.toLowerCase() !== query.toLowerCase());
+      sh.unshift({ query: query, timestamp: Date.now() });
+      if (sh.length > 5) sh = sh.slice(0, 5);
+      localStorage.setItem("dk-recent-searches", JSON.stringify(sh));
+      if (typeof renderCombinedHistory === "function") renderCombinedHistory();
+    } catch (e) { console.error("Search history error:", e); }
+
     dom.resultsContainer.classList.add("hidden");
-    if (dom.searchLegend) dom.searchLegend.classList.add("hidden");
-    if (dom.queryLangBar) dom.queryLangBar.style.display = "none";
+    if (dom.searchLegend) {
+      dom.searchLegend.classList.add("hidden");
+      if (dom.aiCta) dom.aiCta.classList.add("hidden");
+    }
+    if (dom.searchContextInfo) dom.searchContextInfo.classList.add("hidden");
+    if (dom.queryLangBar) dom.queryLangBar.classList.add("hidden");
     dom.pagination.classList.add("hidden");
     dom.loadingState.classList.remove("hidden");
+    // Bawa user ke area hasil — kueri bisa dipicu dari chip riwayat/rekomendasi
+    // yang letaknya jauh di atas, atau dari pagination di bawah.
+    const searchBarEl = document.getElementById("search-bar");
+    if (searchBarEl) searchBarEl.scrollIntoView({ behavior: "smooth", block: "start" });
     try {
       const isSimple = state.searchLevel === "simple";
       const isDual = !isSimple && state.method.includes("semantic") && state.compareMode === "2";
@@ -526,10 +629,9 @@
 
       const results = await Promise.all(searches);
       renderResults(results, isDual);
-      // "Mungkin maksud Anda…" bar — only present for the ensemble/semantic path
-      renderLangBar(results[0]);
-      // Pagination — tampilkan hanya kalau limit_top_k off dan ada banyak hasil
       const sr = results[0];
+      renderLangBar(sr);
+      // Pagination — tampilkan hanya kalau limit_top_k off dan ada banyak hasil
       const totalSutta = sr.total_sutta || 0;
       const totalHits = sr.total_hits || 0;
       if (!state.limitTopK && totalSutta > state.pageSize) {
@@ -563,8 +665,11 @@
         dom.resultsContainer.querySelector(".btn-retry").addEventListener("click", () => doSearch());
       }
       dom.resultsContainer.classList.remove("hidden");
-      if (dom.searchLegend) dom.searchLegend.classList.add("hidden");
-      if (dom.queryLangBar) dom.queryLangBar.style.display = "none";
+      if (dom.searchLegend) {
+        dom.searchLegend.classList.add("hidden");
+        if (dom.aiCta) dom.aiCta.classList.add("hidden");
+      }
+      if (dom.searchContextInfo) dom.searchContextInfo.classList.add("hidden");
       refreshIcons();
     } finally {
       dom.loadingState.classList.add("hidden");
@@ -580,9 +685,6 @@
       limit_top_k: state.limitTopK, page: page || 1,
       page_size: state.pageSize,
     };
-    // Manual query-language override ("did you mean …?"). When null, the
-    // server auto-detects.
-    if (state.queryLangOverride) payload.query_lang = state.queryLangOverride;
     if (modelName === "ensemble") {
       if (ensembleInitPromise) await ensembleInitPromise;
       loadEnsemblePrefs();
@@ -647,16 +749,66 @@
     if (container.children.length === 0) {
       container.innerHTML = `<div class="empty-state"><p>${t("no_results")}</p><button class="btn-retry">${t("btn_retry")}</button></div>`;
       container.querySelector(".btn-retry").addEventListener("click", () => doSearch());
-      if (dom.searchLegend) dom.searchLegend.classList.add("hidden");
+      if (dom.searchLegend) {
+        dom.searchLegend.classList.add("hidden");
+        if (dom.aiCta) dom.aiCta.classList.add("hidden");
+      }
+      if (dom.searchContextInfo) dom.searchContextInfo.classList.add("hidden");
     } else {
       if (dom.searchLegend) {
         dom.searchLegend.classList.remove("hidden");
+        if (dom.aiCta) {
+          dom.aiCta.classList.remove("hidden");
+          const aiBtn = dom.aiCta.querySelector(".btn-primary");
+          if (aiBtn) {
+            const q = dom.searchInput ? dom.searchInput.value.trim() : "";
+            if (q) aiBtn.href = `/chat?q=${encodeURIComponent(q)}`;
+          }
+        }
         const hasSemantic = state.method.includes("semantic");
         const hasKeyword = state.method.includes("keyword");
         const simEl = document.getElementById("legend-similarity");
         const cntEl = document.getElementById("legend-count");
         if (simEl) simEl.style.display = hasSemantic ? "" : "none";
         if (cntEl) cntEl.style.display = hasKeyword ? "" : "none";
+
+        if (dom.searchContextInfo) {
+          let methodText = "Makna";
+          if (state.method.length === 2) {
+            methodText = "Hybrid (Makna & Kata Kunci)";
+          } else if (state.method.includes("keyword")) {
+            methodText = "Kata Kunci";
+          }
+          const dbMap = { id: "Indonesia", en: "Inggris", pli: "Pali" };
+          let dbText = state.db.map(x => dbMap[x]).join(", ");
+          let pitakaText = state.pitaka.map(x => x.charAt(0).toUpperCase() + x.slice(1)).join(", ");
+
+          let html = `<div style="display: flex; align-items: center; flex-wrap: wrap; line-height: 1.6;">
+            <span style="font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-right: 14px;">Opsi Pencarian</span>
+            <span style="margin-right: 14px;">Metode: <strong>${methodText}</strong></span>
+            <span style="margin-right: 14px;">Target Bahasa: <strong>${dbText}</strong></span>
+            <span>Piṭaka: <strong>${pitakaText}</strong></span>
+          </div>`;
+          let checkIcon = `<i data-lucide="check" style="width:13px; height:13px; color: var(--accent);"></i>`;
+          let xIcon = `<i data-lucide="x" style="width:13px; height:13px; color: var(--text-muted);"></i>`;
+          let showTitles = state.includeTitles ? checkIcon : xIcon;
+          let showBlurbs = state.includeBlurbs ? checkIcon : xIcon;
+          let showGroup = state.groupBySutta ? checkIcon : xIcon;
+          let showPreview = state.showPreview ? checkIcon : xIcon;
+
+          html += `<div style="display: flex; align-items: center; flex-wrap: wrap; line-height: 1.6; opacity: 0.9;">`;
+          html += `<span style="margin-right: 8px;">Tampilkan:</span>`;
+          html += `<span style="display: inline-flex; align-items: center; gap: 3px; margin-right: 12px;">${showTitles} Judul</span>`;
+          html += `<span style="display: inline-flex; align-items: center; gap: 3px; margin-right: 12px;">${showBlurbs} Sinopsis</span>`;
+          html += `<span style="display: inline-flex; align-items: center; gap: 3px; margin-right: 12px;">${showGroup} Grup Teks</span>`;
+          html += `<span style="display: inline-flex; align-items: center; gap: 3px;">${showPreview} Konteks</span>`;
+          html += `</div>`;
+          dom.searchContextInfo.innerHTML = html;
+          if (typeof lucide !== "undefined") lucide.createIcons({ root: dom.searchContextInfo });
+          if (!state.searchOptionsOpen) {
+            dom.searchContextInfo.classList.remove("hidden");
+          }
+        }
       }
     }
     refreshIcons();
@@ -696,11 +848,287 @@
     }, anchorEl);
   }
 
+  // ========== Recommended Queries ==========
+  // Pool kueri rekomendasi — diuji ke /api/search (hybrid ensemble): top
+  // hasilnya relevan secara tematik. Tampil 6 acak per muat halaman.
+  // Per bahasa UI; index-paired (en[i] = padanan id[i]). Frasa EN mengikuti
+  // idiom terjemahan korpus EN (mis. moralitas -> "virtue").
+  const RECOMMENDED_QUERIES = {
+    id: [
+      "yang tidak dilahirkan",
+      "bakti kepada orangtua",
+      "bahaya kemarahan",
+      "perenungan kematian",
+      "kebahagiaan adalah",
+      "hukum kamma",
+      "empat jenis manusia",
+      "jenis jenis perasaan",
+      "empat unsur",
+      "cinta kasih",
+      "kemelekatan adalah",
+      "jenis penderitaan",
+      "jenis belenggu",
+      "manfaat meditasi",
+      "perhatian pada napas",
+      "lima rintangan batin",
+      "pentingnya kesabaran",
+      "moralitas adalah",
+      "mengatasi kesedihan",
+      "ucapan benar",
+      "godaan mara",
+      "tanpa diri",
+      "berkah utama",
+      "empat kebenaran mulia",
+      "tujuh faktor pencerahan",
+      "pengendalian indria",
+      "bahaya minuman keras",
+      "kekayaan sejati",
+      "mengatasi kemalasan",
+      "kasih sayang ibu",
+      "perumpamaan rakit",
+      "keinginan indriawi",
+      "ketenangan pikiran",
+      "perumpamaan gergaji",
+      "kisah angulimala",
+      "nasihat kepada rahula",
+      "kebijaksanaan adalah",
+      "pentingnya keyakinan",
+      "hidup menyendiri",
+      "suami istri",
+      "memilih teman",
+      "delapan kondisi duniawi",
+      "iri hati",
+      "kemurahan hati",
+      "bahaya kesombongan",
+      "usia tua",
+      "surga dan neraka",
+      "puasa uposatha",
+      "pertengkaran dan perselisihan",
+      "tidur nyenyak",
+      "rasa malu berbuat jahat",
+      "perumpamaan anak panah",
+      "kemelekatan pada pandangan",
+      "kisah visakha",
+      "bhikkhu menerima uang",
+      "makan setelah tengah hari",
+      "aturan jubah",
+      "mengaku pencapaian palsu",
+      "menggali tanah",
+      "berbohong",
+      "penahbisan bhikkhu",
+      "aturan makan bhikkhu",
+      "kriteria pembabar",
+      "mengusir bhikkhu",
+      "membunuh makhluk hidup",
+      "aturan mandi",
+    ],
+    en: [
+      "freedom from rebirth",
+      "gratitude to parents",
+      "danger of anger",
+      "mindfulness of death",
+      "happiness is",
+      "the law of kamma",
+      "four kinds of persons",
+      "kinds of feelings",
+      "four elements",
+      "loving kindness",
+      "clinging is",
+      "kinds of suffering",
+      "kinds of fetters",
+      "benefits of meditation",
+      "mindfulness of breathing",
+      "five hindrances",
+      "importance of patience",
+      "virtue is",
+      "overcoming grief",
+      "right speech",
+      "temptations of mara",
+      "not self",
+      "highest blessings",
+      "four noble truths",
+      "seven factors of awakening",
+      "sense restraint",
+      "danger of alcohol",
+      "true wealth",
+      "overcoming laziness",
+      "a mother's love",
+      "simile of the raft",
+      "sensual desire",
+      "serenity of mind",
+      "simile of the saw",
+      "story of angulimala",
+      "advice to rahula",
+      "wisdom is",
+      "importance of faith",
+      "living in solitude",
+      "husband and wife",
+      "choosing friends",
+      "eight worldly conditions",
+      "envy",
+      "generosity",
+      "danger of conceit",
+      "old age",
+      "heaven and hell",
+      "uposatha observance",
+      "quarrels and disputes",
+      "sleeping well",
+      "moral shame",
+      "the dart of grief",
+      "clinging to views",
+      "story of visakha",
+      "monks accepting money",
+      "eating after noon",
+      "robe rules",
+      "false claims of attainment",
+      "digging the earth",
+      "lying",
+      "ordination of monks",
+      "rules on eating",
+      "qualities of a dhamma speaker",
+      "expulsion from the sangha",
+      "killing living beings",
+      "bathing rules",
+    ],
+  };
+
+  function renderRecommendedQueries() {
+    const container = document.getElementById("recommended-queries");
+    if (!container) return;
+    const pool = [...(RECOMMENDED_QUERIES[state.lang] || RECOMMENDED_QUERIES.id)];
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    container.innerHTML = "";
+    pool.slice(0, 6).forEach(q => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "query-chip";
+      btn.dataset.query = q;
+      btn.textContent = q;
+      btn.onclick = () => {
+        dom.searchInput.value = q;
+        if (!state.db.includes(state.lang)) {
+          state.db = [state.lang];
+          savePrefs();
+          if (typeof applyUIFromState === "function") applyUIFromState();
+        }
+        doSearch();
+      };
+      container.appendChild(btn);
+    });
+  }
+
+  function renderCombinedHistory() {
+    const container = document.getElementById("recent-sutta-container");
+    if (!container) return;
+    try {
+      let combinedHistory = [];
+
+      let suttas = JSON.parse(localStorage.getItem("dk-recent-suttas") || "[]");
+      if (suttas.length === 0) {
+        const oldVisitedStr = localStorage.getItem("dk-last-visited");
+        if (oldVisitedStr) {
+          try { suttas.push(JSON.parse(oldVisitedStr)); } catch (e) { }
+        }
+      }
+      suttas.forEach(item => {
+        if (!item.timestamp) item.timestamp = 0;
+        item.type = "read";
+        combinedHistory.push(item);
+      });
+
+      let searches = JSON.parse(localStorage.getItem("dk-recent-searches") || "[]");
+      searches.forEach(item => {
+        if (typeof item === "string") {
+          combinedHistory.push({ type: "search", query: item, timestamp: 0 });
+        } else {
+          item.type = "search";
+          if (!item.timestamp) item.timestamp = 0;
+          combinedHistory.push(item);
+        }
+      });
+
+      combinedHistory.sort((a, b) => b.timestamp - a.timestamp);
+      combinedHistory = combinedHistory.slice(0, 5); // Take top 5 overall
+
+      container.innerHTML = "";
+
+      combinedHistory.forEach(item => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+
+        if (item.type === "read") {
+          if (!item.id) return;
+          btn.className = "query-chip history-chip";
+
+          let label = `${item.formatted_id}`;
+          if (item.hash) {
+            let hashStr = item.hash.replace(/^#/, '');
+            const parts = hashStr.split(':');
+            if (parts.length > 1) {
+              const pfx = parts[0].toLowerCase();
+              const idLow = item.id.toLowerCase();
+              const pfxNorm = pfx.replace(/^pli-tv-/, '').replace(/^(bu|bi)-vb-/, '$1-');
+              const idNorm = idLow.replace(/^pli-tv-/, '').replace(/^(bu|bi)-vb-/, '$1-');
+              if (pfx === idLow || pfxNorm === idNorm) {
+                parts.shift();
+                hashStr = parts.join(':');
+              }
+            }
+            label += `:${hashStr}`;
+          }
+          if (item.name) label += ` • ${item.name}`;
+
+          const meta = [];
+          if (item.lang) meta.push(item.lang);
+          if (item.author) meta.push(item.author);
+          if (meta.length > 0) {
+            label += ` <span style="opacity:0.65; font-size:0.85em; margin-left:2px;">(${meta.join("/")})</span>`;
+          }
+
+          btn.innerHTML = `<i data-lucide="book-open"></i> ${label}`;
+          btn.onclick = () => {
+            if (window.DK && window.DK.openSuttaDialog) {
+              window.DK.openSuttaDialog(item.id, item.lang, item.author, item.hash);
+            } else {
+              window.location.href = "/" + item.id;
+            }
+          };
+          container.appendChild(btn);
+        } else if (item.type === "search") {
+          if (!item.query) return;
+          btn.className = "search-hist-chip history-chip";
+          btn.setAttribute("data-query", item.query);
+          btn.innerHTML = `<i data-lucide="search"></i> ${item.query}`;
+          btn.onclick = (e) => {
+            e.preventDefault();
+            dom.searchInput.value = item.query;
+            doSearch();
+          };
+          container.appendChild(btn);
+        }
+      });
+
+      if (combinedHistory.length > 0) {
+        const wrapper = document.getElementById("recent-sutta-wrapper");
+        if (wrapper) wrapper.classList.remove("hidden");
+        else container.classList.remove("hidden");
+        if (window.lucide) window.lucide.createIcons({ root: container });
+      }
+    } catch (e) { }
+  }
+
+  window.DK = window.DK || {};
+  window.DK.renderCombinedHistory = renderCombinedHistory;
+
   // ========== Init ==========
   function init() {
     loadPrefs();
     initLang();
 
+    renderCombinedHistory();
     // Header kolom hasil (sticky) harus nempel TEPAT di bawah #search-bar yang juga
     // sticky di atasnya. Hitung offset dari tinggi search-bar aktual (tahan resize/wrap)
     // alih-alih angka ajaib yang bikin header ketutup ("numpuk").
@@ -792,8 +1220,48 @@
       dom.cbGroup.addEventListener("change", async (e) => { if (await clearResults() === false) { e.target.checked = !e.target.checked; return; } state.groupBySutta = e.target.checked; savePrefs(); });
       dom.cbPreview.addEventListener("change", async (e) => { if (await clearResults() === false) { e.target.checked = !e.target.checked; return; } state.showPreview = e.target.checked; savePrefs(); });
       dom.searchBtn.addEventListener("click", () => doSearch());
-      dom.searchInput.addEventListener("keydown", (e) => { if (e.key === "Enter") doSearch(); });
 
+      const updateClearBtn = () => {
+        if (!dom.btnClearSearch) return;
+        dom.btnClearSearch.classList.toggle("hidden", !dom.searchInput.value.trim());
+      };
+
+      dom.searchInput.addEventListener("input", updateClearBtn);
+
+      if (dom.btnClearSearch) {
+        dom.btnClearSearch.addEventListener("click", () => {
+          dom.searchInput.value = "";
+          updateClearBtn();
+          dom.searchInput.focus();
+
+          // Force clear search results (act as a "Reset" button for lay users)
+          if (dom.resultsContainer) {
+            dom.resultsContainer.innerHTML = "";
+            dom.resultsContainer.classList.add("hidden");
+          }
+          if (dom.searchLegend) {
+            dom.searchLegend.classList.add("hidden");
+            if (dom.aiCta) dom.aiCta.classList.add("hidden");
+          }
+          if (dom.searchContextInfo) dom.searchContextInfo.classList.add("hidden");
+          if (dom.loadingState) dom.loadingState.classList.add("hidden");
+          if (dom.pagination) dom.pagination.classList.add("hidden");
+
+          // Clear URL query
+          try {
+            const u = new URLSearchParams(window.location.search);
+            u.delete("q");
+            const newUrl = window.location.pathname + (u.toString() ? "?" + u.toString() : "");
+            window.history.replaceState(null, "", newUrl);
+          } catch (e) { }
+        });
+        // Initial state check on load
+        updateClearBtn();
+      }
+
+      dom.searchInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") doSearch();
+      });
       if (dom.btnAdvancedToggle) {
         dom.btnAdvancedToggle.addEventListener("click", async (e) => {
           e.preventDefault();
@@ -815,6 +1283,22 @@
           if (state.searchOptionsOpen === dom.searchOptionsDetails.open) return;
           state.searchOptionsOpen = dom.searchOptionsDetails.open;
           savePrefs();
+
+          if (dom.searchContextInfo && dom.resultsContainer && !dom.resultsContainer.classList.contains("hidden")) {
+            if (state.searchOptionsOpen) {
+              dom.searchContextInfo.classList.add("hidden");
+            } else {
+              dom.searchContextInfo.classList.remove("hidden");
+            }
+          }
+        });
+      }
+
+      if (dom.searchContextInfo) {
+        dom.searchContextInfo.addEventListener("click", () => {
+          if (typeof DK !== "undefined" && DK.showToast) {
+            DK.showToast("Pengaturan ini dapat diubah melalui menu 'Opsi Pencarian' di atas.", 3500);
+          }
         });
       }
       /* Info-tip toggle (for mobile — title attr doesn't work on touch) */
@@ -863,7 +1347,6 @@
             ensembleCheckedModels = def;
             saveEnsemblePrefs();
           }
-          ensembleActiveQueryLang = "id";
           ensembleActiveTab = "id";
           renderEnsembleCheckboxes();
           dom.btnResetEnsemble.disabled = false;
@@ -898,56 +1381,47 @@
   }
 
   // ========== Ensemble Manager Logic ==========
-  // Config is the nested matrix: { qlang: { target: [models] } }
-  //   outer key = query language (id/en), inner key = target corpus (id/en/pli)
+  // Config FLAT: { target: [models] } (target = korpus id/en/pli).
+  // Dimensi bahasa kueri dibuang — semua model mydhamma multilingual
+  // (warisan dhammakathika yang punya model spesifik bahasa).
   const ENSEMBLE_PREFS_KEY = "dk-ensemble-config";
-  const emptyRow = () => ({ id: [], en: [], pli: [] });
-  let ensembleCheckedModels = { id: emptyRow(), en: emptyRow() };
-  let ensembleActiveQueryLang = "id"; // which query-language row is being edited
+  const emptyConfig = () => ({ id: [], en: [], pli: [] });
+  let ensembleCheckedModels = emptyConfig();
   let ensembleActiveTab = "id";       // which target corpus tab is active
   let modelLangs = {}; // model_name -> "multi" | "en" | "indo"
   let ensembleInitPromise = null;
 
-  // A model's lang_mode declares which languages it can encode. A model is
-  // valid in cell (queryLang, target) only if it covers BOTH.
+  // A model's lang_mode declares which languages it can encode.
   const LANG_COVERAGE = { indo: ["id"], en: ["en", "pli"], multi: ["id", "en", "pli"] };
   function resolveModelLang(value) {
     return modelLangs[value] ||
       (Object.entries(modelLangs).find(([k]) => value.endsWith("/" + k)) || [])[1] || "";
   }
-  function isModelValidFor(value, qlang, target) {
+  function isModelValidFor(value, target) {
     const lm = resolveModelLang(value);
     const cov = LANG_COVERAGE[lm];
     if (!cov) return true; // unknown lang_mode -> don't warn
-    return cov.includes(qlang) && cov.includes(target);
+    return cov.includes(target);
   }
 
-  // Coerce any stored/served shape into the nested matrix.
+  // Coerce any stored/served shape into the flat config.
   function normalizeEnsembleConfig(data) {
     data = data || {};
     const isObj = (v) => v && typeof v === "object" && !Array.isArray(v);
+    // Bekas matrix {qlang:{target:[...]}} di localStorage lama — ambil baris "id".
     if (isObj(data.id) || isObj(data.en)) {
-      return {
-        id: Object.assign(emptyRow(), data.id || {}),
-        en: Object.assign(emptyRow(), data.en || {}),
-      };
+      const row = isObj(data.id) ? data.id : data.en;
+      return Object.assign(emptyConfig(), {
+        id: row.id || [], en: row.en || [], pli: row.pli || [],
+      });
     }
     if (Array.isArray(data.id) || Array.isArray(data.en) || Array.isArray(data.pli)) {
-      const flat = { id: data.id || [], en: data.en || [], pli: data.pli || [] };
-      return { id: Object.assign({}, flat), en: Object.assign({}, flat) };
+      return { id: data.id || [], en: data.en || [], pli: data.pli || [] };
     }
     if (Array.isArray(data.models)) {
-      const m = data.models;
-      const flat = { id: [...m], en: [...m], pli: [...m] };
-      return { id: Object.assign({}, flat), en: Object.assign({}, flat) };
+      return { id: [...data.models], en: [...data.models], pli: [...data.models] };
     }
-    return { id: emptyRow(), en: emptyRow() };
-  }
-  // Old per-target localStorage ({id:[],en:[],pli:[]}) can't express query-lang
-  // routing — treat it as stale and re-adopt the server default.
-  function isLegacyFlat(data) {
-    return !!data && (Array.isArray(data.id) || Array.isArray(data.en) ||
-      Array.isArray(data.pli) || Array.isArray(data.models));
+    return emptyConfig();
   }
 
   async function loadDefaultEnsembleConfig() {
@@ -962,15 +1436,9 @@
     try {
       const raw = localStorage.getItem(ENSEMBLE_PREFS_KEY);
       if (raw) {
-        const parsed = JSON.parse(raw);
-        if (isLegacyFlat(parsed)) {
-          // Schema migration: discard old per-target config, adopt new default.
-          localStorage.removeItem(ENSEMBLE_PREFS_KEY);
-          const def = await loadDefaultEnsembleConfig();
-          if (def) { ensembleCheckedModels = def; saveEnsemblePrefs(); }
-        } else {
-          ensembleCheckedModels = normalizeEnsembleConfig(parsed);
-        }
+        // normalizeEnsembleConfig sekalian migrasi format nested lama -> flat.
+        ensembleCheckedModels = normalizeEnsembleConfig(JSON.parse(raw));
+        saveEnsemblePrefs();
       } else {
         const def = await loadDefaultEnsembleConfig();
         if (def) { ensembleCheckedModels = def; saveEnsemblePrefs(); }
@@ -981,11 +1449,7 @@
   function loadEnsemblePrefs() {
     try {
       const raw = localStorage.getItem(ENSEMBLE_PREFS_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        // Ignore stale legacy shape; keep whatever init() already migrated.
-        if (!isLegacyFlat(parsed)) ensembleCheckedModels = normalizeEnsembleConfig(parsed);
-      }
+      if (raw) ensembleCheckedModels = normalizeEnsembleConfig(JSON.parse(raw));
     } catch (e) { /* ignore */ }
   }
 
@@ -1003,7 +1467,6 @@
 
       if (ensembleInitPromise) await ensembleInitPromise;
       loadEnsemblePrefs();
-      ensembleActiveQueryLang = "id";
       ensembleActiveTab = "id";
       renderEnsembleCheckboxes();
     } catch (e) {
@@ -1019,10 +1482,8 @@
       return;
     }
 
-    const qlang = ensembleActiveQueryLang;
     const target = ensembleActiveTab;
     const corpusLabels = { id: "ID", en: "EN", pli: "PLI" };
-    const qLabels = { id: t("lang_name_id"), en: t("lang_name_en") };
 
     // Quick fade-out/in so a tab switch is visible.
     function fadeRerender() {
@@ -1034,42 +1495,12 @@
       }, 120);
     }
 
-    // --- Outer dimension: query language ---
-    const qHint = document.createElement("div");
-    qHint.style.cssText = "font-size:0.72rem; color:var(--text-muted); margin-bottom:5px; text-transform:uppercase; letter-spacing:0.04em; font-weight:700;";
-    qHint.textContent = t("ens_query_lang");
-    dom.ensembleCheckboxes.appendChild(qHint);
-
-    const qBar = document.createElement("div");
-    qBar.style.cssText = "display:flex; gap:6px; margin-bottom:6px;";
-    ["id", "en"].forEach(q => {
-      const isActive = q === qlang;
-      const cnt = ["id", "en", "pli"].reduce((s, c) => s + ((ensembleCheckedModels[q] || {})[c] || []).length, 0);
-      const b = document.createElement("button");
-      b.dataset.qlang = q;
-      b.innerHTML = `${qLabels[q]}${cnt ? ` <span style="font-size:0.7rem; opacity:0.7;">(${cnt})</span>` : ""}`;
-      b.style.cssText = `flex:1; padding:7px 0; border:1px solid ${isActive ? "var(--accent)" : "var(--border)"}; border-radius:6px; cursor:pointer; font-weight:700; font-size:0.85rem; background:${isActive ? "var(--accent)" : "transparent"}; color:${isActive ? "#0f0f14" : "var(--text-muted)"};`;
-      b.addEventListener("click", () => {
-        if (ensembleActiveQueryLang === q) return;
-        saveCurrentTabChecks();
-        ensembleActiveQueryLang = q;
-        fadeRerender();
-      });
-      qBar.appendChild(b);
-    });
-    dom.ensembleCheckboxes.appendChild(qBar);
-
-    const qDesc = document.createElement("div");
-    qDesc.style.cssText = "font-size:0.72rem; color:var(--text-muted); margin-bottom:12px;";
-    qDesc.textContent = t("ens_query_lang_hint");
-    dom.ensembleCheckboxes.appendChild(qDesc);
-
-    // --- Inner dimension: target corpus ---
+    // --- Target corpus tabs ---
     const tabBar = document.createElement("div");
     tabBar.style.cssText = "display:flex; border-bottom:2px solid var(--border); margin-bottom:10px; gap:0;";
     ["id", "en", "pli"].forEach(corpus => {
       const isActive = corpus === target;
-      const count = ((ensembleCheckedModels[qlang] || {})[corpus] || []).length;
+      const count = (ensembleCheckedModels[corpus] || []).length;
       const btn = document.createElement("button");
       btn.innerHTML = `${corpusLabels[corpus]}${count ? ` <span style="font-size:0.7rem; opacity:0.7;">(${count})</span>` : ""}`;
       btn.dataset.corpus = corpus;
@@ -1084,13 +1515,8 @@
     });
     dom.ensembleCheckboxes.appendChild(tabBar);
 
-    const cellHead = document.createElement("div");
-    cellHead.style.cssText = "font-size:0.78rem; color:var(--text-secondary); margin-bottom:10px;";
-    cellHead.innerHTML = `Kueri <strong>${qLabels[qlang]}</strong> → Target <strong>${corpusLabels[target]}</strong>`;
-    dom.ensembleCheckboxes.appendChild(cellHead);
-
-    // --- Model checkboxes for the active (qlang, target) cell ---
-    const checkedList = (ensembleCheckedModels[qlang] || {})[target] || [];
+    // --- Model checkboxes for the active target corpus ---
+    const checkedList = ensembleCheckedModels[target] || [];
     let anyIncompat = false;
 
     state.categories.forEach(cat => {
@@ -1116,8 +1542,8 @@
         const langLabels = { "multi": "MULTI", "en": "EN", "indo": "ID" };
         const langColors = { "multi": "var(--accent)", "en": "#5b9bd5", "indo": "#e8a838" };
         const badge = lm ? `<span style="margin-left:auto; font-size:0.7rem; font-weight:700; padding:1px 6px; border-radius:4px; background:${langColors[lm] || "var(--border)"}; color:#0f0f14; white-space:nowrap;">${langLabels[lm] || lm}</span>` : "";
-        // Validity for the active cell: keep checkable but mark + dim if not suitable.
-        const incompat = !isModelValidFor(m.value, qlang, target);
+        // Validity for the active corpus: keep checkable but mark + dim if not suitable.
+        const incompat = !isModelValidFor(m.value, target);
         if (incompat) anyIncompat = true;
         const warn = incompat ? `<i data-lucide="alert-triangle" style="width:14px; height:14px; color:var(--accent); flex:none;"></i>` : "";
         const itemDiv = document.createElement("div");
@@ -1152,33 +1578,22 @@
   }
 
   function updateTabCounts() {
-    const q = ensembleActiveQueryLang, tg = ensembleActiveTab;
-    if (!ensembleCheckedModels[q]) ensembleCheckedModels[q] = emptyRow();
-    ensembleCheckedModels[q][tg] = Array.from(
+    ensembleCheckedModels[ensembleActiveTab] = Array.from(
       dom.ensembleCheckboxes.querySelectorAll("input[type='checkbox']:checked")
     ).map(i => i.value);
-    // Refresh target-tab counts (for the active query language)
+    // Refresh target-tab counts
     const corpusLabels = { id: "ID", en: "EN", pli: "PLI" };
     dom.ensembleCheckboxes.querySelectorAll("button[data-corpus]").forEach(btn => {
       const corpus = btn.dataset.corpus;
-      const count = ((ensembleCheckedModels[q] || {})[corpus] || []).length;
+      const count = (ensembleCheckedModels[corpus] || []).length;
       btn.innerHTML = `${corpusLabels[corpus]}${count ? ` <span style="font-size:0.7rem; opacity:0.7;">(${count})</span>` : ""}`;
-    });
-    // Refresh query-language counts (sum across targets)
-    const qLabels = { id: t("lang_name_id"), en: t("lang_name_en") };
-    dom.ensembleCheckboxes.querySelectorAll("button[data-qlang]").forEach(btn => {
-      const ql = btn.dataset.qlang;
-      const cnt = ["id", "en", "pli"].reduce((s, c) => s + ((ensembleCheckedModels[ql] || {})[c] || []).length, 0);
-      btn.innerHTML = `${qLabels[ql]}${cnt ? ` <span style="font-size:0.7rem; opacity:0.7;">(${cnt})</span>` : ""}`;
     });
   }
 
   function saveCurrentTabChecks() {
     const inputs = dom.ensembleCheckboxes.querySelectorAll("input[type='checkbox']");
     if (inputs.length === 0) return; // nothing rendered (e.g. spinner) — don't clobber
-    const q = ensembleActiveQueryLang, tg = ensembleActiveTab;
-    if (!ensembleCheckedModels[q]) ensembleCheckedModels[q] = emptyRow();
-    ensembleCheckedModels[q][tg] = Array.from(inputs).filter(i => i.checked).map(i => i.value);
+    ensembleCheckedModels[ensembleActiveTab] = Array.from(inputs).filter(i => i.checked).map(i => i.value);
   }
 
   async function saveEnsembleManager() {
@@ -1196,7 +1611,14 @@
 
   document.addEventListener("DOMContentLoaded", () => {
     init();
-    if (dom.searchInput) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const isBrowsing = urlParams.has("browse");
+    const initQuery = urlParams.get("q");
+
+    if (initQuery) {
+      if (dom.searchInput) dom.searchInput.value = initQuery;
+      doSearch(1);
+    } else if (dom.searchInput && !isBrowsing) {
       if (window.innerWidth > 768) {
         // Real focus on desktop
         setTimeout(() => dom.searchInput.focus(), 100);

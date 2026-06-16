@@ -73,8 +73,8 @@ EVAL_DIR.mkdir(parents=True, exist_ok=True)
 
 ALL_CORPORA = ["id", "en"]
 EVAL_TOP_K = 10              # KEY cache (HARUS = TOP_K precompute=10 sutta). Jangan diubah.
-EVAL_PASSAGE_K = 10          # UNIT EVAL = PASASE: top-10 fragmen by score per (query,model),
-                            # bukan top-10 sutta. nDCG@10 = @10 pasase. Filter serve-time dari
+EVAL_PASSAGE_K = 5           # UNIT EVAL = PASASE: top-5 fragmen by score per (query,model),
+                            # bukan top-5 sutta. nDCG@5 = @5 pasase. Filter serve-time dari
                             # cache (subset, non-destruktif) — ubah angka ini = ganti kedalaman pool.
 EVAL_INCLUDE_TITLES = False  # heading dibuang dari hasil eval (seragam dgn 5-eval/1-precompute)
 
@@ -633,4 +633,6 @@ if __name__ == "__main__":
     print(f"  EVAL_DIR  : {EVAL_DIR}")
     print(f"  Cache     : {sum(len(c) for c in _eval_search_caches.values())} entries across all evals")
     print(f"  Web (own) : {APP_DIR}/(templates,static)")
-    app.run(host="0.0.0.0", port=5001, debug=False)
+    # bind localhost: diakses via Cloudflare Tunnel (service: localhost:5001) saja.
+    # 127.0.0.1 nutup akses LAN langsung — lindungi data grade pakar dari sabotase.
+    app.run(host="127.0.0.1", port=5001, debug=False)

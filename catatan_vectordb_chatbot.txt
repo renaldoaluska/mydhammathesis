@@ -1,0 +1,74 @@
+CATATAN — Vector DB & Rencana Chatbot (12 Juni 2026)
+======================================================
+Konteks: diskusi soal "kenapa nggak pakai vector DB" + rencana lanjutan chatbot.
+Berguna buat jawaban ke penguji/reviewer dan acuan kalau lanjut bikin chatbot.
+
+
+1. KENAPA TIDAK PAKAI VECTOR DB (keputusan sadar, bukan ketinggalan)
+--------------------------------------------------------------------
+Implementasi sekarang: exact cosine search in-memory.
+  - Indexing : src/code/4-training/5-embed.py -> tensor .pt + meta .pkl
+               (output/embeddings/web/embed_<lang>_<model>.pt)
+  - Query    : web/search.py -> util.cos_sim(query, emb) + torch.topk
+  - Lexical  : rank-bm25 sebagai baseline + mode hybrid (re-rank kandidat BM25)
+
+Skala korpus: ~220 ribu chunk (EN), embedding ~650 MB/model -> exact search
+cuma milidetik di GPU. Bukan bottleneck.
+
+Alasan vector DB TIDAK dipakai:
+  a. Vector DB (Qdrant/Milvus/FAISS-HNSW dst.) menjawab masalah OPERASIONAL:
+     korpus puluhan juta+ vektor, update incremental, filtering metadata,
+     multi-tenant, serving terdistribusi. Bukan masalah kualitas.
+  b. Vector DB pakai ANN (approximate nearest neighbor) = MENGORBANKAN recall
+     demi kecepatan. Untuk evaluasi riset ini justru jadi confound: skor antar
+     model bisa beda karena approximation error, bukan karena kualitas embedding.
+  c. Korpus kanon Pali STATIS -> tidak butuh incremental update.
+  d. Exact search: recall 100%, deterministik, reproducible. Pas untuk
+     perbandingan model yang fair (BM25 vs e5 vs gte vs bge vs varian GPL).
+  e. Fakta teknis: faiss.IndexFlatIP (index dasar FAISS) matematikanya PERSIS
+     sama dengan cos_sim+topk yang dipakai sekarang. Jadi secara substansi
+     ini "flat index", cuma tanpa dependency tambahan.
+
+Kalimat siap pakai kalau ditanya:
+  "Exact search dipilih secara sadar karena korpus statis (~220 rb chunk) dan
+   evaluasi butuh recall sempurna agar perbandingan antar model fair. Vector DB
+   dengan ANN relevan untuk skala produksi jutaan dokumen dengan update
+   berkala — bukan untuk setting eksperimen ini."
+
+
+2. KENAPA KONTEKS PER-PASASE (bukan kekurangan)
+-----------------------------------------------
+  - Tugas penelitian ini = dense retrieval / IR: menemukan pasase relevan.
+    Per-pasase adalah unit STANDAR di bidang ini (MS MARCO, BEIR semuanya
+    passage-level).
+  - Chatbot RAG di baliknya juga retrieval per-pasase; yang merangkai jadi
+    jawaban utuh adalah LLM-nya. Jadi sistem ini = komponen inti RAG,
+    berhenti di retrieval karena itulah yang diteliti dan diukur
+    (nDCG/recall + anotasi pakar), bukan karena tidak bisa lanjut.
+
+
+3. RENCANA LANJUTAN: CHATBOT RAG SUTTA (setelah evaluasi pakar selesai)
+-----------------------------------------------------------------------
+Arsitektur: retriever -> prompt assembly -> LLM. Retriever sudah jadi
+(dan sudah domain-adapted via GPL — ini pembedanya dari RAG generik).
+
+  1. Retrieval : pakai fungsi semantic/hybrid di web/search.py apa adanya,
+                 ambil top 5-10 pasase + referensi sutta.
+  2. Prompt    : "Jawab berdasarkan kutipan sutta berikut, sertakan rujukan
+                 (mis. MN 10, SN 56.11); kalau tidak ada di kutipan, bilang
+                 tidak tahu." -> anti-halusinasi ayat, jawaban traceable.
+  3. Generation, dua opsi:
+     - API (Claude dsb.) : cepat jadi, tanpa GPU inference, bagus untuk demo.
+     - Qwen lokal        : gratis per-query & offline; 7B-instruct quantized
+                           muat di GPU training; butuh prompt-engineering lebih.
+
+Catatan penting:
+  - TIDAK perlu fine-tune LLM. Fine-tuning untuk mengubah gaya/perilaku,
+    bukan menambah pengetahuan; pengetahuan disuplai via retrieval supaya
+    selalu bisa ditelusuri ke pasase sumber.
+  - Estimasi kerja: endpoint Flask /chat + 1 fungsi (retrieve -> prompt ->
+    LLM) + UI chat sederhana. ~100-200 baris di atas codebase sekarang.
+  - Yang bisa ditunda: multi-turn (butuh query rewriting untuk pertanyaan
+    lanjutan). Versi single-turn sudah berguna.
+  - Urutan: selesaikan evaluasi pakar dulu -> angka retrieval yang bagus jadi
+    fondasi argumen "chatbot ini grounded".

@@ -148,10 +148,7 @@ a:hover {
   color: var(--link-hover);
 }
 
-::selection {
-  background: var(--accent-subtle);
-  color: var(--accent);
-}
+
 
 ::-webkit-scrollbar {
   width: 6px;
@@ -496,6 +493,58 @@ a:hover {
   flex-shrink: 0;
 }
 
+.skeleton-text.short {
+  width: 30%;
+}
+
+.skeleton-text.medium {
+  width: 50%;
+}
+
+.skeleton-text.long {
+  width: 70%;
+}
+
+/* --- Search Results Show More --- */
+.author-frags-container {
+  position: relative;
+}
+
+.hidden-frag {
+  display: none !important;
+}
+
+.frags-fade-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: linear-gradient(to bottom, transparent, var(--bg-card));
+  pointer-events: none;
+}
+
+.btn-show-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px;
+  background: transparent;
+  border: none;
+  border-top: 1px dashed var(--border);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.btn-show-more:hover {
+  background: var(--bg-card-hover);
+  color: var(--accent);
+}
 
 .icon-btn-sm {
   width: 24px;
@@ -566,7 +615,7 @@ a:hover {
 }
 
 #notes-panel {
-  flex: 0 0 360px;
+  flex: 0 0 var(--notes-panel-w, 320px);
   min-width: 280px;
   max-width: 600px;
   display: flex;
@@ -675,6 +724,12 @@ a:hover {
 
 .toggle-btn:hover:not(.active) {
   background: var(--accent-subtle);
+}
+
+.toggle-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 /* Soft-disabled toggle (mis. Kata Kunci saat mode tingkat lanjut): tetap bisa di-hover
@@ -936,6 +991,23 @@ a:hover {
   color: var(--text-muted);
 }
 
+.btn-clear-input {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+  height: 36px;
+}
+
+.btn-clear-input:hover {
+  color: var(--text-primary);
+}
+
 .search-bar-inner .btn-primary {
   height: 36px;
   padding: 0 18px;
@@ -965,6 +1037,7 @@ a:hover {
 
 .btn-primary:hover {
   background: var(--accent-hover);
+  color: #0f0f14;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(232, 168, 56, .3);
 }
@@ -1058,7 +1131,7 @@ a:hover {
 /* --- Search Results --- */
 #search-scroll {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: scroll;
   overflow-x: hidden;
   padding: 10px 20px 0 20px;
   display: flex;
@@ -1172,6 +1245,10 @@ a:hover {
   font-size: .88rem;
   line-height: 1.6;
   max-width: 400px;
+}
+
+#btn-empty-new-note {
+  margin-top: 16px;
 }
 
 /* Welcome state: compact horizontal on desktop */
@@ -1311,6 +1388,20 @@ a:hover {
   box-shadow: var(--shadow-md);
 }
 
+@keyframes skeleton-pulse {
+  0% {
+    opacity: 0.4;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.4;
+  }
+}
+
 @keyframes cardIn {
   from {
     opacity: 0;
@@ -1325,17 +1416,32 @@ a:hover {
 
 .sutta-card-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   margin-bottom: 10px;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--border);
+  gap: 12px;
 }
 
 .sutta-card-title {
   font-size: 1rem;
   font-weight: 700;
   color: var(--accent);
+  flex: 1;
+  min-width: 0;
+}
+
+.sutta-card-link:hover {
+  text-decoration: underline !important;
+}
+
+.sutta-card-link:hover i {
+  opacity: 1 !important;
+}
+
+.sutta-card-meta {
+  flex-shrink: 0;
 }
 
 .sutta-card-name {
@@ -1510,12 +1616,41 @@ a:hover {
   cursor: pointer;
   color: var(--accent);
   font-weight: 600;
-  opacity: 0.4;
+  /* opacity: 0.4; */
+  opacity: 1;
   transition: all var(--transition);
 }
 
 .fragment:hover .btn-add-note {
   opacity: 1;
+}
+
+/* "Tanyakan lagi" — icon-only di header kartu rujukan chat (1 per sutta, kiri badge) */
+.btn-ask-again {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin-right: 8px;
+  vertical-align: middle;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all var(--transition);
+}
+
+.btn-ask-again svg {
+  width: 13px;
+  height: 13px;
+}
+
+.btn-ask-again:hover {
+  background: var(--accent-subtle);
+  border-color: var(--accent);
 }
 
 .btn-add-note:hover,
@@ -1806,9 +1941,12 @@ a:hover {
 }
 
 .note-block {
+  display: flex;
+  flex-direction: column;
   position: relative;
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
+  background: var(--bg-card);
   transition: all var(--transition);
   animation: cardIn .3s ease-out;
 }
@@ -1818,18 +1956,17 @@ a:hover {
 }
 
 .note-block-actions {
-  position: absolute;
-  top: 4px;
-  right: 4px;
   display: flex;
+  justify-content: flex-end;
   gap: 2px;
-  opacity: 0;
-  transition: opacity var(--transition);
-}
-
-.note-block:hover .note-block-actions {
+  padding: 4px 6px;
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border);
+  border-radius: calc(var(--radius-md) - 1px) calc(var(--radius-md) - 1px) 0 0;
   opacity: 1;
 }
+
+/* removed hover opacity rule since it's always visible */
 
 .note-block-actions button {
   width: 24px;
@@ -1865,8 +2002,8 @@ a:hover {
   font-size: .88rem;
   line-height: 1.6;
   color: var(--text-primary);
-  background: var(--bg-card);
-  border-radius: var(--radius-md);
+  background: transparent;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
 }
 
 .note-block-text:focus {
@@ -1874,15 +2011,15 @@ a:hover {
   box-shadow: 0 0 0 2px var(--accent-subtle);
 }
 
-.note-block:hover .note-block-text {
+/* .note-block:hover .note-block-text {
   padding-right: 80px;
-}
+} */
 
 /* Sutta block in notes (mini version) */
 .note-block-sutta {
   padding: 10px 12px;
-  background: var(--bg-card);
-  border-radius: var(--radius-md);
+  background: transparent;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
   border-left: 3px solid var(--accent);
 }
 
@@ -2896,14 +3033,17 @@ html.show-seg-ref .sutta-segment:hover .seg-ref {
    BROWSE TREE
    ================================================================ */
 .browse-container {
-  padding: 8px 4px;
+  padding: 0 4px;
 }
 
 .section-divider {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 4px 0 2px;
+  /* Pola spacing home: judul → isi = 10px (di sini), antar-seksi = 14px
+     (margin-bottom tiap seksi). Divider tanpa margin-top biar seksi pertama
+     flush ke atas, termasuk saat riwayat disembunyikan. */
+  margin: 0 0 10px;
   color: var(--text-muted);
   font-size: .75rem;
   font-weight: 600;
@@ -2921,6 +3061,11 @@ html.show-seg-ref .sutta-segment:hover .seg-ref {
 /* ── Piṭaka level (top) ── */
 .browse-nikaya {
   margin-bottom: 6px;
+}
+
+/* Jangan numpuk dengan margin antar-seksi (14px) di bawah browse */
+.browse-nikaya:last-child {
+  margin-bottom: 0;
 }
 
 .browse-nikaya-header {
@@ -3383,6 +3528,119 @@ html.show-seg-ref .sutta-segment:hover .seg-ref {
   .info-sep {
     display: none;
   }
+}
+
+/* ================================================================
+   Seksi home: jarak antar-seksi seragam 14px
+   ============================================================ */
+#recent-sutta-wrapper,
+#browse-section {
+  margin-bottom: 14px;
+}
+
+/* ================================================================
+   History Bar (riwayat di atas home — chips 1 baris, scroll horizontal)
+   ============================================================ */
+.history-bar-chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  /* Firefox — sembunyikan scrollbar */
+}
+
+/* Chrome/Safari — sembunyikan scrollbar */
+.history-bar-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.history-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  font-family: inherit;
+}
+
+.history-chip svg {
+  width: 13px;
+  height: 13px;
+  opacity: .7;
+  flex-shrink: 0;
+}
+
+.search-hist-chip.history-chip {
+  border-style: dashed;
+}
+
+.section-divider-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: none;
+  border: none;
+  padding: 1px 6px;
+  font-size: .7rem;
+  font-weight: 600;
+  color: var(--accent);
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+  letter-spacing: .02em;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  opacity: 1;
+  text-transform: uppercase;
+  order: 1;
+}
+
+.section-divider-action:hover {
+  opacity: 1;
+  background: var(--accent-subtle);
+}
+
+/* ================================================================
+   Search Bar Area
+   ============================================================ */
+.recommended-queries {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 0 4px;
+}
+
+.recommended-label {
+  width: 100%;
+  text-align: left;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-right: 0;
+  margin-bottom: 2px;
+}
+
+.query-chip,
+.search-hist-chip {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+
+.query-chip:hover,
+.search-hist-chip:hover {
+  background: var(--accent-subtle);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 /* ================================================================
@@ -3947,6 +4205,55 @@ html.show-seg-ref .rs-ex-sup {
   background: var(--accent-subtle);
   color: var(--accent);
   border-color: var(--accent);
+}
+
+/* CTA "Chat dengan AI" — dipakai di suttaplex, dialog teks, & pembaca teks */
+.btn-chat-ai {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  height: 32px;
+  background: var(--accent);
+  color: #0f0f14;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: .8rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition);
+}
+
+.btn-chat-ai svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+.btn-chat-ai:hover {
+  background: var(--accent-hover);
+  color: #0f0f14;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(232, 168, 56, .3);
+}
+
+.btn-chat-ai:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .btn-chat-ai.icon-only-mobile span {
+    display: none;
+  }
+  .btn-chat-ai.icon-only-mobile {
+    padding: 0 8px;
+  }
+}
+
+.suttaplex-actions {
+  margin-top: 14px;
 }
 
 .dlg-open-popover {
@@ -5501,11 +5808,780 @@ html.show-seg-ref .rs-ex-sup {
   pointer-events: none;
   transition: opacity .2s ease, transform .2s ease;
   z-index: 9999;
-  white-space: nowrap;
+  max-width: 90vw;
+  text-align: center;
   box-shadow: var(--shadow-lg);
 }
 
 #dk-toast.visible {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
+}
+
+.md-segment-notice {
+  margin-bottom: 16px;
+  padding: 8px 12px;
+  background: transparent;
+  border-left: 3px solid var(--border-strong);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  line-height: 1.4;
+  opacity: 0.8;
+}
+
+.md-segment-notice i {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--text-muted);
+  opacity: 0.8;
+}
+
+/* Skeleton Loading for Sutta Reader & Dialog Controls */
+body.is-loading-sutta #reader-subtitle,
+body.is-loading-dialog #sutta-dialog-title {
+  color: transparent !important;
+  background: var(--border-strong);
+  border-radius: var(--radius-sm);
+  animation: skeleton-pulse 1.5s infinite ease-in-out;
+  min-height: 28px;
+  width: 60%;
+  max-width: 400px;
+  display: inline-block;
+}
+
+body.is-loading-sutta #reader-subtitle *,
+body.is-loading-dialog #sutta-dialog-title * {
+  opacity: 0 !important;
+}
+
+body.is-loading-sutta #reader-controls-sticky,
+body.is-loading-dialog .sutta-dialog-controls {
+  opacity: 0.3;
+  pointer-events: none;
+  animation: skeleton-pulse 1.5s infinite ease-in-out;
+  min-height: 36px;
+}
+
+body.is-loading-sutta #sutta-breadcrumbs-outer {
+  display: block !important;
+  opacity: 0.3;
+  animation: skeleton-pulse 1.5s infinite ease-in-out;
+  min-height: 30px;
+  background: var(--border-strong);
+  pointer-events: none;
+}
+
+body.is-loading-sutta #sutta-breadcrumbs {
+  display: none;
+}
+
+/* ============================================================
+   Chatbot RAG (/chat) — mesin di static/chat.js, reusable.
+   Pakai variabel & kartu hasil yang sama dgn pencarian.
+   ============================================================ */
+/* Halaman /chat: panel jadi tinggi-penuh, log gulir internal, input pin bawah. */
+body.page-chat #search-scroll {
+  overflow: hidden;
+  padding-bottom: 0;
+}
+
+body.page-chat #app-footer {
+  display: none;
+}
+
+.chat-root,
+.chat-widget {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.chat-log {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 8px 2px 16px;
+}
+
+.chat-msg {
+  line-height: 1.6;
+  max-width: 100%;
+}
+
+.chat-msg-user {
+  align-self: flex-end;
+  background: var(--accent);
+  color: #0f0f14;
+  padding: 10px 14px;
+  border-radius: 14px 14px 4px 14px;
+  max-width: 80%;
+  white-space: pre-wrap;
+}
+
+.chat-msg-bot {
+  align-self: stretch;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 4px 14px 14px 14px;
+  padding: 14px 16px;
+}
+
+.chat-answer.chat-typing,
+.chat-answer.chat-error {
+  white-space: pre-wrap;
+}
+
+.chat-typing {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.chat-error {
+  color: #e5484d;
+}
+
+.chat-citations {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border-strong);
+}
+
+.chat-citations-title {
+  font-size: .74rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.chat-cite-fallback {
+  padding: 4px 0;
+  font-size: .9rem;
+}
+
+.chat-followups-container {
+  margin-top: 16px;
+}
+
+.chat-followups-title {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.chat-followups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.chat-followup-chip {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-strong);
+  padding: 6px 14px;
+  border-radius: 16px;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all var(--transition);
+  text-align: left;
+  line-height: 1.3;
+}
+
+.chat-followup-chip:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.chat-filters {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px 0;
+  border-top: 1px solid var(--border);
+  background: var(--bg-primary);
+}
+
+.chat-filters-label {
+  font-size: .75rem;
+  color: var(--text-secondary);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.chat-input-row {
+  flex-shrink: 0;
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  padding: 12px 2px;
+  background: var(--bg-primary);
+  border-top: 1px solid var(--border);
+}
+
+/* Wrapper utk overlay highlight @mention saat mengetik (backdrop di belakang textarea) */
+.chat-input-wrap {
+  flex: 1;
+  position: relative;
+  display: flex;
+  background: var(--bg-input);
+  border-radius: 10px;
+}
+
+.chat-input {
+  flex: 1;
+  resize: none;
+  padding: 11px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  color: var(--text-primary);
+  /* default: terlihat normal (aman bila JS overlay gagal) */
+  caret-color: var(--text-primary);
+  font-family: inherit;
+  font-size: .95rem;
+  line-height: 1.5;
+  max-height: 140px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Sembunyikan teks asli HANYA saat overlay backdrop aktif (di-set JS) -> yg terlihat backdrop */
+.chat-input-wrap.mention-overlay .chat-input {
+  color: transparent;
+}
+
+.chat-input::placeholder {
+  color: var(--text-muted);
+}
+
+.chat-input-backdrop {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 11px 14px;
+  border: 1px solid transparent;
+  /* samakan kotak agar teks sejajar dgn textarea */
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: .95rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  overflow: hidden;
+  color: var(--text-primary);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.chat-input-mark {
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.chat-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.chat-send {
+  height: auto;
+  align-self: stretch;
+  padding: 0 22px;
+  white-space: nowrap;
+}
+
+.chat-disclaimer {
+  flex-shrink: 0;
+  text-align: center;
+  font-size: .72rem;
+  color: var(--text-muted);
+  padding: 0 2px 8px;
+}
+
+/* Jawaban: paragraf & list rapi (di-render mini-markdown oleh chat.js). */
+.chat-answer p {
+  margin: 0 0 .6em;
+}
+
+.chat-answer p:last-child {
+  margin-bottom: 0;
+}
+
+.chat-answer h1,
+.chat-answer h2,
+.chat-answer h3,
+.chat-answer h4,
+.chat-answer h5,
+.chat-answer h6 {
+  font-variant: small-caps;
+  font-size: 1.1em;
+  color: var(--text-secondary, var(--text-primary));
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  margin-top: 1.5em;
+  margin-bottom: 0.6em;
+  line-height: 1.3;
+}
+
+.chat-answer h1:first-child,
+.chat-answer h2:first-child,
+.chat-answer h3:first-child,
+.chat-answer h4:first-child,
+.chat-answer h5:first-child,
+.chat-answer h6:first-child {
+  margin-top: 0;
+}
+
+.chat-answer ul,
+.chat-answer ol {
+  margin: .4em 0 .7em;
+  padding-left: 1.4em;
+}
+
+.chat-answer li {
+  margin: .15em 0;
+}
+
+.chat-answer::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.chat-answer-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.chat-answer-actions .btn-add-note {
+  position: static;
+  opacity: 1;
+}
+
+/* Inline Citation Chips */
+.chat-inline-cite {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-strong);
+  color: var(--text-primary);
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-size: 0.85em;
+  font-family: inherit;
+  cursor: pointer;
+  margin: 0 3px;
+  vertical-align: baseline;
+  transition: all 0.15s ease;
+}
+
+.chat-inline-cite:hover {
+  background: var(--accent-subtle);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.sutta-card.flash-highlight,
+.chat-cite-fallback.flash-highlight {
+  animation: flash-bg 1.5s ease-out;
+}
+
+@keyframes flash-bg {
+  0% {
+    background-color: var(--accent-subtle);
+    box-shadow: 0 0 0 2px var(--accent);
+  }
+
+  100% {
+    background-color: transparent;
+    box-shadow: none;
+  }
+}
+
+/* Thinking Steps */
+.chat-thinking-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+  font-size: 0.85em;
+  color: var(--text-muted);
+}
+
+.chat-thinking-steps:empty {
+  display: none;
+}
+
+.chat-thinking-steps.thinking-done {
+  opacity: 0.8;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed var(--border);
+  margin-bottom: 12px;
+}
+
+.chat-thinking-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chat-thinking-step.step-done .step-label {
+  color: var(--text-primary);
+}
+
+.chat-thinking-step .step-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+}
+
+.lucide-spin {
+  animation: lucide-spin 2s linear infinite;
+}
+
+@keyframes lucide-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.chat-divider {
+  border: 0;
+  border-top: 1px dashed var(--border);
+  margin: 15px 0;
+}
+
+.chat-think {
+  margin-bottom: 10px;
+  border-left: 3px solid var(--border);
+  padding-left: 10px;
+  opacity: 0.8;
+  font-size: 0.9em;
+}
+
+.chat-think summary {
+  cursor: pointer;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: var(--text-muted);
+}
+
+.chat-think-content {
+  margin-top: 5px;
+  white-space: pre-wrap;
+}
+
+/* ── Chat App Layout (chat.js mount) ── */
+.chat-app-wrapper {
+  display: flex;
+  flex-direction: row;
+  height: calc(100vh - var(--header-h) - 40px);
+  width: 100%;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+.chat-sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  background: var(--bg-card);
+}
+
+.chat-widget-area {
+  flex-grow: 1;
+  min-width: 0;
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-widget-area .chat-widget {
+  height: 100%;
+  margin: 0;
+  max-width: none;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── Session List ── */
+.chat-session-item {
+  padding: 8px 12px;
+  margin-bottom: 4px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background 0.2s;
+  border: 1px solid transparent;
+}
+
+.chat-session-item:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border);
+}
+
+.chat-session-item.active {
+  background: var(--accent-subtle);
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.chat-session-title {
+  flex-grow: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 8px;
+}
+
+.chat-session-delete {
+  color: var(--text-muted);
+  padding: 4px;
+  margin-right: -4px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  border: none;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-session-item:hover .chat-session-delete {
+  opacity: 1;
+}
+
+.chat-session-delete:hover {
+  color: var(--danger);
+  background: var(--bg-primary);
+  border-radius: 4px;
+}
+
+/* ── Mobile Header ── */
+.chat-mobile-header {
+  display: none;
+}
+
+.chat-sidebar-overlay {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .chat-session-delete {
+    opacity: 1;
+  }
+
+  .chat-app-wrapper {
+    flex-direction: column;
+    height: calc(100vh - var(--header-h));
+    position: relative;
+    overflow: hidden;
+    gap: 0;
+    margin-bottom: 0;
+  }
+
+  /* Chat di mobile: cuma buang padding ATAS biar mentok atas; kiri-kanan tetep (UI chat) */
+  body.page-chat #search-scroll {
+    padding: 0 12px;
+  }
+
+  /* Header chat mobile: bar transparan melayang di atas; cuma tombol bulet yg keliatan */
+  .chat-mobile-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 6px;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    pointer-events: none;
+    /* area kosong di tengah tembus ke chat */
+  }
+
+  /* Tombol melayang: bulet, translucent + blur, tetap bisa diklik */
+  .chat-mobile-header button {
+    pointer-events: auto;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    margin: 0;
+    border-radius: 50%;
+    background: var(--bg-glass);
+    border: 1px solid var(--bg-glass-border);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: var(--shadow-sm);
+    color: var(--text-primary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .chat-mobile-title {
+    display: none;
+  }
+
+  /* Sisakan ruang di atas biar pesan pertama tak ketutup tombol melayang */
+  .chat-log {
+    padding-top: 56px;
+  }
+
+  .chat-sidebar {
+    position: absolute;
+    top: 0;
+    left: -320px;
+    width: 280px;
+    height: 100%;
+    z-index: 100;
+    transition: left 0.3s ease;
+    margin: 0;
+    border: none;
+    border-right: 1px solid var(--border);
+    border-radius: var(--radius-md) 0 0 var(--radius-md);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .chat-sidebar.open {
+    left: 0;
+  }
+
+  .chat-sidebar-overlay {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 99;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    border-radius: var(--radius-md);
+  }
+
+  .chat-sidebar-overlay.show {
+    display: block;
+    opacity: 1;
+  }
+
+  .chat-widget-area {
+    flex-grow: 1;
+    height: 0;
+  }
+
+  .chat-widget {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-top: none;
+  }
+}
+
+/* ── Mention Popup ── */
+.chat-mention-popup {
+  display: none;
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  margin-bottom: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  width: 300px;
+  max-height: 250px;
+  overflow-y: auto;
+  z-index: 100;
+  flex-direction: column;
+}
+
+.chat-mention-popup.show {
+  display: flex;
+}
+
+.chat-mention-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.chat-mention-item:last-child {
+  border-bottom: none;
+}
+
+.chat-mention-item:hover,
+.chat-mention-item.active {
+  background: var(--bg-card-hover);
+}
+
+.chat-mention-abbr {
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.chat-mention-name {
+  font-size: 0.85em;
+  color: var(--text-muted);
+}
+
+/* Chip @mention di dalam bubble pesan user */
+.chat-mention-chip {
+  display: inline-block;
+  padding: 0 6px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: var(--accent);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.chat-msg-user .chat-mention-chip {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
 }

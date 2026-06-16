@@ -1,0 +1,56 @@
+================================================================================
+DOKUMEN TEKNIS CHATBOT RAG MYDHAMMA
+================================================================================
+
+1. ARSITEKTUR UTAMA
+-------------------
+Pendekatan: RAG (Retrieval-Augmented Generation)
+LLM Endpoint: Ollama (Default URL: http://127.0.0.1:11434/api/chat)
+Model LLM Default: qwen2.5:7b-instruct (dipilih karena native tool-calling andal utk mode AGENTIC; gemma3:4b ditinggalkan karena tool-calling-nya lemah). Ubah via env MYDHAMMA_CHAT_MODEL.
+Model Retriever Default: Model semantik lokal (GPL-* / dari HF) atau BM25 murni jika tidak ada model semantik.
+
+2. DETEKSI BAHASA (LANGUAGE DETECTION)
+--------------------------------------
+Alat: Lingua (LanguageDetectorBuilder) dan regex karakter.
+Logika: 
+- Jika input mengandung karakter khusus Pali (seperti ā, ī, ū, ṃ), akan dikenali sebagai Pali (di-fallback ke bahasa Indonesia/id).
+- Jika tidak, menggunakan detektor Lingua untuk membedakan English (en) dan Indonesian (id).
+
+3. SIKLUS PENCARIAN & GENERASI (API /api/chat)
+----------------------------------------------
+Endpoint ini mendukung Server-Sent Events (SSE) untuk menampilkan status secara real-time ("understand" -> "retrieve" -> "generate").
+
+Tahapan (Max 2 Attempts / Percobaan):
+a. UNDERSTAND (Query Rewriting)
+   - Input mentah dari pengguna (dan riwayat percakapan) dikirim ke LLM untuk diubah menjadi 1 hingga 3 frasa pencarian (kata kunci) yang ringkas.
+   - Ini memastikan pertanyaan lanjutan (misal: "kalau menurut vinaya gimana?") digabung dengan konteks sebelumnya.
+   - Jika ini adalah percobaan kedua (Attempt 2), kueri yang gagal sebelumnya dikirim sebagai "Failed Queries" agar LLM mencari sudut pandang kata kunci yang baru.
+
+b. RETRIEVE (Pencarian Korpus)
+   - Setiap frasa pencarian dikirim ke engine pencari.
+   - Strategi: Hybrid (Semantic + Keyword) lalu digabung dengan RRF (Reciprocal Rank Fusion).
+   - Filter (Opsional): Berdasarkan Pitaka (Sutta, Vinaya, Abhidhamma) jika diminta.
+   - Hasil hit dikelompokkan berdasarkan sutta. Maksimal suttas yang diambil: default 6 (top_k).
+
+c. KONTEKS EKSKAVASI (Context Windowing)
+   - Agar LLM tidak "mabuk" karena disodori ribuan token dari satu sutta penuh, sistem mengambil cuplikan spesifik yang "hit".
+   - KEMUDIAN, sistem mengekstrak 3 paragraf SEBELUM dan 3 paragraf SESUDAH dari cuplikan tersebut langsung dari korpus JSONL mentah (`_fill_frag_context`). Ini memberikan konteks yang utuh tapi tetap hemat memori.
+
+d. GENERATE (Prompting LLM)
+   - Jawaban di-generate berdasarkan cuplikan.
+   - Jika jawaban terdeteksi sebagai PENOLAKAN (mengandung frasa seperti "tidak menemukan", "maaf, saya tidak", "could not find") DAN masih berada di Attempt 1, maka sistem akan membuang hasil tersebut dan mengulang kembali proses dari "UNDERSTAND" (Attempt 2).
+
+4. SYSTEM PROMPT & ANTI-HALUSINASI
+----------------------------------
+System Prompt (_CHAT_SYSTEM) memaksakan aturan yang sangat ketat ("Closed-Book Exam"):
+- Tidak boleh menjawab menggunakan memori internal model (halusinasi).
+- WAJIB menyertakan rujukan di setiap paragraf dengan format baku (mis. `Thag 6.3:md3 (id/anggara)`).
+- Penegakan Istilah Theravada: Wajib menggunakan istilah Pali (Nibbāna, Kamma) bukan Sanskerta (Nirvana, Karma). Harus menyertakan diakritik Pali dengan benar. Jangan pakai istilah agama lain.
+- Anti-Halusinasi Referensi: Di akhir prompt, sistem menyisipkan "DAFTAR RUJUKAN VALID" (Whitelist). LLM dilarang keras menyebut referensi di luar daftar tersebut.
+- Kesesuaian Kutipan: LLM di-warning bahwa hasil pencarian otomatis mungkin tidak relevan, jadi jangan memaksakan diri merangkai jawaban jika teks kutipan melenceng dari pertanyaan.
+
+5. PEMROSESAN REFERENSI (REFERENCE DISPLAY)
+-------------------------------------------
+Rujukan ke sutta tidak hanya menyebutkan nama sutta (mis. MN 1), tapi sangat spesifik hingga tingkat segmen dan penerjemah.
+Contoh: `[1] (jenis: Sutta) MN 4 — Bhayabherava Sutta  → tulis rujukan PERSIS: MN 4:md1 (id/anggara)`
+LLM diajari untuk menyalin token `MN 4:md1 (id/anggara)` jika mengutip kalimat sebelahnya.

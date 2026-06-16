@@ -61,7 +61,7 @@
       legend_blurb: "Sinopsis",
       legend_author: "Penerjemah",
       legend_similarity: "Kemiripan Makna",
-      legend_count: "Jumlah Kecocokan",
+      legend_count: "Kecocokan Kata Kunci",
       ensemble_config_title: "Konfigurasi Gabungan Model",
       hint_ensemble_warning: "Ubah konfigurasi ini hanya jika Anda paham, karena akan sangat memengaruhi hasil pencarian. Anda dapat mereset kapan saja, konfigurasi ini hanya tersimpan di perangkat Anda.",
       confirm_reset_ensemble: "Reset konfigurasi gabungan model ke setelan awal dari server?",
@@ -83,15 +83,36 @@
       note_add_sutta_hint: "Untuk mengutip teks Sutta, gunakan menu Telusuri/Pencarian di panel kiri, lalu klik tombol <b>+ Catatan</b> pada bagian teks yang ingin dikutip.",
       btn_paste_block: "Tempel Blok",
       notes_empty: "Pilih atau buat catatan baru<br>untuk mulai menyusun pembabaran Dhamma.",
+      btn_empty_new_note: "+ Buat Catatan Baru",
+      btn_send: "Kirim",
+      chat_subtitle: "Chat myDhamma AI",
+      chat_disclaimer: "⚠ Eksperimental — mungkin membuat kesalahan dalam menyimpulkan; selalu periksa rujukannya.",
       sutta_not_found: "Sutta tidak ditemukan.",
-      loading_sutta: "Memuat sutta…",
+      loading_sutta: "Memuat teks…",
       sp_not_found: "Sutta tidak tersedia dalam korpus.",
-      research_banner: "DALAM PENGEMBANGAN — MASIH TERBATAS UNTUK RISET",
+      research_banner: "TERBATAS UNTUK RISET — BELUM UNTUK PUBLIK",
       panel_sidebar: "Bilah Sisi",
       select_corpus: "— Pilih korpus —",
+      btn_goto: "Lompat ke Teks",
+      btn_chat_ai: "Chat dengan AI",
+      goto_title: "Lompat ke Teks",
+      goto_collection_ph: "mis. MN, DN",
+      goto_number_ph: "mis. 22, 56.11",
+      goto_or: "atau",
+      goto_title_ph: "Cari berdasarkan judul...",
+      goto_btn_open: "Buka",
+      lbl_language: "Target Bahasa",
+      lbl_pitaka: "Piṭaka",
+      btn_send: "Kirim",
+      history_divider: "Riwayat",
+      btn_new_chat: "Obrolan Baru",
     },
     en: {
       confirm_delete: "Delete this note?",
+      dlg_btn_ok: "OK",
+      dlg_btn_cancel: "Cancel",
+      dlg_btn_continue: "Continue",
+      dlg_btn_delete: "Delete",
       btn_add_note: "+ Notes",
       btn_add_note_short: "+ Note",
       btn_open_sutta: "Text Page",
@@ -158,15 +179,32 @@
       notes_title: '<i data-lucide="pen-line"></i> Notes',
       btn_new_note: "+ New",
       ph_note_title: "Note title…",
-      btn_add_text: "+ Add Personal Note",
+      btn_add_text: "+ Add Custom Note",
       note_add_sutta_hint: "To quote a Sutta, use the Browse/Search menu in the left panel, then click the <b>+ Notes</b> button on the text you want to quote.",
       btn_paste_block: "Paste Block",
       notes_empty: "Select or create a new note<br>to start composing your talk.",
+      btn_empty_new_note: "+ Create New Note",
+      btn_send: "Send",
+      chat_subtitle: "Chat myDhamma AI",
+      chat_disclaimer: "⚠ Experimental — may make mistakes when summarizing; always check the citations.",
       sutta_not_found: "Sutta not found.",
-      loading_sutta: "Loading sutta…",
+      loading_sutta: "Loading text…",
       sp_not_found: "Sutta not available in the corpus.",
       research_banner: "IN DEVELOPMENT — FOR RESEARCH PURPOSES ONLY ",
       select_corpus: "— Select corpus —",
+      btn_goto: "Jump to Text",
+      btn_chat_ai: "Chat with AI",
+      goto_title: "Go to Text",
+      goto_collection_ph: "e.g. MN, DN",
+      goto_number_ph: "e.g. 22, 56.11",
+      goto_or: "or",
+      goto_title_ph: "Search by title...",
+      goto_btn_open: "Open",
+      lbl_language: "Target Language",
+      lbl_pitaka: "Piṭaka",
+      btn_send: "Send",
+      history_divider: "History",
+      btn_new_chat: "New Chat",
     },
   };
 
@@ -246,6 +284,12 @@
     let s = String(id).trim().toLowerCase().replace(/^pli-tv-/, "").replace(/^(bu|bi)-vb-/, "$1-");
     return s;
   }
+  function formatRef(ref) {
+    if (!ref) return ref;
+    const colonIdx = ref.indexOf(":");
+    if (colonIdx === -1) return toShortId(ref);
+    return toShortId(ref.substring(0, colonIdx)) + ref.substring(colonIdx);
+  }
   function authorLongName(uid, source) {
     if (!uid || uid === "blurb") return uid;
     const map = source === "bilara"
@@ -296,7 +340,7 @@
   function compactRef(ids) {
     if (!ids || ids.length === 0) return "";
     const colonIdx = ids[0].indexOf(":");
-    const suttaPrefix = colonIdx === -1 ? "" : ids[0].substring(0, colonIdx + 1);
+    const suttaPrefix = colonIdx === -1 ? "" : toShortId(ids[0].substring(0, colonIdx)) + ":";
     const anchors = ids.map(id => id.split(":").pop());
     if (anchors.length === 1) return suttaPrefix + anchors[0];
 
@@ -743,6 +787,7 @@
     state.activeNote.blocks.push(block);
     const noteBlocks = $("#note-blocks");
     noteBlocks.appendChild(createNoteBlockEl(block, state.activeNote.blocks.length - 1));
+    refreshIcons();
     const newEl = noteBlocks.lastElementChild.querySelector(".note-block-text");
     if (newEl) newEl.focus();
   }
@@ -751,14 +796,37 @@
     if (!state.activeNote) return false;
     if (!Array.isArray(state.activeNote.blocks)) state.activeNote.blocks = [];
     state.activeNote.blocks.push(block);
+    const noteEditor = $("#note-editor");
     const noteBlocks = $("#note-blocks");
     if (!noteBlocks) return false;
-    noteBlocks.appendChild(createNoteBlockEl(block, state.activeNote.blocks.length - 1));
+
+    // Kalau editor hidden, renderNoteEditor() sudah append semua block (termasuk yg baru)
+    // jadi tidak perlu appendChild manual lagi untuk menghindari duplikat.
+    if (noteEditor && noteEditor.classList.contains("hidden")) {
+      renderNoteEditor(); // render semua blok, termasuk blok baru
+    } else {
+      // Editor sudah terbuka → append saja blok baru
+      noteBlocks.appendChild(createNoteBlockEl(block, state.activeNote.blocks.length - 1));
+    }
+
+    // Buka panel notes kalau masih tertutup (mobile/tablet: panel-open class)
+    const notesPanel = $("#notes-panel");
+    if (notesPanel && !notesPanel.classList.contains("panel-open")) {
+      notesPanel.classList.add("panel-open");
+      const toggleBtn = $("#btn-panel-toggle");
+      if (toggleBtn) toggleBtn.classList.add("panel-btn-open");
+      const backdrop = $("#panel-backdrop");
+      if (backdrop) backdrop.classList.add("visible");
+    }
+
     refreshIcons();
     autoSave();
     const lastBlock = noteBlocks.lastElementChild;
-    lastBlock.style.boxShadow = "0 0 0 2px var(--success)";
-    setTimeout(() => (lastBlock.style.boxShadow = ""), 1200);
+    if (lastBlock) {
+      lastBlock.style.boxShadow = "0 0 0 2px var(--success)";
+      setTimeout(() => (lastBlock.style.boxShadow = ""), 1200);
+      lastBlock.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
     const label = getLang() === "id" ? "Ditambahkan ke catatan" : "Added to note";
     showToast(label);
     return true;
@@ -1113,8 +1181,9 @@
     const el = document.createElement("div"); el.className = frag.author === "blurb" ? "fragment fragment-blurb" : "fragment";
     const meta = document.createElement("div"); meta.className = "fragment-meta";
     const isKw = ctx && ctx.method && ctx.method.includes("keyword");
-    const refDisplay = frag.author === "blurb" ? "sinopsis" : (frag.ref_display || frag.ref.join(", "));
-    const refTitle = `${t("legend_segment")}: ${frag.ref.join(", ")}`;
+    const cleanRefDisplay = frag.ref_display ? frag.ref_display.split(", ").map(formatRef).join(", ") : null;
+    const refDisplay = frag.author === "blurb" ? "sinopsis" : (cleanRefDisplay || frag.ref.map(formatRef).join(", "));
+    const refTitle = `${t("legend_segment")}: ${frag.ref.map(formatRef).join(", ")}`;
 
     // Build the text lines first so the keyword badge can mirror what is
     // actually highlighted in the shown text.
@@ -1123,7 +1192,8 @@
 
     let scoreHtml = "";
     let scoreTitle = "";
-    const hasSemantic = (frag.score_type || "cosine") !== "bm25";
+    const isExact = frag.score_type === "exact";
+    const hasSemantic = (frag.score_type || "cosine") !== "bm25" && !isExact;
     const hasKwData = frag.kw_count !== undefined;
 
     if (hasSemantic) {
@@ -1131,12 +1201,12 @@
       scoreTitle += `${t("legend_similarity")}: ${(frag.score * 100).toFixed(1)}%`;
     }
 
-    // Keyword count: prefer the backend kw_count; otherwise fall back to the
-    // matches actually highlighted in the shown text, so a highlighted hit
-    // always gets a badge — even on semantic-sourced fragments in hybrid mode.
+    // Keyword count: pakai kw_count asli dari backend (jumlah kata-query distinct
+    // yang hadir). Fallback hanya untuk fragmen sumber-semantik di mode hybrid
+    // (tak punya data keyword) → hitung dari highlight yang benar-benar tampil.
+    // CATATAN: fallback skor-BM25-dibulatkan dibuang — itu BUKAN hitungan kata.
     let kwCount = null;
     if (hasKwData) kwCount = frag.kw_count;
-    else if (!hasSemantic && isKw) kwCount = Math.round(frag.score);
     else if (isKw && kwHighlightCount > 0) kwCount = kwHighlightCount;
 
     if (kwCount !== null) {
@@ -1198,8 +1268,8 @@
     // Kiri: nomor + nama sutta. Kanan: nama kitab + badge piṭaka (sinkron web-eval).
     header.innerHTML = `
       <span class="sutta-card-title">
-        <a href="${titleHref}"${titleTarget}${titleClick} class="dk-open-menu-link" style="color:inherit;text-decoration:none;">
-          ${sutta.formatted_id}${nameSpan}
+        <a href="${titleHref}"${titleTarget}${titleClick} class="dk-open-menu-link sutta-card-link" style="color:inherit;text-decoration:none;">
+          ${sutta.formatted_id}<i data-lucide="external-link" style="width:12px;height:12px;opacity:0.6;vertical-align:-1px;margin-left:4px;"></i>${nameSpan}
         </a>
       </span>
       <span class="sutta-card-meta">${metaBadge}</span>`;
@@ -1240,7 +1310,52 @@
       label.title = `${t("legend_author")}: ${esc(authorLongName(head.author, head.source))}`;
       label.innerHTML = `<i data-lucide="user"></i> ${esc(authorLongName(head.author, head.source))}`;
       block.appendChild(label);
-      blockFrags.forEach(f => appendFrag(block, f, fctx));
+
+
+
+      const fragsContainer = document.createElement("div");
+      fragsContainer.className = "author-frags-container";
+
+      blockFrags.forEach((f, idx) => {
+        const fragEl = createFragmentEl(f, sutta, fctx);
+        if (onFragment) onFragment(fragEl, f, sutta);
+        if (idx >= 3) fragEl.classList.add("hidden-frag");
+        fragsContainer.appendChild(fragEl);
+      });
+
+      if (blockFrags.length > 3) {
+        const fadeOverlay = document.createElement("div");
+        fadeOverlay.className = "frags-fade-overlay";
+        fragsContainer.appendChild(fadeOverlay);
+
+        // Buka bertahap STEP fragment per klik. Label eksplisit: berapa yg dibuka
+        // klik ini vs total sisa, biar tak terbaca "loncat" (mis. 7 -> 4).
+        const STEP = 3;
+        const moreLabel = (remaining) =>
+          `Tampilkan ${Math.min(STEP, remaining)} lagi (${remaining} tersisa) <i data-lucide="chevron-down"></i>`;
+        const toggleBtn = document.createElement("button");
+        toggleBtn.className = "btn-show-more";
+        toggleBtn.innerHTML = moreLabel(blockFrags.length - 3);
+        toggleBtn.onclick = () => {
+          const hidden = fragsContainer.querySelectorAll(".hidden-frag");
+          for (let i = 0; i < STEP && i < hidden.length; i++) {
+            hidden[i].classList.remove("hidden-frag");
+          }
+          const left = hidden.length - Math.min(STEP, hidden.length);
+          if (left > 0) {
+            toggleBtn.innerHTML = moreLabel(left);
+            if (window.lucide) window.lucide.createIcons({ root: toggleBtn });
+          } else {
+            fadeOverlay.remove();
+            toggleBtn.remove();
+          }
+        };
+        block.appendChild(fragsContainer);
+        block.appendChild(toggleBtn);
+      } else {
+        block.appendChild(fragsContainer);
+      }
+
       card.appendChild(block);
     };
 
@@ -1367,6 +1482,7 @@
     dlgState.data = null;
     dlg.title.innerHTML = `<i data-lucide="book-open"></i> ${suttaId}`;
     refreshIcons();
+    document.body.classList.add("is-loading-dialog");
     dlg.loading.classList.remove("hidden");
     dlg.error.classList.add("hidden");
     dlg.content.classList.add("hidden");
@@ -1376,6 +1492,7 @@
   }
 
   async function loadDialogSutta(hash) {
+    document.body.classList.add("is-loading-dialog");
     dlg.loading.classList.remove("hidden");
     dlg.error.classList.add("hidden");
     dlg.content.classList.add("hidden");
@@ -1393,7 +1510,39 @@
       if (!dlgState.data.segmented) dlgState.displayMode = "single";
       const nameHtml = dlgState.data.sutta_name ? `<div class="dlg-sutta-name">${dlgState.data.sutta_name}</div>` : "";
       dlg.title.innerHTML = `<div class="dlg-title-top"><i data-lucide="book-open"></i> <span class="dlg-formatted-id">${dlgState.data.formatted_id}</span></div>${nameHtml}`;
+      const _chatLink = document.getElementById("sutta-dialog-chat-link");
+      if (_chatLink && dlgState.data.formatted_id)
+        _chatLink.href = "/chat?tag=" + encodeURIComponent(dlgState.data.formatted_id);
       refreshIcons();
+
+      try {
+        let history = JSON.parse(localStorage.getItem("dk-recent-suttas") || "[]");
+        const newItem = {
+          id: dlgState.suttaId,
+          lang: dlgState.lang,
+          author: dlgState.author || "",
+          formatted_id: dlgState.data.formatted_id,
+          name: dlgState.data.sutta_name || "",
+          hash: dlgState.hash || "",
+          timestamp: Date.now()
+        };
+        let oldHash = "";
+        history = history.filter(item => {
+          if (item.id === newItem.id && item.lang === newItem.lang) {
+            if (item.hash) oldHash = item.hash;
+            return false;
+          }
+          return true;
+        });
+        if (!newItem.hash && oldHash) {
+          newItem.hash = oldHash;
+        }
+
+        history.unshift(newItem);
+        if (history.length > 5) history = history.slice(0, 5);
+        localStorage.setItem("dk-recent-suttas", JSON.stringify(history));
+        if (window.DK && window.DK.renderCombinedHistory) window.DK.renderCombinedHistory();
+      } catch (e) { console.error(e); }
 
       // Update tombol "Buka Sutta" ke URL halaman reader standalone
       if (dlg.openLink) {
@@ -1408,9 +1557,11 @@
       renderDialogLangToggle();
       renderDialogScLinks();
       renderDialogSegments(hash);
+      document.body.classList.remove("is-loading-dialog");
       dlg.loading.classList.add("hidden");
       dlg.content.classList.remove("hidden");
     } catch (e) {
+      document.body.classList.remove("is-loading-dialog");
       dlg.loading.classList.add("hidden");
       dlg.errorMsg.textContent = e.message || "Sutta tidak ditemukan.";
       dlg.error.classList.remove("hidden");
@@ -1482,6 +1633,22 @@
     const hash = opts.hash || null;
     const isSideBySide = displayMode === "sidebyside" && lang !== "pli";
     targetEl.innerHTML = "";
+
+    let hasMdSegment = false;
+    data.segments.forEach(seg => {
+      const anchorId = seg.ids && seg.ids.length > 0 ? seg.ids[0] : "";
+      const refSuffix = anchorId.includes(":") ? anchorId.split(":").pop() : anchorId;
+      if (refSuffix.startsWith("md")) hasMdSegment = true;
+    });
+
+    if (hasMdSegment) {
+      const notice = document.createElement("div");
+      notice.className = "md-segment-notice";
+      notice.innerHTML = `<i data-lucide="info"></i> <span data-i18n="sutta_md_notice"><b>Catatan ID Segmen:</b> Teks ini menggunakan sistem penomoran paragraf internal myDhamma (ID berawalan "md") dikarenakan naskah sumber belum memiliki format penomoran standar.</span>`;
+      targetEl.appendChild(notice);
+      if (window.lucide) window.lucide.createIcons({ root: notice });
+    }
+
     const container = document.createElement("div");
     container.className = isSideBySide ? "sutta-segments side-by-side" : "sutta-segments";
     data.segments.forEach(seg => {
@@ -1639,9 +1806,13 @@
     dlg.showModal();
     return new Promise(resolve => {
       let resolved = false;
+      const doResolve = (val) => { if (!resolved) { resolved = true; dlg.close(); resolve(val); } };
       dlg.onclose = () => { if (!resolved) { resolved = true; resolve(false); } };
-      dlg.querySelector("#dk-dlg-cancel").onclick = () => { resolved = true; dlg.close(); resolve(false); };
-      dlg.querySelector("#dk-dlg-confirm").onclick = () => { resolved = true; dlg.close(); resolve(true); };
+      dlg.querySelector("#dk-dlg-cancel").onclick = () => doResolve(false);
+      dlg.querySelector("#dk-dlg-confirm").onclick = () => doResolve(true);
+      // Enter = confirm (Delete/Continue), Escape = cancel (handled natively by <dialog>)
+      dlg._enterHandler = (e) => { if (e.key === "Enter") { e.preventDefault(); doResolve(true); } };
+      dlg.addEventListener("keydown", dlg._enterHandler);
     });
   }
 
@@ -1683,7 +1854,7 @@
 
   // ========== Public API ==========
   window.DK = {
-    state, esc, buildMiniTexts, addBlockToNote, showNotePicker, updateAllLinksInDOM, copyNote, downloadNotePdf, t,
+    state, esc, buildMiniTexts, addBlockToNote, showNotePicker, updateAllLinksInDOM, copyNote, downloadNotePdf, t, getLang,
     highlightKeywords, buildFragTextLines, createFragmentEl, createSuttaCardEl, renderSuttaCardsTo, openSuttaDialog,
     compactRef, showToast, renderSegments, buildDisplayToggle, buildScLinks, langName, authorLongName,
     alert: dkAlert, confirm: dkConfirm, prompt: dkPrompt,
@@ -1716,6 +1887,315 @@
     document.getElementById("reader-settings-close")?.addEventListener("click", close);
     // klik backdrop (luar konten) untuk menutup
     dlg.addEventListener("click", e => { if (e.target === dlg) close(); });
+  }
+
+  // ========== "Go to Sutta" dialog (Lompat ke Teks) ==========
+  function initGotoSutta() {
+    const gotoDlg = document.getElementById("goto-dialog");
+    const btnOpen = document.getElementById("btn-goto-sutta");
+    const btnClose = document.getElementById("btn-close-goto");
+    const inpCol = document.getElementById("goto-collection");
+    const inpNum = document.getElementById("goto-number");
+    const inpTitle = document.getElementById("goto-title");
+    const preview = document.getElementById("goto-preview");
+    const btnGo = document.getElementById("btn-goto-go");
+    if (!gotoDlg || !btnOpen) return;
+
+    let collections = [];   // [{uid, display}, …]
+    let loaded = false;
+    let browseData = null;
+    let suttaNames = null;
+    let lastColUid = "";    // resolved collection uid for number suggestions
+    let validNumsMap = new Map(); // maps '22' -> 'mn22' (full leaf id)
+    let validTitlesMap = new Map(); // maps 'Alagaddūpamasutta' -> 'mn22'
+
+    // Create datalists
+    const dlCol = document.createElement("datalist");
+    dlCol.id = "goto-col-suggestions";
+    gotoDlg.appendChild(dlCol);
+    if (inpCol) inpCol.setAttribute("list", "goto-col-suggestions");
+
+    const dlNum = document.createElement("datalist");
+    dlNum.id = "goto-num-suggestions";
+    gotoDlg.appendChild(dlNum);
+    if (inpNum) inpNum.setAttribute("list", "goto-num-suggestions");
+
+    const dlTitle = document.createElement("datalist");
+    dlTitle.id = "goto-title-suggestions";
+    gotoDlg.appendChild(dlTitle);
+    if (inpTitle) inpTitle.setAttribute("list", "goto-title-suggestions");
+
+    // Walk browse tree and collect all leaf sutta IDs
+    function collectLeafIds(node) {
+      const ids = [];
+      if (typeof node === "string") { ids.push(node); return ids; }
+      if (Array.isArray(node)) { node.forEach(n => ids.push(...collectLeafIds(n))); return ids; }
+      if (typeof node === "object" && node !== null) {
+        Object.values(node).forEach(v => ids.push(...collectLeafIds(v)));
+      }
+      return ids;
+    }
+
+    function extractNumber(id, prefix) {
+      let short = id.toLowerCase().replace(/^pli-tv-/, "").replace(/^(bu|bi)-vb-/, "$1-");
+      const match = short.match(/^([a-z\-]+?)([0-9].*)$/);
+      if (match && match[1] === prefix) return match[2];
+      return null;
+    }
+
+    // Resolve user input to a valid collection uid (case-insensitive)
+    function resolveCollection(input) {
+      if (!input) return null;
+      const v = input.trim().toLowerCase().replace(/[\s\-]+/g, "-");
+      // Try exact uid match, then display match
+      return collections.find(c => c.uid === v)
+        || collections.find(c => c.display.toLowerCase() === v)
+        || collections.find(c => c.display.toLowerCase().replace(/[\s\-]+/g, "-") === v)
+        || null;
+    }
+
+    function populateCollectionSuggestions() {
+      dlCol.innerHTML = "";
+      collections.forEach(c => {
+        const opt = document.createElement("option");
+        opt.value = c.display;   // show "MN", "DN", etc. as suggestion text
+        dlCol.appendChild(opt);
+      });
+    }
+
+    function populateNumberSuggestions() {
+      dlNum.innerHTML = "";
+      validNumsMap.clear();
+      if (!inpCol) return;
+      const col = resolveCollection(inpCol.value);
+      if (!col || !browseData) return;
+      const prefix = col.uid;
+      lastColUid = prefix;
+
+      const allIds = collectLeafIds(browseData);
+      allIds.forEach(id => {
+        const n = extractNumber(id, prefix);
+        if (n && !validNumsMap.has(n)) {
+          validNumsMap.set(n, id);
+          const opt = document.createElement("option");
+          opt.value = n;
+          dlNum.appendChild(opt);
+        }
+      });
+    }
+
+    function removeDiacritics(str) {
+      return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    }
+
+    function populateTitleSuggestions() {
+      dlTitle.innerHTML = "";
+      validTitlesMap.clear();
+      if (!browseData || !suttaNames) return;
+
+      const allIds = collectLeafIds(browseData);
+      allIds.forEach(id => {
+        if (suttaNames[id]) {
+          const title = suttaNames[id];
+          const normalized = removeDiacritics(title).toLowerCase();
+
+          if (!validTitlesMap.has(normalized)) {
+            validTitlesMap.set(normalized, id);
+            // Also map the exact lowercase version in case it differs
+            validTitlesMap.set(title.toLowerCase(), id);
+
+            const opt = document.createElement("option");
+            opt.value = title;
+            // Provide the ASCII string as textContent so the native datalist filters it
+            if (normalized !== title.toLowerCase()) {
+              opt.textContent = normalized;
+            }
+            dlTitle.appendChild(opt);
+          }
+        }
+      });
+    }
+
+    async function ensureBrowseData() {
+      if (browseData) return;
+      try {
+        const res = await fetch("/api/browse");
+        if (res.ok) browseData = await res.json();
+      } catch (_) { /* ignore */ }
+    }
+
+    async function ensureSuttaNames() {
+      if (suttaNames) return;
+      try {
+        const res = await fetch("/api/sutta-names");
+        if (res.ok) suttaNames = await res.json();
+      } catch (_) { /* ignore */ }
+    }
+
+    async function ensureCollections() {
+      if (loaded) return;
+      try {
+        const res = await fetch("/api/collections");
+        if (res.ok) collections = await res.json();
+      } catch (_) { /* ignore */ }
+      loaded = true;
+    }
+
+    function buildId() {
+      if (inpTitle && inpTitle.value.trim()) {
+        const normTitle = removeDiacritics(inpTitle.value.trim()).toLowerCase();
+        if (validTitlesMap.has(normTitle)) return validTitlesMap.get(normTitle);
+      }
+      if (inpCol && inpNum) {
+        const col = resolveCollection(inpCol.value);
+        const num = inpNum.value.trim();
+        if (col && num && validNumsMap.has(num)) return validNumsMap.get(num);
+      }
+      return "";
+    }
+
+    function extractDisplayPrefixAndNum(fullId) {
+      let short = fullId.toLowerCase().replace(/^pli-tv-/, "").replace(/^(bu|bi)-vb-/, "$1-");
+      const match = short.match(/^([a-z\-]+?)([0-9].*)$/);
+      if (match) {
+        const c = collections.find(x => x.uid === match[1]);
+        if (c) return { displayCol: c.display, displayNum: match[2] };
+      }
+      return { displayCol: fullId, displayNum: "" };
+    }
+
+    function updatePreview() {
+      btnGo.disabled = true;
+      btnGo.style.opacity = "0.5";
+      btnGo.style.cursor = "not-allowed";
+
+      const titleVal = inpTitle ? inpTitle.value.trim() : "";
+
+      // If title input is active and filled
+      if (titleVal) {
+        const normTitle = removeDiacritics(titleVal).toLowerCase();
+        if (validTitlesMap.has(normTitle)) {
+          const fullId = validTitlesMap.get(normTitle);
+          const { displayCol, displayNum } = extractDisplayPrefixAndNum(fullId);
+          preview.innerHTML = `<span style="color: var(--accent); font-weight: bold;">&rarr; ${esc(displayCol)} ${esc(displayNum)}</span> &mdash; ${esc(suttaNames[fullId] || titleVal)}`;
+          btnGo.disabled = false;
+          btnGo.style.opacity = "1";
+          btnGo.style.cursor = "pointer";
+        } else {
+          const label = getLang() === "en" ? "Title not found" : "Judul tidak ditemukan";
+          preview.innerHTML = `<span style="color: var(--accent); font-weight: bold;">&rarr;</span> <span style="color: #ef4444;">${label}</span>`;
+        }
+        return;
+      }
+
+      // Otherwise fall back to Collection + Number logic
+      if (!inpCol || !inpNum) return;
+      const col = resolveCollection(inpCol.value);
+      const num = inpNum.value.trim();
+
+      if (!col) {
+        if (inpCol.value.trim()) {
+          preview.innerHTML = `<span style="color: #ef4444;">Koleksi tidak valid</span>`;
+        } else {
+          preview.textContent = "";
+        }
+        return;
+      }
+
+      // Refresh number suggestions if collection changed
+      if (col.uid !== lastColUid) populateNumberSuggestions();
+
+      if (!num) {
+        preview.textContent = "";
+        return;
+      }
+
+      if (validNumsMap.has(num)) {
+        const fullId = validNumsMap.get(num);
+        const name = (suttaNames && suttaNames[fullId]) ? ` &mdash; ${esc(suttaNames[fullId])}` : "";
+        preview.innerHTML = `<span style="color: var(--accent); font-weight: bold;">&rarr; ${esc(col.display)} ${esc(num)}</span>${name}`;
+        btnGo.disabled = false;
+        btnGo.style.opacity = "1";
+        btnGo.style.cursor = "pointer";
+      } else {
+        const label = getLang() === "en" ? "Not available" : "Tidak tersedia";
+        preview.innerHTML = `<span style="color: var(--accent); font-weight: bold;">&rarr; ${esc(col.display)} ${esc(num)}</span> <span style="color: #ef4444; margin-left: 4px;">(${label})</span>`;
+      }
+    }
+
+    function doGoto() {
+      const id = buildId();
+      if (!id) return;
+      gotoDlg.close();
+      window.location.href = "/" + encodeURIComponent(id);
+    }
+
+    btnOpen.addEventListener("click", async () => {
+      if (inpCol) inpCol.value = "";
+      if (inpNum) inpNum.value = "";
+      if (inpTitle) inpTitle.value = "";
+      if (preview) preview.innerHTML = "";
+      if (btnGo) {
+        btnGo.disabled = true;
+        btnGo.style.opacity = "0.5";
+        btnGo.style.cursor = "not-allowed";
+      }
+
+      await ensureCollections();
+      await ensureBrowseData();
+      await ensureSuttaNames();
+      populateCollectionSuggestions();
+      populateNumberSuggestions();
+      populateTitleSuggestions();
+      updatePreview();
+      gotoDlg.showModal();
+      refreshIcons();
+      setTimeout(() => {
+        // Hanya auto-focus di desktop/layar besar. Di mobile, auto-focus bikin keyboard naik dan menutupi layar.
+        if (inpCol && window.innerWidth > 768) {
+          inpCol.focus();
+        }
+      }, 50);
+    });
+
+    if (btnClose) btnClose.addEventListener("click", () => gotoDlg.close());
+    gotoDlg.addEventListener("click", e => { if (e.target === gotoDlg) gotoDlg.close(); });
+
+    if (inpCol) {
+      inpCol.addEventListener("input", () => {
+        if (inpTitle) inpTitle.value = ""; // clear title
+        populateNumberSuggestions();
+        updatePreview();
+      });
+      inpCol.addEventListener("change", () => {
+        if (inpCol.value.trim() && resolveCollection(inpCol.value)) {
+          if (inpNum) inpNum.focus();
+        }
+      });
+      inpCol.addEventListener("keydown", e => {
+        if (e.key === "Enter") { e.preventDefault(); inpNum.focus(); }
+      });
+    }
+    if (inpNum) {
+      inpNum.addEventListener("input", () => {
+        if (inpTitle) inpTitle.value = ""; // clear title
+        updatePreview();
+      });
+      inpNum.addEventListener("keydown", e => {
+        if (e.key === "Enter") { e.preventDefault(); doGoto(); }
+      });
+    }
+    if (inpTitle) {
+      inpTitle.addEventListener("input", () => {
+        if (inpCol) inpCol.value = ""; // clear col
+        if (inpNum) inpNum.value = ""; // clear num
+        updatePreview();
+      });
+      inpTitle.addEventListener("keydown", e => {
+        if (e.key === "Enter") { e.preventDefault(); doGoto(); }
+      });
+    }
+    if (btnGo) btnGo.addEventListener("click", doGoto);
   }
 
   // ========== Font settings (di dalam dialog "Setelan", global) ==========
@@ -2149,6 +2629,7 @@
     interceptDkLinks();
     initSegRef();
     initReaderSettings();
+    initGotoSutta();
     initFontSettings();
     setupResize();
     applyCommonI18n();
@@ -2197,6 +2678,7 @@
 
     const themeBtn = $("#btn-theme-toggle");
     const btnNewNote = $("#btn-new-note");
+    const btnEmptyNewNote = $("#btn-empty-new-note");
     const btnDeleteNote = $("#btn-delete-note");
     const btnAddTextBlock = $("#btn-add-text-block");
     const btnPasteBlock = $("#btn-paste-block");
@@ -2215,6 +2697,7 @@
 
     if (themeBtn) themeBtn.addEventListener("click", toggleTheme);
     if (btnNewNote) btnNewNote.addEventListener("click", createNote);
+    if (btnEmptyNewNote) btnEmptyNewNote.addEventListener("click", createNote);
     if (btnManageNotes) btnManageNotes.addEventListener("click", openNotesManager);
     if (btnFullscreenNotes) {
       btnFullscreenNotes.addEventListener("click", () => {

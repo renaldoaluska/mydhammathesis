@@ -26,7 +26,7 @@
       legend_segment: "Segmen Teks",
       legend_author: "Penerjemah",
       legend_similarity: "Kemiripan Makna",
-      legend_count: "Jumlah Kecocokan",
+      legend_count: "Kecocokan Kata Kunci",
 
       footer_tentang: "Tentang myDhamma",
       panel_sidebar: "Bilah Sisi",
@@ -503,7 +503,7 @@
         scoreTitle += ` | `;
       }
       scoreHtml += `<span style="display:inline-flex;align-items:center;gap:3px;"><i data-lucide="bar-chart-3"></i> ${kwDisplay}</span>`;
-      scoreTitle += `Jumlah Kecocokan: ${kwFull}`;
+      scoreTitle += `Kecocokan Kata Kunci: ${kwFull}`;
     }
 
     // Inside a grouped (per-text) card the author lives in a sub-header, so the

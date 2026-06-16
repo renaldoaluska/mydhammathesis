@@ -1,0 +1,8 @@
+{
+  "_komentar": "Fallback display name utk author uid yang TIDAK ke-resolve dari _author.json / author_edition.json. Dibaca paling akhir oleh reader._load_author_lang_names() — uid yang sudah resolve dari sumber existing tidak akan ditimpa. Slug uid harus persis seperti hasil normalisasi meta (termasuk '&amp;').",
+  "rhys-davids": "C.A.F. Rhys Davids",
+  "t.w.-&amp;-c.a.f.-rhys-davids": "T.W. & C.A.F. Rhys Davids",
+  "shwe-zan-aung": "Shwe Zan Aung, C.A.F. Rhys Davids",
+  "e.b.-cowell": "E.B. Cowell, W.H.D. Rouse",
+  "others": "Hellmuth Hecker, Ayya Khema, dkk."
+}

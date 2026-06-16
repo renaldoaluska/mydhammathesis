@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="utf-8">
+  <title>Ajakan Uji Coba myDhamma — untuk Komunitas Buddhis</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 16mm 17mm 14mm;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    body {
+      font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      color: #1f2430;
+      font-size: 10.4pt;
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    :root {
+      --ink: #25306b;
+      --ink-soft: #e9ecf7;
+      --line: #d7dae6;
+      --muted: #5b6276;
+    }
+
+    /* ---------- Letterhead ---------- */
+    .letterhead {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      border-bottom: 2.5px solid var(--ink);
+      padding-bottom: 10px;
+      margin-bottom: 16px;
+    }
+
+    .letterhead img {
+      height: 46px;
+      width: auto;
+    }
+
+    .letterhead .inst {
+      line-height: 1.25;
+    }
+
+    .letterhead .inst .l1 {
+      font-size: 12.5pt;
+      font-weight: 700;
+      letter-spacing: .3px;
+      color: var(--ink);
+    }
+
+    .letterhead .inst .l2 {
+      font-size: 10pt;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .letterhead .inst .l3 {
+      font-size: 8.6pt;
+      color: var(--muted);
+    }
+
+    .letterhead .lh-collab {
+      margin-left: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+    }
+
+    .letterhead .lh-collab .lh-lbl {
+      font-size: 7pt;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .letterhead .lh-collab .lh-logos {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .letterhead .lh-collab img {
+      height: 38px;
+      width: auto;
+    }
+
+    /* ---------- Query list ---------- */
+    ol.qlist {
+      columns: 2;
+      column-gap: 20px;
+      font-size: 8.8pt;
+      margin: 7px 0 4px;
+      padding-left: 0;
+      list-style: none;
+      counter-reset: q;
+    }
+
+    ol.qlist li {
+      break-inside: avoid;
+      position: relative;
+      padding: 1px 0 1px 23px;
+      line-height: 1.35;
+    }
+
+    ol.qlist li::before {
+      counter-increment: q;
+      content: counter(q) ".";
+      position: absolute;
+      left: 0;
+      top: 0;
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .verif {
+      font-size: 9.1pt;
+      background: #f0f7f1;
+      border: 1px solid #cfe3d3;
+      border-left: 3px solid #15803d;
+      border-radius: 5px;
+      padding: 7px 10px;
+      color: #2f5337;
+      margin: 9px 0 4px;
+    }
+
+    .verif b {
+      color: #15803d;
+    }
+
+    /* ---------- About / intro ---------- */
+    .about {
+      background: #f7f9fc;
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--ink);
+      border-radius: 6px;
+      padding: 10px 14px 9px;
+      margin-bottom: 12px;
+    }
+
+    .about .about-h {
+      font-size: 10.4pt;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 5px;
+    }
+
+    ul.plain {
+      margin: 4px 0 2px;
+      padding-left: 17px;
+      font-size: 9.5pt;
+    }
+
+    ul.plain li {
+      margin-bottom: 4px;
+      text-align: justify;
+    }
+
+    ul.plain b {
+      color: var(--ink);
+    }
+
+    /* ---------- Verification + photo ---------- */
+    .verif-wrap {
+      display: flex;
+      gap: 12px;
+      align-items: stretch;
+      margin: 9px 0 4px;
+    }
+
+    .verif-wrap .verif {
+      flex: 1;
+      margin: 0;
+    }
+
+    .verif-photo {
+      flex: 0 0 auto;
+      text-align: center;
+    }
+
+    .verif-photo img {
+      height: 112px;
+      width: auto;
+      border-radius: 6px;
+      border: 1px solid var(--line);
+      object-fit: cover;
+    }
+
+    .verif-photo .cap {
+      font-size: 7.4pt;
+      color: var(--muted);
+      margin-top: 3px;
+      max-width: 175px;
+      line-height: 1.25;
+    }
+
+    /* ---------- Title ---------- */
+    .doc-title {
+      text-align: center;
+      margin: 2px 0 14px;
+    }
+
+    .doc-title h1 {
+      font-size: 15pt;
+      margin: 0;
+      color: var(--ink);
+      letter-spacing: .2px;
+    }
+
+    .doc-title .sub {
+      font-size: 10pt;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    /* ---------- Identity card ---------- */
+    .idcard {
+      background: var(--ink-soft);
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--ink);
+      border-radius: 6px;
+      padding: 11px 14px;
+      margin-bottom: 14px;
+    }
+
+    .idcard table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .idcard td {
+      vertical-align: top;
+      padding: 2px 0;
+      font-size: 9.6pt;
+    }
+
+    .idcard td.k {
+      width: 142px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .idcard td.k::after {
+      content: ":";
+      float: right;
+      padding-right: 8px;
+    }
+
+    .idcard .judul {
+      font-weight: 700;
+      color: #222;
+    }
+
+    p {
+      margin: 0 0 9px;
+      text-align: justify;
+    }
+
+    .greet {
+      margin-bottom: 12px;
+    }
+
+    .deadline {
+      display: inline-block;
+      background: #fff5e6;
+      border: 1px solid #e8a838;
+      color: #8a5a00;
+      font-weight: 600;
+      font-size: 9.4pt;
+      border-radius: 5px;
+      padding: 4px 11px;
+      margin: 2px 0 4px;
+    }
+
+    .deadline b {
+      color: #c2410c;
+    }
+
+    /* ---------- Sections ---------- */
+    .section {
+      break-inside: avoid;
+      margin: 14px 0 10px;
+    }
+
+    .section>h2 {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 11.6pt;
+      color: #fff;
+      background: var(--ink);
+      margin: 0;
+      padding: 6px 12px;
+      border-radius: 5px 5px 0 0;
+    }
+
+    .section>h2 .num {
+      font-size: 9pt;
+      background: rgba(255, 255, 255, .22);
+      border-radius: 50%;
+      width: 19px;
+      height: 19px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+    }
+
+    .section>h2 .tag {
+      margin-left: auto;
+      font-size: 8.4pt;
+      font-weight: 500;
+      opacity: .85;
+    }
+
+    .section .body {
+      border: 1px solid var(--line);
+      border-top: none;
+      border-radius: 0 0 5px 5px;
+      padding: 11px 14px 12px;
+    }
+
+    .purpose {
+      font-size: 9.5pt;
+      color: #333;
+    }
+
+    .purpose b {
+      color: var(--ink);
+    }
+
+    ol.steps {
+      margin: 8px 0 4px;
+      padding-left: 0;
+      counter-reset: step;
+      list-style: none;
+    }
+
+    ol.steps li {
+      position: relative;
+      padding: 2px 0 6px 30px;
+      font-size: 9.7pt;
+    }
+
+    ol.steps li::before {
+      counter-increment: step;
+      content: counter(step);
+      position: absolute;
+      left: 0;
+      top: 1px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--ink-soft);
+      border: 1.4px solid var(--ink);
+      color: var(--ink);
+      font-weight: 700;
+      font-size: 8.6pt;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    a.link,
+    .url {
+      color: var(--ink);
+      font-weight: 600;
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    /* ---------- Grade scale ---------- */
+    .scale-h {
+      font-size: 9.4pt;
+      font-weight: 700;
+      color: var(--ink);
+      margin: 10px 0 6px;
+    }
+
+    table.scale {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 9.1pt;
+    }
+
+    table.scale th,
+    table.scale td {
+      border: 1px solid var(--line);
+      padding: 5px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    table.scale th {
+      background: var(--ink);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    table.scale td.g {
+      text-align: center;
+      font-weight: 700;
+      width: 34px;
+    }
+
+    table.scale td.t {
+      width: 120px;
+      font-weight: 600;
+      color: #222;
+    }
+
+    .g0 {
+      color: #b91c1c;
+    }
+
+    .g1 {
+      color: #b45309;
+    }
+
+    .g2 {
+      color: #0f766e;
+    }
+
+    .g3 {
+      color: #15803d;
+    }
+
+    .est {
+      font-size: 8.9pt;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
+    .closing {
+      margin-top: 14px;
+      font-size: 9.7pt;
+    }
+
+    .contact {
+      margin-top: 8px;
+      border-top: 1px solid var(--line);
+      padding-top: 8px;
+      font-size: 9.2pt;
+      color: var(--muted);
+    }
+
+    .contact b {
+      color: #222;
+    }
+
+    /* ---------- Inline icons & UI button chips ---------- */
+    svg.ic {
+      width: 1.05em;
+      height: 1.05em;
+      vertical-align: -0.16em;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .section>h2 .hic {
+      width: 15px;
+      height: 15px;
+      vertical-align: -2px;
+      stroke: #fff;
+      stroke-width: 2.2;
+      flex: 0 0 auto;
+    }
+
+    .deadline .ic {
+      vertical-align: -0.12em;
+    }
+
+    .uib {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      background: var(--ink-soft);
+      border: 1px solid #c3c9e4;
+      border-radius: 4px;
+      padding: 0 5px;
+      font-size: .86em;
+      font-weight: 600;
+      color: var(--ink);
+      white-space: nowrap;
+      vertical-align: 1px;
+    }
+
+    .uib svg {
+      width: .95em;
+      height: .95em;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* ---------- Collaboration band ---------- */
+    .collab {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+      text-align: center;
+    }
+
+    .collab .lbl {
+      font-size: 8.4pt;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+      margin-bottom: 7px;
+    }
+
+    .collab .logos {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 26px;
+    }
+
+    .collab .logos img {
+      height: 42px;
+      width: auto;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="letterhead">
+    <img src="__ITS_LOGO__" alt="ITS">
+    <div class="inst">
+      <div class="l1">INSTITUT TEKNOLOGI SEPULUH NOPEMBER</div>
+      <div class="l2">Departemen Sistem Informasi</div>
+      <div class="l3">Tugas Akhir Sarjana &middot; Surabaya</div>
+    </div>
+    <div class="lh-collab">
+      <span class="lh-lbl">Bekerja sama dengan</span>
+      <div class="lh-logos">
+        <img src="__STAB_LOGO__" alt="STAB Kertarajasa">
+        <img src="__STYAB_LOGO__" alt="STAB Syailendra">
+      </div>
+    </div>
+  </div>
+
+  <div class="doc-title">
+    <h1>Ajakan Uji Coba myDhamma</h1>
+    <div class="sub">Bantu Kami Menilai Kemudahan Penggunaan &mdash; untuk Sahabat Komunitas Buddhis</div>
+  </div>
+
+  <p class="greet"><b>Namo Buddhaya.</b> Salam hangat dan penuh <i>mettā</i> untuk Sahabat Dhamma sekalian.
+    <b>myDhamma</b> adalah mesin pencari teks Dhamma (Kanon Pāḷi) berbahasa Indonesia yang sedang
+    dikembangkan sebagai Tugas Akhir di Institut Teknologi Sepuluh Nopember, bekerja sama dengan
+    STAB Kertarajasa dan STAB Syailendra. Kami mohon kesediaan Sahabat untuk <b>mencoba aplikasinya
+    sebentar</b> lalu <b>mengisi kuesioner singkat</b> &mdash; kesan dan masukan Sahabat sangat berharga
+    agar sarana ini benar-benar mudah digunakan dan bermanfaat bagi umat.</p>
+
+  <div class="about">
+    <div class="about-h">Sekilas tentang myDhamma</div>
+    <ul class="plain">
+      <li>Sebuah mesin pencari <b>gratis</b> untuk teks Kitab Suci Agama Buddha (Kanon Pāḷi) berbahasa
+        Indonesia &mdash; mirip mesin pencari biasa, tetapi khusus dibuat untuk teks Dhamma.</li>
+      <li>Sistem ini mencari berdasarkan <b>makna pertanyaan</b> (disebut <b>pencarian semantik</b>, yaitu
+        <i>berbasis makna</i>), bukan sekadar mencocokkan kata yang sama persis. Jadi Sahabat cukup
+        bertanya dengan <b>bahasa sehari-hari</b>.</li>
+      <li>Contoh: mengetik &ldquo;<i>mengapa manusia menderita</i>&rdquo; dapat menemukan teks tentang
+        <i>dukkha</i>, meskipun kata &ldquo;menderita&rdquo; tidak muncul persis di dalam teks.</li>
+    </ul>
+  </div>
+
+  <div class="deadline"><svg class="ic" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="12 6 12 12 16 14" />
+    </svg> Bila berkenan, mohon diisi sebelum <b>20 Juni 2026</b></div>
+
+  <!-- ============ Cara ikut serta ============ -->
+  <div class="section">
+    <h2><svg class="hic" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" /><path d="m9 12 2 2 4-4" />
+      </svg> Cara Ikut Serta <span class="tag">total &plusmn;10 menit</span></h2>
+    <div class="body">
+      <p class="purpose">Cukup <b>tiga langkah</b> sederhana, dapat dilakukan dari <b>HP maupun komputer</b>
+        (layar lebih besar lebih nyaman untuk membaca):</p>
+
+      <ol class="steps">
+        <li><b>Buka aplikasinya</b> di <span class="url">https://md.renaldo.my.id</span></li>
+        <li><b>Cobalah beberapa hal</b> sesuai keinginan Sahabat (lihat ide di bawah) &mdash; jelajahi dengan santai.</li>
+        <li><b>Isi kuesioner singkat</b> di <span class="url">https://its.id/m/evaluasistab</span></li>
+      </ol>
+
+      <p
+        style="font-size:9.2pt;background:#eef6ff;border:1px solid #cfe0f2;border-left:3px solid #3b6fb0;border-radius:5px;padding:7px 10px;color:#2b4a66;margin:9px 0;">
+        <svg class="ic" viewBox="0 0 24 24" style="stroke:#3b6fb0">
+          <circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" />
+        </svg>
+        Sengaja <b>tidak ada panduan langkah demi langkah</b> &mdash; justru caranya Sahabat menemukan sendiri
+        itulah yang ingin kami pelajari. <b>Tidak ada jawaban benar atau salah</b>; kesan jujur Sahabat,
+        termasuk bila ada yang membingungkan, justru paling membantu.
+      </p>
+
+      <div class="scale-h">Beberapa hal yang bisa dicoba
+        <span style="font-weight:500;color:var(--muted)">(pilih yang Sahabat suka)</span>
+      </div>
+      <ol class="steps">
+        <li><svg class="ic" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
+          </svg> Cari sebuah teks hanya dengan <b>bahasa sehari-hari</b> (tanpa istilah Pali),
+          mis. &ldquo;mengapa manusia menderita&rdquo;.</li>
+        <li><svg class="ic" viewBox="0 0 24 24">
+            <path d="M20 7h-9" /><path d="M14 17H5" /><circle cx="17" cy="17" r="3" /><circle cx="7" cy="7" r="3" />
+          </svg> Bandingkan hasil dari <b>dua mode pencarian</b> (berbasis makna vs kata kunci).</li>
+        <li><svg class="ic" viewBox="0 0 24 24">
+            <path d="M12 7v14" />
+            <path
+              d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z" />
+          </svg> Buka sebuah hasil lalu <b>baca terjemahannya</b>; coba pula tampilkan teks Pāḷi berdampingan.</li>
+        <li><svg class="ic" viewBox="0 0 24 24">
+            <path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+          </svg> <b>Simpan/kutip</b> sebuah bagian teks ke fitur <b>Catatan</b>, lalu kelola dan salin.</li>
+        <li><svg class="ic" viewBox="0 0 24 24">
+            <path d="M8 6h13" /><path d="M8 12h13" /><path d="M8 18h13" />
+            <path d="M3 6h.01" /><path d="M3 12h.01" /><path d="M3 18h.01" />
+          </svg> <b>Telusuri</b> struktur kitab untuk menemukan kelompok teks tertentu.</li>
+      </ol>
+
+      <p style="font-size:9.6pt;margin-top:4px">Kuesionernya singkat: <b>11 pertanyaan</b>
+        (10 pernyataan baku <b>SUS</b> + 1 isian/saran), hanya sekitar <b>5 menit</b>.</p>
+    </div>
+  </div>
+
+  <div class="closing">
+    Terima kasih banyak atas waktu dan dukungan Sahabat &mdash; sumbangsih kecil ini sangat berarti bagi
+    pengembangan sarana belajar Dhamma. Bila ada kendala pada salah satu tautan, mohon menghubungi
+    narahubung di bawah. <b>Sādhu, sādhu, sādhu.</b>
+  </div>
+  <div class="contact">
+    <b>Narahubung:</b> Alfa Renaldo Aluska &nbsp;&middot;&nbsp;
+    <svg class="ic" viewBox="0 0 24 24">
+      <path
+        d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z" />
+    </svg> 0858-1456-6133 &nbsp;&middot;&nbsp;
+    <svg class="ic" viewBox="0 0 24 24">
+      <rect width="20" height="16" x="2" y="4" rx="2" />
+      <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+    </svg> renaldoaluska@gmail.com
+  </div>
+
+  <div class="collab">
+    <div class="lbl">Bekerja sama dengan</div>
+    <div class="logos">
+      <img src="__STAB_LOGO__" alt="STAB Kertarajasa">
+      <img src="__STYAB_LOGO__" alt="STAB Syailendra">
+    </div>
+  </div>
+
+</body>
+
+</html>

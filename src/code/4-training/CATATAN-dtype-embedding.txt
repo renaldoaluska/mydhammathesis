@@ -1,0 +1,97 @@
+================================================================================
+CATATAN: dtype embedding (fp16 vs fp32) — gte vs e5/bge
+================================================================================
+Ditulis: 2026-06-11. Konteks: error "Float vs Half" di web-md + pertanyaan
+apakah eval tetap apple-to-apple.
+
+--------------------------------------------------------------------------------
+1. FAKTA: dtype embedding korpus di src/output/embeddings/web/
+--------------------------------------------------------------------------------
+  - gte-multilingual-base        -> fp16 (torch.float16)
+  - gpl-gte-multilingual-base    -> fp16
+  - multilingual-e5-base         -> fp32 (torch.float32)
+  - gpl-multilingual-e5-base     -> fp32
+  - bge-m3                       -> fp32
+
+--------------------------------------------------------------------------------
+2. KENAPA BEDA? (bukan disengaja, bukan terkunci arsitektur)
+--------------------------------------------------------------------------------
+  - DULU 5-embed.py TIDAK meng-cast: `torch.save(model.encode(...))` -> dtype
+    embedding = dtype MODEL saat encode (non-deterministik, ikut config tiap model).
+      gte: config.json `torch_dtype: float16` -> ke-load fp16 -> embedding fp16.
+      e5/bge: ke-load fp32 -> embedding fp32.
+  - SEKARANG (2026-06-11) 5-embed.py PIN eksplisit `emb.float()` -> SEMUA embedding
+    baru = fp32, deterministik, tak bergantung dtype-muat model/loader.
+  - File LAMA gte (fp16) = warisan sebelum pin; identik-fp32 ~1e-6, masih dipakai
+    web-md & eval (sinkron). Akan jadi fp32 saat di-regen.
+  => gte BISA fp32, e5 BISA fp16. Tak ada yang terkunci arsitektur; sekarang dtype
+     simpan = keputusan eksplisit (fp32), bukan efek samping config model.
+
+--------------------------------------------------------------------------------
+3. INSIDEN transformers v5 + FIX (Juni 2026)
+--------------------------------------------------------------------------------
+  - transformers v5 mulai MENGHORMATI `torch_dtype` di config -> gte ke-load Half
+    -> error "self and mat2 must have the same dtype: Float vs Half" saat encode,
+    lalu (setelah model di-fp32-kan) pindah ke cos_sim (query fp32 vs emb fp16).
+  - FIX (satu sumber kebenaran):
+      a. src/config.py  load_st_model(): `model.float()` -> SEMUA model dimuat
+         fp32 seragam (kompat v5, sama utk train/embed/eval/web).
+      b. web/search.py  semantic_search(): query di-cast ke dtype embedding korpus
+         sebelum cos_sim (`qe.to(dtype=emb.dtype)`) -> aman walau emb fp16.
+  - EFEK SAMPING POSITIF: karena 5-embed.py juga pakai load_st_model, RE-RUN
+    precompute sekarang otomatis menghasilkan embedding gte fp32 (seragam).
+
+--------------------------------------------------------------------------------
+4. APAKAH MASIH APPLE-TO-APPLE? -> YA.
+--------------------------------------------------------------------------------
+  Klaim inti metodologi = base vs GPL PER-ARSITEKTUR. Kedua sisi presisi SAMA:
+      base-gte (fp16) vs GPL-gte (fp16)  -> apple-to-apple sempurna
+      base-e5  (fp32) vs GPL-e5  (fp32)  -> apple-to-apple sempurna
+  Asimetri fp16/fp32 HANYA muncul di komparasi LINTAS-ARSITEKTUR (gte vs e5),
+  dan dampaknya terukur dapat-diabaikan.
+
+  Pengukuran A — presisi ENCODING (gte-GPL korpus id, 1500 chunk acak):
+    cosine(vektor fp16-tersimpan, vektor fp32-encode-ulang) per-chunk:
+      mean=0.999999  min=0.999995  ; chunk <0.999 = 0
+    => vektor fp16 gte IDENTIK dgn fp32 sampai desimal ke-6. fp16 di sini lossless
+       praktis; bukan "vektor lebih kasar". Beda presisi ~1e-6.
+
+  Pengukuran B — presisi ARITMETIKA cos_sim (7 query, fp16-arit vs fp32-arit):
+      top-5  beda urutan : 0/7  (IDENTIK -> yang dijudge pakar tak berubah)
+      top-10 beda urutan : 3/7  (hanya rank 6-10, di luar penilaian)
+      max |Δcos|         : 5.6e-04  (noise desimal ke-4)
+
+  KESIMPULAN: lintas-arsitektur (gte vs e5) strictly bukan apple-to-apple 100%
+  (1 variabel presisi beda), TAPI besarnya terukur ~1e-6 -> tak menggeser ranking
+  /verdict. Defense: "fp16 terverifikasi identik fp32 sampai 6 desimal (cos 0.999999)".
+
+--------------------------------------------------------------------------------
+5. KESELARASAN web-md <-> web-eval
+--------------------------------------------------------------------------------
+  - search_cache.pkl (eval) dibangun oleh 5-eval/1-build-cache.py yang memanggil
+    web/search.py semantic_search YANG SAMA dengan web-md. Konsisten by-construction.
+  - Cache dibangun saat gte masih fp32-model (pra-v5); fix model.float() MENGEMBALIKAN
+    web-md ke regime itu -> selaras lagi. (v5 yang sempat men-desync, bukan fix ini.)
+  - Cache beku -> angka eval TIDAK berubah oleh fix ini.
+
+--------------------------------------------------------------------------------
+6. KALAU MAU SERAGAM TOTAL (opsional, TIDAK wajib)
+--------------------------------------------------------------------------------
+  Tujuan: semua embedding fp32 (hilangkan asimetri lintas-arsitektur sepenuhnya).
+  Langkah:
+    1) Re-run: python src/code/4-training/5-embed.py  (untuk model gte)
+       -> kini otomatis fp32 berkat fix loader.
+    2) Rebuild: python src/code/5-eval/1-build-cache.py  -> search_cache.pkl baru.
+    3) Restart web-eval (cache dibaca sekali saat startup).
+    4) Banding metrik lama vs baru (nDCG dll) -> diperkirakan gerak ~nol (top-5 stabil).
+  Trade-off: embedding gte fp32 = 2x ukuran disk/RAM vs fp16.
+
+  REKOMENDASI: tidak mendesak. Eval saat ini valid; fp16/fp32 = noise desimal ke-4,
+  bukan masalah metodologi. Lakukan hanya jika ingin kerapian presisi seragam.
+
+  *** HARAM (bikin web-md DESYNC dari eval) ***
+  JANGAN re-precompute gte ke fp32 untuk web-md SAJA tanpa rebuild search_cache.pkl.
+  web-md & eval HARUS pakai file embedding yang sama. Kalau ubah dtype embedding,
+  ubah utk KEDUANYA sekaligus (langkah 1-4 di atas, satu paket) lalu re-eval.
+  Default aman: biarkan fp16 -> web-md sudah identik dengan sistem yang dieval.
+================================================================================

@@ -1,0 +1,77 @@
+METODE PEMBUATAN PROTOTIPE WEB-MD (myDhamma)
+==========================================
+
+Metode : RAPID PROTOTYPING (Naumann & Jenkins, 1982).
+Lingkup: STANDALONE — hanya box "Pembuatan Prototipe" pada alur penelitian.
+         Tidak menimpa box lain:
+           - Kebutuhan & model terpilih = INPUT (dari Studi Literatur dan
+             Analisis Hasil), BUKAN fase metode ini.
+           - Evaluasi Kebergunaan (SUS) = box tersendiri; metode ini hanya
+             MENGKONSUMSI umpan baliknya pada langkah revisi.
+Alasan : ringkas & cepat untuk prototipe bukti-konsep; langkah dimulai dari
+         "kebutuhan dasar" yang diterima sebagai masukan (bukan elisitasi
+         penuh), sehingga tidak ada duplikasi fase dengan alur riset — beda
+         dengan paradigma Prototyping penuh (Pressman) yang membawa siklus
+         komunikasi-perencanaan-umpan-balik sendiri.
+
+
+EMPAT LANGKAH RAPID PROTOTYPING -> PENGERJAAN WEB-MD
+=============================================================================
+
+1. IDENTIFIKASI KEBUTUHAN DASAR (basic requirements)
+   Merangkum kebutuhan yang SUDAH tersedia dari tahapan sebelumnya
+   (masukan, bukan elisitasi baru):
+     (a) Fungsional : telusur hierarki (browse tree), suttaplex, reader
+                      per-sutta, breadcrumbs, dukungan ID/EN/PLI
+                      (dari analisis aplikasi sejenis: SuttaCentral,
+                      Tipitaka.app, DhammaCitta).
+     (b) Inti       : pencarian berbasis makna lintas bahasa
+                      (dari studi literatur: BEIR, GPL, dense retrieval).
+     (c) Konfigurasi: model retrieval terpilih (dari Analisis Hasil).
+
+2. MEMBANGUN PROTOTIPE KERJA (develop a working prototype)
+   Perancangan + konstruksi cepat:
+     - Arsitektur berlapis: engine retrieval bersama `web/` + app Flask
+       `web-md/`; rancangan konfigurasi engine/model.
+     - Implementasi: pencarian 3 metode (Makna / Kata Kunci-BM25 /
+       Hybrid-RRF), selektor model & bahasa, reader (segmentasi 1:1 dengan
+       korpus), browse tree, suttaplex, breadcrumbs.
+
+3. IMPLEMENTASI & PEMAKAIAN PROTOTIPE (implement and use)
+   Deployment publik (md.renaldo.my.id); prototipe dipakai pengguna nyata.
+   Pemakaian inilah yang menjadi objek box Evaluasi Kebergunaan (SUS).
+
+4. REVISI & PENYEMPURNAAN (revise and enhance) — DIBATASI
+   Pada penelitian ini langkah revisi DIBATASI sampai PERUMUSAN REKOMENDASI
+   perbaikan berdasarkan umpan balik Evaluasi Kebergunaan (SUS).
+   Implementasi revisi + siklus iterasi berikutnya = PENELITIAN SELANJUTNYA,
+   karena fokus utama penelitian ada pada pengembangan & evaluasi model
+   retrieval.
+   Konsistensi penulisan:
+     - Batasan Penelitian (Bab 1): tambah butir pembatasan langkah 4 ini.
+     - Saran (Bab penutup): hasil SUS + masukan responden dituangkan jadi
+       daftar rekomendasi konkret.
+
+
+CATATAN LINGKUP (jangan dicampur)
+=============================================================================
+- Dokumen ini = metode box "Pembuatan Prototipe" SAJA.
+- Pelatihan model + Evaluasi Intrinsik + Evaluasi Relevansi + web-eval =
+  bagian lain alur penelitian, di luar metode ini.
+- Evaluasi Kebergunaan (SUS) = box tersendiri setelah pembuatan prototipe:
+    - Instrumen : kuesioner SUS 10 item, skala Likert 1-5.
+    - Skor      : 0-100 (~68 = rata-rata; skala adjektif/grade).
+    - Objek     : antarmuka web-md (BUKAN kualitas model).
+    - Responden : pengguna (BUKAN pakar penilai relevansi).
+  Hasilnya masuk ke langkah 4 (rekomendasi) metode ini.
+
+
+SITASI
+=============================================================================
+- Naumann, J. D., & Jenkins, A. M. (1982). Prototyping: The New Paradigm for
+  Systems Development. MIS Quarterly, 6(3), 29-44.   (rapid prototyping,
+  4 langkah: basic requirements -> working prototype -> use -> revise)
+- Brooke, J. (1996). SUS: A 'quick and dirty' usability scale. In Usability
+  Evaluation in Industry.   (instrumen SUS — dipakai box Evaluasi Kebergunaan)
+- Bangor, A., Kortum, P., & Miller, J. (2009). Determining What Individual SUS
+  Scores Mean: Adding an Adjective Rating Scale. JUS.   (interpretasi skor SUS)

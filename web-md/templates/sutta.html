@@ -17,6 +17,10 @@
             <i data-lucide="arrow-left"></i>
         </a>
         <h2 id="reader-subtitle"></h2>
+        <a id="reader-chat-link" href="/chat?tag={{ sutta_id }}" class="btn-chat-ai icon-only-mobile" style="margin-left:auto;"
+            title="Chat dengan AI">
+            <i data-lucide="sparkles"></i> <span data-i18n="btn_chat_ai">Chat dengan AI</span>
+        </a>
     </div>
 </div>
 <div class="reader-controls-sticky" id="reader-controls-sticky">
@@ -52,9 +56,32 @@
 </div>
 {% endif %}
 <div id="sutta-content">
-    <div id="sutta-loading" class="empty-state">
-        <div class="spinner"></div>
-        <p data-i18n="loading_sutta">Memuat sutta…</p>
+    <div id="sutta-loading" style="padding: 24px; max-width: 800px; margin: 0 auto; width: 100%; pointer-events: none;">
+        <!-- Title Skeleton -->
+        <div style="animation: skeleton-pulse 1.5s infinite ease-in-out; margin-bottom: 32px;">
+            <div style="width: 60%; height: 28px; border-radius: 4px; background: var(--border-strong); margin-bottom: 12px;"></div>
+            <div style="width: 30%; height: 16px; border-radius: 4px; background: var(--border-strong);"></div>
+        </div>
+        <!-- Paragraph 1 -->
+        <div style="animation: skeleton-pulse 1.5s infinite ease-in-out; margin-bottom: 24px;">
+            <div style="width: 100%; height: 16px; border-radius: 4px; background: var(--border-strong); margin-bottom: 8px;"></div>
+            <div style="width: 100%; height: 16px; border-radius: 4px; background: var(--border-strong); margin-bottom: 8px;"></div>
+            <div style="width: 90%; height: 16px; border-radius: 4px; background: var(--border-strong); margin-bottom: 8px;"></div>
+            <div style="width: 85%; height: 16px; border-radius: 4px; background: var(--border-strong);"></div>
+        </div>
+        <!-- Paragraph 2 -->
+        <div style="animation: skeleton-pulse 1.5s infinite ease-in-out; animation-delay: 0.15s; margin-bottom: 24px;">
+            <div style="width: 100%; height: 16px; border-radius: 4px; background: var(--border-strong); margin-bottom: 8px;"></div>
+            <div style="width: 95%; height: 16px; border-radius: 4px; background: var(--border-strong); margin-bottom: 8px;"></div>
+            <div style="width: 100%; height: 16px; border-radius: 4px; background: var(--border-strong); margin-bottom: 8px;"></div>
+            <div style="width: 60%; height: 16px; border-radius: 4px; background: var(--border-strong);"></div>
+        </div>
+        <!-- Paragraph 3 -->
+        <div style="animation: skeleton-pulse 1.5s infinite ease-in-out; animation-delay: 0.3s; margin-bottom: 24px;">
+            <div style="width: 100%; height: 16px; border-radius: 4px; background: var(--border-strong); margin-bottom: 8px;"></div>
+            <div style="width: 80%; height: 16px; border-radius: 4px; background: var(--border-strong); margin-bottom: 8px;"></div>
+            <div style="width: 90%; height: 16px; border-radius: 4px; background: var(--border-strong);"></div>
+        </div>
     </div>
     <div id="sutta-error" class="empty-state hidden">
         <div class="empty-icon"><i data-lucide="triangle-alert"></i></div>
