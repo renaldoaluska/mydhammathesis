@@ -1608,8 +1608,10 @@ a:hover {
   top: 8px;
   /* bottom: 8px; */
   right: 8px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
+  /* background: var(--bg-secondary); */
+  background: none;
+  /* border: 1px solid var(--border); */
+  border: 1px solid var(--accent);
   border-radius: var(--radius-sm);
   padding: 2px 8px;
   font-size: .65rem;
@@ -2983,13 +2985,14 @@ html.show-seg-ref .sutta-segment:hover .seg-ref {
   border-color: var(--accent);
 }
 
+/* Ini kalo mobile */
 @media (hover: none) {
   .seg-add-btn {
-    opacity: .35;
+    opacity: 0.5;
   }
 
   .btn-add-note {
-    opacity: .35;
+    opacity: 1;
   }
 }
 
