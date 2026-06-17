@@ -67,8 +67,8 @@
       try_query: "Ayat Tipiṭaka tentang:",
       ens_incompat_legend: "tak cocok untuk korpus target ini (hasil bisa kurang relevan)",
       cta_badge: "Eksperimental",
-      cta_tagline: "Kurang puas dengan hasilnya?",
-      cta_btn: "Chat AI Sekarang",
+      cta_tagline: "Belum menemukan yang dicari?",
+      cta_btn: "Tanya AI",
     },
     en: {
       subtitle: "Tipiṭaka Search based on meaning",
@@ -130,8 +130,8 @@
       try_query: "Tipiṭaka verses about:",
       ens_incompat_legend: "not suitable for this target corpus (results may be less relevant)",
       cta_badge: "Experimental",
-      cta_tagline: "Not satisfied with the results?",
-      cta_btn: "Chat AI Now",
+      cta_tagline: "Haven't found what you need?",
+      cta_btn: "Ask AI",
     },
   };
 
@@ -720,6 +720,30 @@
     return `<span class="cat-badge ${catKey}">${catLabel}</span><br>${modelDisplay}`;
   }
 
+  // Nudge tooltip ke tombol "Tanya AI" header: tampil sekali per render saat user scroll
+  // melewati kartu hasil ke-3, lalu hilang sendiri setelah beberapa detik.
+  let headerNudgeShown = false;
+  let headerNudgeEl = null;
+  function showHeaderChatNudge() {
+    const btn = document.getElementById("header-chat-ai");
+    if (!btn || btn.offsetParent === null) return;   // tombol tak terlihat (mis. di-hide)
+    if (!headerNudgeEl) {
+      headerNudgeEl = document.createElement("div");
+      headerNudgeEl.className = "header-chat-nudge";
+      document.body.appendChild(headerNudgeEl);
+    }
+    headerNudgeEl.textContent = state.lang === "en"
+      ? "Didn't find what you're looking for? Ask myDhamma AI"
+      : "Belum menemukan yang dicari? Tanya myDhamma AI";
+    const r = btn.getBoundingClientRect();
+    headerNudgeEl.style.top = (r.bottom + 8) + "px";
+    headerNudgeEl.style.right = Math.max(8, window.innerWidth - r.right) + "px";
+    // paksa reflow biar transisi .show jalan walau dipanggil beruntun
+    void headerNudgeEl.offsetWidth;
+    headerNudgeEl.classList.add("show");
+    clearTimeout(headerNudgeEl._t);
+    headerNudgeEl._t = setTimeout(() => headerNudgeEl.classList.remove("show"), 4500);
+  }
   function renderResults(searchResults, isDual) {
     const container = dom.resultsContainer;
     container.innerHTML = "";
@@ -757,13 +781,19 @@
     } else {
       if (dom.searchLegend) {
         dom.searchLegend.classList.remove("hidden");
-        if (dom.aiCta) {
-          dom.aiCta.classList.remove("hidden");
+        // Header "Tanya AI" link bawa query aktif (?q=...) supaya chat lanjut dari pencarian ini.
+        const q = dom.searchInput ? dom.searchInput.value.trim() : "";
+        const headerChat = document.getElementById("header-chat-ai");
+        if (headerChat) headerChat.href = q ? `/chat?q=${encodeURIComponent(q)}` : "/chat";
+        // Single-mode: TANPA CTA inline — nudge ke tombol header lewat tooltip saat scroll
+        // (lihat scroll handler). Reset flag biar tooltip bisa muncul sekali per render.
+        headerNudgeShown = false;
+        // Dual-mode: CTA tetap di akhir container.
+        if (dom.aiCta && isDual) {
           const aiBtn = dom.aiCta.querySelector(".btn-chat-ai-q");
-          if (aiBtn) {
-            const q = dom.searchInput ? dom.searchInput.value.trim() : "";
-            if (q) aiBtn.href = `/chat?q=${encodeURIComponent(q)}`;
-          }
+          if (aiBtn) aiBtn.href = q ? `/chat?q=${encodeURIComponent(q)}` : "/chat";
+          dom.aiCta.classList.remove("hidden");
+          container.appendChild(dom.aiCta);
         }
         const hasSemantic = state.method.includes("semantic");
         const hasKeyword = state.method.includes("keyword");
@@ -853,144 +883,8 @@
   // hasilnya relevan secara tematik. Tampil 6 acak per muat halaman.
   // Per bahasa UI; index-paired (en[i] = padanan id[i]). Frasa EN mengikuti
   // idiom terjemahan korpus EN (mis. moralitas -> "virtue").
-  const RECOMMENDED_QUERIES = {
-    id: [
-      "yang tidak dilahirkan",
-      "bakti kepada orangtua",
-      "bahaya kemarahan",
-      "perenungan kematian",
-      "kebahagiaan adalah",
-      "hukum kamma",
-      "empat jenis manusia",
-      "jenis jenis perasaan",
-      "empat unsur",
-      "cinta kasih",
-      "kemelekatan adalah",
-      "jenis penderitaan",
-      "jenis belenggu",
-      "manfaat meditasi",
-      "perhatian pada napas",
-      "lima rintangan batin",
-      "pentingnya kesabaran",
-      "moralitas adalah",
-      "mengatasi kesedihan",
-      "ucapan benar",
-      "godaan mara",
-      "tanpa diri",
-      "berkah utama",
-      "empat kebenaran mulia",
-      "tujuh faktor pencerahan",
-      "pengendalian indria",
-      "bahaya minuman keras",
-      "kekayaan sejati",
-      "mengatasi kemalasan",
-      "kasih sayang ibu",
-      "perumpamaan rakit",
-      "keinginan indriawi",
-      "ketenangan pikiran",
-      "perumpamaan gergaji",
-      "kisah angulimala",
-      "nasihat kepada rahula",
-      "kebijaksanaan adalah",
-      "pentingnya keyakinan",
-      "hidup menyendiri",
-      "suami istri",
-      "memilih teman",
-      "delapan kondisi duniawi",
-      "iri hati",
-      "kemurahan hati",
-      "bahaya kesombongan",
-      "usia tua",
-      "surga dan neraka",
-      "puasa uposatha",
-      "pertengkaran dan perselisihan",
-      "tidur nyenyak",
-      "rasa malu berbuat jahat",
-      "perumpamaan anak panah",
-      "kemelekatan pada pandangan",
-      "kisah visakha",
-      "bhikkhu menerima uang",
-      "makan setelah tengah hari",
-      "aturan jubah",
-      "mengaku pencapaian palsu",
-      "menggali tanah",
-      "berbohong",
-      "penahbisan bhikkhu",
-      "aturan makan bhikkhu",
-      "kriteria pembabar",
-      "mengusir bhikkhu",
-      "membunuh makhluk hidup",
-      "aturan mandi",
-    ],
-    en: [
-      "freedom from rebirth",
-      "gratitude to parents",
-      "danger of anger",
-      "mindfulness of death",
-      "happiness is",
-      "the law of kamma",
-      "four kinds of persons",
-      "kinds of feelings",
-      "four elements",
-      "loving kindness",
-      "clinging is",
-      "kinds of suffering",
-      "kinds of fetters",
-      "benefits of meditation",
-      "mindfulness of breathing",
-      "five hindrances",
-      "importance of patience",
-      "virtue is",
-      "overcoming grief",
-      "right speech",
-      "temptations of mara",
-      "not self",
-      "highest blessings",
-      "four noble truths",
-      "seven factors of awakening",
-      "sense restraint",
-      "danger of alcohol",
-      "true wealth",
-      "overcoming laziness",
-      "a mother's love",
-      "simile of the raft",
-      "sensual desire",
-      "serenity of mind",
-      "simile of the saw",
-      "story of angulimala",
-      "advice to rahula",
-      "wisdom is",
-      "importance of faith",
-      "living in solitude",
-      "husband and wife",
-      "choosing friends",
-      "eight worldly conditions",
-      "envy",
-      "generosity",
-      "danger of conceit",
-      "old age",
-      "heaven and hell",
-      "uposatha observance",
-      "quarrels and disputes",
-      "sleeping well",
-      "moral shame",
-      "the dart of grief",
-      "clinging to views",
-      "story of visakha",
-      "monks accepting money",
-      "eating after noon",
-      "robe rules",
-      "false claims of attainment",
-      "digging the earth",
-      "lying",
-      "ordination of monks",
-      "rules on eating",
-      "qualities of a dhamma speaker",
-      "expulsion from the sangha",
-      "killing living beings",
-      "bathing rules",
-    ],
-  };
+  // Sumber tunggal di common.js (DK), dipakai bersama halaman chat.
+  const RECOMMENDED_QUERIES = (window.DK && window.DK.RECOMMENDED_QUERIES) || { id: [], en: [] };
 
   function renderRecommendedQueries() {
     const container = document.getElementById("recommended-queries");
@@ -1220,6 +1114,20 @@
       dom.cbGroup.addEventListener("change", async (e) => { if (await clearResults() === false) { e.target.checked = !e.target.checked; return; } state.groupBySutta = e.target.checked; savePrefs(); });
       dom.cbPreview.addEventListener("change", async (e) => { if (await clearResults() === false) { e.target.checked = !e.target.checked; return; } state.showPreview = e.target.checked; savePrefs(); });
       dom.searchBtn.addEventListener("click", () => doSearch());
+
+      // Nudge tooltip ke tombol "Tanya AI" header: muncul sekali (per render) saat user scroll
+      // melewati kartu hasil ke-3, lalu hilang sendiri. Kalau hasil < 3 kartu, pakai ambang scroll.
+      const searchScrollEl = document.getElementById("search-scroll");
+      if (searchScrollEl) {
+        searchScrollEl.addEventListener("scroll", () => {
+          if (headerNudgeShown) return;
+          const third = dom.resultsContainer.querySelectorAll(".sutta-card")[2];
+          const passed = third
+            ? third.getBoundingClientRect().bottom < searchScrollEl.getBoundingClientRect().top
+            : searchScrollEl.scrollTop > 400;
+          if (passed) { headerNudgeShown = true; showHeaderChatNudge(); }
+        }, { passive: true });
+      }
 
       const updateClearBtn = () => {
         if (!dom.btnClearSearch) return;

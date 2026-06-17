@@ -80,13 +80,13 @@
       btn_new_note: "+ Baru",
       ph_note_title: "Judul catatan…",
       btn_add_text: "+ Tambah Catatan Bebas",
-      note_add_sutta_hint: "Untuk mengutip teks Sutta, gunakan menu Telusuri/Pencarian di panel kiri, lalu klik tombol <b>+ Catatan</b> pada bagian teks yang ingin dikutip.",
+      note_add_sutta_hint: "Untuk menambahkan ayat Tipiṭaka ke Catatan, gunakan menu Telusuri/Pencarian/AI Chat di panel kiri, lalu klik tombol <b>+ Catatan</b> pada bagian ayat yang ingin ditambahkan.",
       btn_paste_block: "Tempel Blok",
       notes_empty: "Pilih atau buat catatan baru<br>untuk mulai menyusun pembabaran Dhamma.",
       btn_empty_new_note: "+ Buat Catatan Baru",
       btn_send: "Kirim",
       chat_subtitle: "Chat myDhamma AI",
-      chat_disclaimer: "⚠ AI mungkin membuat kesalahan dalam menyimpulkan; selalu periksa rujukannya.",
+      chat_disclaimer: "⚠ AI mungkin membuat kesalahan; selalu periksa rujukannya.",
       sutta_not_found: "Sutta tidak ditemukan.",
       loading_sutta: "Memuat teks…",
       sp_not_found: "Sutta tidak tersedia dalam korpus.",
@@ -180,13 +180,13 @@
       btn_new_note: "+ New",
       ph_note_title: "Note title…",
       btn_add_text: "+ Add Custom Note",
-      note_add_sutta_hint: "To quote a Sutta, use the Browse/Search menu in the left panel, then click the <b>+ Notes</b> button on the text you want to quote.",
+      note_add_sutta_hint: "To add a Tipiṭaka passage to your Notes, use the Browse/Search/AI Chat menu in the left panel, then click the <b>+ Notes</b> button on the desired passage.",
       btn_paste_block: "Paste Block",
       notes_empty: "Select or create a new note<br>to start composing your talk.",
       btn_empty_new_note: "+ Create New Note",
       btn_send: "Send",
       chat_subtitle: "Chat myDhamma AI",
-      chat_disclaimer: "⚠ Experimental — may make mistakes when summarizing; always check the citations.",
+      chat_disclaimer: "⚠ AI may make mistakes; always check the citations.",
       sutta_not_found: "Sutta not found.",
       loading_sutta: "Loading text…",
       sp_not_found: "Sutta not available in the corpus.",
@@ -1759,6 +1759,13 @@
     _dkDialog.id = "dk-dialog";
     document.body.appendChild(_dkDialog);
     _dkDialog.addEventListener("click", e => { if (e.target === _dkDialog) _dkDialog.close(); });
+    // Guard: showModal() pada <dialog> yg SUDAH terbuka melempar InvalidStateError dan
+    // bikin dialog nyangkut (semua dialog berikutnya mati). Tutup dulu kalau terbuka.
+    const _origShowModal = _dkDialog.showModal.bind(_dkDialog);
+    _dkDialog.showModal = function () {
+      if (this.open) { try { this.close(); } catch (e) { /* abaikan */ } }
+      return _origShowModal();
+    };
     return _dkDialog;
   }
 
@@ -1852,12 +1859,53 @@
     });
   }
 
+  // Topik/kueri rekomendasi — SATU sumber, dipakai home (chip rekomendasi) & chat
+  // (empty-state contoh prompting). common.js ke-load di semua halaman.
+  const RECOMMENDED_QUERIES = {
+    id: [
+      "yang tidak dilahirkan", "bakti kepada orangtua", "bahaya kemarahan", "perenungan kematian",
+      "kebahagiaan adalah", "hukum kamma", "empat jenis manusia", "jenis jenis perasaan",
+      "empat unsur", "cinta kasih", "kemelekatan adalah", "jenis penderitaan", "jenis belenggu",
+      "manfaat meditasi", "perhatian pada napas", "lima rintangan batin", "pentingnya kesabaran",
+      "moralitas adalah", "mengatasi kesedihan", "ucapan benar", "godaan mara", "tanpa diri",
+      "berkah utama", "empat kebenaran mulia", "tujuh faktor pencerahan", "pengendalian indria",
+      "bahaya minuman keras", "kekayaan sejati", "mengatasi kemalasan", "kasih sayang ibu",
+      "perumpamaan rakit", "keinginan indriawi", "ketenangan pikiran", "perumpamaan gergaji",
+      "kisah angulimala", "nasihat kepada rahula", "kebijaksanaan adalah", "pentingnya keyakinan",
+      "hidup menyendiri", "suami istri", "memilih teman", "delapan kondisi duniawi", "iri hati",
+      "kemurahan hati", "bahaya kesombongan", "usia tua", "surga dan neraka", "puasa uposatha",
+      "pertengkaran dan perselisihan", "tidur nyenyak", "rasa malu berbuat jahat",
+      "perumpamaan anak panah", "kemelekatan pada pandangan", "kisah visakha", "bhikkhu menerima uang",
+      "makan setelah tengah hari", "aturan jubah", "mengaku pencapaian palsu", "menggali tanah",
+      "berbohong", "penahbisan bhikkhu", "aturan makan bhikkhu", "kriteria pembabar",
+      "mengusir bhikkhu", "membunuh makhluk hidup", "aturan mandi",
+    ],
+    en: [
+      "freedom from rebirth", "gratitude to parents", "danger of anger", "mindfulness of death",
+      "happiness is", "the law of kamma", "four kinds of persons", "kinds of feelings",
+      "four elements", "loving kindness", "clinging is", "kinds of suffering", "kinds of fetters",
+      "benefits of meditation", "mindfulness of breathing", "five hindrances", "importance of patience",
+      "virtue is", "overcoming grief", "right speech", "temptations of mara", "not self",
+      "highest blessings", "four noble truths", "seven factors of awakening", "sense restraint",
+      "danger of alcohol", "true wealth", "overcoming laziness", "a mother's love",
+      "simile of the raft", "sensual desire", "serenity of mind", "simile of the saw",
+      "story of angulimala", "advice to rahula", "wisdom is", "importance of faith",
+      "living in solitude", "husband and wife", "choosing friends", "eight worldly conditions",
+      "envy", "generosity", "danger of conceit", "old age", "heaven and hell", "uposatha observance",
+      "quarrels and disputes", "sleeping well", "moral shame", "the dart of grief",
+      "clinging to views", "story of visakha", "monks accepting money", "eating after noon",
+      "robe rules", "false claims of attainment", "digging the earth", "lying", "ordination of monks",
+      "rules on eating", "qualities of a dhamma speaker", "expulsion from the sangha",
+      "killing living beings", "bathing rules",
+    ],
+  };
+
   // ========== Public API ==========
   window.DK = {
     state, esc, buildMiniTexts, addBlockToNote, showNotePicker, updateAllLinksInDOM, copyNote, downloadNotePdf, t, getLang,
     highlightKeywords, buildFragTextLines, createFragmentEl, createSuttaCardEl, renderSuttaCardsTo, openSuttaDialog,
     compactRef, showToast, renderSegments, buildDisplayToggle, buildScLinks, langName, authorLongName,
-    alert: dkAlert, confirm: dkConfirm, prompt: dkPrompt,
+    alert: dkAlert, confirm: dkConfirm, prompt: dkPrompt, RECOMMENDED_QUERIES,
   };
 
   // ========== Reader display settings (Segmen) ==========
@@ -1882,8 +1930,8 @@
     if (!dlg) return;
     const open = () => { dlg.showModal(); refreshIcons(); };
     const close = () => dlg.close();
-    document.getElementById("btn-reader-settings")?.addEventListener("click", open);
     document.getElementById("sutta-dialog-settings-btn")?.addEventListener("click", open);
+    document.getElementById("reader-page-settings-btn")?.addEventListener("click", open);
     document.getElementById("reader-settings-close")?.addEventListener("click", close);
     // klik backdrop (luar konten) untuk menutup
     dlg.addEventListener("click", e => { if (e.target === dlg) close(); });

@@ -7,6 +7,13 @@
 <span class="header-subtitle">Pembaca Teks</span>
 {% endblock %}
 
+{# Tombol Tanya AI di header auto-tag sutta yg sedang dibuka (fungsionalitas in-body lama). #}
+{% block header_action %}
+<a href="/chat?tag={{ sutta_id }}" id="header-chat-ai" class="btn-chat-ai" title="Tanya AI">
+    <i data-lucide="sparkles"></i> <span data-i18n="btn_chat_ai">Tanya AI</span>
+</a>
+{% endblock %}
+
 {% block main_panel %}
 <div class="breadcrumbs-outer" id="sutta-breadcrumbs-outer" style="display:none">
     <nav id="sutta-breadcrumbs" class="suttaplex-breadcrumbs" aria-label="Breadcrumb"></nav>
@@ -17,11 +24,13 @@
             <i data-lucide="arrow-left"></i>
         </a>
         <h2 id="reader-subtitle"></h2>
-        <!-- <a id="reader-chat-link" href="/chat?tag={{ sutta_id }}" class="btn-chat-ai icon-only-mobile" style="margin-left:auto;" -->
-        <a id="reader-chat-link" href="/chat?tag={{ sutta_id }}" class="btn-chat-ai" style="margin-left:auto;"
-            title="Tanya AI">
-            <i data-lucide="sparkles"></i> <span data-i18n="btn_chat_ai">Tanya AI</span>
-        </a>
+        <div class="sutta-dialog-actions" style="margin-left:auto;">
+            <button id="reader-page-settings-btn" class="sutta-dialog-open-btn" data-i18n-title="rs_title"
+                title="Setelan">
+                <i data-lucide="settings-2"></i><span class="sutta-dialog-open-label"
+                    data-i18n="btn_reader_settings">Setelan</span>
+            </button>
+        </div>
     </div>
 </div>
 <div class="reader-controls-sticky" id="reader-controls-sticky">

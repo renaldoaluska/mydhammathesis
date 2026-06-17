@@ -57,9 +57,11 @@
             <div class="header-right">
                 {% block source_toggle %}
                 {% endblock %}
-                <button id="btn-reader-settings" class="nav-tab" data-i18n-title="rs_title" title="Setelan">
-                    <i data-lucide="settings-2"></i> <span data-i18n="btn_reader_settings">Setelan</span>
-                </button>
+                {% block header_action %}
+                <a href="/chat" id="header-chat-ai" class="btn-chat-ai" title="Tanya AI">
+                    <i data-lucide="sparkles"></i> <span data-i18n="btn_chat_ai">Tanya AI</span>
+                </a>
+                {% endblock %}
                 <div id="btn-lang-toggle" class="lang-pill" title="Switch Language">
                     <span class="lang-pill-opt" data-lang="id">ID</span>
                     <span class="lang-pill-opt" data-lang="en">EN</span>
@@ -207,8 +209,9 @@
                     style="font-size: 0.75rem; color: var(--text-muted, #666); text-align: center; margin-top: 8px; padding: 0 16px; line-height: 1.4;">
                     <i data-lucide="info"
                         style="width: 12px; height: 12px; display: inline-block; vertical-align: -2px; margin-right: 2px;"></i>
-                    <span data-i18n-html="note_add_sutta_hint">Untuk menambah kutipan Sutta, gunakan fitur
-                        Telusuri/Pencarian di panel kiri, lalu klik tombol <b>+ Catatan</b> pada segmen teksnya.</span>
+                    <span data-i18n-html="note_add_sutta_hint">Untuk menambahkan ayat Tipiṭaka ke Catatan, gunakan
+                        fitur Telusuri/Pencarian/AI Chat di panel kiri, lalu klik tombol <b>+ Catatan</b> pada
+                        segmennya.</span>
                 </div>
 
             </div>

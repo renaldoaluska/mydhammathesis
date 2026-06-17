@@ -52,11 +52,6 @@
 </div>
 <div class="section-divider">
     <span data-i18n="or_search_directly">atau langsung cari</span>
-    <a href="/chat" id="btn-chat-ai" class="section-divider-action" data-i18n-title="chat_ai_title"
-        title="Chat dengan myDhamma AI">
-        <i data-lucide="sparkles" style="width:12px; height:12px;"></i> <span data-i18n="btn_chat_ai">Chat myDhamma
-            AI</span>
-    </a>
 </div>
 <!-- ===== SEARCH TAB ===== -->
 <div id="tab-search">
@@ -297,16 +292,15 @@
                     data-i18n="legend_count">Kecocokan Kata Kunci</span></span>
         </div>
         <div id="ai-cta-container" class="hidden"
-            style="margin: 8px auto 16px; padding: 10px 14px; background: var(--bg-tertiary); border-radius: var(--radius-md); max-width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 14px; border: 1px solid var(--accent-subtle);">
+            style="margin: 0 0 12px; padding: 12px 16px; background: var(--bg-tertiary); border-radius: var(--radius-md); max-width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 14px; border: 1px solid var(--accent-subtle);">
             <div style="display: flex; flex-direction: column; gap: 2px;">
                 <span
                     style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
-                    <i data-lucide="sparkles" style="color: var(--accent); width: 14px; height: 14px;"></i>
+                    <i data-lucide="sparkles" style="color: #a255ff; width: 14px; height: 14px;"></i>
                     myDhamma AI
                 </span>
-                <span style="font-size: 0.7rem; color: var(--text-muted);" data-i18n="cta_tagline">Kurang puas dengan
-                    hasilnya? Chat dengan
-                    myDhamma AI.</span>
+                <span style="font-size: 0.82rem; color: var(--text-muted);" data-i18n="cta_tagline">Belum menemukan
+                    yang dicari?</span>
             </div>
             <a href="/chat" class="btn-chat-ai btn-chat-ai-q" data-i18n="cta_btn">
                 Tanya AI
@@ -356,6 +350,11 @@
                 data-i18n="btn_save">Simpan</span></button>
     </div>
 </dialog>
+{% endblock %}
+
+{# Scroll-to-top di overlay #search-panel (bukan #search-scroll) -> absolute thd panel,
+   jadi nempel tepi kanan AREA PENCARIAN, tak melayang ke viewport/atas panel Catatan. #}
+{% block panel_overlays %}
 <button id="btn-scroll-top" class="btn-scroll-top hidden" title="Gulir ke atas">
     <i data-lucide="chevron-up"></i>
 </button>

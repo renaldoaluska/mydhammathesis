@@ -4,6 +4,13 @@
 <span class="header-subtitle">{{ formatted_id }}{% if sutta_name %}: {{ sutta_name }}{% endif %}</span>
 {% endblock %}
 
+{# Tombol Tanya AI di header auto-tag sutta ini (gantikan tombol in-body lama). #}
+{% block header_action %}
+<a href="/chat?tag={{ formatted_id|urlencode }}" id="header-chat-ai" class="btn-chat-ai" title="Tanya AI">
+    <i data-lucide="sparkles"></i> <span data-i18n="btn_chat_ai">Tanya AI</span>
+</a>
+{% endblock %}
+
 {% block source_toggle %}{% endblock %}
 
 {% block scripts %}
@@ -89,10 +96,6 @@
             </button>
             {% endif %}
             <div class="suttaplex-id">{{ formatted_id }}</div>
-            <a href="/chat?tag={{ formatted_id|urlencode }}" class="sp-chat-link"
-                title="Tanya AI tentang {{ formatted_id }}">
-                <i data-lucide="sparkles"></i> <span data-i18n="btn_chat_ai">Tanya AI</span>
-            </a>
         </div>
         {% if sutta_name %}
         <h1 class="suttaplex-pali-name">{{ sutta_name }}</h1>

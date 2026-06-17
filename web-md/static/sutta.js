@@ -134,8 +134,9 @@
       dom.subtitle().innerHTML = `<div class="dlg-title-top"><i data-lucide="book-open"></i> <span class="dlg-formatted-id">${data.formatted_id}</span></div>${nameHtml}`;
       if (window.lucide) window.lucide.createIcons({ root: dom.subtitle() });
 
-      // Tag chat pakai formatted_id ("MN 10") yg lebih rapi drpd fallback sutta_id Jinja
-      const chatLink = document.getElementById("reader-chat-link");
+      // Tombol "Tanya AI" pindah ke header global; tetap auto-tag pakai formatted_id
+      // ("MN 10") yg lebih rapi drpd fallback sutta_id Jinja.
+      const chatLink = document.getElementById("header-chat-ai");
       if (chatLink && data.formatted_id)
         chatLink.href = "/chat?tag=" + encodeURIComponent(data.formatted_id);
 
