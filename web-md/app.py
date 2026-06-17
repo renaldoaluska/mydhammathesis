@@ -949,6 +949,7 @@ _CHAT_ANSWER_GUIDE = {
         "- Jika menyebut rentang atau beberapa segmen berurutan, WAJIB mengulang nama sutta-nya secara utuh (contoh BENAR: 'SN 54.10:md6 sampai SN 54.10:md8'. Contoh SALAH: 'SN 54.10:md6 sampai md8'). Hal ini sangat penting agar link rujukan bisa di-klik.\n"
         "- JIKA satu-satunya teks yg tersedia untuk sutta yg diminta hanya berbahasa Pāli (blok bertanda '⚠️ HANYA tersedia teks PĀLI') DAN kamu tidak benar-benar memahami isinya, DILARANG KERAS menebak/mengarang arti teks Pāli-nya. NAMUN, jika blok itu menyertakan baris 'Sinopsis:' (ringkasan id/en), kamu BOLEH dan DIANJURKAN menyampaikan isi sinopsis itu sebagai gambaran singkat, sambil jujur menyebut bahwa itu hanya sinopsis dan teks lengkapnya belum diterjemahkan (mis. 'Untuk [nama/ID sutta], teks lengkapnya belum diterjemahkan, namun secara ringkas sutta ini membahas: …'). HANYA jika sama sekali tidak ada sinopsis, katakan jujur & sopan: 'Mohon maaf, untuk [nama/ID sutta] belum ada terjemahan yang bisa saya pahami. Silakan coba sutta lain.'\n"
         "DILARANG KERAS mengarang, menambah, atau mengubah nomor rujukan.\n"
+        "- Blok bertanda [GLOSARI] adalah DEFINISI RESMI sebuah KOLEKSI (piṭaka/nikāya/kitab), BUKAN satu sutta. Gunakan isinya untuk menjelaskan APA koleksi itu: nama lengkapnya, letaknya dalam struktur Tipiṭaka, serta jumlah & jenis teks di dalamnya. JANGAN menyebutnya 'sutta', JANGAN mengarang letak/nikāya-nya (pakai persis yg tertera di blok), dan blok ini TIDAK punya token rujukan segmen untuk di-tag.\n"
         "- Bedakan jenis teks: blok bertanda VINAYA adalah ATURAN MONASTIK — sebut 'aturan Vinaya', "
         "JANGAN sebut 'sutta'. Blok bertanda SUTTA baru boleh disebut sutta.\n"
         "- Awalan rujukan: 'Bu-' = bhikkhu (biksu PRIA), 'Bi-' = bhikkhunī (biksu WANITA). Jangan "
@@ -977,6 +978,7 @@ _CHAT_ANSWER_GUIDE = {
         "- When citing a range or multiple consecutive segments, you MUST repeat the full sutta name for each segment (CORRECT: 'SN 54.10:md6 to SN 54.10:md8'. WRONG: 'SN 54.10:md6 to md8'). This is critical so the citation links work properly.\n"
         "- IF the only available text for a requested sutta is in Pāli (a block tagged '⚠️ HANYA tersedia teks PĀLI') AND you do not genuinely understand it, you are STRICTLY FORBIDDEN from guessing/inventing the meaning of the Pāli text. HOWEVER, if that block includes a 'Sinopsis:' line (an id/en summary), you MAY and SHOULD convey that synopsis as a brief overview, while honestly noting it is only a synopsis and the full text isn't translated yet (e.g. 'The full text of [sutta name/ID] isn't translated yet, but in brief this sutta is about: …'). ONLY if there is no synopsis at all, say honestly and politely: 'I'm sorry, there is no translation of [sutta name/ID] available that I can understand yet. Please try another sutta.'\n"
         "NEVER invent, add, or alter a reference number.\n"
+        "- A block tagged [GLOSARI] is the OFFICIAL DEFINITION of a COLLECTION (piṭaka/nikāya/book), NOT a single sutta. Use its contents to explain WHAT that collection is: its full name, where it sits in the Tipiṭaka structure, and how many & what kind of texts it contains. Do NOT call it a 'sutta', do NOT invent its placement/nikāya (use exactly what the block states), and this block has NO segment reference token to tag.\n"
         "- Distinguish text types: a block tagged VINAYA is a MONASTIC RULE — call it a 'Vinaya rule', "
         "do NOT call it a 'sutta'. Only blocks tagged SUTTA may be called suttas.\n"
         "- Reference prefixes: 'Bu-' = bhikkhu (MONK), 'Bi-' = bhikkhunī (NUN). Don't confuse them — a "
@@ -1083,6 +1085,74 @@ def _is_smalltalk(query: str) -> bool:
     if len(q.split()) > 5:
         return False
     return bool(_SMALLTALK_RE.match(q))
+
+
+# Rujukan KOLEKSI sbg KESELURUHAN (mis. "@Dhp", "apa itu Itivuttaka") — beda dari sutta+nomor.
+# Tanpa ini, "@Dhp itu apa" jatuh ke semantic acak & model ngarang (Dhp dikira ada di AN).
+# Jawaban di-ground dari reader.glossary_entry (nama+blurb otoritatif+hierarki+jumlah teks).
+_COLLECTION_CODES = None
+_DEFN_CUE_RE = re.compile(
+    r"\b(apa(\s*(itu|sih|kah|maksud\w*))?|itu\s+apa|jelas\w*|maksud\w*|arti\w*|tentang|"
+    r"what\s+(is|are)|explain|tell\s+me\s+about|meaning\s+of)\b", re.IGNORECASE)
+
+
+def _collection_codes() -> set:
+    global _COLLECTION_CODES
+    if _COLLECTION_CODES is None:
+        _COLLECTION_CODES = reader.collection_codes()
+    return _COLLECTION_CODES
+
+
+def _detect_collection_refs(query: str) -> list:
+    """Kode koleksi yg dirujuk sbg KESELURUHAN (bukan sutta+nomor). Dua pemicu:
+    (1) @kode telanjang tanpa angka (mis. '@Dhp', '@iti'); (2) pertanyaan definitif
+    ('apa itu X', 'what is X') yg menyebut kode ATAU nama kanonik koleksi. '@AN 3.65'
+    & 'an 3.65' SENGAJA tak terpicu (ada angka -> sutta spesifik, ditangani jalur mention).
+    Seragam utk semua koleksi — tak ada penanganan per-kitab."""
+    if not query:
+        return []
+    codes = _collection_codes()
+    refs = []
+    # (1) @kode telanjang, tak diikuti angka (mis. '@Dhp 1' / '@dhp1-20' = mention, dilewati)
+    for m in re.finditer(r"@\s*([a-zA-Z][a-zA-Z\-]*)\b(?!\s*\d)", query):
+        c = reader.shorten_sutta_id(m.group(1).lower())
+        if c in codes:
+            refs.append(c)
+    # (2) pertanyaan definitif yg menyebut koleksi via kode atau nama kanonik
+    if _DEFN_CUE_RE.search(query):
+        ql = " " + re.sub(r"\s+", " ", query.lower()) + " "
+        ql_clean = unicodedata.normalize("NFD", ql).encode("ascii", "ignore").decode()
+        for c in codes:
+            # kode sbg token utuh, BUKAN diikuti angka (itu sutta spesifik, mis. 'an 3.65')
+            if re.search(r"(?<![a-z])" + re.escape(c) + r"(?![a-z\-])(?!\s*\d)", ql):
+                refs.append(c)
+                continue
+            name = reader._sutta_names.get(c)
+            if name and len(name) >= 5:
+                nm = unicodedata.normalize("NFD", name.lower()).encode("ascii", "ignore").decode()
+                if re.search(r"(?<![a-z])" + re.escape(nm) + r"(?![a-z])", ql_clean):
+                    refs.append(c)
+    return list(dict.fromkeys(refs))
+
+
+def _glossary_blocks(coll_refs: list, prompt_db: str):
+    """Bangun blok teks GLOSARI grounded utk daftar kode koleksi. Balas (blocks, abbrs)."""
+    blocks, abbrs = [], []
+    for c in coll_refs:
+        g = reader.glossary_entry(c, prompt_db)
+        if not g:
+            continue
+        abbrs.append(g["abbr"])
+        head = g["abbr"] + (f" — {g['name']}" if g.get("name") else "")
+        parts = [f"[GLOSARI] {head} | RUJUKAN KOLEKSI (sekumpulan teks, BUKAN satu sutta)"]
+        if g.get("hierarchy"):
+            parts.append("Letak: " + " › ".join(g["hierarchy"]) + f" › {g['abbr']}")
+        if g.get("count"):
+            parts.append(f"Berisi {g['count']} teks.")
+        if g.get("blurb"):
+            parts.append(g["blurb"])
+        blocks.append("\n".join(parts))
+    return blocks, abbrs
 
 
 def _ollama_json(messages: list, fmt: str = "json", temperature: float = 0.2) -> str:
@@ -1497,8 +1567,15 @@ def api_chat():
             existing_norms = {m.lower().replace(" ","") for m in mentions}
             name_hits = [sid for sid in name_hits if sid not in existing_norms]
 
+        # Rujukan KOLEKSI keseluruhan (mis. "@Dhp", "apa itu Itivuttaka") -> blok glosari
+        # grounded; dideteksi dari kueri agen + kueri asli user (hormati @mention apa adanya).
+        coll_refs = _detect_collection_refs(t_query + " " + query)
+        gloss_blocks, gloss_abbrs = _glossary_blocks(coll_refs, prompt_db)
+
         # Jejak transparansi: apa yg sebetulnya dilakukan tool (dipancarkan sbg step).
         trace = []
+        if gloss_abbrs:
+            trace.append({"kind": "glossary", "collections": gloss_abbrs})
         if mentions:
             # Poin 7: sertakan terjemahan yg dipilih (author+lang) per mention, biar step
             # "Rujukan eksplisit terdeteksi" menampilkan teks mana yg sebenarnya ditelusuri.
@@ -1560,8 +1637,8 @@ def api_chat():
         _inject_missing_blurbs(suttas)
         
         # Semantic
-        if mentions:
-            pass # "Pencarian hybrid untuk konteks tambahan" dilewati sesuai permintaan jika ada rujukan eksplisit
+        if mentions or gloss_blocks:
+            pass # rujukan eksplisit (mention) / pertanyaan definitif koleksi (glosari) -> tak perlu semantic acak
         else:
             # Scope nikaya ("dari AN") -> filter keras + token nikaya dibuang dari kueri
             # semantik supaya subjek asli tak terkontaminasi (lihat _detect_nikaya_scope).
@@ -1633,7 +1710,9 @@ def api_chat():
             lines.append(f">> {p.get('text', '')}")
             blocks.append("\n".join(lines))
         
-        return (("\n\n".join(blocks) if blocks else "Tidak ada teks Tipiṭaka yang ditemukan."),
+        # Glosari koleksi (grounded) di DEPAN supaya jadi sumber utama definisi.
+        all_blocks = gloss_blocks + blocks
+        return (("\n\n".join(all_blocks) if all_blocks else "Tidak ada teks Tipiṭaka yang ditemukan."),
                 unique_suttas, trace)
 
     def gen():
@@ -1708,7 +1787,8 @@ def api_chat():
                     shown = ids[:8]
                     more = len(ids) - len(shown)
                     yield _sse({"stage": "found", "count": len(ids), "ids": shown, "more": more})
-                else:
+                elif not any(t.get("kind") == "glossary" for t in trace):
+                    # glosari koleksi tak menghasilkan kartu sutta -> jangan klaim "tak ada teks"
                     yield _sse({"stage": "found", "count": 0})
                 messages.append({"role": "tool", "name": "search_sutta",
                                  "content": tool_result_text})

@@ -710,7 +710,7 @@
   }
 
   function uniqueNewNoteTitle() {
-    const base = getLang() === "en" ? "New Note" : "Catatan Baru";
+    const base = getLang() === "en" ? "My Note" : "Catatan Saya";
     const existing = new Set(state.notes.map(n => n.title || ""));
     if (!existing.has(base)) return base;
     let i = 2;

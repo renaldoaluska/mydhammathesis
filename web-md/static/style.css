@@ -77,8 +77,11 @@
   --tag-id: #4fc3f7;
   --tag-en: #81c784;
   --tag-pli: #ffb74d;
+  --tag-text: #0f0f14;
   --scrollbar-thumb: #333;
   --scrollbar-track: transparent;
+  --ai-color: #d4aeff;
+  --ai-color-hover: #e6ccff;
   color-scheme: dark;
 }
 
@@ -107,8 +110,12 @@
   --tag-id: #0277bd;
   --tag-en: #2e7d32;
   --tag-pli: #e65100;
+  --tag-text: #ffffff;
   --scrollbar-thumb: #ccc;
   --scrollbar-track: transparent;
+  --ai-color: #8a2be2;
+  --ai-color-hover: #7b1fa2;
+  color-scheme: light;
 }
 
 /* --- Reset & Base --- */
@@ -166,6 +173,7 @@ a:hover {
 
 /* --- Research banner --- */
 #research-banner {
+  display: none !important;
   position: sticky;
   top: 0;
   z-index: 10;
@@ -1553,19 +1561,19 @@ a:hover {
   /* border: 1px solid var(--tag-id);
   color: var(--tag-id); */
   background: var(--tag-id);
-  color: #fff;
+  color: var(--tag-text);
 }
 
 .lang-tag.en {
   background: var(--tag-en);
-  color: #fff;
+  color: var(--tag-text);
   /* border: 1px solid var(--tag-en);
   color: var(--tag-en); */
 }
 
 .lang-tag.pli {
   background: var(--tag-pli);
-  color: #fff;
+  color: var(--tag-text);
 }
 
 .fragment-text-line {
@@ -2022,9 +2030,17 @@ a:hover {
 }
 
 /* Tombol Kirim berubah jadi Stop saat bot menjawab (item 7) */
-.chat-send.chat-stop {
-  background: var(--danger, #c0392b);
-  border-color: var(--danger, #c0392b);
+.chat-send.chat-stop.btn-primary {
+  background: var(--danger);
+  color: #ffffff;
+  border: none;
+}
+
+.chat-send.chat-stop.btn-primary:hover {
+  background: var(--danger);
+  color: #ffffff;
+  opacity: 0.8;
+  transform: none;
 }
 
 /* Catatan saat generasi dihentikan user (item 15) */
@@ -2061,10 +2077,13 @@ a:hover {
   opacity: 0.92;
   transform-origin: 50% 50%;
   animation: chat-wheel-spin 9s linear infinite;
+  filter: drop-shadow(0 0 8px rgba(162, 85, 255, 0.4));
 }
 
 @keyframes chat-wheel-spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .chat-empty-greeting {
@@ -2078,18 +2097,27 @@ a:hover {
 .chat-empty-greet-1 {
   font-size: 1.3rem;
   font-weight: 700;
-  background: linear-gradient(90deg, #a255ff, #B388FF);
+  background: linear-gradient(90deg, #a255ff, #ffffff, #B388FF, #a255ff);
+  background-size: 200% auto;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  animation: chat-greet-in 0.6s ease both;
+  animation: chat-greet-in 0.6s ease both, text-shine 3s linear infinite;
+  filter: drop-shadow(0 0 8px rgba(162, 85, 255, 0.4));
+}
+
+@keyframes text-shine {
+  to {
+    background-position: 200% center;
+  }
 }
 
 .chat-empty-greet-2 {
   font-size: 1rem;
   font-weight: 500;
   color: var(--text-secondary, var(--text-primary));
-  min-height: 1.4em;       /* cegah layout-shift saat teks diketik */
+  min-height: 1.4em;
+  /* cegah layout-shift saat teks diketik */
 }
 
 /* Logo myDhamma AI: roda Dhamma berputar + percikan ✨ menempel di pojok */
@@ -2103,8 +2131,8 @@ a:hover {
   position: absolute;
   top: -5px;
   right: -7px;
-  color: #B388FF;
-  filter: drop-shadow(0 0 4px rgba(179, 136, 255, 0.55));
+  color: var(--accent);
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 70%, transparent));
   animation: chat-sparkle-twinkle 1.9s ease-in-out infinite;
 }
 
@@ -2114,8 +2142,17 @@ a:hover {
 }
 
 @keyframes chat-sparkle-twinkle {
-  0%, 100% { opacity: .5; transform: scale(.8) rotate(-8deg); }
-  50% { opacity: 1; transform: scale(1.12) rotate(10deg); }
+
+  0%,
+  100% {
+    opacity: .5;
+    transform: scale(.8) rotate(-8deg);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.12) rotate(10deg);
+  }
 }
 
 .chat-empty-caret {
@@ -2129,8 +2166,15 @@ a:hover {
 }
 
 @keyframes chat-caret-blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
 }
 
 /* Caret kedip di akhir jawaban yang sedang di-stream — sama "rasa"-nya dgn caret
@@ -2147,8 +2191,15 @@ a:hover {
 }
 
 @keyframes chat-greet-in {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: none; }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* Contoh mention + prompt */
@@ -2164,6 +2215,14 @@ a:hover {
 
 .chat-empty-prompts {
   animation-delay: 0.3s;
+}
+
+.chat-empty-state.no-animate .chat-empty-mentions,
+.chat-empty-state.no-animate .chat-empty-prompts,
+.chat-empty-state.no-animate .chat-empty-logo {
+  animation: none !important;
+  opacity: 1 !important;
+  transform: none !important;
 }
 
 .chat-empty-prompt {
@@ -2201,6 +2260,8 @@ a:hover {
   justify-content: center;
   gap: 8px;
   max-width: 420px;
+  min-height: 72px;
+  align-content: flex-start;
 }
 
 .chat-empty-chip {
@@ -2216,6 +2277,17 @@ a:hover {
   border-radius: 999px;
   cursor: pointer;
   transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+
+.chat-empty-chip,
+.chat-empty-prompt {
+  animation: chat-chip-in 0.4s cubic-bezier(0.2, 0.7, 0.3, 1) backwards;
+}
+
+.chat-empty-state.no-animate .chat-empty-chip,
+.chat-empty-state.no-animate .chat-empty-prompt {
+  animation: none !important;
+  opacity: 1 !important;
 }
 
 .chat-empty-chip:hover {
@@ -2239,41 +2311,105 @@ a:hover {
    fill-mode `backwards` (BUKAN `both`): sembunyi selama delay, tapi stlh selesai lepas ke
    CSS normal -> transform tak ke-pin shg animasi `.flying` (chip topik diklik) tetap jalan. */
 @keyframes chat-chip-in {
-  from { opacity: 0; transform: translateY(8px) scale(0.94); }
-  to   { opacity: 1; transform: none; }
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.94);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
+
 .chat-empty-chip,
 .chat-empty-prompt {
   animation: chat-chip-in 0.4s cubic-bezier(0.2, 0.7, 0.3, 1) backwards;
 }
+
 /* Stagger: mention dulu (mulai ~0.45s, +0.08s/chip), topik menyusul. nth-child aman
    krn chip adalah satu-satunya anak di .chat-empty-chips. */
-.chat-empty-mentions .chat-empty-chip:nth-child(1) { animation-delay: 0.45s; }
-.chat-empty-mentions .chat-empty-chip:nth-child(2) { animation-delay: 0.53s; }
-.chat-empty-mentions .chat-empty-chip:nth-child(3) { animation-delay: 0.61s; }
-.chat-empty-mentions .chat-empty-chip:nth-child(4) { animation-delay: 0.69s; }
-.chat-empty-prompts .chat-empty-prompt:nth-child(1) { animation-delay: 0.82s; }
-.chat-empty-prompts .chat-empty-prompt:nth-child(2) { animation-delay: 0.90s; }
-.chat-empty-prompts .chat-empty-prompt:nth-child(3) { animation-delay: 0.98s; }
-.chat-empty-prompts .chat-empty-prompt:nth-child(4) { animation-delay: 1.06s; }
+.chat-empty-mentions .chat-empty-chip:nth-child(1) {
+  animation-delay: 0.45s;
+}
+
+.chat-empty-mentions .chat-empty-chip:nth-child(2) {
+  animation-delay: 0.53s;
+}
+
+.chat-empty-mentions .chat-empty-chip:nth-child(3) {
+  animation-delay: 0.61s;
+}
+
+.chat-empty-mentions .chat-empty-chip:nth-child(4) {
+  animation-delay: 0.69s;
+}
+
+.chat-empty-prompts .chat-empty-prompt:nth-child(1) {
+  animation-delay: 0.82s;
+}
+
+.chat-empty-prompts .chat-empty-prompt:nth-child(2) {
+  animation-delay: 0.90s;
+}
+
+.chat-empty-prompts .chat-empty-prompt:nth-child(3) {
+  animation-delay: 0.98s;
+}
+
+.chat-empty-prompts .chat-empty-prompt:nth-child(4) {
+  animation-delay: 1.06s;
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .chat-empty-wheel { animation: none; }
-  .chat-empty-caret { animation: none; }
-  .chat-empty-sparkle { animation: none; }
+  .chat-empty-wheel {
+    animation: none;
+  }
+
+  .chat-empty-caret {
+    animation: none;
+  }
+
+  .chat-empty-sparkle {
+    animation: none;
+  }
+
   .chat-empty-chip,
-  .chat-empty-prompt { animation: none; }
+  .chat-empty-prompt {
+    animation: none;
+  }
 }
 
 /* Layar pendek: kecilkan empty-state biar tetap muat tanpa scroll */
 @media (max-height: 640px) {
-  .chat-empty-state { gap: 9px; padding: 10px; }
-  .chat-empty-wheel { width: 44px; height: 44px; }
-  .chat-empty-sparkle svg { width: 16px; height: 16px; }
-  .chat-empty-greet-1 { font-size: 1.12rem; }
-  .chat-empty-greet-2 { font-size: 0.9rem; }
+  .chat-empty-state {
+    gap: 9px;
+    padding: 10px;
+  }
+
+  .chat-empty-wheel {
+    width: 44px;
+    height: 44px;
+  }
+
+  .chat-empty-sparkle svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .chat-empty-greet-1 {
+    font-size: 1.12rem;
+  }
+
+  .chat-empty-greet-2 {
+    font-size: 0.9rem;
+  }
+
   .chat-empty-chip,
-  .chat-empty-prompt { padding: 5px 11px; font-size: 0.8rem; }
+  .chat-empty-prompt {
+    padding: 5px 11px;
+    font-size: 0.8rem;
+  }
 }
 
 .note-block-text:focus {
@@ -4447,6 +4583,7 @@ html.show-seg-ref .rs-ex-sup {
   gap: 8px;
   z-index: 11;
 }
+
 /* Reader (non-dialog) tak punya tombol close -> tombol aksi ikut flow flex (lewat
    margin-left:auto di .sutta-header-top) supaya mentok kanan, bukan absolut + gap 56px. */
 #reader-header .sutta-dialog-actions {
@@ -4578,12 +4715,12 @@ html.show-seg-ref .rs-ex-sup {
   position: relative;
   background: transparent;
   border: 1px solid transparent;
-  color: #a255ff;
+  color: var(--ai-color);
 }
 
 .btn-chat-ai svg,
 .sp-chat-link svg {
-  color: #a255ff;
+  color: var(--ai-color);
 }
 
 /* Cincin border gradien (mask) -> gradien hanya di tepi, isi tetap transparan.
@@ -4600,20 +4737,22 @@ html.show-seg-ref .rs-ex-sup {
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
-          mask-composite: exclude;
+  mask-composite: exclude;
   pointer-events: none;
   animation: ai-border-flow 4.5s linear infinite;
 }
 
 @keyframes ai-border-flow {
-  to { background-position: 220% 0; }
+  to {
+    background-position: 220% 0;
+  }
 }
 
 .btn-chat-ai:hover,
 .sp-chat-link:hover {
-  color: #b388ff;
+  color: var(--ai-color-hover);
   border-color: transparent;
-  background: rgba(162, 85, 255, 0.08);
+  background: color-mix(in srgb, var(--ai-color) 12%, transparent);
 }
 
 /* CTA "Chat AI Sekarang" di home — sama gayanya dgn tombol AI lain (ring border
@@ -4634,25 +4773,38 @@ html.show-seg-ref .rs-ex-sup {
   max-width: 240px;
   padding: 8px 12px;
   border-radius: var(--radius-sm);
-  background: var(--accent);
+  background: linear-gradient(100deg, #9b4dff, #7b1fa2);
   color: #fff;
   font-size: 0.82rem;
   font-weight: 600;
   line-height: 1.3;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
-  /* rada transparan biar lembut & ga nutup total konten di belakangnya */
-  background: color-mix(in srgb, var(--accent) 88%, transparent);
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
   opacity: 0;
   transform: translateY(-6px);
   pointer-events: none;
   transition: opacity 0.25s ease, transform 0.25s ease;
+  animation: tooltip-pulse 1.5s infinite;
 }
+
+@keyframes tooltip-pulse {
+  0% {
+    box-shadow: 0 0 4px rgba(155, 77, 255, 0.5), 0 8px 24px rgba(0, 0, 0, 0.28);
+  }
+
+  50% {
+    box-shadow: 0 0 14px rgba(155, 77, 255, 0.9), 0 8px 24px rgba(0, 0, 0, 0.28);
+  }
+
+  100% {
+    box-shadow: 0 0 4px rgba(155, 77, 255, 0.5), 0 8px 24px rgba(0, 0, 0, 0.28);
+  }
+}
+
 .header-chat-nudge.show {
   opacity: 1;
   transform: none;
 }
+
 .header-chat-nudge::before {
   content: "";
   position: absolute;
@@ -4660,7 +4812,7 @@ html.show-seg-ref .rs-ex-sup {
   right: 16px;
   width: 10px;
   height: 10px;
-  background: color-mix(in srgb, var(--accent) 88%, transparent);
+  background: #9b4dff;
   transform: rotate(45deg);
 }
 
@@ -4676,7 +4828,8 @@ html.show-seg-ref .rs-ex-sup {
 }
 
 #btn-chat-ai.section-divider-action svg {
-  color: #a255ff;   /* ikon solid (svg tak terpengaruh background-clip:text) */
+  color: #a255ff;
+  /* ikon solid (svg tak terpengaruh background-clip:text) */
 }
 
 #btn-chat-ai.section-divider-action:hover {
@@ -4688,9 +4841,12 @@ html.show-seg-ref .rs-ex-sup {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .btn-chat-ai::before,
   .sp-chat-link::before,
-  #btn-chat-ai.section-divider-action { animation: none; }
+  #btn-chat-ai.section-divider-action {
+    animation: none;
+  }
 }
 
 .dlg-open-popover {
@@ -6304,6 +6460,103 @@ body.is-loading-dialog .sutta-dialog-controls {
   min-height: 36px;
 }
 
+body.page-chat #app-header {
+  display: none !important;
+}
+
+.chat-header-bar {
+  display: flex;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 100;
+  justify-content: space-between;
+  padding: 12px;
+  align-items: center;
+  pointer-events: none;
+}
+
+.chat-header-bar>* {
+  pointer-events: auto;
+}
+
+.chat-header-left,
+.chat-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chat-header-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  margin: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 100%), var(--bg-glass);
+  border: 1px solid var(--bg-glass-border);
+  border-top-color: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.chat-header-btn:hover {
+  border-color: var(--accent);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.05) 100%), var(--bg-glass);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+.chat-header-btn i {
+  width: 16px;
+  height: 16px;
+}
+
+@media (min-width: 769px) {
+
+  #btn-chat-home,
+  #btn-mobile-menu,
+  #btn-mobile-new,
+  #chat-session-title-display {
+    display: none !important;
+  }
+}
+
+.chat-settings-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-strong);
+  border-radius: 20px;
+  padding: 8px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  box-shadow: var(--shadow-lg);
+  z-index: 200;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  transition: all 0.2s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+.chat-settings-menu.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
 body.is-loading-sutta #sutta-breadcrumbs-outer {
   display: block !important;
   opacity: 0.3;
@@ -6332,6 +6585,7 @@ body.page-chat #app-footer {
   display: none;
 }
 
+
 .chat-root,
 .chat-widget {
   display: flex;
@@ -6347,7 +6601,7 @@ body.page-chat #app-footer {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  padding: 8px 2px 16px;
+  padding: 64px 2px 16px;
 }
 
 .chat-msg {
@@ -6376,18 +6630,34 @@ body.page-chat #app-footer {
 /* Entrance bubble baru (klik Kirim) — naik + pop kecil biar gak kaku. fill `backwards`
    supaya gak flash sebelum frame pertama; setelah selesai lepas ke CSS normal. */
 @keyframes chat-msg-in {
-  from { opacity: 0; transform: translateY(10px) scale(0.97); }
-  to   { opacity: 1; transform: none; }
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
+
 .chat-msg-enter {
   animation: chat-msg-in 0.28s cubic-bezier(0.2, 0.7, 0.3, 1) backwards;
 }
+
 /* Bubble user "muncul" dari arah tombol Kirim (kanan-bawah); bot dari kiri-atas. */
-.chat-msg-user.chat-msg-enter { transform-origin: bottom right; }
-.chat-msg-bot.chat-msg-enter { transform-origin: top left; }
+.chat-msg-user.chat-msg-enter {
+  transform-origin: bottom right;
+}
+
+.chat-msg-bot.chat-msg-enter {
+  transform-origin: top left;
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .chat-msg-enter { animation: none; }
+  .chat-msg-enter {
+    animation: none;
+  }
 }
 
 .chat-answer.chat-typing,
@@ -6463,34 +6733,100 @@ body.page-chat #app-footer {
 }
 
 /* Poin 4: picker terjemahan @mention (dirender sbg chat bubble). */
-.chat-trans-picker { display: flex; flex-direction: column; gap: 12px; }
-.chat-trans-head { font-weight: 600; font-size: 0.92rem; }
-.chat-trans-group { display: flex; flex-direction: column; gap: 4px; }
-.chat-trans-sutta {
-  font-size: 0.78rem; font-weight: 600; color: var(--accent);
-  letter-spacing: 0.02em; margin-bottom: 2px;
+.chat-trans-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
+
+.chat-trans-head {
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.chat-trans-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.chat-trans-sutta {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: 0.02em;
+  margin-bottom: 2px;
+}
+
 .chat-trans-opt {
-  display: flex; align-items: center; gap: 8px;
-  padding: 6px 10px; border: 1px solid var(--border-strong);
-  border-radius: 8px; cursor: pointer; font-size: 0.88rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.88rem;
   transition: all var(--transition);
 }
-.chat-trans-opt:hover { border-color: var(--accent); background: var(--bg-card-hover); }
-.chat-trans-opt input { cursor: pointer; accent-color: var(--accent); flex-shrink: 0; }
-.chat-trans-lang { color: var(--text-muted); font-size: 0.8rem; }
-.chat-trans-actions { display: flex; gap: 8px; align-items: center; margin-top: 2px; }
+
+.chat-trans-opt:hover {
+  border-color: var(--accent);
+  background: var(--bg-card-hover);
+}
+
+.chat-trans-opt input {
+  cursor: pointer;
+  accent-color: var(--accent);
+  flex-shrink: 0;
+}
+
+.chat-trans-lang {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.chat-trans-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 2px;
+}
+
 .chat-trans-cancel {
-  background: none; border: none; color: var(--text-muted);
-  cursor: pointer; font-size: 0.85rem; padding: 6px 10px; border-radius: 8px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 6px 10px;
+  border-radius: 8px;
 }
-.chat-trans-cancel:hover { color: var(--text-primary); background: var(--bg-tertiary); }
+
+.chat-trans-cancel:hover {
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+}
+
 .chat-trans-done {
-  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
-  font-size: 0.85rem; color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+  color: var(--text-muted);
 }
-.chat-trans-done strong { color: var(--accent); font-weight: 600; }
-.chat-trans-done .lucide { width: 14px; height: 14px; color: var(--text-success); }
+
+.chat-trans-done strong {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.chat-trans-done .lucide {
+  width: 14px;
+  height: 14px;
+  color: var(--text-success);
+}
 
 .chat-filters {
   flex-shrink: 0;
@@ -6513,9 +6849,8 @@ body.page-chat #app-footer {
 .chat-input-row {
   flex-shrink: 0;
   display: flex;
-  align-items: stretch;
-  gap: 8px;
-  padding: 12px 2px;
+  align-items: flex-end;
+  padding: 16px;
   background: var(--bg-primary);
   border-top: 1px solid var(--border);
 }
@@ -6525,19 +6860,36 @@ body.page-chat #app-footer {
   flex: 1;
   position: relative;
   display: flex;
+  align-items: flex-end;
   background: var(--bg-input);
-  border-radius: 10px;
+  border-radius: 24px;
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  padding: 8px 8px 8px 16px;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.chat-input-wrap:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-subtle);
+}
+
+.chat-input-inner {
+  flex: 1;
+  position: relative;
+  display: flex;
+  margin-bottom: 4px;
+  /* aligns text center with button center */
 }
 
 .chat-input {
   flex: 1;
   resize: none;
-  padding: 11px 14px;
-  border-radius: 10px;
-  border: 1px solid var(--border-strong);
+  padding: 0 12px 0 0;
+  border-radius: 0;
+  border: none;
   background: transparent;
   color: var(--text-primary);
-  /* default: terlihat normal (aman bila JS overlay gagal) */
   caret-color: var(--text-primary);
   font-family: inherit;
   font-size: .95rem;
@@ -6545,6 +6897,7 @@ body.page-chat #app-footer {
   max-height: 140px;
   position: relative;
   z-index: 1;
+  overflow-y: auto;
 }
 
 /* Sembunyikan teks asli HANYA saat overlay backdrop aktif (di-set JS) -> yg terlihat backdrop */
@@ -6560,10 +6913,8 @@ body.page-chat #app-footer {
   position: absolute;
   inset: 0;
   margin: 0;
-  padding: 11px 14px;
-  border: 1px solid transparent;
-  /* samakan kotak agar teks sejajar dgn textarea */
-  border-radius: 10px;
+  padding: 0 12px 0 0;
+  border: none;
   font-family: inherit;
   font-size: .95rem;
   line-height: 1.5;
@@ -6592,14 +6943,82 @@ body.page-chat #app-footer {
 
 .chat-input:focus {
   outline: none;
-  border-color: var(--accent);
 }
 
 .chat-send {
-  height: auto;
-  align-self: stretch;
-  padding: 0 22px;
-  white-space: nowrap;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  /* Circle inside the pill */
+  margin-left: 8px;
+  /* Spacing from textarea */
+}
+
+.chat-send i {
+  width: 18px;
+  height: 18px;
+}
+
+.chat-send.btn-primary {
+  background: var(--accent);
+  color: #0f0f14;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  transition: background 0.2s, opacity 0.2s;
+}
+
+.chat-send.btn-primary:hover {
+  background: var(--accent-hover);
+  color: #0f0f14;
+  opacity: 1;
+  transform: none;
+  box-shadow: none;
+}
+
+.attention-pulse {
+  animation: attention-pulse 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  border-color: var(--accent) !important;
+}
+
+@keyframes attention-pulse {
+  0% {
+    box-shadow: 0 0 0 0 var(--accent);
+  }
+
+  70% {
+    box-shadow: 0 0 0 8px transparent;
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+@keyframes prefill-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7);
+    border-color: #ffd700 !important;
+  }
+
+  70% {
+    box-shadow: 0 0 0 10px rgba(255, 215, 0, 0);
+    border-color: #ffd700 !important;
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 215, 0, 0);
+  }
+}
+
+.prefill-pulse {
+  animation: prefill-pulse 1.2s cubic-bezier(0.4, 0, 0.2, 1) 2 !important;
 }
 
 .chat-disclaimer {
@@ -6830,12 +7249,32 @@ body.page-chat #app-footer {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  /* Item 18: tinggi tetap 40px biar selaras dgn tombol silang */
-  height: 40px;
+  /* Item 18: tinggi selaras dgn tombol silang */
+  height: 34px;
   padding: 0 14px;
-  border-radius: 8px;
+  border-radius: 20px;
   font-weight: 600;
+  font-size: 0.85rem;
   white-space: nowrap;
+}
+
+.chat-new-btn.btn-primary {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%), var(--bg-glass);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-top-color: var(--border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all var(--transition);
+}
+
+.chat-new-btn.btn-primary:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 100%), var(--bg-glass);
+  color: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
 }
 
 .chat-new-btn i {
@@ -6850,20 +7289,27 @@ body.page-chat #app-footer {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 40px;
-  height: 40px;
+  width: 34px;
+  height: 34px;
   padding: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%), var(--bg-card-hover);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--bg-card-hover);
-  color: var(--text-muted);
+  border-top-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
   cursor: pointer;
-  transition: color 0.2s, background 0.2s;
+  transition: all var(--transition);
 }
+
 .chat-sidebar-back:hover {
   color: var(--text-primary);
-  background: var(--bg-primary);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 100%), var(--bg-primary);
+  border-color: var(--accent);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
 }
+
 .chat-sidebar-back i {
   width: 18px;
   height: 18px;
@@ -6899,6 +7345,7 @@ body.page-chat #app-footer {
 /* Desktop: batasi lebar kolom percakapan biar nyaman dibaca (bukan melebar penuh),
    konten di-center; kartu chat tetap penuh, isinya yg dikolomkan. */
 @media (min-width: 769px) {
+
   .chat-widget-area .chat-log,
   .chat-widget-area .chat-input-row,
   .chat-widget-area .chat-disclaimer {
@@ -6982,12 +7429,22 @@ body.page-chat #app-footer {
   justify-content: center;
   border-radius: 4px;
 }
+
 .chat-session-item:hover .chat-session-menu-btn,
-.chat-session-item.active .chat-session-menu-btn { opacity: 1; }
-.chat-session-menu-btn:hover { color: var(--text-primary); background: var(--bg-primary); }
+.chat-session-item.active .chat-session-menu-btn {
+  opacity: 1;
+}
+
+.chat-session-menu-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-primary);
+}
+
 /* Mobile tak punya :hover -> kebab selalu tampil biar bisa diakses tanpa hover. */
 @media (max-width: 768px) {
-  .chat-session-menu-btn { opacity: 1; }
+  .chat-session-menu-btn {
+    opacity: 1;
+  }
 }
 
 .chat-session-menu {
@@ -7003,6 +7460,7 @@ body.page-chat #app-footer {
   flex-direction: column;
   animation: chat-msg-in 0.14s ease backwards;
 }
+
 .chat-session-menu-item {
   display: flex;
   align-items: center;
@@ -7018,11 +7476,25 @@ body.page-chat #app-footer {
   text-align: left;
   transition: background 0.15s, color 0.15s;
 }
+
 .chat-session-menu-item i,
-.chat-session-menu-item svg { width: 15px; height: 15px; flex-shrink: 0; }
-.chat-session-menu-item:hover { background: var(--bg-card-hover); }
-.chat-session-menu-item.danger { color: var(--danger); }
-.chat-session-menu-item.danger:hover { background: rgba(229, 72, 77, 0.12); }
+.chat-session-menu-item svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+.chat-session-menu-item:hover {
+  background: var(--bg-card-hover);
+}
+
+.chat-session-menu-item.danger {
+  color: var(--danger);
+}
+
+.chat-session-menu-item.danger:hover {
+  background: rgba(229, 72, 77, 0.12);
+}
 
 /* ── Mobile Header ── */
 .chat-mobile-header {
@@ -7068,7 +7540,6 @@ body.page-chat #app-footer {
     right: 0;
     z-index: 20;
     pointer-events: none;
-    /* area kosong di tengah tembus ke chat */
   }
 
   /* Cluster kiri (back + menu) tetap berdampingan; tengah tembus ke chat. */
@@ -7140,20 +7611,31 @@ body.page-chat #app-footer {
     display: none;
   }
 
-  /* Item 16/18: tombol tutup (X) sejajar & setinggi "Obrolan Baru" (40px) */
+  /* Item 16/18: tombol tutup (X) sejajar & setinggi "Obrolan Baru" */
   .chat-sidebar-close {
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    width: 40px;
-    height: 40px;
+    width: 34px;
+    height: 34px;
     padding: 0;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%), var(--bg-card-hover);
     border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--bg-card-hover);
+    border-top-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1), inset 0 1px 1px rgba(255, 255, 255, 0.1);
     color: var(--text-muted);
     cursor: pointer;
+    transition: all var(--transition);
+  }
+
+  .chat-sidebar-close:hover {
+    color: var(--danger);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 100%), var(--bg-primary);
+    border-color: var(--danger);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+    transform: translateY(-1px);
   }
 
   .chat-sidebar.open {

@@ -257,13 +257,18 @@
 
     container.classList.add("chat-app-wrapper");
     container.innerHTML = `
-      <div class="chat-mobile-header">
-        <div class="chat-mobile-left">
-          <button type="button" id="btn-chat-back" title="${isEN() ? "Back" : "Kembali"}"><i data-lucide="arrow-left"></i></button>
-          <button type="button" id="btn-mobile-menu" title="${isEN() ? "History" : "Riwayat"}"><i data-lucide="history"></i></button>
+      <div class="chat-header-bar">
+        <div class="chat-header-left">
+          <button type="button" id="btn-chat-home" class="chat-header-btn" title="${isEN() ? "Back" : "Kembali"}"><i data-lucide="arrow-left"></i></button>
+          <button type="button" id="btn-mobile-menu" class="chat-header-btn" title="${isEN() ? "Menu" : "Menu"}"><i data-lucide="menu"></i></button>
         </div>
-        <span class="chat-mobile-title">myDhamma AI Chat</span>
-        <button type="button" id="btn-mobile-new"><i data-lucide="edit"></i></button>
+        <div class="chat-header-right">
+          <div style="position:relative;">
+            <button type="button" id="btn-chat-settings" class="chat-header-btn" title="${isEN() ? "Settings" : "Pengaturan"}"><i data-lucide="settings"></i></button>
+            <div class="chat-settings-menu" id="chat-settings-menu"></div>
+          </div>
+          <button type="button" id="btn-mobile-new" class="chat-header-btn" title="${isEN() ? "New Chat" : "Obrolan Baru"}"><i data-lucide="edit"></i></button>
+        </div>
       </div>
       <div class="chat-sidebar-overlay"></div>
       <div class="chat-sidebar">
@@ -283,10 +288,12 @@
           <form class="chat-input-row" autocomplete="off" style="border-top: 1px solid var(--border); position: relative;">
             <div id="chat-mention-popup" class="chat-mention-popup"></div>
             <div class="chat-input-wrap">
-              <div class="chat-input-backdrop" aria-hidden="true"></div>
-              <textarea class="chat-input" rows="1" placeholder="${esc(opts.placeholder || (isEN() ? 'e.g. why do I keep suffering?' : 'mis. kenapa ya aku menderita terus?'))}"></textarea>
+              <div class="chat-input-inner">
+                <div class="chat-input-backdrop" aria-hidden="true"></div>
+                <textarea class="chat-input" rows="1" placeholder="${esc(opts.placeholder || (isEN() ? 'e.g. why do I keep suffering?' : 'mis. kenapa ya aku menderita terus?'))}"></textarea>
+              </div>
+              <button type="submit" class="btn-primary chat-send" title="${isEN() ? 'Send' : 'Kirim'}"><i data-lucide="arrow-up"></i></button>
             </div>
-            <button type="submit" class="btn-primary chat-send">${esc(tt("btn_send", "Kirim"))}</button>
           </form>
           <div class="chat-disclaimer">${esc(tt("chat_disclaimer", "⚠ AI mungkin membuat kesalahan; selalu periksa rujukannya."))}</div>
         </div>
@@ -294,6 +301,33 @@
     `;
 
     if (window.lucide) window.lucide.createIcons({ root: container });
+
+    const settingsMenu = container.querySelector("#chat-settings-menu");
+    const langToggle = document.getElementById("btn-lang-toggle");
+    const themeToggle = document.getElementById("btn-theme-toggle");
+    if (settingsMenu) {
+      if (langToggle) settingsMenu.appendChild(langToggle);
+      if (themeToggle) settingsMenu.appendChild(themeToggle);
+    }
+
+    const btnChatSettings = container.querySelector("#btn-chat-settings");
+
+    function toggleSettingsMenu(e) {
+      e.stopPropagation();
+      settingsMenu.classList.toggle("open");
+    }
+
+    if (btnChatSettings) btnChatSettings.addEventListener("click", toggleSettingsMenu);
+
+    document.addEventListener("click", (e) => {
+      if (settingsMenu && !settingsMenu.contains(e.target)) {
+        if (btnChatSettings && btnChatSettings.contains(e.target)) return;
+        settingsMenu.classList.remove("open");
+      }
+    });
+
+    const btnChatHome = container.querySelector("#btn-chat-home");
+    if (btnChatHome) btnChatHome.addEventListener("click", () => window.location.href = "/");
 
     // Set teks elemen + simpan kedua bahasa di data-attr supaya sweep di applyLangToChat
     // bisa menukar live tanpa render ulang. WAJIB dipakai HANYA pada elemen daun (tanpa
@@ -388,10 +422,18 @@
         el.textContent = tt(el.dataset.i18nLabel, el.textContent);
       });
       // Tombol Kirim / Send
+      // Tombol Kirim / Send
       const sendBtn = container.querySelector(".chat-send");
-      if (sendBtn) sendBtn.textContent = tt("btn_send", isEN() ? "Send" : "Kirim");
-      // Placeholder textarea
       const chatInput = container.querySelector(".chat-input");
+      if (sendBtn && chatInput) {
+        if (sendBtn.classList.contains("chat-stop")) {
+          sendBtn.title = isEN() ? "Stop" : "Berhenti";
+        } else {
+          const hasText = chatInput.value.trim().length > 0;
+          sendBtn.title = hasText ? tt("btn_send", isEN() ? "Send" : "Kirim") : (isEN() ? "Mention Text" : "Sebut");
+        }
+      }
+      // Placeholder textarea
       if (chatInput && !opts.placeholder) {
         chatInput.placeholder = isEN() ? "e.g. why do I keep suffering?" : "mis. kenapa ya aku menderita terus?";
       }
@@ -436,8 +478,15 @@
     // Fallback ke home kalau tak ada riwayat (mis. /chat dibuka langsung). Dua tombol:
     // floating di mobile-header (#btn-chat-back) + di sidebar-head desktop (#btn-chat-back-desktop).
     const goBack = () => {
-      if (window.history.length > 1) window.history.back();
-      else window.location.href = "/";
+      try {
+        if (document.referrer && new URL(document.referrer).host === window.location.host) {
+          window.history.back();
+        } else {
+          window.location.href = "/";
+        }
+      } catch (e) {
+        window.location.href = "/";
+      }
     };
     container.querySelector("#btn-chat-back")?.addEventListener("click", goBack);
     container.querySelector("#btn-chat-back-desktop")?.addEventListener("click", goBack);
@@ -553,6 +602,7 @@
 
     function renderSidebar() {
       sessionListEl.innerHTML = "";
+
       sessions.forEach(s => {
         const item = document.createElement("div");
         item.className = "chat-session-item" + (s.id === currentSessionId ? " active" : "");
@@ -633,6 +683,13 @@
     let mentionActiveIndex = 0;
     let currentMentionMatch = null;
 
+    document.addEventListener("click", (e) => {
+      if (mentionPopup.classList.contains("show") && !mentionPopup.contains(e.target) && e.target !== input) {
+        mentionPopup.classList.remove("show");
+        currentMentionMatch = null;
+      }
+    });
+
     let dynamicMentionData = {
       collections: [
         { abbr: "DN", name: "Dīgha Nikāya", isCollection: true },
@@ -659,8 +716,11 @@
             abbr: s.abbr, name: s.name || "", isCollection: false
           }));
         // Set kunci sutta valid (ternormalisasi) -> dipakai utk warnai mention
-        // yg TAK ADA di korpus sebagai non-aktif.
-        validMentionSet = new Set(dynamicMentionData.suttas.map(s => normMention(s.abbr)));
+        // yg TAK ADA di korpus sebagai non-aktif. Termasuk koleksi (tanpa nomor).
+        validMentionSet = new Set([
+          ...dynamicMentionData.suttas.map(s => normMention(s.abbr)),
+          ...dynamicMentionData.collections.map(c => normMention(c.abbr))
+        ]);
         // Re-render overlay typing kalau user sudah terlanjur ngetik mention sebelum data datang.
         if (typeof syncBackdrop === "function") syncBackdrop();
         // Kalau empty-state lagi tampil dgn contoh fallback, segarkan chip mention
@@ -673,6 +733,13 @@
         }
       } catch (e) {
         console.warn("Failed to load dynamic mention data", e);
+        validMentionSet = new Set();
+        const emptyEl = log.querySelector(".chat-empty-state");
+        const chipsWrap = emptyEl && emptyEl.querySelector(".chat-empty-mentions .chat-empty-chips");
+        if (chipsWrap) {
+          chipsWrap.innerHTML = sampleMentionExamples(4).map(mentionChipHTML).join("");
+          bindMentionChips(chipsWrap);
+        }
       }
     }
     // normMention: samakan "MN 10" / "mn10" -> "mn10" utk pencocokan validitas.
@@ -696,27 +763,37 @@
       // Filter: startswith on abbr (without spaces), or includes in name
       // Strip trailing dot (user mungkin baru ketik titik: @Snp1.)
       const qNoSpace = q.replace(/\s+/g, "").replace(/\.$/, "");
+
+      const removeDiacritics = str => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const qNorm = removeDiacritics(qNoSpace);
+      const qFullNorm = removeDiacritics(q);
+
       let filtered = pool.filter(s => {
         const aSpace = s.abbr.toLowerCase();
         const aNoSpace = aSpace.replace(/\s+/g, "");
         const n = s.name.toLowerCase();
-        return aNoSpace.startsWith(qNoSpace) || aSpace.startsWith(q) || n.includes(q);
+        return removeDiacritics(aNoSpace).startsWith(qNorm) || removeDiacritics(aSpace).startsWith(qFullNorm) || removeDiacritics(n).includes(qFullNorm);
       });
 
       // Limit to 50 items so the DOM doesn't get sluggish
       filtered = filtered.slice(0, 50);
 
       if (filtered.length === 0) {
-        mentionPopup.classList.remove("show");
+        if (q === "") {
+          mentionPopup.innerHTML = `<div class="chat-mention-item chat-mention-header"><span class="chat-mention-abbr" style="width:auto;margin-right:8px;"><i data-lucide="info" style="width:14px;height:14px"></i></span><span class="chat-mention-name">Ketik singkatan sutta, misal: MN 10</span></div>`;
+          mentionPopup.classList.add("show");
+          if (window.lucide) window.lucide.createIcons({ root: mentionPopup });
+        } else {
+          mentionPopup.classList.remove("show");
+        }
         return;
       }
       mentionActiveIndex = -1; // start with no selection; first sutta item gets selected below
       mentionPopup.innerHTML = filtered.map((s, i) => {
         if (s.isCollection) {
-          // Non-selectable header — hanya petunjuk, user harus ketik angka
-          return `<div class="chat-mention-item chat-mention-header" data-iscol="1" title="Ketik nomor, misal ${s.abbr} 10">
+          return `<div class="chat-mention-item" data-abbr="${s.abbr}" data-idx="${i}">
             <span class="chat-mention-abbr">${s.abbr}</span>
-            <span class="chat-mention-name">${s.name} <span class="chat-mention-hint">← ketik nomor</span></span>
+            <span class="chat-mention-name">${s.name}</span>
           </div>`;
         }
         return `<div class="chat-mention-item" data-abbr="${s.abbr}" data-idx="${i}">
@@ -735,7 +812,7 @@
 
       const allItems = mentionPopup.querySelectorAll(".chat-mention-item:not(.chat-mention-header)");
       allItems.forEach((el, i) => {
-        el.addEventListener("click", () => selectMention(el.dataset.abbr, false));
+        el.addEventListener("click", () => selectMention(el.dataset.abbr));
         el.addEventListener("mouseenter", () => {
           allItems.forEach(e => e.classList.remove("active"));
           el.classList.add("active");
@@ -744,7 +821,7 @@
       });
     }
 
-    function selectMention(abbr, isCollection) {
+    function selectMention(abbr) {
       if (!currentMentionMatch) return;
       const val = input.value;
       const before = val.substring(0, currentMentionMatch.start);
@@ -762,6 +839,7 @@
     btnNewChat.addEventListener("click", requestNewChat);
 
     input.addEventListener("input", () => {
+      setSendMode(isGenerating); // Update the icon based on text
       input.style.height = "auto";
       input.style.height = Math.min(input.scrollHeight, 140) + "px";
       syncBackdrop();
@@ -770,7 +848,7 @@
       const cursorPos = input.selectionStart;
       const textBeforeCursor = val.substring(0, cursorPos);
       // \.\.\d* — izinkan titik trailing (misal @Snp1.) agar popup tetap tampil
-      const match = textBeforeCursor.match(/(?:^|\s)@([a-zA-Z\-]+(?:\s*\d+(?:\.\d*)?)?)$/);
+      const match = textBeforeCursor.match(/(?:^|\s)@([a-zA-Z\-]*(?:\s*\d+(?:\.\d*)?)?)$/);
 
       if (match) {
         currentMentionMatch = { start: match.index + (match[0].startsWith(" ") ? 1 : 0), end: cursorPos };
@@ -815,15 +893,26 @@
         }
       }
 
-      // Enter = baris baru (perilaku default textarea). Kirim via Ctrl/Cmd+Enter atau tombol Kirim.
-      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); form.requestSubmit(); }
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); }
     });
 
     form.addEventListener("submit", e => {
       e.preventDefault();
-      if (mentionPopup.classList.contains("show")) return; // Cegah submit kalau masih milih mention
+
+      mentionPopup.classList.remove("show");
+      currentMentionMatch = null;
+
       // Item 7: saat bot sedang menjawab, tombol berfungsi sebagai STOP.
       if (isGenerating) { stopGeneration(); return; }
+
+      const val = input.value.trim();
+      if (!val) {
+        // if empty, the button is "at-sign", clicking it inserts '@'
+        input.value = "@";
+        input.focus();
+        input.dispatchEvent(new Event("input"));
+        return;
+      }
       send();
     });
 
@@ -837,11 +926,16 @@
     }
     function setSendMode(generating) {
       if (generating) {
-        sendBtn.textContent = isEN() ? "Stop" : "Stop";
+        sendBtn.innerHTML = '<i data-lucide="square"></i>';
+        if (window.lucide) window.lucide.createIcons({ root: sendBtn });
+        sendBtn.title = isEN() ? "Stop" : "Berhenti";
         sendBtn.classList.add("chat-stop");
         sendBtn.disabled = false;
       } else {
-        sendBtn.textContent = tt("btn_send", isEN() ? "Send" : "Kirim");
+        const hasText = input.value.trim().length > 0;
+        sendBtn.innerHTML = hasText ? '<i data-lucide="arrow-up"></i>' : '<i data-lucide="at-sign"></i>';
+        if (window.lucide) window.lucide.createIcons({ root: sendBtn });
+        sendBtn.title = hasText ? tt("btn_send", isEN() ? "Send" : "Kirim") : (isEN() ? "Mention" : "Sebut Teks");
         sendBtn.classList.remove("chat-stop");
         sendBtn.disabled = false;
       }
@@ -871,6 +965,9 @@
       window.history.replaceState({}, document.title, "/chat");
     }
 
+    // Set initial send mode (shows @ if empty, arrow if has text from prefill)
+    setSendMode(false);
+
     // Filter Bahasa/Piṭaka manual DIHAPUS — agen menentukan scope (language/pitaka) sendiri
     // lewat argumen tool search_sutta, jadi toggle UI redundan & membingungkan.
 
@@ -878,7 +975,7 @@
     // Input = teks yg SUDAH di-HTML-escape.
     function markMentions(escaped, cls) {
       return escaped.replace(
-        /@([A-Za-z]+(?:-[A-Za-z]+)?\s?\d[\d.\-]*)/g,
+        /@([A-Za-z]+(?:-[A-Za-z]+)?(?:\s*\d[\d.\-]*)?)/g,
         (_m, ref) => {
           // Sutta yg TAK ADA di korpus -> warnai non-aktif (data belum siap = anggap valid).
           const inactive = validMentionSet && !validMentionSet.has(normMention(ref));
@@ -896,6 +993,7 @@
       if (!inputBackdrop) return;
       inputBackdrop.innerHTML = markMentions(esc(input.value), "chat-input-mark") + " ";
       inputBackdrop.scrollTop = input.scrollTop;
+      input.style.overflowY = input.scrollHeight > 140 ? "auto" : "hidden";
     }
     if (inputBackdrop) {
       // Aktifkan overlay (teks textarea jadi transparan) HANYA bila backdrop ada & JS jalan.
@@ -942,6 +1040,7 @@
     // dynamicMentionData). Hanya yg punya nama (biar chip enak dibaca). Kalau data
     // belum siap -> pakai fallback statis di atas.
     function sampleMentionExamples(n) {
+      if (validMentionSet === null) return [];
       const pool = (dynamicMentionData.suttas || []).filter(s => s.abbr && s.name);
       if (pool.length < n) return EMPTY_MENTION_EXAMPLES.slice(0, n);
       const arr = pool.slice();
@@ -988,10 +1087,10 @@
       if (e) e.remove();
     }
 
-    function renderEmptyState() {
+    function renderEmptyState(skipAnimation = false) {
       if (log.querySelector(".chat-msg") || log.querySelector(".chat-empty-state")) return;
       const empty = document.createElement("div");
-      empty.className = "chat-empty-state";
+      empty.className = "chat-empty-state" + (skipAnimation ? " no-animate" : "");
       // Kode mention pakai spasi (mis. @MN 10) biar konsisten dgn suttaplex & UI lain.
       // Contoh diambil acak dari sumber (fallback statis bila data belum termuat).
       const chips = sampleMentionExamples(4).map(mentionChipHTML).join("");
@@ -1004,7 +1103,7 @@
           <i data-lucide="sparkles" class="chat-empty-sparkle"></i>
         </div>
         <div class="chat-empty-greeting">
-          <span class="chat-empty-greet-1">Sotthi hotu!</span>
+          <span class="chat-empty-greet-1">myDhamma AI</span>
           <span class="chat-empty-greet-2"><span class="chat-empty-typed"></span><span class="chat-empty-caret"></span></span>
         </div>
         <div class="chat-empty-mentions">
@@ -1018,17 +1117,21 @@
       log.appendChild(empty);
       if (window.lucide) window.lucide.createIcons({ root: empty });
 
-      // Animasi ketik baris kedua ("Ada yang bisa saya bantu?")
+      // Animasi ketik baris kedua
       const typedEl = empty.querySelector(".chat-empty-typed");
-      const fullText = isEN() ? "How can myDhamma AI help you?" : "Ada yang bisa myDhamma AI bantu?";
+      const fullText = isEN() ? "Sotthi hotu! How can I help you today?" : "Sotthi hotu! Ada yang bisa saya bantu?";
       if (typedEl) {
-        let i = 0;
-        // jeda kecil dulu biar "Sotthi hotu!" sempat muncul
-        emptyTypeTimer = setTimeout(function tick() {
-          typedEl.textContent = fullText.slice(0, ++i);
-          if (i >= fullText.length) { emptyTypeTimer = null; return; }
-          emptyTypeTimer = setTimeout(tick, 55);
-        }, 450);
+        if (skipAnimation) {
+          typedEl.textContent = fullText;
+        } else {
+          let i = 0;
+          // jeda kecil dulu biar "Sotthi hotu!" sempat muncul
+          emptyTypeTimer = setTimeout(function tick() {
+            typedEl.textContent = fullText.slice(0, ++i);
+            if (i >= fullText.length) { emptyTypeTimer = null; return; }
+            emptyTypeTimer = setTimeout(tick, 55);
+          }, 450);
+        }
       }
 
       // Klik chip mention -> sisipkan mention ke input (tanpa auto-kirim), fokus utk lanjut ketik
@@ -1043,6 +1146,10 @@
           empty.querySelectorAll("button").forEach(b => b.disabled = true);
           btn.classList.add("flying");
           empty.classList.add("dismissing");
+
+          mentionPopup.classList.remove("show");
+          currentMentionMatch = null;
+
           setTimeout(() => {
             input.value = q;
             input.style.height = "auto";
@@ -1455,7 +1562,7 @@
 
     // Ambil @mention dari teks (pola sama dgn markMentions). -> [{fid:"MN 10", norm:"mn10"}].
     function extractMentions(text) {
-      const re = /@([A-Za-z]+(?:-[A-Za-z]+)?\s?\d[\d.\-]*)/g;
+      const re = /@([A-Za-z]+(?:-[A-Za-z]+)?(?:\s*\d[\d.\-]*)?)/g;
       const out = [], seen = new Set();
       let m;
       while ((m = re.exec(text)) !== null) {
@@ -1657,14 +1764,18 @@
                     : obj.data.mentions.join(", ");
                   labEn = (obj.data.carried ? "Continuing sutta context: " : "Explicit reference detected: ") + ms;
                   labId = (obj.data.carried ? "Melanjutkan konteks sutta: " : "Rujukan eksplisit terdeteksi: ") + ms;
+                } else if (obj.data.kind === "glossary") {
+                  const cs = (obj.data.collections || []).join(", ");
+                  labEn = "Collection glossary: " + cs;
+                  labId = "Glosari koleksi: " + cs;
                 } else if (obj.data.kind === "name_match") {
                   const ns = obj.data.names.join(", ");
                   labEn = "Sutta name match: " + ns;
                   labId = "Kecocokan nama sutta: " + ns;
                 } else if (obj.data.kind === "nikaya_scope") {
                   const ss = obj.data.scopes.join(", ");
-                  labEn = "Restricted to nikaya: " + ss;
-                  labId = "Dibatasi ke nikaya: " + ss;
+                  labEn = "Restricted to: " + ss;
+                  labId = "Dibatasi ke kitab: " + ss;
                 } else if (obj.data.kind === "hybrid_search" || obj.data.kind === "hybrid_search_extra") {
                   const qs = obj.data.queries.map(q => `“${q}”`).join("  ·  ");
                   const prefixEn = obj.data.kind === "hybrid_search_extra" ? "Hybrid search for extra context: " : "Hybrid search: ";
@@ -1887,6 +1998,15 @@
           input.focus();
           input.setSelectionRange(input.value.length, input.value.length);
         }
+        const wrap = container.querySelector(".chat-input-wrap");
+        if (wrap) {
+          wrap.classList.add("attention-pulse");
+          setTimeout(() => wrap.classList.remove("attention-pulse"), 2000);
+        }
+        if (sendBtn) {
+          sendBtn.classList.add("attention-pulse");
+          setTimeout(() => sendBtn.classList.remove("attention-pulse"), 2000);
+        }
       };
       const sizeAndSync = () => {
         input.style.height = "auto";
@@ -1909,6 +2029,18 @@
       // MENGISI kotak (animasi ketik); TIDAK auto-kirim (user edit dulu).
       if (history.length > 0) createNewSession(true);
       typeIntoInput(prefillInput);
+
+      const chatInputWrap = root.querySelector(".chat-input-wrap");
+      if (chatInputWrap) {
+        chatInputWrap.classList.remove("prefill-pulse");
+        void chatInputWrap.offsetWidth; // trigger reflow
+        chatInputWrap.classList.add("prefill-pulse");
+      }
+      if (btnSend) {
+        btnSend.classList.remove("prefill-pulse");
+        void btnSend.offsetWidth;
+        btnSend.classList.add("prefill-pulse");
+      }
     }
 
     return { send, history };

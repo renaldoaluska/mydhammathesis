@@ -662,6 +662,52 @@ def collections_list():
     return [{"uid": u, "display": d} for u, d in sorted(prefixes.items())]
 
 
+_NIKAYA_CODES = {"dn", "mn", "sn", "an", "kn"}   # pengelompokan nikaya (kn = virtual, tak punya leaf sendiri)
+
+
+def collection_codes() -> set:
+    """Set kode KOLEKSI yg bisa dirujuk sbg KESELURUHAN (bukan sutta+nomor): piṭaka,
+    nikaya, & kitab. Dibangun dari struktur tree — bukan daftar hard-code per-kitab."""
+    codes = set(PITAKAS) | set(_NIKAYA_CODES)
+    for items in _tree_by_pitaka.values():
+        for book, _children, _leaves in items:
+            codes.add(shorten_sutta_id(book))
+    return codes
+
+
+def _strip_html(s: str) -> str:
+    return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", s or "")).strip()
+
+
+def glossary_entry(uid: str, lang: str = "id") -> dict:
+    """Entri glosari GROUNDED utk satu kode koleksi (mis. 'dhp', 'an', 'kn'):
+    nama kanonik + blurb otoritatif (SuttaCentral) + hierarki + jumlah teks.
+    None kalau uid bukan koleksi. Sumber satu-satunya data korpus — anti-halusinasi."""
+    uid = shorten_sutta_id(uid)
+    if uid not in collection_codes():
+        return None
+    blurb = (_blurbs.get((uid, lang)) or _blurbs.get((uid, "en"))
+             or _blurbs.get((uid, "id")))
+    crumbs = [c["label"] for c in _get_breadcrumbs(uid)]
+    if not crumbs:                       # kn/piṭaka yg tak jadi 'book' di tree -> fallback piṭaka
+        pit = _SUTTA_PITAKA.get(uid)
+        if pit and pit != uid:
+            crumbs = [_sutta_names.get(pit, pit.title())]
+    count = 0
+    for items in _tree_by_pitaka.values():
+        for book, _children, leaves in items:
+            if shorten_sutta_id(book) == uid:
+                count = len(leaves)
+    return {
+        "uid": uid,
+        "abbr": format_sutta_id(uid),
+        "name": _sutta_names.get(uid),
+        "blurb": _strip_html(blurb) if blurb else None,
+        "hierarchy": crumbs,
+        "count": count,
+    }
+
+
 # ============================================================
 # init — bangun semua peta sekali (dipanggil app.py saat startup)
 # ============================================================

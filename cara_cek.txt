@@ -1,0 +1,26 @@
+PANDUAN MANAJEMEN APLIKASI (PENGGANTI TMUX)
+===========================================
+Aplikasi web dan tunnel Cloudflare sekarang dijalankan menggunakan Systemd di background.
+
+1. CARA RESTART APLIKASI
+Kalau habis merubah kode (misal app.py), aplikasinya wajib di-restart agar perubahannya masuk:
+- Web Utama:      systemctl --user restart mydhamma-web
+- Web Eval:       systemctl --user restart mydhamma-eval
+- Tunnel:         systemctl --user restart cloudflared
+
+2. CARA MELIHAT LOG (Pengganti `tmux attach`)
+Untuk melihat log error, print Python, atau traffic secara LIVE (tekan Ctrl+C untuk keluar):
+- Log Web Utama:  journalctl --user -u mydhamma-web -f
+- Log Web Eval:   journalctl --user -u mydhamma-eval -f
+- Log Tunnel:     journalctl --user -u cloudflared -f
+
+(Hilangkan huruf "-f" di belakang kalau cuma mau baca log lama tanpa mode live/real-time)
+
+3. CARA CEK STATUS (Nyala atau Error?)
+Kalau web tidak bisa diakses, cek statusnya (hijau = aman, merah = error):
+- Status Web:     systemctl --user status mydhamma-web
+- Status Eval:    systemctl --user status mydhamma-eval
+
+4. CARA MEMATIKAN APLIKASI (STOP)
+- Matikan Web:    systemctl --user stop mydhamma-web
+- Matikan Eval:   systemctl --user stop mydhamma-eval
