@@ -86,7 +86,7 @@
       btn_empty_new_note: "+ Buat Catatan Baru",
       btn_send: "Kirim",
       chat_subtitle: "Chat myDhamma AI",
-      chat_disclaimer: "⚠ AI mungkin membuat kesalahan; selalu periksa rujukannya.",
+      chat_disclaimer: "⚠ AI dapat membuat kesalahan; selalu periksa rujukannya.",
       sutta_not_found: "Sutta tidak ditemukan.",
       loading_sutta: "Memuat teks…",
       sp_not_found: "Sutta tidak tersedia dalam korpus.",

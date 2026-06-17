@@ -62,6 +62,7 @@
   --bg-card: #1e1e2a;
   --bg-card-hover: #26263a;
   --bg-input: #16161f;
+  --chat-scrim: #0c0c11;
   --text-primary: #e8e6f0;
   --text-secondary: #9a97b0;
   --text-muted: #5e5b72;
@@ -95,6 +96,7 @@
   --bg-card: #ffffff;
   --bg-card-hover: #f9f7f4;
   --bg-input: #ffffff;
+  --chat-scrim: #e7e2da;
   --text-primary: #1a1818;
   --text-secondary: #5a5555;
   --text-muted: #9a9494;
@@ -2076,8 +2078,27 @@ a:hover {
   height: 58px;
   opacity: 0.92;
   transform-origin: 50% 50%;
+  /* Roda muter; gradient ungu statik (tanpa shine putih gerak) -> rotasi aman, tak "tumbling". */
   animation: chat-wheel-spin 9s linear infinite;
-  filter: drop-shadow(0 0 8px rgba(162, 85, 255, 0.4));
+  filter: drop-shadow(0 0 6px rgba(162, 85, 255, 0.38));
+}
+
+/* Light: glow roda senada teks sapaan versi light */
+[data-theme="light"] .chat-empty-wheel {
+  filter: drop-shadow(0 0 5px rgba(124, 58, 237, 0.28));
+}
+
+/* Gradient roda theme-aware (samain badge): light pakai ungu lebih pekat biar tak pucat. */
+[data-theme="light"] #chatWheelGrad stop:nth-of-type(1) {
+  stop-color: #a855f7;
+}
+
+[data-theme="light"] #chatWheelGrad stop:nth-of-type(2) {
+  stop-color: #7c3aed;
+}
+
+[data-theme="light"] #chatWheelGrad stop:nth-of-type(3) {
+  stop-color: #6d28d9;
 }
 
 @keyframes chat-wheel-spin {
@@ -2106,9 +2127,150 @@ a:hover {
   filter: drop-shadow(0 0 8px rgba(162, 85, 255, 0.4));
 }
 
+/* Light: #ffffff (highlight shine) di gradient lenyap ke bg terang -> ganti jadi ungu terang
+   biar sapaan tetap terbaca, shine tetap jalan. */
+[data-theme="light"] .chat-empty-greet-1 {
+  background: linear-gradient(90deg, #7c3aed, #c084fc, #9333ea, #7c3aed);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(0 0 6px rgba(124, 58, 237, 0.3));
+}
+
 @keyframes text-shine {
   to {
     background-position: 200% center;
+  }
+}
+
+/* Scrim atas: kotak full ujung-ke-ujung area chat yg menipis ke bawah (solid di atas ->
+   transparan). Jadi latar lembut utk badge brand (kiri) & tombol setting (kanan); pesan yg
+   ter-scroll ke atas memudar di baliknya. Hanya tampak saat ADA percakapan (.show-brand). */
+.chat-widget-area::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 120px;
+  pointer-events: none;
+  z-index: 80;
+  background: linear-gradient(to bottom,
+      var(--chat-scrim) 0%,
+      color-mix(in srgb, var(--chat-scrim) 55%, transparent) 50%,
+      transparent 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.chat-widget-area.show-brand::before {
+  opacity: 1;
+}
+
+/* "Bercak cahaya"/spotlight: glow ungu mengisi SELURUH panel chat (empty page) di belakang
+   konten. Hilang saat ada percakapan (.show-brand). Light mode di-override lebih halus. */
+.chat-widget-area::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(90% 60% at 50% 60%, rgba(162, 85, 255, 0.20), transparent 78%),
+    radial-gradient(60% 52% at 18% 72%, rgba(124, 58, 237, 0.13), transparent 82%),
+    radial-gradient(60% 52% at 82% 72%, var(--accent-subtle), transparent 82%);
+  opacity: 1;
+  transition: opacity 0.4s ease;
+  animation: chat-area-glow 12s ease-in-out infinite alternate;
+}
+
+.chat-widget-area.show-brand::after {
+  opacity: 0;
+}
+
+/* Konten chat di ATAS glow */
+.chat-widget-area>.chat-widget {
+  position: relative;
+  z-index: 1;
+}
+
+[data-theme="light"] .chat-widget-area::after {
+  background:
+    radial-gradient(90% 60% at 50% 60%, rgba(124, 58, 237, 0.12), transparent 78%),
+    radial-gradient(60% 52% at 18% 72%, rgba(147, 51, 234, 0.09), transparent 82%),
+    radial-gradient(60% 52% at 82% 72%, rgba(196, 125, 21, 0.07), transparent 82%);
+}
+
+@keyframes chat-area-glow {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  to {
+    transform: translate3d(0, -1.5%, 0) scale(1.05);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-widget-area::after {
+    animation: none;
+  }
+}
+
+/* Badge "myDhamma AI" di pojok KIRI-ATAS area chat (lawan tombol setting di kanan). Di dalam
+   .chat-widget-area (relative) -> otomatis di kanan sidebar histori, tak menembusnya. Gradient
+   teks di <span> dalam (gradient+background-clip:text harus terpisah dari latar). */
+.chat-brand-badge {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  z-index: 90;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.chat-brand-badge span {
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  background: linear-gradient(90deg, #c89bff, #a255ff, #7c3aed);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 6px rgba(162, 85, 255, 0.35));
+}
+
+/* Light: ungu pucat (#c89bff) di awal jadi nyaris putih di bg terang -> pakai ungu lebih
+   pekat biar huruf awal ("my") tetap terbaca sbg ungu. */
+[data-theme="light"] .chat-brand-badge span {
+  background: linear-gradient(90deg, #a855f7, #7c3aed, #6d28d9);
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(0 0 5px rgba(124, 58, 237, 0.28));
+}
+
+.chat-widget-area.show-brand .chat-brand-badge {
+  opacity: 1;
+  transform: none;
+}
+
+/* Mobile: badge di TENGAH-atas, sejajar-vertikal dgn tombol floating (pusat tombol ~31px:
+   header padding 12 + setengah tinggi tombol 38/2). translate -50% Y -> center sejati. */
+@media (max-width: 768px) {
+  .chat-brand-badge {
+    top: 31px;
+    left: 50%;
+    transform: translate(-50%, calc(-50% - 4px));
+  }
+
+  .chat-widget-area.show-brand .chat-brand-badge {
+    transform: translate(-50%, -50%);
+  }
+
+  .chat-brand-badge span {
+    font-size: 1rem;
   }
 }
 
@@ -2161,7 +2323,7 @@ a:hover {
   height: 1.05em;
   margin-left: 2px;
   vertical-align: -2px;
-  background: var(--accent);
+  background: linear-gradient(180deg, #c89bff, #7c3aed);
   animation: chat-caret-blink 0.8s step-end infinite;
 }
 
@@ -2185,7 +2347,7 @@ a:hover {
   height: 1.05em;
   margin-left: 2px;
   vertical-align: -2px;
-  background: var(--accent);
+  background: linear-gradient(180deg, #c89bff, #7c3aed);
   border-radius: 1px;
   animation: chat-caret-blink 0.8s step-end infinite;
 }
@@ -2252,6 +2414,10 @@ a:hover {
 .chat-empty-mentions-label {
   font-size: 0.8rem;
   color: var(--text-muted);
+  /* lowercase dulu supaya huruf kapital sumber ("Sebut...") ikut jadi small-caps rata */
+  text-transform: lowercase;
+  font-variant: small-caps;
+  letter-spacing: 0.04em;
 }
 
 .chat-empty-chips {
@@ -2268,11 +2434,11 @@ a:hover {
   display: inline-flex;
   align-items: baseline;
   gap: 5px;
-  padding: 7px 13px;
+  /* disamakan dgn .chat-empty-prompt (ghost/outline) — beda cuma @ accent + nama muted */
+  padding: 7px 14px;
   font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  background: var(--bg-card-hover);
+  color: var(--text-secondary, var(--text-primary));
+  background: transparent;
   border: 1px solid var(--border);
   border-radius: 999px;
   cursor: pointer;
@@ -6295,9 +6461,9 @@ html.show-seg-ref .rs-ex-sup {
 
 .sutta-pitaka-badge.abhidhamma,
 .browse-nikaya:nth-child(3)>.browse-nikaya-header {
-  background-color: rgba(155, 89, 182, 0.15);
-  color: #8e44ad;
-  border: 1px solid rgba(155, 89, 182, 0.3);
+  background-color: rgba(39, 174, 96, 0.15);
+  color: #1e8449;
+  border: 1px solid rgba(39, 174, 96, 0.3);
 }
 
 [data-theme="dark"] .sutta-pitaka-badge.sutta {
@@ -6309,7 +6475,7 @@ html.show-seg-ref .rs-ex-sup {
 }
 
 [data-theme="dark"] .sutta-pitaka-badge.abhidhamma {
-  color: #af7ac5;
+  color: #58d68d;
 }
 
 /* Responsive display utilities */
@@ -6356,7 +6522,7 @@ html.show-seg-ref .rs-ex-sup {
 }
 
 /* ===== Search result: sutta-card outline tinted by piṭaka ===== */
-/* Colors mirror the .sutta-pitaka-badge palette (sutta=blue, vinaya=red, abhidhamma=purple). */
+/* Colors mirror the .sutta-pitaka-badge palette (sutta=blue, vinaya=red, abhidhamma=green). */
 .sutta-card.pitaka-sutta {
   border-color: rgba(52, 152, 219, 0.5);
 }
@@ -6366,7 +6532,7 @@ html.show-seg-ref .rs-ex-sup {
 }
 
 .sutta-card.pitaka-abhidhamma {
-  border-color: rgba(155, 89, 182, 0.5);
+  border-color: rgba(39, 174, 96, 0.5);
 }
 
 .sutta-card.pitaka-sutta:hover {
@@ -6378,7 +6544,7 @@ html.show-seg-ref .rs-ex-sup {
 }
 
 .sutta-card.pitaka-abhidhamma:hover {
-  border-color: rgba(155, 89, 182, 0.85);
+  border-color: rgba(39, 174, 96, 0.85);
 }
 
 /* ========== Toast notification (showToast di common.js) ==========
@@ -6497,12 +6663,8 @@ body.page-chat #app-header {
   padding: 0;
   margin: 0;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 100%), var(--bg-glass);
-  border: 1px solid var(--bg-glass-border);
-  border-top-color: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
   color: var(--text-primary);
   cursor: pointer;
   transition: all var(--transition);
@@ -6510,8 +6672,7 @@ body.page-chat #app-header {
 
 .chat-header-btn:hover {
   border-color: var(--accent);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.05) 100%), var(--bg-glass);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.25);
+  color: var(--accent);
   transform: translateY(-1px);
 }
 
@@ -6601,7 +6762,8 @@ body.page-chat #app-footer {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  padding: 64px 2px 16px;
+  /* top 80px: kasih ruang utk badge brand + scrim atas biar pesan pertama tak mepet */
+  padding: 80px 2px 16px;
 }
 
 .chat-msg {
@@ -6625,6 +6787,108 @@ body.page-chat #app-footer {
   border: 1px solid var(--border);
   border-radius: 4px 14px 14px 14px;
   padding: 14px 16px;
+  position: relative;
+}
+
+/* ── Animated gradient highlight border saat AI sedang proses/streaming ──
+   Conic-gradient ungu berputar di sekeliling bubble → tipis, estetik, senada theme.
+   Teknik: ::before selebar bubble + 1.5px padding (ketebalan garis), latar conic-gradient
+   berputar; konten bubble menutupi bagian dalam (clip) shg hanya "bingkai" gradient yg terlihat.
+   Transisi opacity saat class ditambah/dibuang → fade-in/out halus. */
+.chat-msg-bot.is-generating {
+  border-color: transparent;
+  z-index: 0;
+}
+
+.chat-msg-bot.is-generating::before {
+  content: "";
+  position: absolute;
+  inset: -1.5px;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(
+    from var(--gen-angle, 0deg),
+    transparent 0%,
+    #c89bff 10%,
+    #a255ff 25%,
+    #7c3aed 40%,
+    transparent 50%,
+    transparent 100%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+          mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+          mask-composite: exclude;
+  animation: gen-border-spin 2.4s linear infinite;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0.85;
+}
+
+/* Outer glow halus senada → biar garis gradient gak "kering", ada aura lembut */
+.chat-msg-bot.is-generating::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  background: transparent;
+  box-shadow: 0 0 12px 2px rgba(162, 85, 255, 0.18),
+              0 0 4px 1px rgba(124, 58, 237, 0.12);
+  pointer-events: none;
+  z-index: -1;
+  animation: gen-glow-pulse 2s ease-in-out infinite alternate;
+}
+
+@keyframes gen-border-spin {
+  to { --gen-angle: 360deg; }
+}
+
+/* Daftarkan custom property supaya bisa di-animasi (CSS Houdini @property) */
+@property --gen-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes gen-glow-pulse {
+  from { opacity: 0.5; }
+  to   { opacity: 1; }
+}
+
+/* Light theme: turunkan intensitas glow */
+[data-theme="light"] .chat-msg-bot.is-generating::before {
+  opacity: 0.7;
+  background: conic-gradient(
+    from var(--gen-angle, 0deg),
+    transparent 0%,
+    #a855f7 10%,
+    #7c3aed 25%,
+    #6d28d9 40%,
+    transparent 50%,
+    transparent 100%
+  );
+}
+
+[data-theme="light"] .chat-msg-bot.is-generating::after {
+  box-shadow: 0 0 10px 2px rgba(124, 58, 237, 0.14),
+              0 0 3px 1px rgba(109, 40, 217, 0.10);
+}
+
+/* Reduced motion: glow statik (tanpa rotasi), masih indah tapi diam */
+@media (prefers-reduced-motion: reduce) {
+  .chat-msg-bot.is-generating::before {
+    animation: none;
+    background: linear-gradient(135deg, #c89bff, #a255ff, #7c3aed) border-box;
+    opacity: 0.5;
+  }
+  .chat-msg-bot.is-generating::after {
+    animation: none;
+    opacity: 0.7;
+  }
 }
 
 /* Entrance bubble baru (klik Kirim) — naik + pop kecil biar gak kaku. fill `backwards`
@@ -6788,6 +7052,7 @@ body.page-chat #app-footer {
 
 .chat-trans-actions {
   display: flex;
+  justify-content: flex-end;
   gap: 8px;
   align-items: center;
   margin-top: 2px;
@@ -6851,8 +7116,8 @@ body.page-chat #app-footer {
   display: flex;
   align-items: flex-end;
   padding: 16px;
-  background: var(--bg-primary);
-  border-top: 1px solid var(--border);
+  /* tanpa background/border: nyatu (blend) dgn area chat & glow di belakangnya */
+  background: transparent;
 }
 
 /* Wrapper utk overlay highlight @mention saat mengetik (backdrop di belakang textarea) */
@@ -6864,14 +7129,15 @@ body.page-chat #app-footer {
   background: var(--bg-input);
   border-radius: 24px;
   border: 1px solid var(--border-strong);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  /* soft accent glow halo biar kotak input "mengambang" & nyatu dgn aksen glow halaman */
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.06), 0 0 22px -8px var(--accent-subtle);
   padding: 8px 8px 8px 16px;
   transition: border-color var(--transition), box-shadow var(--transition);
 }
 
 .chat-input-wrap:focus-within {
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px var(--accent-subtle);
+  box-shadow: 0 0 0 2px var(--accent-subtle), 0 4px 24px -6px color-mix(in srgb, var(--accent) 35%, transparent);
 }
 
 .chat-input-inner {
@@ -6931,7 +7197,9 @@ body.page-chat #app-footer {
   border-radius: 4px;
   background: color-mix(in srgb, var(--accent) 22%, transparent);
   color: var(--accent);
-  font-weight: 600;
+  /* JANGAN ubah berat/lebar glyph: backdrop harus PERSIS selebar teks textarea transparan
+     di atasnya, kalau tidak teks sesudah mention geser/wrap beda -> tampak "dobel"/berbayang. */
+  font-weight: inherit;
 }
 
 /* Mention ke sutta yg tak ada di korpus -> non-aktif (abu, dicoret) */
@@ -7169,6 +7437,33 @@ body.page-chat #app-footer {
   width: 16px;
 }
 
+/* ── Ikon langkah proses: ungu gradient "AI takeover" ──
+   Override inline color (dari JS) supaya spinner loading + ceklis selesai ikut
+   nuansa ungu gradient yang sama. Pakai !important krn JS set style="" langsung. */
+
+/* Spinner (loader-circle) saat sedang proses — ungu terang + glow berputar */
+.chat-thinking-step.step-loading .step-icon svg {
+  color: #a255ff !important;
+  filter: drop-shadow(0 0 4px rgba(162, 85, 255, 0.5));
+}
+
+/* Ceklis (check) saat step selesai — ungu lebih pekat + glow halus */
+.chat-thinking-step.step-done .step-icon svg {
+  color: #a255ff !important;
+  filter: drop-shadow(0 0 3px rgba(162, 85, 255, 0.35));
+}
+
+/* Light theme: pakai ungu lebih pekat biar terbaca di bg terang */
+[data-theme="light"] .chat-thinking-step.step-loading .step-icon svg {
+  color: #7c3aed !important;
+  filter: drop-shadow(0 0 3px rgba(124, 58, 237, 0.35));
+}
+
+[data-theme="light"] .chat-thinking-step.step-done .step-icon svg {
+  color: #7c3aed !important;
+  filter: drop-shadow(0 0 2px rgba(124, 58, 237, 0.25));
+}
+
 .lucide-spin {
   animation: lucide-spin 2s linear infinite;
 }
@@ -7216,7 +7511,6 @@ body.page-chat #app-footer {
   /* Item 14: pakai tinggi penuh (padding #search-scroll sudah 0) — tanpa sisa ruang bawah */
   height: calc(100vh - var(--header-h));
   width: 100%;
-  gap: 16px;
   margin-bottom: 0;
 }
 
@@ -7259,21 +7553,15 @@ body.page-chat #app-footer {
 }
 
 .chat-new-btn.btn-primary {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%), var(--bg-glass);
+  background: var(--bg-card);
   color: var(--text-primary);
   border: 1px solid var(--border);
-  border-top-color: var(--border);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1), inset 0 1px 1px rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   transition: all var(--transition);
 }
 
 .chat-new-btn.btn-primary:hover {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 100%), var(--bg-glass);
   color: var(--accent);
   border-color: var(--accent);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.15);
   transform: translateY(-1px);
 }
 
@@ -7293,20 +7581,16 @@ body.page-chat #app-footer {
   height: 34px;
   padding: 0;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%), var(--bg-card-hover);
+  background: var(--bg-card);
   border: 1px solid var(--border);
-  border-top-color: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1), inset 0 1px 1px rgba(255, 255, 255, 0.1);
   color: var(--text-primary);
   cursor: pointer;
   transition: all var(--transition);
 }
 
 .chat-sidebar-back:hover {
-  color: var(--text-primary);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 100%), var(--bg-primary);
+  color: var(--accent);
   border-color: var(--accent);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.15);
   transform: translateY(-1px);
 }
 
@@ -7314,6 +7598,9 @@ body.page-chat #app-footer {
   width: 18px;
   height: 18px;
 }
+
+
+
 
 /* Item 12/16: tombol tutup sidebar — hanya tampil di mobile (lihat media query) */
 .chat-sidebar-close {
@@ -7578,7 +7865,7 @@ body.page-chat #app-footer {
      Item 17: margin samping ada di DALAM (bubble), bukan di shape luar — jadi
      sidebar/overlay tetap full-bleed, cuma isi chat yg dikasih napas. */
   .chat-log {
-    padding-top: 56px;
+    padding-top: 64px;
     padding-left: 12px;
     padding-right: 12px;
   }
@@ -7621,10 +7908,8 @@ body.page-chat #app-footer {
     height: 34px;
     padding: 0;
     border-radius: 50%;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%), var(--bg-card-hover);
+    background: var(--bg-card);
     border: 1px solid var(--border);
-    border-top-color: rgba(255, 255, 255, 0.15);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1), inset 0 1px 1px rgba(255, 255, 255, 0.1);
     color: var(--text-muted);
     cursor: pointer;
     transition: all var(--transition);
@@ -7632,9 +7917,7 @@ body.page-chat #app-footer {
 
   .chat-sidebar-close:hover {
     color: var(--danger);
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 100%), var(--bg-primary);
     border-color: var(--danger);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.15);
     transform: translateY(-1px);
   }
 

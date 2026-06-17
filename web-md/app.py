@@ -547,8 +547,8 @@ def api_collections():
 
 
 # Pola teks Pali kanonik yg layak di-@mention: nikaya (butuh angka) + vinaya bu/bi
-# (pli-tv-b[iu]-...). Terjemahan non-Pali (lzh-*/san-*/xct-*) sengaja dibuang.
-_MENTIONABLE_RE = re.compile(r'^((dn|mn|sn|an|kn|dhp|ud|iti|snp|vv|pv|thag|thig)\d|pli-tv-b[iu]-)', re.IGNORECASE)
+# (pli-tv-b[iu]-...) + abhidhamma. Terjemahan non-Pali (lzh-*/san-*/xct-*) sengaja dibuang.
+_MENTIONABLE_RE = re.compile(r'^((dn|mn|sn|an|kn|dhp|ud|iti|snp|vv|pv|thag|thig)\d|pli-tv-b[iu]-|ds|vb|dt|pp|kv|ya|patthana)', re.IGNORECASE)
 
 
 @app.route("/api/mentionable")
@@ -577,6 +577,15 @@ def api_sutta_translations(sutta_id):
     """Terjemahan yg tersedia utk satu sutta (buat picker @mention di chat). Terima id
     ternormalisasi (mis. 'mn10') ataupun berspasi ('MN 10')."""
     sid = reader.resolve_sutta_id(sutta_id.replace(" ", "").lower())
+    
+    if sid in reader.collection_codes():
+        return jsonify({
+            "formatted_id": reader.format_sutta_id(sid),
+            "sutta_name": reader._sutta_names.get(sid, ""),
+            "translations": [{"lang": "id", "author": "koleksi", "source": "sistem"}],
+            "is_collection": True
+        })
+
     return jsonify({
         "formatted_id": reader.format_sutta_id(sid),
         "sutta_name": reader._sutta_names.get(sid, ""),
@@ -887,7 +896,8 @@ _CHAT_SYSTEM = {
         "1. Untuk pertanyaan APA PUN soal Dhamma/Buddhisme/sutta/Tipiṭaka, Anda WAJIB memanggil tool "
         "`search_sutta` LEBIH DULU. DILARANG menjawab dari ingatan. Jika pertanyaan user adalah pertanyaan lanjutan (follow-up) mengenai sutta dari obrolan sebelumnya, Anda WAJIB menyisipkan kode/nama sutta tersebut ke dalam argumen query tool (misal: 'MN 21 perumpamaan gergaji'). Jika user berganti topik, jangan sertakan kode suttanya. Jika user melanjutkan TOPIK secara elipsis tanpa menyebut subjeknya (mis. 'ada lagi?', 'yang lain', 'selain itu', 'ada lagi dari AN'), Anda WAJIB membawa kata-benda topik dari pertanyaan sebelumnya ke dalam query (mis. sebelumnya 'penyebab gempa bumi' lalu 'ada lagi dari AN' -> query 'penyebab gempa bumi', jangan jadi 'penyebab' saja). Jika user menyebut sebuah nikaya/koleksi tanpa nomor (mis. 'dari AN', 'di Anguttara'), sertakan kode nikaya itu apa adanya di query. Jika niat user sangat ambigu (Anda ragu apakah ia lanjut atau ganti topik), panggil tool `ask_clarification`. "
         "JANGAN PERNAH menanyakan dari sudut pandang mana user ingin dijawab (mis. 'ilmiah atau Dhamma') — Anda SELALU menjawab dari Tipiṭaka Theravāda, jadi pertanyaan topik APA PUN (mis. 'penyebab gempa bumi') LANGSUNG dipanggilkan `search_sutta`, BUKAN diklarifikasi. "
-        "Jika user membalas SINGKAT atau melanjutkan dalam room yang sama (mis. menjawab klarifikasi atau cuma menyebut satu kata), GABUNGKAN dengan topik/pertanyaan SEBELUMNYA saat menyusun query (mis. sebelumnya 'penyebab gempa bumi' lalu user menjawab 'dhamma' → query tetap 'penyebab gempa bumi').\n"
+        "Jika user membalas SINGKAT atau melanjutkan dalam room yang sama (mis. menjawab klarifikasi atau cuma menyebut satu kata), GABUNGKAN dengan topik/pertanyaan SEBELUMNYA saat menyusun query (mis. sebelumnya 'penyebab gempa bumi' lalu user menjawab 'dhamma' → query tetap 'penyebab gempa bumi'). "
+        "JIKA user curhat panjang lebar, emosional, atau memaki (mengumpat), JANGAN gunakan kata-kata makian mentahnya sebagai query pencarian. Ekstrak KATA KUNCI DHAMMA yang relevan dengan situasi mereka (misal: 'kesabaran', 'ucapan kasar', 'kemelekatan', 'kesedihan', 'perselingkuhan') untuk argumen `search_sutta`.\n"
         "2. HANYA jika user sekadar menyapa, berterima kasih, atau basa-basi, jawab langsung TANPA tool.\n"
         "3. Setelah hasil tool ada, jawab dalam Bahasa Indonesia natural dan WAJIB merujuk sutta yg "
         "Anda pakai secara eksplisit. Sebutkan secara natural (misal 'Dalam SN 56.11...' atau dengan namanya 'Dalam Dhammacakkappavattana Sutta (SN 56.11)...'). "
@@ -912,7 +922,8 @@ _CHAT_SYSTEM = {
         "1. For ANY question about Dhamma/Buddhism/suttas/Tipiṭaka you MUST call `search_sutta` FIRST. "
         "Never answer from memory. If the user's question is a follow-up about a sutta from the previous turn, you MUST include the sutta code/name in the tool query argument (e.g. 'MN 21 simile of the saw'). If the user changes the topic, do not include the sutta code. If the user continues the TOPIC elliptically without naming the subject (e.g. 'any more?', 'others', 'besides that', 'more from AN'), you MUST carry the topic noun from the previous question into the query (e.g. previously 'causes of earthquakes' then 'any more from AN' -> query 'causes of earthquakes', not just 'causes'). If the user names a nikaya/collection without a number (e.g. 'from AN', 'in Anguttara'), include that nikaya code as-is in the query. If the user's intent is highly ambiguous (you're unsure if they are continuing or changing the topic), call the `ask_clarification` tool. "
         "NEVER ask which perspective the user wants (e.g. 'scientific or Dhamma') — you ALWAYS answer from the Theravāda Tipiṭaka, so ANY topical question (e.g. 'what causes earthquakes') goes STRAIGHT to `search_sutta`, not clarification. "
-        "If the user replies SHORTLY or continues within the same room (e.g. answering a clarification or just one word), COMBINE it with the PREVIOUS topic/question when forming the query (e.g. previously 'what causes earthquakes' then user says 'dhamma' → query stays 'what causes earthquakes').\n"
+        "If the user replies SHORTLY or continues within the same room (e.g. answering a clarification or just one word), COMBINE it with the PREVIOUS topic/question when forming the query (e.g. previously 'what causes earthquakes' then user says 'dhamma' → query stays 'what causes earthquakes'). "
+        "IF the user rants emotionally, complains, or swears/curses, DO NOT use their raw curse words as the search query. Extract relevant DHAMMA KEYWORDS that match their situation (e.g. 'patience', 'harsh speech', 'attachment', 'grief', 'infidelity') for the `search_sutta` argument.\n"
         "2. ONLY if the user merely greets, thanks, or makes small talk, answer directly WITHOUT the tool.\n"
         "3. Once tool results arrive, answer in natural English and you MUST cite the suttas you use "
         "explicitly. Mention it naturally (e.g. 'In SN 56.11...' or by name 'In the Dhammacakkappavattana Sutta (SN 56.11)...'). "
@@ -937,10 +948,11 @@ _CHAT_ANSWER_GUIDE = {
         "Sekarang TULIS JAWABAN FINAL untuk pengguna. Anda adalah asisten Dhamma yang piawai. PENTING: JANGAN PERNAH mengatakan 'Berdasarkan kutipan yang Anda berikan' karena ANDA sendirilah yang mencari sutta tersebut, bukan pengguna! Jika Anda ingin merujuk pada hasil pencarian, gunakan frasa 'Berdasarkan sutta yang saya temukan...' atau langsung ke inti materi. Buat "
         "LENGKAP, jelas, dan terstruktur:\n"
         "- NADA: Hangat, ramah, dan manusiawi — JANGAN kaku atau robotik, agar pengguna merasa dibimbing dengan tulus. Namun ini konteks keagamaan yang formal: tetap sopan, berwibawa, dan khidmat. DILARANG memakai emoji. Jangan pula kebablasan jadi terlalu santai, alay, atau bercanda.\n"
-        "- Buka dgn inti jawaban/definisi konsepnya secara langsung.\n"
+        "- EMPATI & KONTEKS (SANGAT PENTING): Jika pengguna membagikan cerita pribadi, keluhan, curhatan emosional, atau situasi spesifik (misal: sedih karena putus cinta, stres kerja, dll), KAMU WAJIB MERESPONS SECARA EMPATIK & RELEVAN terlebih dahulu di awal jawaban SEBELUM masuk ke penjelasan teks Dhamma. Namun, JANGAN gunakan gaya psikologi sekuler/barat yang memvalidasi kekotoran batin (misal: 'wajar/valid merasa marah/benci'). Gunakan empati khas Theravada (Karuṇā): tunjukkan welas asih atas penderitaan (dukkha) yang sedang dialami, akui bahwa perasaan menyakitkan tersebut muncul karena masih ada kondisi pendukungnya (seperti kemelekatan atau kondisi duniawi), lalu arahkan dengan lembut ke kebijaksanaan Dhamma. Jika pengguna MEMAKI atau menggunakan kata kasar dalam curhatannya, selipkan pengingat halus penuh welas asih (tanpa menghakimi) bahwa merespons dengan kemarahan atau ucapan kasar hanya akan melukai diri sendiri dan menciptakan kamma buruk baru. Jangan langsung kaku menjawab isi teksnya saja!\n"
+        "- Buka dgn inti jawaban/definisi konsepnya secara langsung (setelah memberikan respons empati jika ada situasi pribadi).\n"
         "- PRIORITASKAN penggunaan poin-poin (bullet points) untuk menguraikan isi teks. Jangan gunakan paragraf panjang yang sulit dibaca.\n"
         "- Tutup dgn ringkasan/intisari praktis 1-2 kalimat bila relevan. LANGSUNG tulis intisarinya TANPA kalimat pengantar/bridging kaku seperti 'Sebagai ringkasan praktis...', 'Berikut adalah intisarinya...', atau semacamnya.\n"
-        "- Setelah penutup, WAJIB buat daftar 3 Rekomendasi Pertanyaan Lanjutan (format bullet) yang relevan untuk eksplorasi lebih dalam. Setidaknya satu rekomendasi WAJIB men-tag sutta yang terkait, misal: 'Jelasin isi @MN10' atau 'Apa kata @SN56.11 tentang ini'. Gunakan heading '**Rekomendasi Pertanyaan Lanjutan:**'. DILARANG menggunakan tanda titik (.) di akhir kalimat rekomendasi pertanyaan. PENTING: Jangan menyertakan nomor segmen (seperti :md3 atau :1.2) saat men-tag sutta di pertanyaan lanjutan; cukup tag nama suttanya utuh tanpa segmen. ATURAN REKOMENDASI: Jika pengguna SECARA EKSPLISIT bertanya tentang sutta tertentu (misal '@SN 12.60'), JANGAN rekomendasikan sutta itu lagi. Namun, jika kamu merujuk suatu sutta untuk menjawab pertanyaan konseptual, kamu SANGAT DIANJURKAN membuat rekomendasi agar pengguna menggali isi sutta tersebut (misal 'Jelaskan isi @SuttaTsb secara detail').\n"
+        "- Setelah penutup, SELALU WAJIB buat daftar TEPAT 3 Rekomendasi Pertanyaan Lanjutan (format bullet). Heading: '**Rekomendasi Pertanyaan Lanjutan:**'. Tanpa tanda titik di akhir tiap pertanyaan. ATURAN @TAG: MAKSIMAL 1 pertanyaan boleh menggunakan tag @ sutta/koleksi (baik yang sedang dibahas maupun sutta lain). Sisanya (minimal 2 pertanyaan) WAJIB berupa pertanyaan eksploratif umum TANPA tag @ (misal 'Bagaimana cara melatih satipaṭṭhāna?' atau 'Apa saja tahapan jhāna?'). Tujuannya agar rekomendasi tidak terlihat repetitif (spam tag). Bagian ini TIDAK BOLEH dilewatkan.\n"
         "ATURAN RUJUKAN (WAJIB):\n"
         "- DILARANG KERAS menggunakan frasa seperti 'Berdasarkan teks yang Anda berikan', 'Berdasarkan kutipan di atas', atau 'Menurut dokumen ini'. Ingat: Pengguna mengira ANDALAH yang mencari sutta-sutta tersebut, bukan menerima contekan dari sistem/tools lain. Jawablah dengan natural seolah Anda mengetahuinya dari hasil pencarian Anda sendiri dan langsung sebut nama suttanya (misal: 'Dalam MN 10 dijelaskan...').\n"
         "- DILARANG KERAS membuat bagian/daftar 'Referensi:', 'Daftar Rujukan:', atau semacamnya di akhir jawaban. Semua rujukan HARUS diselipkan langsung di dalam kalimat (inline). SETIAP kali kamu membahas suatu poin/segmen, kamu WAJIB menyebutkan Sutta/Segmen asalnya di teks tersebut!\n"
@@ -967,10 +979,11 @@ _CHAT_ANSWER_GUIDE = {
         "Now WRITE THE FINAL ANSWER for the user. You are an expert Dhamma assistant. IMPORTANT: NEVER say 'Based on the quotes you provided' because YOU searched for the suttas yourself! If you want to refer to the source, use phrases like 'Based on the suttas I found...' or jump straight to the core matter. Make it COMPLETE, "
         "clear, and structured:\n"
         "- TONE: Warm, friendly, and human — NOT stiff or robotic, so the user feels sincerely guided. But this is a formal religious context: stay polite, dignified, and reverent. Do NOT use emoji. And don't go too casual, slangy, or jokey.\n"
-        "- Open with the core answer/definition directly.\n"
+        "- EMPATHY & CONTEXT (CRITICAL): If the user shares a personal story, complaint, emotional rant, or specific situation (e.g., sad about a breakup, work stress, illness), you MUST RESPOND EMPATHETICALLY and RELEVANTLY at the very beginning of your answer BEFORE diving into the Dhamma text explanations. However, DO NOT use Western secular psychology clichés that validate mental defilements (e.g., 'it is completely valid to be angry', 'it's normal to hate'). Use Theravada empathy (Karuṇā): show compassion for their suffering (dukkha), acknowledge that these painful feelings arise due to supporting conditions (like attachment or worldly winds), and gently guide them to the wisdom of the Dhamma. If the user SWEARS or uses harsh words in their rant, gently and compassionately remind them (without being judgmental) that responding to wrongdoing with anger or harsh speech will only harm themselves and create new unwholesome kamma. Do not just stiffly answer the texts!\n"
+        "- Open with the core answer/definition directly (after providing an empathetic response if there is a personal situation).\n"
         "- PRIORITIZE using bullet points to explain the text. Avoid long, dense paragraphs.\n"
         "- Close with a short practical takeaway (1-2 sentences) when relevant.\n"
-        "- After the closing, you MUST generate a list of 3 Follow-up Questions (bulleted) for deeper exploration. At least one question MUST tag a relevant sutta, e.g., 'Explain the contents of @MN10' or 'What does @SN56.11 say about this?'. Use the heading '**Recommended Follow-up Questions:**'. IMPORTANT: Do not include segment IDs (like :md3 or :1.2) when tagging suttas in the follow-up questions; just tag the base sutta name. RECOMMENDATION RULE: If the user EXPLICITLY asked about a specific sutta (e.g. '@SN 12.60'), DO NOT recommend asking about that sutta again. However, if you cited a sutta to answer a general conceptual question, you are HIGHLY ENCOURAGED to recommend a follow-up question for the user to dive deeper into that cited sutta (e.g. 'Explain the contents of @ThatSutta in detail').\n"
+        "- After the closing, you MUST ALWAYS generate EXACTLY 3 Follow-up Questions (bulleted). Heading: '**Recommended Follow-up Questions:**'. No period at the end of each question. @TAG RULES: A MAXIMUM of 1 question may use an @ tag for a sutta/collection (either the one being discussed or another). The remaining questions (at least 2) MUST be general explorative questions WITHOUT any @ tags (e.g. 'How can one practice satipaṭṭhāna?' or 'What are the stages of jhāna?'). This prevents the recommendations from looking repetitive (tag spam). This section MUST NOT be skipped.\n"
         "CITATION RULES (MANDATORY):\n"
         "- STRICTLY FORBIDDEN to use phrases like 'Based on the text you provided', 'According to the provided document', or 'Based on the quotes'. Remember: The user thinks YOU searched for these suttas yourself, not that you received them from another tool/system. Answer naturally as if you found them yourself, and directly cite the sutta name (e.g., 'In MN 10, it is explained...').\n"
         "- Cite ONLY with the EXACT reference token given in each block (copy it verbatim, e.g. 'MN 10:1.5' or 'Bu-Pj 1'). STRICTLY NO spaces around the colon (CORRECT: 'MN 10:1.5', WRONG: 'MN 10 : 1.5'). Adding spaces breaks the citation links!\n"
@@ -1151,6 +1164,10 @@ def _glossary_blocks(coll_refs: list, prompt_db: str):
             parts.append(f"Berisi {g['count']} teks.")
         if g.get("blurb"):
             parts.append(g["blurb"])
+        # Peringatan INLINE supaya model tak mengarang istilah Pali di luar blurb.
+        # Ditaruh dekat teks (bukan di system prompt yg jauh) — lebih efektif utk model kecil.
+        parts.append("⚠ Sampaikan isi blurb di atas APA ADANYA. JANGAN menambahkan istilah "
+                     "Pali dalam kurung yang TIDAK tertulis di teks ini.")
         blocks.append("\n".join(parts))
     return blocks, abbrs
 
@@ -1489,6 +1506,7 @@ def api_chat():
     # ("MN 10"); dinormalisasi ke "mn10" utk dicocokkan dgn mention loop. Kosong = auto fallback.
     mention_prefs = body.get("mention_prefs") or {}
     _prefs_norm = {k.replace(" ", "").lower(): v for k, v in mention_prefs.items() if v}
+    broad_search = body.get("broad_search", False)
     sel_dbs = _parse_db(db_pref)
     prompt_db = lang if lang in sel_dbs else sel_dbs[0]
 
@@ -1506,7 +1524,7 @@ def api_chat():
         # \d+(?:\.\d+)?(?:-\d+)? -> dukung RANGE (mis. Dhp 1-20, Thag 1.1-10) karena banyak
         # teks dikelompokkan per-vagga dgn id ber-range (dhp1-20). Tanpa ini "@Dhp 1-20"
         # ke-truncate jadi "dhp1" yg tak resolve -> hasil kosong.
-        _MENTION_RE = r'@?\b((?:dn|mn|sn|an|kn|dhp|ud|iti|snp|vv|pv|thag|thig|bu-[a-z]+)\s*\d+(?:\.\d+)?(?:-\d+)?)\b'
+        _MENTION_RE = r'@?\b((?:dn|mn|sn|an|kn|dhp|ud|iti|snp|vv|pv|thag|thig|bu-[a-z]+|bi-[a-z]+|pli-tv-[a-z\-]+|ds|vb|dt|pp|kv|ya|patthana)\s*\d+(?:\.\d+)?(?:-\d+)?)\b'
         mentions = re.findall(_MENTION_RE, t_query + " " + query, re.IGNORECASE)
         # Dedup CASE-INSENSITIF (cegah "MN 10" & "mn 10" dianggap dua mention berbeda ->
         # dobel di trace/penarikan). Simpan bentuk pertama yg terlihat.
@@ -1637,8 +1655,8 @@ def api_chat():
         _inject_missing_blurbs(suttas)
         
         # Semantic
-        if mentions or gloss_blocks:
-            pass # rujukan eksplisit (mention) / pertanyaan definitif koleksi (glosari) -> tak perlu semantic acak
+        if mentions and not broad_search:
+            pass # rujukan eksplisit (mention) -> tak perlu semantic acak seluruh Tipiṭaka
         else:
             # Scope nikaya ("dari AN") -> filter keras + token nikaya dibuang dari kueri
             # semantik supaya subjek asli tak terkontaminasi (lihat _detect_nikaya_scope).

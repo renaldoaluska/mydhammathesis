@@ -260,7 +260,7 @@
       <div class="chat-header-bar">
         <div class="chat-header-left">
           <button type="button" id="btn-chat-home" class="chat-header-btn" title="${isEN() ? "Back" : "Kembali"}"><i data-lucide="arrow-left"></i></button>
-          <button type="button" id="btn-mobile-menu" class="chat-header-btn" title="${isEN() ? "Menu" : "Menu"}"><i data-lucide="menu"></i></button>
+          <button type="button" id="btn-mobile-menu" class="chat-header-btn" title="${isEN() ? "History" : "Riwayat"}"><i data-lucide="history"></i></button>
         </div>
         <div class="chat-header-right">
           <div style="position:relative;">
@@ -283,9 +283,10 @@
          <div id="chat-session-list" style="display: flex; flex-direction: column; overflow-y: auto; flex-grow: 1;"></div>
       </div>
       <div class="chat-widget-area">
+        <div class="chat-brand-badge" aria-hidden="true"><span>myDhamma AI</span></div>
         <div class="chat-widget">
           <div class="chat-log"></div>
-          <form class="chat-input-row" autocomplete="off" style="border-top: 1px solid var(--border); position: relative;">
+          <form class="chat-input-row" autocomplete="off" style="position: relative;">
             <div id="chat-mention-popup" class="chat-mention-popup"></div>
             <div class="chat-input-wrap">
               <div class="chat-input-inner">
@@ -295,7 +296,7 @@
               <button type="submit" class="btn-primary chat-send" title="${isEN() ? 'Send' : 'Kirim'}"><i data-lucide="arrow-up"></i></button>
             </div>
           </form>
-          <div class="chat-disclaimer">${esc(tt("chat_disclaimer", "⚠ AI mungkin membuat kesalahan; selalu periksa rujukannya."))}</div>
+          <div class="chat-disclaimer">${esc(tt("chat_disclaimer", "⚠ AI dapat membuat kesalahan; selalu periksa rujukannya."))}</div>
         </div>
       </div>
     `;
@@ -442,7 +443,7 @@
       if (disc) disc.textContent = tt("chat_disclaimer",
         isEN()
           ? "⚠ AI may make mistakes; always check the citations."
-          : "⚠ AI mungkin membuat kesalahan; selalu periksa rujukannya.");
+          : "⚠ AI dapat membuat kesalahan; selalu periksa rujukannya.");
       // Empty-state (sapaan + contoh) di-render sekali; kalau lagi tampil, bangun ulang
       // biar teks ikut bahasa baru tanpa perlu refresh.
       if (log.querySelector(".chat-empty-state")) {
@@ -505,7 +506,12 @@
         // Reuse room kosong (tak bikin sesi baru), tapi render ULANG empty-state biar
         // animasi "baru masuk" (sapaan diketik + chip muncul stagger + contoh acak baru)
         // tetap main — berasa fresh walau sesinya sama.
+        // PENTING: turn yg di-STOP tanpa jawaban parsial TIDAK ter-commit ke history
+        // (history tetap []), tapi bubble user + catatan "dihentikan" masih nyangkut di DOM.
+        // renderEmptyState() akan bail kalau .chat-msg masih ada -> new-chat seolah tak jalan.
+        // Maka bersihkan log dulu.
         clearEmptyState();
+        log.innerHTML = "";
         renderEmptyState();
       } else {
         createNewSession(true);
@@ -517,6 +523,11 @@
     if (btnMobileNew) btnMobileNew.addEventListener("click", requestNewChat);
 
     const log = container.querySelector(".chat-log");
+    const widgetArea = container.querySelector(".chat-widget-area");
+    // Badge "myDhamma AI" + scrim atas hanya tampak saat ADA percakapan (bukan empty-state).
+    function updateBrandBadge() {
+      if (widgetArea) widgetArea.classList.toggle("show-brand", !log.querySelector(".chat-empty-state"));
+    }
     const form = container.querySelector(".chat-input-row");
     const input = container.querySelector(".chat-input");
     const sendBtn = container.querySelector(".chat-send");
@@ -673,6 +684,7 @@
           if (firstUserMsg) {
             let t = firstUserMsg.content.trim();
             s.title = t.length > 30 ? t.slice(0, 30) + "..." : t;
+            renderSidebar();
           }
         }
       }
@@ -848,7 +860,7 @@
       const cursorPos = input.selectionStart;
       const textBeforeCursor = val.substring(0, cursorPos);
       // \.\.\d* — izinkan titik trailing (misal @Snp1.) agar popup tetap tampil
-      const match = textBeforeCursor.match(/(?:^|\s)@([a-zA-Z\-]*(?:\s*\d+(?:\.\d*)?)?)$/);
+      const match = textBeforeCursor.match(/(?:^|\s)@([\p{L}\p{M}\-]*(?:\s*\d+(?:\.\d*)?)?)$/u);
 
       if (match) {
         currentMentionMatch = { start: match.index + (match[0].startsWith(" ") ? 1 : 0), end: cursorPos };
@@ -884,6 +896,12 @@
           const activeItem = items[mentionActiveIndex];
           if (activeItem) selectMention(activeItem.dataset.abbr);
           return;
+        }
+        // Spasi = Enter saat popup match: langsung pilih item aktif. Hanya jika ADA item
+        // aktif — kalau tidak, biarkan spasi diketik normal (jangan blokir input).
+        if (e.key === " ") {
+          const activeItem = items[mentionActiveIndex];
+          if (activeItem) { e.preventDefault(); selectMention(activeItem.dataset.abbr); return; }
         }
         if (e.key === "Escape") {
           e.preventDefault();
@@ -975,7 +993,7 @@
     // Input = teks yg SUDAH di-HTML-escape.
     function markMentions(escaped, cls) {
       return escaped.replace(
-        /@([A-Za-z]+(?:-[A-Za-z]+)?(?:\s*\d[\d.\-]*)?)/g,
+        /@([\p{L}\p{M}]+(?:-[\p{L}\p{M}]+)?(?:\s*\d[\d.\-]*)?)/gu,
         (_m, ref) => {
           // Sutta yg TAK ADA di korpus -> warnai non-aktif (data belum siap = anggap valid).
           const inactive = validMentionSet && !validMentionSet.has(normMention(ref));
@@ -1019,7 +1037,10 @@
     // Roda dhammacakka dipinjam dari logo header (gradient id di-namespace ulang).
     const WHEEL_SVG = `<svg class="chat-empty-wheel" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <defs><linearGradient id="chatWheelGrad" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stop-color="#a255ff"/><stop offset="100%" stop-color="#B388FF"/></linearGradient></defs>
+          <stop offset="0%" stop-color="#c89bff"/>
+          <stop offset="50%" stop-color="#a255ff"/>
+          <stop offset="100%" stop-color="#7c3aed"/>
+        </linearGradient></defs>
         <g stroke="url(#chatWheelGrad)">
           <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2.5"/>
           <path d="M12 2v7.5"/><path d="M12 14.5v7.5"/><path d="M2 12h7.5"/><path d="M14.5 12h7.5"/>
@@ -1066,6 +1087,8 @@
           syncBackdrop();
           input.focus();
           input.setSelectionRange(input.value.length, input.value.length);
+          // Update ikon tombol karena set .value manual ga memicu event 'input'
+          setSendMode(isGenerating);
         });
       });
     }
@@ -1085,10 +1108,11 @@
       if (emptyTypeTimer) { clearTimeout(emptyTypeTimer); emptyTypeTimer = null; }
       const e = log.querySelector(".chat-empty-state");
       if (e) e.remove();
+      updateBrandBadge();
     }
 
     function renderEmptyState(skipAnimation = false) {
-      if (log.querySelector(".chat-msg") || log.querySelector(".chat-empty-state")) return;
+      if (log.querySelector(".chat-msg") || log.querySelector(".chat-empty-state")) { updateBrandBadge(); return; }
       const empty = document.createElement("div");
       empty.className = "chat-empty-state" + (skipAnimation ? " no-animate" : "");
       // Kode mention pakai spasi (mis. @MN 10) biar konsisten dgn suttaplex & UI lain.
@@ -1116,6 +1140,7 @@
         </div>` : ""}`;
       log.appendChild(empty);
       if (window.lucide) window.lucide.createIcons({ root: empty });
+      updateBrandBadge();   // empty-state aktif -> sembunyikan badge brand
 
       // Animasi ketik baris kedua
       const typedEl = empty.querySelector(".chat-empty-typed");
@@ -1515,7 +1540,7 @@
 
     // Kedua bahasa disimpan supaya label langkah bisa ikut switch live (lihat setI18n).
     const STAGE_I18N = {
-      understand: { en: "Understanding the question…", id: "Memahami pertanyaan…" },
+      understand: { en: "Understanding your message…", id: "Memahami pesan Anda…" },
       retrieve: { en: "Searching the suttas…", id: "Menelusuri sutta yang relevan…" },
       generate: { en: "Composing the answer…", id: "Menyusun jawaban…" },
     };
@@ -1562,7 +1587,7 @@
 
     // Ambil @mention dari teks (pola sama dgn markMentions). -> [{fid:"MN 10", norm:"mn10"}].
     function extractMentions(text) {
-      const re = /@([A-Za-z]+(?:-[A-Za-z]+)?(?:\s*\d[\d.\-]*)?)/g;
+      const re = /@([\p{L}\p{M}]+(?:-[\p{L}\p{M}]+)?(?:\s*\d[\d.\-]*)?)/gu;
       const out = [], seen = new Set();
       let m;
       while ((m = re.exec(text)) !== null) {
@@ -1622,7 +1647,7 @@
         const s18 = (en, id) => `<span data-i18n-en="${esc(en)}" data-i18n-id="${esc(id)}">${esc(isEN() ? en : id)}</span>`;
         const langSpan = l => `<span class="chat-trans-lang">(${s18(langName(l, true), langName(l, false))})</span>`;
 
-        let html = `<div class="chat-answer chat-trans-picker"><div class="chat-trans-head" data-i18n-en="Pick the translation(s) to cite:" data-i18n-id="Pilih terjemahan yang mau dikutip:">${isEN() ? "Pick the translation(s) to cite:" : "Pilih terjemahan yang mau dikutip:"}</div>`;
+        let html = `<div class="chat-answer chat-trans-picker"><div class="chat-trans-head" data-i18n-en="Pick the translation(s) to cite:" data-i18n-id="Pilih terjemahan yang hendak dikutip:">${isEN() ? "Pick the translation(s) to cite:" : "Pilih terjemahan yang hendak dikutip:"}</div>`;
         pending.forEach((p, pi) => {
           html += `<div class="chat-trans-group"><div class="chat-trans-sutta">@${esc(p.mn.fid)}</div>`;
           p.translations.forEach((t, ti) => {
@@ -1642,13 +1667,37 @@
           });
           // Ringkas bubble jadi konfirmasi biar riwayat tetap rapi & nyambung. Pakai s18/langSpan
           // supaya prefix "Pakai:"/"Using:" & nama bahasa ikut switch live tanpa refresh.
-          el.innerHTML = `<div class="chat-answer chat-trans-done">${s18("Using: ", "Pakai: ")}` +
+          el.innerHTML = `<div class="chat-answer chat-trans-done">${s18("Using: ", "Menggunakan: ")}` +
             pending.map(p => mentionPrefs[p.mn.fid]
               .map(x => `<strong>@${esc(p.mn.fid)}</strong> · ${esc(authorLabel(x.author, x.source))} ${langSpan(x.lang)}`)
               .join(", ")).join("; ") + `</div>`;
           resolve(true);
         });
         el.querySelector(".chat-trans-cancel").addEventListener("click", () => { el.remove(); resolve(false); });
+      });
+    }
+
+    function resolveScopePref() {
+      return new Promise(resolve => {
+        const s18 = (en, id) => `<span data-i18n-en="${esc(en)}" data-i18n-id="${esc(id)}">${esc(isEN() ? en : id)}</span>`;
+        let html = `<div class="chat-answer chat-trans-picker"><div class="chat-trans-head" data-i18n-en="Focus search ONLY on mentioned texts?" data-i18n-id="Fokus pencarian HANYA pada teks yang di-@?">${isEN() ? "Focus search ONLY on mentioned texts?" : "Fokus pencarian HANYA pada teks yang di-@?"}</div>`;
+        html += `<div class="chat-trans-actions" style="margin-top: 12px;">
+          <button type="button" class="chat-trans-cancel" style="margin-right: auto;">${s18("Cancel", "Batal")}</button>
+          <button type="button" class="btn-primary chat-scope-broad" style="background: var(--bg-hover); color: var(--text-color); box-shadow: none;">${s18("No (Broad Search)", "Tidak (Cari luas)")}</button>
+          <button type="button" class="btn-primary chat-scope-narrow">${s18("Yes (Focus)", "Ya (Fokus)")}</button>
+        </div></div>`;
+        
+        const el = bubble("chat-msg-bot chat-trans-bubble", html, true);
+
+        el.querySelector(".chat-scope-narrow").addEventListener("click", () => {
+          el.innerHTML = `<div class="chat-answer chat-trans-done">${s18("Search Scope: ", "Cakupan Pencarian: ")}<strong>${s18("Mentioned texts only", "Hanya teks yang di-@")}</strong></div>`;
+          resolve({ broad_search: false, ok: true });
+        });
+        el.querySelector(".chat-scope-broad").addEventListener("click", () => {
+          el.innerHTML = `<div class="chat-answer chat-trans-done">${s18("Search Scope: ", "Cakupan Pencarian: ")}<strong>${s18("Explore all texts", "Eksplorasi teks lain")}</strong></div>`;
+          resolve({ broad_search: true, ok: true });
+        });
+        el.querySelector(".chat-trans-cancel").addEventListener("click", () => { el.remove(); resolve({ ok: false }); });
       });
     }
 
@@ -1679,11 +1728,60 @@
         return;
       }
 
+      // Tanyakan cakupan pencarian HANYA jika ada mention dan konteksnya bukan sekadar meringkas sutta.
+      let isBroadSearch = false;
+      const mentions = extractMentions(text);
+      if (mentions.length > 0) {
+        let askScope = true;
+        let ctx = text;
+        mentions.forEach(mn => ctx = ctx.replace(mn.raw, ""));
+        ctx = ctx.toLowerCase().replace(/[^\w\s]/g, "").trim();
+        
+        if (!ctx) {
+          askScope = false; // Hanya mention tok
+        } else {
+          const generic = new Set([
+            "jelaskan", "jelasin", "terangin", "terangkan", "apa", "itu", "tentang", "isi", "isinya",
+            "berisi", "dong", "tolong", "pls", "please", "kasih", "tau", "tahu", "ringkas", "ringkasan",
+            "summary", "summarize", "bahas", "membahas", "bantu", "jelaskn", "maksud", "maksudnya",
+            "arti", "artinya", "makna", "maknanya", "cerita", "ceritain", "di", "dalam", "menurut",
+            "dari", "mengenai", "soal", "seputar", "gimana", "bagaimana", "yg", "yang", "ada", "aja",
+            "saja", "sih", "ya", "woi", "sutta", "kitab", "teks", "buku", "pitaka", "vinaya", "jataka",
+            "ini", "tersebut", "nya", "bercerita"
+          ]);
+          const words = ctx.split(/\s+/);
+          if (words.every(w => generic.has(w))) askScope = false; // Cuma minta rangkuman
+        }
+
+        if (askScope) {
+          const scopeRes = await resolveScopePref();
+          if (!scopeRes.ok) {
+            // Bersihkan bubble dari DOM (termasuk bubble terjemahan yg terlanjur 'done')
+            let next = userBubble.nextElementSibling;
+            while (next) {
+              const temp = next;
+              next = next.nextElementSibling;
+              temp.remove();
+            }
+            userBubble.remove();
+            input.value = text;
+            input.style.height = "auto";
+            input.style.height = Math.min(input.scrollHeight, 140) + "px";
+            syncBackdrop();
+            isGenerating = false;
+            if (!log.querySelector(".chat-msg")) renderEmptyState();
+            return;
+          }
+          isBroadSearch = scopeRes.broad_search;
+        }
+      }
+
       userStopped = false;
       abortController = new AbortController();
       setSendMode(true);   // item 7: tombol Kirim -> Stop
       const bot = bubble("chat-msg-bot",
         `<div class="chat-thinking-steps"></div><div class="chat-answer chat-typing" style="display:none;"></div>`, true);
+      bot.classList.add("is-generating");  // gradient border shimmer
       const stepsContainer = bot.querySelector(".chat-thinking-steps");
       const status = bot.querySelector(".chat-answer");
       let currentStepEl = null;
@@ -1702,7 +1800,7 @@
         const res = await fetch(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: text, history: historyToSend, stream: true, lang: isEN() ? "en" : "id", mention_prefs: mentionPrefsForMsg }),
+          body: JSON.stringify({ message: text, history: historyToSend, stream: true, lang: isEN() ? "en" : "id", mention_prefs: mentionPrefsForMsg, broad_search: isBroadSearch }),
           signal: abortController.signal
         });
         if (!res.ok || !res.body) {
@@ -1736,8 +1834,9 @@
               // di sisi klien jika dikirim secara terstruktur, sehingga bisa switch live.
               let labEn, labId;
               if (obj.stage === "retrieve" && obj.query && !obj.label) {
-                labEn = "Processing: “" + obj.query + "”…";
-                labId = "Memproses: “" + obj.query + "”…";
+                let qTrunc = obj.query.length > 50 ? obj.query.substring(0, 50).trim() + "..." : obj.query;
+                labEn = "Processing: “" + qTrunc + "”";
+                labId = "Memproses: “" + qTrunc + "”";
               } else if (obj.stage === "found" && obj.count !== undefined) {
                 if (obj.count > 0) {
                   const s = obj.ids.join(", ");
@@ -1844,8 +1943,16 @@
                 const caret = document.createElement("span");
                 caret.className = "chat-stream-caret";
                 const last = status.lastElementChild;
-                if (last && !/^(UL|OL)$/.test(last.tagName)) last.appendChild(caret);
-                else status.appendChild(caret);
+                if (last && /^(UL|OL)$/.test(last.tagName)) {
+                  // List: tempel caret ke <li> TERAKHIR biar ngikut di ujung poin, bukan
+                  // nyangkut sebagai blok terpisah di bawah list.
+                  const lastLi = last.lastElementChild;
+                  (lastLi || status).appendChild(caret);
+                } else if (last) {
+                  last.appendChild(caret);
+                } else {
+                  status.appendChild(caret);
+                }
               }
             } else if (obj.type === "final") {
               final = obj;
@@ -1963,6 +2070,7 @@
         abortController = null;
         userStopped = false;
         setSendMode(false);   // item 7: tombol kembali ke Kirim
+        bot.classList.remove("is-generating");  // matikan gradient border shimmer
       }
     }
 
@@ -1998,6 +2106,9 @@
           input.focus();
           input.setSelectionRange(input.value.length, input.value.length);
         }
+        // Update tombol kirim: .value diset programmatic (bukan user ketik) jadi event
+        // `input` tidak terpicu → panggil setSendMode manual supaya ikon ↑ tampil.
+        setSendMode(false);
         const wrap = container.querySelector(".chat-input-wrap");
         if (wrap) {
           wrap.classList.add("attention-pulse");
