@@ -422,6 +422,7 @@ def api_search():
             "results": page_suttas, "query": query, "model": model_name,
             "total_sutta": total_sutta, "total_hits": total_hits,
             "page": page, "page_size": page_size,
+            "query_lang": detect_query_lang(query)
         })
     except Exception as e:
         import traceback; traceback.print_exc()
@@ -834,7 +835,8 @@ _CHAT_THINK = os.environ.get("MYDHAMMA_CHAT_THINK", "").lower() in ("1", "true",
 # yg ngelist lengkap) kebuang, model cuma liat ekor prompt -> under-answer/ngawur. Set cukup besar
 # agar seluruh prompt muat. WAJIB sama di semua call ke model yg sama, beda num_ctx = Ollama reload
 # model tiap request (lambat). 8192 ~+1.5GB KV cache utk 14b, aman di 12GB.
-CHAT_NUM_CTX = int(os.environ.get("MYDHAMMA_CHAT_NUM_CTX", "8192"))
+# CHAT_NUM_CTX = int(os.environ.get("MYDHAMMA_CHAT_NUM_CTX", "8192"))
+CHAT_NUM_CTX = int(os.environ.get("MYDHAMMA_CHAT_NUM_CTX", "12288"))
 
 
 def _sse(obj: dict) -> str:
@@ -898,6 +900,7 @@ _CHAT_SYSTEM = {
         "JANGAN PERNAH menanyakan dari sudut pandang mana user ingin dijawab (mis. 'ilmiah atau Dhamma') — Anda SELALU menjawab dari Tipiṭaka Theravāda, jadi pertanyaan topik APA PUN (mis. 'penyebab gempa bumi') LANGSUNG dipanggilkan `search_sutta`, BUKAN diklarifikasi. "
         "Jika user membalas SINGKAT atau melanjutkan dalam room yang sama (mis. menjawab klarifikasi atau cuma menyebut satu kata), GABUNGKAN dengan topik/pertanyaan SEBELUMNYA saat menyusun query (mis. sebelumnya 'penyebab gempa bumi' lalu user menjawab 'dhamma' → query tetap 'penyebab gempa bumi'). "
         "JIKA user curhat panjang lebar, emosional, atau memaki (mengumpat), JANGAN gunakan kata-kata makian mentahnya sebagai query pencarian. Ekstrak KATA KUNCI DHAMMA yang relevan dengan situasi mereka (misal: 'kesabaran', 'ucapan kasar', 'kemelekatan', 'kesedihan', 'perselingkuhan') untuk argumen `search_sutta`.\n"
+        "JANGAN memasukkan kata redundan seperti 'dalam tipitaka', 'menurut dhamma', 'dalam agama buddha', atau 'di sutta' ke dalam argumen query tool karena sistem sudah otomatis mencari di dalam korpus tersebut. Tulis subjek/kata kuncinya saja.\n"
         "2. HANYA jika user sekadar menyapa, berterima kasih, atau basa-basi, jawab langsung TANPA tool.\n"
         "3. Setelah hasil tool ada, jawab dalam Bahasa Indonesia natural dan WAJIB merujuk sutta yg "
         "Anda pakai secara eksplisit. Sebutkan secara natural (misal 'Dalam SN 56.11...' atau dengan namanya 'Dalam Dhammacakkappavattana Sutta (SN 56.11)...'). "
@@ -924,6 +927,7 @@ _CHAT_SYSTEM = {
         "NEVER ask which perspective the user wants (e.g. 'scientific or Dhamma') — you ALWAYS answer from the Theravāda Tipiṭaka, so ANY topical question (e.g. 'what causes earthquakes') goes STRAIGHT to `search_sutta`, not clarification. "
         "If the user replies SHORTLY or continues within the same room (e.g. answering a clarification or just one word), COMBINE it with the PREVIOUS topic/question when forming the query (e.g. previously 'what causes earthquakes' then user says 'dhamma' → query stays 'what causes earthquakes'). "
         "IF the user rants emotionally, complains, or swears/curses, DO NOT use their raw curse words as the search query. Extract relevant DHAMMA KEYWORDS that match their situation (e.g. 'patience', 'harsh speech', 'attachment', 'grief', 'infidelity') for the `search_sutta` argument.\n"
+        "DO NOT include redundant words like 'in the tipitaka', 'according to dhamma', or 'in buddhism' in the tool query argument because the system already searches exclusively within that corpus. Write the core subject/keywords only. "
         "2. ONLY if the user merely greets, thanks, or makes small talk, answer directly WITHOUT the tool.\n"
         "3. Once tool results arrive, answer in natural English and you MUST cite the suttas you use "
         "explicitly. Mention it naturally (e.g. 'In SN 56.11...' or by name 'In the Dhammacakkappavattana Sutta (SN 56.11)...'). "
@@ -1045,7 +1049,7 @@ _PALI_DIACRITIC_MAP = [
     (r"upekkha", "upekkhā"), (r"tanha", "taṇhā"), (r"anatta", "anattā"), (r"sankhara", "saṅkhāra"),
     (r"nikaya", "nikāya"), (r"tipitaka", "tipiṭaka"), (r"patimokkha", "pātimokkha"),
     (r"sotapanna", "sotāpanna"), (r"sakadagami", "sakadāgāmī"), (r"anagami", "anāgāmī"),
-    (r"kasina", "kasiṇa"),
+    (r"kasina", "kasiṇa"), (r"sangha", "saṅgha"),
 ]
 
 # Kata umum yg TIDAK boleh memicu pencocokan nama-sutta (anti false-positive).
@@ -1265,7 +1269,7 @@ def _rewrite_query(query: str, lang: str, failed: list = None, history: list = N
         "hasilkan 3-5 variasi kueri pencarian ATOMIK (pecah menjadi kueri-kueri sangat singkat yang masing-masing HANYA fokus pada satu aspek spesifik secara terpisah). "
         "Kueri PERTAMA WAJIB berupa definisi konsep utama menggunakan kata 'adalah' atau 'pengertian' (misal: 'sedih adalah', 'pengertian kamma'). "
         "Kueri selanjutnya mengeksplorasi aspek-aspek lain dari cerita user secara ringkas (misal: 'cara mengatasi sedih', 'penyebab penderitaan'). JANGAN membuat kalimat panjang. "
-        "DILARANG memasukkan kata-kata redundan seperti 'dalam agama Buddha', 'menurut Buddha', 'Buddhisme', atau 'Theravada' karena korpus ini sudah spesifik Tipiṭaka.\n"
+        "DILARANG memasukkan kata-kata redundan seperti 'dalam agama Buddha', 'menurut Buddha', 'Buddhisme', 'Theravada', 'dalam Tipitaka', 'menurut Dhamma', atau 'Sutta' karena korpus ini sudah spesifik Tipiṭaka.\n"
         'Balas HANYA JSON: {"queries":["...","..."],"pitaka":null|"sutta"|"vinaya"|"abhidhamma"}.'
     )
     user_p = f"Pertanyaan ({lang}): {query}"
@@ -1556,7 +1560,7 @@ def api_chat():
     # db_pref hanya menentukan bahasa jawaban/pasase (prompt_db); default ikut bahasa terdeteksi.
     db_pref = body.get("db") or ("en" if lang == "en" else "id")
     # Guard top_k: clamp ke 1–12. Default 6. Tanpa batas, user bisa kirim top_k=9999 → beban retrieval masif.
-    max_suttas = max(1, min(int(body.get("top_k") or 6), 12))
+    max_suttas = max(1, min(int(body.get("top_k") or 8), 12))
     history = body.get("history") or []
     # Poin 4: pilihan terjemahan per-mention dari user (picker frontend). Keyed formatted_id
     # ("MN 10"); dinormalisasi ke "mn10" utk dicocokkan dgn mention loop. Kosong = auto fallback.
@@ -1752,7 +1756,7 @@ def api_chat():
                     nb = [f for f in s.get("fragments", []) if f.get("author") == "blurb"]
                     if nb: existing["fragments"] = nb + existing["fragments"]
         
-        unique_suttas = unique_suttas[:max_suttas * 2]
+        unique_suttas = unique_suttas[:max_suttas]
         # Tandai sutta yg di-mention eksplisit -> kartunya WAJIB tampil walau model lupa/salah mengutip.
         ctx_cache = {}
         for s in unique_suttas:
@@ -1897,7 +1901,7 @@ def api_chat():
             f"\n\n--- PENGINGAT KRITIS DARI SISTEM ---\n"
             # Escape query di reminder agar tanda kutip tidak bisa break out dari konteks f-string
             f"Jawablah pertanyaan pengguna berikut: {query!r}.\n"
-            f"1) Gunakan dan SINTESISKAN semua informasi yang ada di blok teks hasil pencarian — termasuk blok [GLOSARI]. Kamu BOLEH dan WAJIB menyampaikan isi blok itu secara ringkas dan jelas. Yang DILARANG adalah menambahkan fakta/detail yang SAMA SEKALI TIDAK TERTULIS di blok mana pun (mis. mengarang nomor sutta, menambahkan istilah Pali yang tidak ada di teks, dll.).\n"
+            f"1) Gunakan HANYA informasi yang BENAR-BENAR relevan dengan pertanyaan dari blok teks hasil pencarian. ABAIKAN blok teks yang tidak nyambung dengan pertanyaan (jangan dipaksakan masuk ke jawaban). Yang DILARANG adalah menambahkan fakta/detail yang SAMA SEKALI TIDAK TERTULIS di blok mana pun (mis. mengarang nomor sutta, menambahkan istilah Pali yang tidak ada di teks, dll.).\n"
             f"2) FORMAT WAJIB — POIN-POIN: DILARANG KERAS menulis jawaban dalam paragraf panjang yang beruntun. Setiap poin/aspek ajaran WAJIB ditulis sebagai bullet point terpisah. Hanya kalimat empati pembuka (maks. 2 kalimat) dan intisari penutup (maks. 2 kalimat) yang boleh berbentuk prosa singkat.\n"
             f"3) LANGSUNG masuk ke inti materi tanpa kalimat pengantar apa pun (basa-basi dilarang keras).\n"
             f"4) Anda WAJIB menyertakan token rujukan sutta (yang BENAR-BENAR ADA di teks hasil pencarian) DI DALAM SETIAP kalimat/poin klaim yang Anda buat!\n"

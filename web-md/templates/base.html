@@ -106,7 +106,9 @@
     <!-- ==================== MAIN LAYOUT ==================== -->
     <button id="btn-panel-toggle" class="panel-toggle-btn" aria-label="Toggle panel Catatan">
         <i data-lucide="{% block panel_toggle_icon %}pen-line{% endblock %}" class="panel-toggle-icon"></i>
-        <span class="panel-toggle-label">{% block panel_toggle_label %}Catatan{% endblock %}</span>
+        <span class="panel-toggle-label" data-i18n-html="notes_title_mobile">
+            {% block panel_toggle_label %}Catatan{% endblock %}
+        </span>
         <i data-lucide="chevron-left" class="panel-toggle-chevron"></i>
     </button>
     <div id="panel-backdrop"></div>
@@ -234,8 +236,8 @@
             <button id="sutta-dialog-close" class="sutta-dialog-close" title="Tutup"><i data-lucide="x"></i></button>
             <div class="sutta-dialog-actions">
                 <a id="sutta-dialog-chat-link" href="#" class="btn-chat-ai" title="Tanya AI">
-                    <i data-lucide="sparkles"></i><span class="sutta-dialog-open-label"
-                        data-i18n="btn_chat_ai">Tanya AI</span>
+                    <i data-lucide="sparkles"></i><span class="sutta-dialog-open-label" data-i18n="btn_chat_ai">Tanya
+                        AI</span>
                 </a>
                 <button id="sutta-dialog-settings-btn" class="sutta-dialog-open-btn" data-i18n-title="rs_title"
                     title="Setelan">
@@ -366,19 +368,19 @@
                 autocomplete="off"
                 style="flex: 1; min-width: 0; padding: 8px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-strong); background: var(--bg-tertiary); color: var(--text); font-size: 0.9rem;">
         </div>
-        <div style="display: flex; align-items: center; text-align: center; margin: 12px 0; color: var(--text-muted); font-size: 0.75rem;">
+        <div
+            style="display: flex; align-items: center; text-align: center; margin: 12px 0; color: var(--text-muted); font-size: 0.75rem;">
             <hr style="flex: 1; border: none; border-top: 1px solid var(--border); margin-right: 8px;">
             <span data-i18n="goto_or">atau</span>
             <hr style="flex: 1; border: none; border-top: 1px solid var(--border); margin-left: 8px;">
         </div>
         <div>
-            <input type="text" id="goto-title" data-i18n-placeholder="goto_title_ph" placeholder="Cari berdasarkan judul..."
-                autocomplete="off"
+            <input type="text" id="goto-title" data-i18n-placeholder="goto_title_ph"
+                placeholder="Cari berdasarkan judul..." autocomplete="off"
                 style="width: 100%; padding: 8px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-strong); background: var(--bg-tertiary); color: var(--text); font-size: 0.9rem;">
         </div>
         <hr style="border: none; border-top: 1px solid var(--border); margin: 14px 0 10px 0;">
-        <div id="goto-preview"
-            style="min-height: 1.3em; font-size: 0.85rem; color: var(--text-muted);"></div>
+        <div id="goto-preview" style="min-height: 1.3em; font-size: 0.85rem; color: var(--text-muted);"></div>
         <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
             <button type="button" class="btn-primary" id="btn-goto-go" style="padding: 6px 18px;"><span
                     data-i18n="goto_btn_open">Buka</span></button>
