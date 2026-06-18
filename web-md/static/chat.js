@@ -2229,7 +2229,11 @@
       if (stored) {
         const data = JSON.parse(stored);
         sessions = data.sessions || [];
-        currentSessionId = data.activeId || null;
+        // Ini bagian inget kebuka apa terakhir:
+        // currentSessionId = data.activeId || null; 
+
+        // Ganti jadi selalu null saat baru load:
+        currentSessionId = null;
       }
     } catch (e) { console.warn("Failed to load chat history", e); }
 

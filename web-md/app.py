@@ -1639,11 +1639,18 @@ def api_chat():
             
             if match_found:
                 name_hits.append(sid)
-                
-        if name_hits:
+
+        # JANGAN cari nama kalau sudah ada mention eksplisit — name_hunt cuma bikin
+        # noise (DN 22, MN 10, dll.) untuk Abhidhamma/Vinaya yang tak ada namanya.
+        if name_hits and not mentions:
             name_hits = sorted(name_hits, key=len)[:5]
-            existing_norms = {m.lower().replace(" ","") for m in mentions}
-            name_hits = [sid for sid in name_hits if sid not in existing_norms]
+        elif name_hits and mentions:
+            name_hits = []
+
+        # if name_hits:
+        #     name_hits = sorted(name_hits, key=len)[:5]
+        #     existing_norms = {m.lower().replace(" ","") for m in mentions}
+        #     name_hits = [sid for sid in name_hits if sid not in existing_norms]
 
         # Rujukan KOLEKSI keseluruhan (mis. "@Dhp", "apa itu Itivuttaka") -> blok glosari
         # grounded; dideteksi dari kueri agen + kueri asli user (hormati @mention apa adanya).
@@ -1681,9 +1688,15 @@ def api_chat():
         # Fallback bahasa utk mention: korpus pilihan -> id -> en -> pli, supaya sutta yg
         # di-mention tetap kebawa walau tak ada terjemahan Indo (ambil Inggris, lalu Pāli).
         _mention_langs = [eff_dbs[0]] + [L for L in ("id", "en", "pli") if L != eff_dbs[0]]
+        # for m in mentions:
+        #     mclean = m.lower().replace(" ", "")
+        #     prefs = _prefs_norm.get(mclean)
         for m in mentions:
             mclean = m.lower().replace(" ", "")
-            prefs = _prefs_norm.get(mclean)
+            # Resolve short-id ke full-id (mis. "bi-pc9" → "pli-tv-bi-vb-pc9")
+            mfull = reader.resolve_sutta_id(mclean)
+            # Coba prefs dengan full-id dulu, fallback ke short-id
+            prefs = _prefs_norm.get(mfull) or _prefs_norm.get(mclean)
             if prefs:
                 # Poin 4: user sudah pilih terjemahan spesifik -> tarik HANYA (lang, author) itu
                 # (+ blurb sinopsis), abaikan fallback bahasa. pli tak akan ada di prefs (frontend
@@ -1696,14 +1709,16 @@ def api_chat():
                     # banyak chunk pendek per-segmen. Kalau dipotong 24-terpanjang dulu lalu
                     # difilter author, segmen author terpilih bisa habis tergusur html yg lebih
                     # panjang (bug rujukan tak lengkap). Tarik luas dulu, baru filter author.
-                    hits = engine.exact_sutta_match(mclean, _L, max_chunks=400, query=t_query)
+                    # hits = engine.exact_sutta_match(mclean, _L, max_chunks=400, query=t_query)
+                    hits = engine.exact_sutta_match(mfull, _L, max_chunks=400, query=t_query)
                     m_hits += [h for h in hits
                                if h.get("author") == "blurb" or (_L, h.get("author")) in want]
                 exact_suttas.extend(m_hits)
             else:
                 m_hits = []
                 for _L in _mention_langs:
-                    m_hits = engine.exact_sutta_match(mclean, _L, max_chunks=24, query=t_query)
+                    # m_hits = engine.exact_sutta_match(mclean, _L, max_chunks=24, query=t_query)
+                    m_hits = engine.exact_sutta_match(mfull, _L, max_chunks=24, query=t_query)
                     if any(h.get("author") != "blurb" for h in m_hits):
                         break   # dapat teks isi (bukan cuma blurb) -> berhenti di bahasa ini
                 exact_suttas.extend(m_hits)
@@ -1713,10 +1728,10 @@ def api_chat():
 
         suttas = _group_suttas(exact_suttas)
         _inject_missing_blurbs(suttas)
-        
-        # Semantic
+
+               # Semantic: hanya jalan kalau tidak ada mention, atau user minta broad_search
         if mentions and not broad_search:
-            pass # rujukan eksplisit (mention) -> tak perlu semantic acak seluruh Tipiṭaka
+            name_hits = []
         else:
             # Scope nikaya ("dari AN") -> filter keras + token nikaya dibuang dari kueri
             # semantik supaya subjek asli tak terkontaminasi (lihat _detect_nikaya_scope).

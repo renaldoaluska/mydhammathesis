@@ -46,7 +46,7 @@
         link.appendChild(sp);
       }
     });
-    dom.browseTree.querySelectorAll(".browse-node-label[data-label-id]").forEach(lbl => {
+    dom.browseTree.querySelectorAll(".browse-node-label[data-label-id] .anak").forEach(lbl => {
       const nm = names[lbl.dataset.labelId];
       if (nm) lbl.textContent = nm;
     });
@@ -91,10 +91,10 @@
       return names[key] || key.toUpperCase();
     }
 
-    function displayId(id) { 
+    function displayId(id) {
       let shortK = String(id).trim().toLowerCase().replace(/^pli-tv-/, "");
       shortK = shortK.replace(/^(bu|bi)-vb-/, "$1-");
-      
+
       const match = shortK.match(/^([a-z\-]+?)([0-9].*)$/i);
       if (match) {
         let prefix = match[1];
@@ -105,7 +105,7 @@
         prefix = prefix.split("-").map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join("-");
         return prefix + " " + num;
       }
-      
+
       if (["dn", "mn", "sn", "an"].includes(shortK.toLowerCase())) {
         return shortK.toUpperCase();
       }
@@ -206,7 +206,7 @@
         }
       }
 
-      gHead.innerHTML = `<span class="caret"><i data-lucide="chevron-right"></i></span> <span class="browse-node-label" data-label-id="${name}">${label}</span>${rangeHtml}`;
+      gHead.innerHTML = `<span class="caret"><i data-lucide="chevron-right"></i></span> <span class="browse-node-label anak" data-label-id="${name}">${label}</span>${rangeHtml}`;
       const gBody = document.createElement("div"); gBody.className = "browse-vagga-body";
 
       function renderChildren() {
