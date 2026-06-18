@@ -1,26 +1,87 @@
-PANDUAN MANAJEMEN APLIKASI (PENGGANTI TMUX)
-===========================================
-Aplikasi web dan tunnel Cloudflare sekarang dijalankan menggunakan Systemd di background.
+====================================================================
+PANDUAN MANAJEMEN APLIKASI SERVER (SYSTEMD)
+====================================================================
+Bye-bye tmux. Semua aplikasi sekarang jalan otomatis di background.
 
-1. CARA RESTART APLIKASI
-Kalau habis merubah kode (misal app.py), aplikasinya wajib di-restart agar perubahannya masuk:
+--------------------------------------------------------------------
+1. PERINTAH SEHARI-HARI (RESTART, STOP, STATUS)
+--------------------------------------------------------------------
+Kalau habis merubah kode (misal app.py) atau config, WAJIB direstart.
+
 - Web Utama:      systemctl --user restart mydhamma-web
 - Web Eval:       systemctl --user restart mydhamma-eval
-- Tunnel:         systemctl --user restart cloudflared
+- Tunnel CF:      systemctl --user restart cloudflared
 
-2. CARA MELIHAT LOG (Pengganti `tmux attach`)
-Untuk melihat log error, print Python, atau traffic secara LIVE (tekan Ctrl+C untuk keluar):
+Cek Status (Hijau = Aman, Merah = Mati/Error):
+- systemctl --user status mydhamma-web
+- systemctl --user status mydhamma-eval
+- systemctl --user status cloudflared
+
+Matikan Aplikasi (Stop sementara):
+- systemctl --user stop mydhamma-web
+
+--------------------------------------------------------------------
+2. CARA MELIHAT LOG ERROR (PENGGANTI `tmux attach`)
+--------------------------------------------------------------------
+Untuk melihat log error, print Python, atau traffic secara LIVE / 
+real-time (tekan Ctrl+C untuk keluar dari tampilan log):
+
 - Log Web Utama:  journalctl --user -u mydhamma-web -f
 - Log Web Eval:   journalctl --user -u mydhamma-eval -f
 - Log Tunnel:     journalctl --user -u cloudflared -f
 
-(Hilangkan huruf "-f" di belakang kalau cuma mau baca log lama tanpa mode live/real-time)
+*Catatan: 
+- Hilangkan huruf "-f" di belakang kalau cuma mau baca log lama.
+- Tambahkan "-n 50" (contoh: journalctl --user -u mydhamma-web -n 50 -f) 
+  untuk langsung melihat 50 baris terakhir biar ga kepanjangan.
 
-3. CARA CEK STATUS (Nyala atau Error?)
-Kalau web tidak bisa diakses, cek statusnya (hijau = aman, merah = error):
-- Status Web:     systemctl --user status mydhamma-web
-- Status Eval:    systemctl --user status mydhamma-eval
+--------------------------------------------------------------------
+3. SETUP LINGER (AGAR SERVER TIDAK MATI SAAT TERMINAL DITUTUP)
+--------------------------------------------------------------------
+Cukup dijalankan 1x seumur hidup untuk akun paps21. Ini yang bikin 
+aplikasi tetap hidup walaupun koneksi SSH diputus.
 
-4. CARA MEMATIKAN APLIKASI (STOP)
-- Matikan Web:    systemctl --user stop mydhamma-web
-- Matikan Eval:   systemctl --user stop mydhamma-eval
+- Nyalakan Linger:   loginctl enable-linger paps21
+- Cek Status Linger: loginctl show-user paps21 | grep Linger
+  (Kalau hasilnya "Linger=yes", berarti aman ditinggal tidur)
+
+--------------------------------------------------------------------
+4. CARA EDIT CONFIG SYSTEMD (NANO) & SETUP GUNICORN / AUTO-RESTART
+--------------------------------------------------------------------
+Kalau mau ngedit file service (misal aplikasi mati terus, butuh auto-restart, 
+atau ganti port), atur filenya pakai Nano.
+
+1. Buka file config:
+   - Web Utama: nano ~/.config/systemd/user/mydhamma-web.service
+   - Web Eval:  nano ~/.config/systemd/user/mydhamma-eval.service
+   - Tunnel CF: nano ~/.config/systemd/user/cloudflared.service
+
+2. Aturan Wajib di dalam file (biar kuat & prod-ready):
+   - Di bawah [Unit], pastikan ada:
+     StartLimitIntervalSec=0
+   
+   - Di bawah [Service], pastikan ada:
+     Restart=always
+     RestartSec=5
+   
+   - Khusus Web Utama & Eval, bagian ExecStart WAJIB pakai gunicorn:
+     ExecStart=/home/paps21/palisemantic5026221144/venv/bin/gunicorn -w 4 -b 127.0.0.1:5002 app:app
+
+3. Cara Save di Nano:
+   - Pencet Ctrl + X
+   - Ketik Y
+   - Pencet Enter
+
+--------------------------------------------------------------------
+5. DAEMON-RELOAD (WAJIB SETELAH NGEDIT FILE DI ATAS)
+--------------------------------------------------------------------
+Systemd tidak akan sadar ada perubahan kalau belum di-reload.
+Setiap kali selesai ngedit pakai Nano, WAJIB jalankan 2 perintah ini:
+
+1. Refresh sistem:
+   systemctl --user daemon-reload
+
+2. Restart aplikasi yang bersangkutan:
+   systemctl --user restart mydhamma-web
+   (Ganti nama service di belakang sesuai yang baru saja diedit)
+====================================================================

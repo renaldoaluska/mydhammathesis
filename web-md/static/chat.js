@@ -481,7 +481,13 @@
     const goBack = () => {
       try {
         if (document.referrer && new URL(document.referrer).host === window.location.host) {
+          const before = window.location.href;
           window.history.back();
+          setTimeout(() => {
+            if (window.location.href === before) {
+              window.location.href = "/";
+            }
+          }, 200);
         } else {
           window.location.href = "/";
         }
