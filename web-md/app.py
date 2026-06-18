@@ -1794,6 +1794,7 @@ def api_chat():
                 unique_suttas, trace)
 
     def gen():
+        yield _sse({"stage": "homage"})
         # Build initial messages
         sys_content = _CHAT_SYSTEM.get(lang, _CHAT_SYSTEM["id"])
         messages = [{"role": "system", "content": sys_content}]

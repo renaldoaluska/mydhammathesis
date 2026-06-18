@@ -1634,6 +1634,7 @@
 
     // Kedua bahasa disimpan supaya label langkah bisa ikut switch live (lihat setI18n).
     const STAGE_I18N = {
+      homage: { en: "Namo tassa bhagavato arahato sammāsambuddhassa…", id: "Namo tassa bhagavato arahato sammāsambuddhassa…" },
       understand: { en: "Understanding your message…", id: "Memahami pesan Anda…" },
       retrieve: { en: "Searching the suttas…", id: "Menelusuri sutta yang relevan…" },
       generate: { en: "Composing the answer…", id: "Menyusun jawaban…" },
