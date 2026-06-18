@@ -733,8 +733,8 @@
       document.body.appendChild(headerNudgeEl);
     }
     headerNudgeEl.textContent = state.lang === "en"
-      ? "Didn't find what you're looking for? Ask myDhamma AI"
-      : "Belum menemukan yang dicari? Tanya myDhamma AI";
+      ? "Still can't find what you need? Try to ask myDhamma AI here"
+      : "Belum menemukan yang dicari? Coba tanya myDhamma AI di sini";
     const r = btn.getBoundingClientRect();
     headerNudgeEl.style.top = (r.bottom + 8) + "px";
     headerNudgeEl.style.right = Math.max(8, window.innerWidth - r.right) + "px";
@@ -958,7 +958,7 @@
             }
           });
         }
-      } catch (e) {}
+      } catch (e) { }
 
       combinedHistory.sort((a, b) => b.timestamp - a.timestamp);
       combinedHistory = combinedHistory.slice(0, 8); // Take top 8 overall

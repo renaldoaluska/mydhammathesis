@@ -1372,13 +1372,35 @@
 
             const chipsWrap = document.createElement("div");
             chipsWrap.className = "chat-followups";
+            // Helper: ubah sutta ID yg belum punya @ jadi @mention.
+            // Pola: singkatan koleksi + spasi opsional + angka (mis. MN 10, SN 22.59, AN 3.65,
+            // Bu-Pj 1, Snp 1.8, Ud 8.3, Iti 110, Dhp 1, Thag 1.1, Vv 1.1, Pv 1.1, Mil …).
+            // Lookbehind (?<![@\w]) cegah dobel-@ dan awalan kata lain yg kebetulan mirip.
+            function addMentionAt(text) {
+              return text.replace(
+                /(?<![@\w])(\b(?:[A-Za-z]{1,4}(?:-[A-Za-z]{1,4})?)\s*\d[\d.]*)/g,
+                (m, ref) => {
+                  // Hanya ubah jika ref cocok dengan salah satu singkatan koleksi yg dikenal
+                  // ATAU ada di validMentionSet (supaya kata biasa tak ikut kena).
+                  const norm = ref.replace(/\s+/g, "").toLowerCase();
+                  const known = validMentionSet
+                    ? validMentionSet.has(norm)
+                    : /^(dn|mn|sn|an|dhp|ud|iti|snp|thag|thig|vv|pv|mil|bu|bi|sk|np|pc|pd|as|pj)\d/i.test(norm);
+                  return known ? "@" + ref : m;
+                }
+              );
+            }
+
             Array.from(nextEl.querySelectorAll("li")).forEach(li => {
               const btn = document.createElement("button");
               btn.className = "chat-followup-chip";
               // Item 6: buang segmen (mis. "MN 10:md2" -> "MN 10") — mesin tak bisa
               // memproses mention bersegmen, jadi rekomendasi pertanyaan tak boleh memuatnya.
-              btn.textContent = li.textContent.trim()
-                .replace(/(\b[A-Za-z]+(?:-[A-Za-z]+)?\s?\d+(?:\.\d+)*)\s*:\s*[A-Za-z0-9.\-]+/g, "$1");
+              // Setelah buang segmen, ubah sutta ID jadi @mention kalau belum ada @-nya.
+              btn.textContent = addMentionAt(
+                li.textContent.trim()
+                  .replace(/(\b[A-Za-z]+(?:-[A-Za-z]+)?\s?\d+(?:\.\d+)*)\s*:\s*[A-Za-z0-9.\-]+/g, "$1")
+              );
 
               btn.onclick = () => {
                 // Item 5: cegah dobel-kirim. Sekali diklik, kunci semua chip & jangan
@@ -1996,7 +2018,7 @@
                 } else if (obj.data.kind === "name_match") {
                   const ns = obj.data.names.join(", ");
                   labEn = "Text name match: " + ns;
-                  labId = "Kecocokan nama text: " + ns;
+                  labId = "Kecocokan nama teks: " + ns;
                 } else if (obj.data.kind === "nikaya_scope") {
                   const ss = obj.data.scopes.join(", ");
                   labEn = "Restricted to: " + ss;

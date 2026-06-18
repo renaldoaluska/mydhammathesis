@@ -950,9 +950,15 @@ _CHAT_ANSWER_GUIDE = {
         "- NADA: Hangat, ramah, dan manusiawi — JANGAN kaku atau robotik, agar pengguna merasa dibimbing dengan tulus. Namun ini konteks keagamaan yang formal: tetap sopan, berwibawa, dan khidmat. DILARANG memakai emoji. Jangan pula kebablasan jadi terlalu santai, alay, atau bercanda.\n"
         "- EMPATI BUDDHIS (WAJIB DITERAPKAN DI AWAL JAWABAN): Jika pengguna membagikan curhatan, kesedihan, kemarahan, atau keluhan pribadi yang NYATA, Anda HARUS membuka jawaban dengan kalimat yang merangkul dan mengakui penderitaan mereka secara hangat (Karuṇā/welas asih). Contoh pendekatan: 'Saya turut prihatin mendengar Anda sedang mengalami masa yang menyakitkan ini. Kesedihan dan amarah itu muncul karena masih adanya kemelekatan pada hal-hal yang berubah...' Validasi penderitaannya (bahwa itu menyakitkan), tapi JANGAN memvalidasi bahwa kebencian/amarah itu hal yang benar untuk dipelihara. Jika ada makian/kata kasar, bertindaklah sebagai sahabat spiritual (kalyāṇamitta) yang menenangkan. NAMUN, JIKA pengguna HANYA menyapa, bilang terima kasih, atau bertanya hal biasa, DILARANG KERAS memberikan simpati/keprihatinan yang berlebihan atau tidak nyambung. Jawablah dengan natural, ramah, dan wajar.\n"
         "- Buka dgn inti jawaban/definisi konsepnya secara langsung (setelah memberikan respons empati jika ada situasi pribadi).\n"
-        "- PRIORITASKAN penggunaan poin-poin (bullet points) untuk menguraikan isi teks. Jangan gunakan paragraf panjang yang sulit dibaca.\n"
+        "- FORMAT WAJIB — POIN-POIN (BULLET POINTS): DILARANG KERAS menulis jawaban dalam bentuk paragraf panjang yang beruntun. Setiap penjelasan isi teks, setiap aspek ajaran, setiap poin argumen WAJIB ditulis sebagai poin/bullet terpisah. Pengecualian satu-satunya: kalimat pembuka empati (maks. 2 kalimat) dan kalimat penutup intisari (maks. 2 kalimat) boleh berbentuk prosa singkat.\n"
         "- Tutup dgn ringkasan/intisari praktis 1-2 kalimat bila relevan. LANGSUNG tulis intisarinya TANPA kalimat pengantar/bridging kaku seperti 'Sebagai ringkasan praktis...', 'Berikut adalah intisarinya...', atau semacamnya.\n"
-        "- Setelah penutup, SELALU WAJIB buat daftar TEPAT 3 Rekomendasi Pertanyaan Lanjutan (format bullet). Heading: '**Rekomendasi Pertanyaan Lanjutan:**'. Tanpa tanda titik di akhir tiap pertanyaan. ATURAN MENTION: Jika pertanyaan menyebutkan nama sutta/koleksi spesifik (misal MN 1, SN 12.2), WAJIB menggunakan awalan @ (misal @MN 1, @SN 12.2). MAKSIMAL 1 pertanyaan boleh mengandung mention @ sutta. Sisanya (minimal 2 pertanyaan) WAJIB berupa pertanyaan eksploratif umum TANPA menyebutkan sutta spesifik sama sekali (misal 'Bagaimana cara melatih satipaṭṭhāna?').\n"
+        "- Setelah penutup, SELALU WAJIB buat daftar TEPAT 3 Rekomendasi Pertanyaan Lanjutan (format bullet). Heading: '**Rekomendasi Pertanyaan Lanjutan:**'. Tanpa tanda titik di akhir tiap pertanyaan.\n"
+        "  ATURAN MENTION @-TAG (SANGAT WAJIB DIPATUHI):\n"
+        "  * MAKSIMAL 1 dari 3 pertanyaan boleh menyebutkan sutta/koleksi spesifik.\n"
+        "  * Jika pertanyaan itu menyebutkan sutta/koleksi, WAJIB gunakan awalan @ — BUKAN hanya menulis 'MN 1' atau 'SN 12.2', tapi HARUS '@MN 1' atau '@SN 12.2'.\n"
+        "  * Contoh BENAR: '- Apa inti ajaran dalam @MN 10?'\n"
+        "  * Contoh SALAH: '- Apa inti ajaran dalam MN 10?' (kurang @, DILARANG!)\n"
+        "  * Minimal 2 pertanyaan sisanya WAJIB berupa pertanyaan eksploratif umum TANPA menyebutkan sutta/koleksi spesifik sama sekali (contoh: 'Bagaimana cara melatih satipaṭṭhāna?').\n"
         "ATURAN RUJUKAN (WAJIB):\n"
         "- DILARANG KERAS menggunakan frasa seperti 'Berdasarkan teks yang Anda berikan', 'Berdasarkan kutipan di atas', atau 'Menurut dokumen ini'. Ingat: Pengguna mengira ANDALAH yang mencari sutta-sutta tersebut, bukan menerima contekan dari sistem/tools lain. Jawablah dengan natural seolah Anda mengetahuinya dari hasil pencarian Anda sendiri dan langsung sebut nama suttanya (misal: 'Dalam MN 10 dijelaskan...').\n"
         "- DILARANG KERAS membuat bagian/daftar 'Referensi:', 'Daftar Rujukan:', atau semacamnya di akhir jawaban. Semua rujukan HARUS diselipkan langsung di dalam kalimat (inline). SETIAP kali kamu membahas suatu poin/segmen, kamu WAJIB menyebutkan Sutta/Segmen asalnya di teks tersebut!\n"
@@ -982,9 +988,16 @@ _CHAT_ANSWER_GUIDE = {
         "- TONE: Warm, friendly, and human — NOT stiff or robotic, so the user feels sincerely guided. But this is a formal religious context: stay polite, dignified, and reverent. Do NOT use emoji. And don't go too casual, slangy, or jokey.\n"
         "- BUDDHIST EMPATHY (MANDATORY AT THE START): If the user shares a GENUINE personal rant, grief, anger, or complaint, you MUST open your answer by warmly acknowledging their suffering (Karuṇā/compassion). Example approach: 'I am so sorry to hear you are going through such a painful time. This grief and anger arise because of attachment to things that are subject to change...' Validate their suffering (that it is indeed painful), but DO NOT validate that the hatred/anger is right to hold onto. If they swear or use harsh words, act as a spiritual friend (kalyāṇamitta) to calm them down. HOWEVER, IF the user is JUST greeting you, saying thank you, or asking a normal question, STRICTLY DO NOT offer unnecessary sympathy or condolences. Answer naturally, warmly, and professionally.\n"
         "- Open with the core answer/definition directly (after providing an empathetic response if there is a personal situation).\n"
-        "- PRIORITIZE using bullet points to explain the text. Avoid long, dense paragraphs.\n"
+        "- FORMAT MANDATORY — USE BULLET POINTS: STRICTLY FORBIDDEN to write the answer as long running paragraphs. Every explanation of text content, every aspect of a teaching, every argumentative point MUST be written as a separate bullet point. The only exceptions are: an opening empathy sentence (max 2 sentences) and a closing takeaway (max 2 sentences), which may be brief prose.\n"
         "- Close with a short practical takeaway (1-2 sentences) when relevant.\n"
-        "- After the closing, you MUST ALWAYS generate EXACTLY 3 Follow-up Questions (bulleted). Heading: '**Recommended Follow-up Questions:**'. No period at the end of each question. @TAG RULES: A MAXIMUM of 1 question may use an @ tag for a sutta/collection (either the one being discussed or another). The remaining questions (at least 2) MUST be general explorative questions WITHOUT any @ tags (e.g. 'How can one practice satipaṭṭhāna?' or 'What are the stages of jhāna?'). This prevents the recommendations from looking repetitive (tag spam). This section MUST NOT be skipped.\n"
+        "- After the closing, you MUST ALWAYS generate EXACTLY 3 Follow-up Questions (bulleted). Heading: '**Recommended Follow-up Questions:**'. No period at the end of each question.\n"
+        "  @TAG RULES (STRICTLY MANDATORY):\n"
+        "  * AT MOST 1 of the 3 questions may mention a specific sutta/collection.\n"
+        "  * If that question mentions a sutta/collection, you MUST use the @ prefix — do NOT write 'MN 10' or 'SN 12.2' alone; it MUST be '@MN 10' or '@SN 12.2'.\n"
+        "  * CORRECT example: '- What is the core teaching of @MN 10?'\n"
+        "  * WRONG example: '- What is the core teaching of MN 10?' (missing @, FORBIDDEN!)\n"
+        "  * The remaining at least 2 questions MUST be general explorative questions with NO specific sutta/collection mentioned at all (e.g. 'How can one practice satipaṭṭhāna?', 'What are the stages of jhāna?').\n"
+        "  * This section MUST NOT be skipped.\n"
         "CITATION RULES (MANDATORY):\n"
         "- STRICTLY FORBIDDEN to use phrases like 'Based on the text you provided', 'According to the provided document', or 'Based on the quotes'. Remember: The user thinks YOU searched for these suttas yourself, not that you received them from another tool/system. Answer naturally as if you found them yourself, and directly cite the sutta name (e.g., 'In MN 10, it is explained...').\n"
         "- Cite ONLY with the EXACT reference token given in each block (copy it verbatim, e.g. 'MN 10:1.5' or 'Bu-Pj 1'). STRICTLY NO spaces around the colon (CORRECT: 'MN 10:1.5', WRONG: 'MN 10 : 1.5'). Adding spaces breaks the citation links!\n"
@@ -1179,7 +1192,9 @@ def _ollama_json(messages: list, fmt: str = "json", temperature: float = 0.2) ->
     try:
         r = requests.post(f"{OLLAMA_URL}/api/chat", timeout=120, json={
             "model": CHAT_MODEL, "messages": messages, "stream": False, "think": _CHAT_THINK,
-            "format": fmt, "options": {"temperature": temperature, "num_ctx": CHAT_NUM_CTX},
+            "keep_alive": "30m",
+            "format": fmt, "options": {"temperature": temperature, "num_ctx": CHAT_NUM_CTX,
+                                       "num_predict": 400},  # query rewrite cukup pendek
         })
         return ((r.json().get("message") or {}).get("content") or "").strip()
     except Exception:
@@ -1190,8 +1205,11 @@ def _ollama_chat(messages: list, tools: list = None) -> dict:
     """Panggilan Ollama non-stream. Balas message dict {content, tool_calls?}; {} bila gagal.
     Non-stream sengaja: qwen sering emit konten basa-basi BARENG tool_calls — dgn non-stream
     keputusan (panggil tool atau jawab) terbaca utuh, tak perlu menebak urutan token."""
+
     payload = {"model": CHAT_MODEL, "messages": messages, "stream": False,
-               "think": _CHAT_THINK, "options": {"temperature": 0.3, "num_ctx": CHAT_NUM_CTX}}
+               "think": _CHAT_THINK, "keep_alive": "30m",
+               "options": {"temperature": 0.3, "num_ctx": CHAT_NUM_CTX,
+                           "num_predict": 512}}  # fase 1: cuma tool call / sapaan, tak perlu panjang
     if tools:
         payload["tools"] = tools
 
@@ -1206,8 +1224,10 @@ def _ollama_stream(messages: list):
     """Stream jawaban FINAL token-demi-token (TANPA tools -> tak ada preamble/tool_call
     menyelip, streaming bersih). Yield potongan teks; konten kosong diabaikan."""
     payload = {"model": CHAT_MODEL, "messages": messages, "stream": True,
-               "think": _CHAT_THINK,
-               "options": {"temperature": 0.35, "num_ctx": CHAT_NUM_CTX}}  # turun dari 0.45: kurangi wandering/halusinasi
+               "think": _CHAT_THINK, "keep_alive": "30m",
+               "options": {"temperature": 0.35, "num_ctx": CHAT_NUM_CTX,
+                           "num_predict": 2000,    # cukup untuk jawaban terstruktur panjang
+                           "repeat_penalty": 1.15}} # kurangi repetisi kalimat/frasa
     try:
         resp = requests.post(f"{OLLAMA_URL}/api/chat", json=payload, stream=True, timeout=300)
     except Exception as e:
@@ -1526,6 +1546,8 @@ def api_chat():
     query = (body.get("message") or body.get("query") or "").strip()
     if not query:
         return jsonify({"error": "Pertanyaan kosong"}), 400
+    # Guard panjang query: maks 2000 karakter (proteksi context flooding)
+    query = query[:2000]
 
     lang = body.get("lang") or detect_query_lang(query)
     if lang == "pli":
@@ -1533,7 +1555,8 @@ def api_chat():
     # Scope (bahasa korpus & pitaka) ditentukan agen sendiri via argumen tool, bukan filter UI.
     # db_pref hanya menentukan bahasa jawaban/pasase (prompt_db); default ikut bahasa terdeteksi.
     db_pref = body.get("db") or ("en" if lang == "en" else "id")
-    max_suttas = int(body.get("top_k", 6))
+    # Guard top_k: clamp ke 1–12. Default 6. Tanpa batas, user bisa kirim top_k=9999 → beban retrieval masif.
+    max_suttas = max(1, min(int(body.get("top_k") or 6), 12))
     history = body.get("history") or []
     # Poin 4: pilihan terjemahan per-mention dari user (picker frontend). Keyed formatted_id
     # ("MN 10"); dinormalisasi ke "mn10" utk dicocokkan dgn mention loop. Kosong = auto fallback.
@@ -1772,7 +1795,8 @@ def api_chat():
         messages = [{"role": "system", "content": sys_content}]
         for h in (history or [])[-6:]:
             role = h.get("role")
-            content = (h.get("content") or "").strip()
+            # Guard panjang content history: maks 4000 karakter per item
+            content = (h.get("content") or "").strip()[:4000]
             if role in ("user", "assistant") and content:
                 messages.append({"role": role, "content": content})
         messages.append({"role": "user", "content": query})
@@ -1866,17 +1890,18 @@ def api_chat():
             }
         else:
             gen_messages.insert(0, {"role": "system", "content": _CHAT_ANSWER_GUIDE.get(lang, _CHAT_ANSWER_GUIDE["id"])})
-            
         # Trik "System Prompt Reinforcement": Kita taruh panduan utama di atas agar alurnya logis.
         # PENTING: Jangan membuat pesan 'system' baru di akhir karena bisa memutus rantai attention model
         # terhadap pesan 'tool'. Sebaliknya, kita APPEND pengingat kritis ke pesan terakhir (pesan 'tool').
         reminder = (
             f"\n\n--- PENGINGAT KRITIS DARI SISTEM ---\n"
-            f"Jawablah pertanyaan pengguna berikut: '{query}'.\n"
-            f"1) Jawab HANYA menggunakan informasi yang EKSPLISIT TERTULIS di teks hasil pencarian. Jika teks pencarian TIDAK merinci suatu hal, DILARANG KERAS melengkapinya dari ingatan Anda! Cukup sampaikan sebatas info yang ada.\n"
-            f"2) LANGSUNG masuk ke inti materi tanpa kalimat pengantar apa pun (basa-basi dilarang keras).\n"
-            f"3) Anda WAJIB menyertakan token rujukan sutta (yang BENAR-BENAR ADA di teks hasil pencarian) DI DALAM SETIAP kalimat/poin klaim yang Anda buat!\n"
-            f"4) Rujuk teks yang benar-benar MENJELASKAN/merinci klaim Anda, BUKAN teks yang hanya menyebut istilahnya sambil lalu (mis. dalam syair). Jika sebuah daftar/penjelasan datang dari teks A, kutiplah teks A — jangan tempelkan ke teks lain yang kebetulan memuat frasa serupa."
+            # Escape query di reminder agar tanda kutip tidak bisa break out dari konteks f-string
+            f"Jawablah pertanyaan pengguna berikut: {query!r}.\n"
+            f"1) Gunakan dan SINTESISKAN semua informasi yang ada di blok teks hasil pencarian — termasuk blok [GLOSARI]. Kamu BOLEH dan WAJIB menyampaikan isi blok itu secara ringkas dan jelas. Yang DILARANG adalah menambahkan fakta/detail yang SAMA SEKALI TIDAK TERTULIS di blok mana pun (mis. mengarang nomor sutta, menambahkan istilah Pali yang tidak ada di teks, dll.).\n"
+            f"2) FORMAT WAJIB — POIN-POIN: DILARANG KERAS menulis jawaban dalam paragraf panjang yang beruntun. Setiap poin/aspek ajaran WAJIB ditulis sebagai bullet point terpisah. Hanya kalimat empati pembuka (maks. 2 kalimat) dan intisari penutup (maks. 2 kalimat) yang boleh berbentuk prosa singkat.\n"
+            f"3) LANGSUNG masuk ke inti materi tanpa kalimat pengantar apa pun (basa-basi dilarang keras).\n"
+            f"4) Anda WAJIB menyertakan token rujukan sutta (yang BENAR-BENAR ADA di teks hasil pencarian) DI DALAM SETIAP kalimat/poin klaim yang Anda buat!\n"
+            f"5) Rujuk teks yang benar-benar MENJELASKAN/merinci klaim Anda, BUKAN teks yang hanya menyebut istilahnya sambil lalu (mis. dalam syair). Jika sebuah daftar/penjelasan datang dari teks A, kutiplah teks A — jangan tempelkan ke teks lain yang kebetulan memuat frasa serupa."
         )
         # Pertanyaan enumeratif: dorong SURVEI multi-skema di posisi atensi tertinggi (akhir pesan tool).
         # Klausa di answer-guide sering diabaikan model; pengingat di sini lebih dipatuhi.
