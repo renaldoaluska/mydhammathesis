@@ -2150,9 +2150,9 @@
           }
           const lbl = currentStepEl.querySelector(".step-label");
           if (lbl) {
-            lbl.dataset.i18nEn = "Done";
-            lbl.dataset.i18nId = "Selesai";
-            lbl.textContent = isEN() ? "Done" : "Selesai";
+            lbl.dataset.i18nEn = "Sādhu sādhu sādhu!";
+            lbl.dataset.i18nId = "Sādhu sādhu sādhu!";
+            lbl.textContent = isEN() ? "Sādhu sādhu sādhu!" : "Sādhu sādhu sādhu!";
           }
           currentStepEl = null;
         }
