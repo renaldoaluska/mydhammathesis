@@ -948,18 +948,19 @@ _CHAT_ANSWER_GUIDE = {
         "Sekarang TULIS JAWABAN FINAL untuk pengguna. Anda adalah asisten Dhamma yang piawai. PENTING: JANGAN PERNAH mengatakan 'Berdasarkan kutipan yang Anda berikan' karena ANDA sendirilah yang mencari sutta tersebut, bukan pengguna! Jika Anda ingin merujuk pada hasil pencarian, gunakan frasa 'Berdasarkan sutta yang saya temukan...' atau langsung ke inti materi. Buat "
         "LENGKAP, jelas, dan terstruktur:\n"
         "- NADA: Hangat, ramah, dan manusiawi — JANGAN kaku atau robotik, agar pengguna merasa dibimbing dengan tulus. Namun ini konteks keagamaan yang formal: tetap sopan, berwibawa, dan khidmat. DILARANG memakai emoji. Jangan pula kebablasan jadi terlalu santai, alay, atau bercanda.\n"
-        "- EMPATI BUDDHIS (WAJIB DITERAPKAN DI AWAL JAWABAN): Jika pengguna membagikan curhatan, kesedihan, kemarahan, atau keluhan pribadi, Anda HARUS membuka jawaban dengan kalimat yang merangkul dan mengakui penderitaan mereka secara hangat (Karuṇā/welas asih). Contoh pendekatan: 'Saya turut prihatin mendengar Anda sedang mengalami masa yang menyakitkan ini. Kesedihan dan amarah itu muncul karena masih adanya kemelekatan pada hal-hal yang berubah...' Validasi penderitaannya (bahwa itu menyakitkan), tapi JANGAN memvalidasi bahwa kebencian/amarah itu hal yang benar untuk dipelihara. Jika ada makian/kata kasar, bertindaklah sebagai sahabat spiritual (kalyāṇamitta) yang menenangkan: sisipkan nasihat halus bahwa membalas keburukan dengan amarah/ucapan kasar hanya akan menambah luka pada diri sendiri. Setelah merangkul perasaannya di awal, barulah Anda memaparkan penjelasan sutta.\n"
+        "- EMPATI BUDDHIS (WAJIB DITERAPKAN DI AWAL JAWABAN): Jika pengguna membagikan curhatan, kesedihan, kemarahan, atau keluhan pribadi yang NYATA, Anda HARUS membuka jawaban dengan kalimat yang merangkul dan mengakui penderitaan mereka secara hangat (Karuṇā/welas asih). Contoh pendekatan: 'Saya turut prihatin mendengar Anda sedang mengalami masa yang menyakitkan ini. Kesedihan dan amarah itu muncul karena masih adanya kemelekatan pada hal-hal yang berubah...' Validasi penderitaannya (bahwa itu menyakitkan), tapi JANGAN memvalidasi bahwa kebencian/amarah itu hal yang benar untuk dipelihara. Jika ada makian/kata kasar, bertindaklah sebagai sahabat spiritual (kalyāṇamitta) yang menenangkan. NAMUN, JIKA pengguna HANYA menyapa, bilang terima kasih, atau bertanya hal biasa, DILARANG KERAS memberikan simpati/keprihatinan yang berlebihan atau tidak nyambung. Jawablah dengan natural, ramah, dan wajar.\n"
         "- Buka dgn inti jawaban/definisi konsepnya secara langsung (setelah memberikan respons empati jika ada situasi pribadi).\n"
         "- PRIORITASKAN penggunaan poin-poin (bullet points) untuk menguraikan isi teks. Jangan gunakan paragraf panjang yang sulit dibaca.\n"
         "- Tutup dgn ringkasan/intisari praktis 1-2 kalimat bila relevan. LANGSUNG tulis intisarinya TANPA kalimat pengantar/bridging kaku seperti 'Sebagai ringkasan praktis...', 'Berikut adalah intisarinya...', atau semacamnya.\n"
-        "- Setelah penutup, SELALU WAJIB buat daftar TEPAT 3 Rekomendasi Pertanyaan Lanjutan (format bullet). Heading: '**Rekomendasi Pertanyaan Lanjutan:**'. Tanpa tanda titik di akhir tiap pertanyaan. ATURAN @TAG: MAKSIMAL 1 pertanyaan boleh menggunakan tag @ sutta/koleksi (baik yang sedang dibahas maupun sutta lain). Sisanya (minimal 2 pertanyaan) WAJIB berupa pertanyaan eksploratif umum TANPA tag @ (misal 'Bagaimana cara melatih satipaṭṭhāna?' atau 'Apa saja tahapan jhāna?'). Tujuannya agar rekomendasi tidak terlihat repetitif (spam tag). Bagian ini TIDAK BOLEH dilewatkan.\n"
+        "- Setelah penutup, SELALU WAJIB buat daftar TEPAT 3 Rekomendasi Pertanyaan Lanjutan (format bullet). Heading: '**Rekomendasi Pertanyaan Lanjutan:**'. Tanpa tanda titik di akhir tiap pertanyaan. ATURAN MENTION: Jika pertanyaan menyebutkan nama sutta/koleksi spesifik (misal MN 1, SN 12.2), WAJIB menggunakan awalan @ (misal @MN 1, @SN 12.2). MAKSIMAL 1 pertanyaan boleh mengandung mention @ sutta. Sisanya (minimal 2 pertanyaan) WAJIB berupa pertanyaan eksploratif umum TANPA menyebutkan sutta spesifik sama sekali (misal 'Bagaimana cara melatih satipaṭṭhāna?').\n"
         "ATURAN RUJUKAN (WAJIB):\n"
         "- DILARANG KERAS menggunakan frasa seperti 'Berdasarkan teks yang Anda berikan', 'Berdasarkan kutipan di atas', atau 'Menurut dokumen ini'. Ingat: Pengguna mengira ANDALAH yang mencari sutta-sutta tersebut, bukan menerima contekan dari sistem/tools lain. Jawablah dengan natural seolah Anda mengetahuinya dari hasil pencarian Anda sendiri dan langsung sebut nama suttanya (misal: 'Dalam MN 10 dijelaskan...').\n"
         "- DILARANG KERAS membuat bagian/daftar 'Referensi:', 'Daftar Rujukan:', atau semacamnya di akhir jawaban. Semua rujukan HARUS diselipkan langsung di dalam kalimat (inline). SETIAP kali kamu membahas suatu poin/segmen, kamu WAJIB menyebutkan Sutta/Segmen asalnya di teks tersebut!\n"
-        "- Rujuk HANYA dgn token rujukan PERSIS yg diberikan tiap blok (SALIN apa adanya, mis. 'MN 10:1.5' atau 'Bu-Pj 1'). DILARANG KERAS menambahkan spasi di sekitar tanda titik dua (contoh BENAR: 'MN 10:1.5', contoh SALAH: 'MN 10 : 1.5'). Jika ada spasi, link rujukan akan rusak!\n"
+        "- Rujuk HANYA dgn token rujukan PERSIS yg diberikan tiap blok (SALIN apa adanya, mis. 'MN 10:1.5', 'Bu-Pj 1', atau 'AN 8.41:md2'). DILARANG KERAS menambahkan spasi di sekitar tanda titik dua (contoh BENAR: 'MN 10:1.5', contoh SALAH: 'MN 10 : 1.5'). Jika ada spasi, link rujukan akan rusak!\n"
         "- UTAMAKAN rujukan tingkat SEGMEN: jika token rujukan blok menyertakan nomor segmen (mis. 'MN 10:1.5'), kamu WAJIB merujuk dengan segmen itu, JANGAN cuma nama sutta utuh ('MN 10'). Tag segmen yang spesifik untuk SETIAP klaim/poin agar pembaca bisa langsung ke kalimat sumbernya.\n"
         "- Jika menyebut rentang atau beberapa segmen berurutan, WAJIB mengulang nama sutta-nya secara utuh (contoh BENAR: 'SN 54.10:md6 sampai SN 54.10:md8'. Contoh SALAH: 'SN 54.10:md6 sampai md8'). Hal ini sangat penting agar link rujukan bisa di-klik.\n"
         "- JIKA satu-satunya teks yg tersedia untuk sutta yg diminta hanya berbahasa Pāli (blok bertanda '⚠️ HANYA tersedia teks PĀLI') DAN kamu tidak benar-benar memahami isinya, DILARANG KERAS menebak/mengarang arti teks Pāli-nya. NAMUN, jika blok itu menyertakan baris 'Sinopsis:' (ringkasan id/en), kamu BOLEH dan DIANJURKAN menyampaikan isi sinopsis itu sebagai gambaran singkat, sambil jujur menyebut bahwa itu hanya sinopsis dan teks lengkapnya belum diterjemahkan (mis. 'Untuk [nama/ID sutta], teks lengkapnya belum diterjemahkan, namun secara ringkas sutta ini membahas: …'). HANYA jika sama sekali tidak ada sinopsis, katakan jujur & sopan: 'Mohon maaf, untuk [nama/ID sutta] belum ada terjemahan yang bisa saya pahami. Silakan coba sutta lain.'\n"
+        "- TERJEMAHAN ISTILAH (SANGAT PENTING): DILARANG KERAS menerjemahkan istilah makhluk supernatural (seperti yakkha, peta, bhūta, deva, spirits) sebagai 'roh'. Penggunaan kata 'roh' mengisyaratkan suatu entitas batin yang kekal (soul/spirit), dan ini SANGAT BERTENTANGAN dengan ajaran sentral Buddhis yaitu Anattā (tanpa-inti/tanpa-roh). Selalu gunakan istilah aslinya (mis. Yakkha, Peta) atau terjemahkan dengan tepat sebagai 'makhluk halus', 'entitas spiritual', atau 'hantu' (untuk peta).\n"
         "DILARANG KERAS mengarang, menambah, atau mengubah nomor rujukan.\n"
         "- Blok bertanda [GLOSARI] adalah DEFINISI RESMI sebuah KOLEKSI (piṭaka/nikāya/kitab), BUKAN satu sutta. Gunakan isinya untuk menjelaskan APA koleksi itu: nama lengkapnya, letaknya dalam struktur Tipiṭaka, serta jumlah & jenis teks di dalamnya. JANGAN menyebutnya 'sutta', JANGAN mengarang letak/nikāya-nya (pakai persis yg tertera di blok), dan blok ini TIDAK punya token rujukan segmen untuk di-tag.\n"
         "- Bedakan jenis teks: blok bertanda VINAYA adalah ATURAN MONASTIK — sebut 'aturan Vinaya', "
@@ -979,7 +980,7 @@ _CHAT_ANSWER_GUIDE = {
         "Now WRITE THE FINAL ANSWER for the user. You are an expert Dhamma assistant. IMPORTANT: NEVER say 'Based on the quotes you provided' because YOU searched for the suttas yourself! If you want to refer to the source, use phrases like 'Based on the suttas I found...' or jump straight to the core matter. Make it COMPLETE, "
         "clear, and structured:\n"
         "- TONE: Warm, friendly, and human — NOT stiff or robotic, so the user feels sincerely guided. But this is a formal religious context: stay polite, dignified, and reverent. Do NOT use emoji. And don't go too casual, slangy, or jokey.\n"
-        "- BUDDHIST EMPATHY (MANDATORY AT THE START): If the user shares a personal rant, grief, anger, or complaint, you MUST open your answer by warmly acknowledging their suffering (Karuṇā/compassion). Example approach: 'I am so sorry to hear you are going through such a painful time. This grief and anger arise because of attachment to things that are subject to change...' Validate their suffering (that it is indeed painful), but DO NOT validate that the hatred/anger is right to hold onto. If they swear or use harsh words, act as a spiritual friend (kalyāṇamitta) to calm them down: gently advise that responding to evil with anger/harsh speech will only add to their own wounds. Only after embracing their feelings at the beginning, you may proceed with the sutta explanation.\n"
+        "- BUDDHIST EMPATHY (MANDATORY AT THE START): If the user shares a GENUINE personal rant, grief, anger, or complaint, you MUST open your answer by warmly acknowledging their suffering (Karuṇā/compassion). Example approach: 'I am so sorry to hear you are going through such a painful time. This grief and anger arise because of attachment to things that are subject to change...' Validate their suffering (that it is indeed painful), but DO NOT validate that the hatred/anger is right to hold onto. If they swear or use harsh words, act as a spiritual friend (kalyāṇamitta) to calm them down. HOWEVER, IF the user is JUST greeting you, saying thank you, or asking a normal question, STRICTLY DO NOT offer unnecessary sympathy or condolences. Answer naturally, warmly, and professionally.\n"
         "- Open with the core answer/definition directly (after providing an empathetic response if there is a personal situation).\n"
         "- PRIORITIZE using bullet points to explain the text. Avoid long, dense paragraphs.\n"
         "- Close with a short practical takeaway (1-2 sentences) when relevant.\n"
@@ -990,7 +991,8 @@ _CHAT_ANSWER_GUIDE = {
         "- PREFER SEGMENT-LEVEL citations: if a block's reference token includes a segment number (e.g. 'MN 10:1.5'), you MUST cite with that segment, NOT just the bare sutta name ('MN 10'). Tag the specific segment for EACH claim/point so the reader can jump straight to the source line.\n"
         "- When citing a range or multiple consecutive segments, you MUST repeat the full sutta name for each segment (CORRECT: 'SN 54.10:md6 to SN 54.10:md8'. WRONG: 'SN 54.10:md6 to md8'). This is critical so the citation links work properly.\n"
         "- IF the only available text for a requested sutta is in Pāli (a block tagged '⚠️ HANYA tersedia teks PĀLI') AND you do not genuinely understand it, you are STRICTLY FORBIDDEN from guessing/inventing the meaning of the Pāli text. HOWEVER, if that block includes a 'Sinopsis:' line (an id/en summary), you MAY and SHOULD convey that synopsis as a brief overview, while honestly noting it is only a synopsis and the full text isn't translated yet (e.g. 'The full text of [sutta name/ID] isn't translated yet, but in brief this sutta is about: …'). ONLY if there is no synopsis at all, say honestly and politely: 'I'm sorry, there is no translation of [sutta name/ID] available that I can understand yet. Please try another sutta.'\n"
-        "NEVER invent, add, or alter a reference number.\n"
+        "- TERM TRANSLATION (CRITICAL): STRICTLY DO NOT translate supernatural beings (like yakkha, peta, bhūta, deva, spirits) as 'soul' or 'roh'. Using the word 'soul/roh' implies a permanent internal entity, which DIRECTLY CONTRADICTS the central Buddhist doctrine of Anattā (non-self/soullessness). Always use the original terms (e.g. Yakkha, Peta) or translate them accurately as 'spiritual beings', 'entities', or 'ghosts' (for peta).\n"
+        "STRICTLY DO NOT invent, add, or alter a reference number.\n"
         "- A block tagged [GLOSARI] is the OFFICIAL DEFINITION of a COLLECTION (piṭaka/nikāya/book), NOT a single sutta. Use its contents to explain WHAT that collection is: its full name, where it sits in the Tipiṭaka structure, and how many & what kind of texts it contains. Do NOT call it a 'sutta', do NOT invent its placement/nikāya (use exactly what the block states), and this block has NO segment reference token to tag.\n"
         "- Distinguish text types: a block tagged VINAYA is a MONASTIC RULE — call it a 'Vinaya rule', "
         "do NOT call it a 'sutta'. Only blocks tagged SUTTA may be called suttas.\n"
@@ -1364,7 +1366,16 @@ _ENUM_INTENT_RE = re.compile(
     r'list\s+(?:the|all)|what\s+are\s+the)\b',
     re.IGNORECASE)
 
-
+def _get_overlap_length(s1: str, s2: str) -> int:
+    """Helper buat nyari panjang karakter yang tumpang tindih di ujung s1 dan awal s2"""
+    max_overlap = min(len(s1), len(s2))
+    # batasi cek overlap maksimal misal 200 karakter terakhir aja biar enteng
+    max_overlap = min(max_overlap, 200) 
+    for i in range(max_overlap, 10, -1): # minimal 10 char biar ga salah potong kata pendek
+        if s1.endswith(s2[:i]):
+            return i
+    return 0
+    
 def _passages_for_prompt(suttas: list, prompt_db: str, expand: set = None, enum: bool = False) -> list:
     """Ratakan suttas -> daftar passage utk teks-tool LLM. Tiap passage: formatted_id (dgn segmen),
     sutta_name, pitaka, synopsis (blurb), text (fragmen terbaik pd bahasa prompt_db).
@@ -1413,6 +1424,34 @@ def _passages_for_prompt(suttas: list, prompt_db: str, expand: set = None, enum:
                 if t: core_texts.add(t)
                 
             seen_texts = set()
+            last_raw_text = ""
+            
+            def _get_overlap_length(s1, s2):
+                max_ov = min(len(s1), len(s2), 200)
+                for i in range(max_ov, 10, -1):
+                    if s1.endswith(s2[:i]):
+                        return i
+                return 0
+
+            def add_part(tag, text, is_core=False):
+                nonlocal last_raw_text
+                if not text or text in seen_texts:
+                    return
+                # kalau bukan teks utama (n) dan udah ada di core_texts, skip aja
+                if not is_core and text in core_texts:
+                    return
+                    
+                overlap = _get_overlap_length(last_raw_text, text)
+                if overlap > 0:
+                    clean_text = text[overlap:].strip()
+                    if clean_text:
+                        parts.append(f"{tag} {clean_text}")
+                        last_raw_text = text # tetep simpen teks utuh buat patokan next overlap
+                else:
+                    parts.append(f"{tag} {text}")
+                    last_raw_text = text
+                seen_texts.add(text)
+
             for f in bodies_sorted:
                 t, L = _ftext(f)
                 if not t: continue
@@ -1423,18 +1462,12 @@ def _passages_for_prompt(suttas: list, prompt_db: str, expand: set = None, enum:
                     f_seg = ":" + refs[0].split(":", 1)[1]
                     
                 ctx_b = f.get("context_before", {}).get(L)
-                if ctx_b and ctx_b not in seen_texts and ctx_b not in core_texts:
-                    parts.append(ctx_b)
-                    seen_texts.add(ctx_b)
-                
-                if t not in seen_texts:
-                    parts.append(f"[{fid}{f_seg}] {t}")
-                    seen_texts.add(t)
-                
+                add_part(f"[{fid}]", ctx_b, is_core=False)
+                    
+                add_part(f"[{fid}{f_seg}]", t, is_core=True)
+                    
                 ctx_a = f.get("context_after", {}).get(L)
-                if ctx_a and ctx_a not in seen_texts and ctx_a not in core_texts:
-                    parts.append(ctx_a)
-                    seen_texts.add(ctx_a)
+                add_part(f"[{fid}]", ctx_a, is_core=False)
                 
             max_len = 4000 if fid in expand else (3200 if enum else 2000)
             text = "\n".join(parts)[:max_len]
@@ -1723,8 +1756,8 @@ def api_chat():
             name = cite + (f" — {p['sutta_name']}" if p.get("sutta_name") else "")
             pli_note = " | ⚠️ HANYA tersedia teks PĀLI (belum ada terjemahan id/en)" if p.get("lang") == "pli" else ""
 
-            lines = [f"[{i}] {star}{kind} | {name} | rujuk segmen spesifik per klaim sesuai tag dalam teks (mis. {cite}:1.2){pli_note}"]
-            if p.get("synopsis"): lines.append(f"Sinopsis: {p['synopsis']}")
+            lines = [f"[{i}] {star}{kind} | {name} | rujuk segmen spesifik per klaim sesuai tag dalam teks (mis. {cite}:1.2 atau {cite}:md1){pli_note}"]
+            if p.get("synopsis"): lines.append(f"[{cite}] Sinopsis: {p['synopsis']}")
             lines.append(f">> {p.get('text', '')}")
             blocks.append("\n".join(lines))
         

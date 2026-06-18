@@ -944,8 +944,24 @@
         }
       });
 
+      try {
+        const cs = JSON.parse(localStorage.getItem("dhammachat_sessions"));
+        if (cs && Array.isArray(cs.sessions)) {
+          cs.sessions.forEach(s => {
+            if (s.title && s.title !== "Obrolan Saya" && s.title !== "My Chat" && s.title !== "Obrolan Baru" && s.title !== "New Chat") {
+              combinedHistory.push({
+                type: "chat",
+                id: s.id,
+                title: s.title,
+                timestamp: s.updatedAt || parseInt(s.id) || 0
+              });
+            }
+          });
+        }
+      } catch (e) {}
+
       combinedHistory.sort((a, b) => b.timestamp - a.timestamp);
-      combinedHistory = combinedHistory.slice(0, 5); // Take top 5 overall
+      combinedHistory = combinedHistory.slice(0, 8); // Take top 8 overall
 
       container.innerHTML = "";
 
@@ -1000,6 +1016,16 @@
             e.preventDefault();
             dom.searchInput.value = item.query;
             doSearch();
+          };
+          container.appendChild(btn);
+        } else if (item.type === "chat") {
+          if (!item.id || !item.title) return;
+          btn.className = "query-chip history-chip ai-chat-hist-chip";
+          btn.style.borderStyle = "dashed";
+          btn.innerHTML = `<i data-lucide="sparkles"></i> ${item.title}`;
+          btn.onclick = (e) => {
+            e.preventDefault();
+            window.location.href = "/chat?id=" + item.id;
           };
           container.appendChild(btn);
         }

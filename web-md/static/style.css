@@ -83,6 +83,7 @@
   --scrollbar-track: transparent;
   --ai-color: #d4aeff;
   --ai-color-hover: #e6ccff;
+  --ai-gradient: linear-gradient(135deg, #c89bff, #a255ff, #7c3aed);
   color-scheme: dark;
 }
 
@@ -117,6 +118,7 @@
   --scrollbar-track: transparent;
   --ai-color: #8a2be2;
   --ai-color-hover: #7b1fa2;
+  --ai-gradient: linear-gradient(135deg, #a855f7, #7c3aed, #6d28d9);
   color-scheme: light;
 }
 
@@ -2033,13 +2035,13 @@ a:hover {
 
 /* Tombol Kirim berubah jadi Stop saat bot menjawab (item 7) */
 .chat-send.chat-stop.btn-primary {
-  background: var(--danger);
+  background: var(--ai-gradient);
   color: #ffffff;
   border: none;
 }
 
 .chat-send.chat-stop.btn-primary:hover {
-  background: var(--danger);
+  background: var(--ai-gradient);
   color: #ffffff;
   opacity: 0.8;
   transform: none;
@@ -4215,6 +4217,16 @@ html.show-seg-ref .sutta-segment:hover .seg-ref {
   background: var(--accent-subtle);
   border-color: var(--accent);
   color: var(--accent);
+}
+
+.ai-chat-hist-chip:hover {
+  background: rgba(162, 85, 255, 0.1);
+  border-color: #a255ff;
+  color: #a255ff;
+}
+
+.ai-chat-hist-chip:hover svg {
+  color: #a255ff !important;
 }
 
 /* ================================================================
@@ -6996,6 +7008,12 @@ body.page-chat #app-footer {
   color: var(--accent);
 }
 
+.chat-followup-chip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 /* Poin 4: picker terjemahan @mention (dirender sbg chat bubble). */
 .chat-trans-picker {
   display: flex;
@@ -7364,8 +7382,8 @@ body.page-chat #app-footer {
   display: inline-flex;
   align-items: center;
   background: var(--bg-tertiary);
-  border: 1px solid var(--border-strong);
-  color: var(--text-primary);
+  border: 1px solid color-mix(in srgb, var(--ai-color) 40%, var(--border-strong));
+  color: var(--ai-color);
   padding: 1px 6px;
   border-radius: 6px;
   font-size: 0.85em;
@@ -7377,9 +7395,9 @@ body.page-chat #app-footer {
 }
 
 .chat-inline-cite:hover {
-  background: var(--accent-subtle);
-  border-color: var(--accent);
-  color: var(--accent);
+  background: color-mix(in srgb, var(--ai-color) 12%, transparent);
+  border-color: var(--ai-color);
+  color: var(--ai-color);
 }
 
 .sutta-card.flash-highlight,
@@ -7389,8 +7407,8 @@ body.page-chat #app-footer {
 
 @keyframes flash-bg {
   0% {
-    background-color: var(--accent-subtle);
-    box-shadow: 0 0 0 2px var(--accent);
+    background-color: color-mix(in srgb, var(--ai-color) 12%, transparent);
+    box-shadow: 0 0 0 2px var(--ai-color);
   }
 
   100% {
@@ -7415,14 +7433,22 @@ body.page-chat #app-footer {
 
 .chat-thinking-steps.thinking-done {
   opacity: 0.8;
-  padding-bottom: 12px;
+  padding-bottom: 6px;
   border-bottom: 1px dashed var(--border);
-  margin-bottom: 12px;
+  margin-bottom: 6px;
+}
+
+details.chat-steps-spoiler summary .spoiler-arrow {
+  transition: transform var(--transition);
+}
+
+details.chat-steps-spoiler[open] summary .spoiler-arrow {
+  transform: rotate(90deg);
 }
 
 .chat-thinking-step {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
 }
 
@@ -7435,6 +7461,7 @@ body.page-chat #app-footer {
   align-items: center;
   justify-content: center;
   width: 16px;
+  margin-top: 2px;
 }
 
 /* ── Ikon langkah proses: ungu gradient "AI takeover" ──
@@ -7520,7 +7547,7 @@ body.page-chat #app-footer {
   /* Item 11: histori menempel natural ke tepi kiri — tanpa sudut membulat,
      hanya garis pemisah di kanan. */
   border: none;
-  border-right: 1px solid var(--border);
+  border-right: 1px solid var(--bg-tertiary);
   border-radius: 0;
   padding: 12px;
   display: flex;
@@ -7559,9 +7586,11 @@ body.page-chat #app-footer {
   transition: all var(--transition);
 }
 
-.chat-new-btn.btn-primary:hover {
+.chat-new-btn.btn-primary:hover,
+.chat-new-btn.btn-primary.active {
   color: var(--accent);
   border-color: var(--accent);
+  background: var(--accent-subtle);
   transform: translateY(-1px);
 }
 

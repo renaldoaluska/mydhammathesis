@@ -213,7 +213,7 @@ def _get_breadcrumbs(sutta_id):
             if found is not None:
                 crumbs = [{"id": pitaka, "label": _sutta_names.get(pitaka, pitaka.title())}]
                 if pitaka == "sutta" and book in _KN_BOOKS:
-                    crumbs.append({"id": "kn", "label": _sutta_names.get("kn", "Khuddaka Nikāya")})
+                    crumbs.append({"id": "kn", "label": _sutta_names.get("kn", "Khuddakanikāya")})
                 if sutta_id != book:
                     crumbs.append({"id": shorten_sutta_id(book),
                                    "label": _sutta_names.get(book, format_sutta_id(book))})
@@ -694,10 +694,32 @@ def glossary_entry(uid: str, lang: str = "id") -> dict:
         if pit and pit != uid:
             crumbs = [_sutta_names.get(pit, pit.title())]
     count = 0
+    children_names = []
+    
+    # Filter for Theravada Pali texts only (no Agamas, no translations in other roots)
+    def _is_pali_book(b_id):
+        return not re.match(r'^(lzh|san|xct|pgd|t\d|sa(?:-\d)?|ma(?:-\d)?|ea(?:-\d)?|da(?:-\d)?|up)\b', b_id, re.I)
+
+    if uid == "sutta":
+        children_names = ["DN (Dīghanikāya)", "MN (Majjhimanikāya)", "SN (Saṁyuttanikāya)", "AN (Aṅguttaranikāya)", "KN (Khuddakanikāya)"]
+    elif uid == "kn":
+        for book, _children, leaves in _tree_by_pitaka.get("sutta", []):
+            b_id = shorten_sutta_id(book)
+            if b_id in _KN_BOOKS and _is_pali_book(b_id):
+                nm = _sutta_names.get(b_id, "")
+                children_names.append(f"{format_sutta_id(b_id)}" + (f" ({nm})" if nm else ""))
+    elif uid in PITAKAS:
+        for book, _children, leaves in _tree_by_pitaka.get(uid, []):
+            b_id = shorten_sutta_id(book)
+            if _is_pali_book(b_id):
+                nm = _sutta_names.get(b_id, "")
+                children_names.append(f"{format_sutta_id(b_id)}" + (f" ({nm})" if nm else ""))
+
     for items in _tree_by_pitaka.values():
         for book, _children, leaves in items:
             if shorten_sutta_id(book) == uid:
                 count = len(leaves)
+                
     return {
         "uid": uid,
         "abbr": format_sutta_id(uid),
@@ -705,6 +727,7 @@ def glossary_entry(uid: str, lang: str = "id") -> dict:
         "blurb": _strip_html(blurb) if blurb else None,
         "hierarchy": crumbs,
         "count": count,
+        "children": children_names,
     }
 
 

@@ -514,7 +514,7 @@
         log.innerHTML = "";
         renderEmptyState();
       } else {
-        createNewSession(true);
+        createNewSession(true, true, true);
       }
       // tutup sidebar (mobile) tanpa input.focus() biar keyboard tak otomatis muncul.
       closeMobileMenu();
@@ -565,7 +565,7 @@
       const t2 = name.trim();
       if (!t2) return;
       // Judul kustom -> updateCurrentSession tak akan menimpa (hanya auto-set jika judul
-      // masih "Obrolan Baru"/"New Chat").
+      // masih "Obrolan Saya"/"My Chat").
       s.title = t2.length > 60 ? t2.slice(0, 60) : t2;
       saveSessions();
     }
@@ -613,10 +613,13 @@
 
     function renderSidebar() {
       sessionListEl.innerHTML = "";
+      let hasActiveInList = false;
 
       sessions.forEach(s => {
+        const isActive = s.id === currentSessionId;
+        if (isActive) hasActiveInList = true;
         const item = document.createElement("div");
-        item.className = "chat-session-item" + (s.id === currentSessionId ? " active" : "");
+        item.className = "chat-session-item" + (isActive ? " active" : "");
         item.innerHTML = `<span class="chat-session-title">${esc(s.title)}</span>
                           <button class="chat-session-menu-btn" title="${isEN() ? "Options" : "Opsi"}"><i data-lucide="ellipsis-vertical" style="width:15px;height:15px;"></i></button>`;
         item.addEventListener("click", async (e) => {
@@ -637,6 +640,15 @@
         sessionListEl.appendChild(item);
       });
       if (window.lucide) window.lucide.createIcons({ root: sessionListEl });
+
+      const newChatBtn = document.getElementById("btn-new-chat");
+      if (newChatBtn) {
+        if (!hasActiveInList) {
+          newChatBtn.classList.add("active");
+        } else {
+          newChatBtn.classList.remove("active");
+        }
+      }
     }
 
     function saveSessions() {
@@ -644,14 +656,34 @@
       renderSidebar();
     }
 
-    function createNewSession(doRender = true) {
+    function updateURLWithSessionId(id, replace = false) {
+      if (!id) return;
+      const url = new URL(window.location.href);
+      url.searchParams.set("id", id);
+      if (replace) {
+        window.history.replaceState({ sessionId: id }, document.title, url.toString());
+      } else {
+        window.history.pushState({ sessionId: id }, document.title, url.toString());
+      }
+    }
+
+    window.addEventListener("popstate", (e) => {
+      const urlId = new URLSearchParams(window.location.search).get("id");
+      if (urlId && urlId !== currentSessionId) {
+        const s = sessions.find(x => x.id === urlId);
+        if (s) {
+          switchSession(urlId, false);
+        } else {
+          if (window.showToast) window.showToast(isEN() ? "Chat session not found." : "Sesi obrolan tidak ditemukan.");
+          createNewSession(true, true, true);
+        }
+      } else if (!urlId && currentSessionId) {
+        createNewSession(true, false, false);
+      }
+    });
+
+    function createNewSession(doRender = true, updateUrl = true, replaceUrl = false) {
       currentSessionId = Date.now().toString();
-      sessions.unshift({
-        id: currentSessionId,
-        title: isEN() ? "New Chat" : "Obrolan Baru",
-        updatedAt: Date.now(),
-        history: []
-      });
       history = [];
       if (doRender) {
         saveSessions();
@@ -660,26 +692,48 @@
           input.value = "";
           opts.prefill = null;
         }
-        renderEmptyState();   // item 20: obrolan baru -> tampilkan sapaan
+        renderEmptyState();
+      }
+      if (updateUrl) {
+        const url = new URL(window.location.href);
+        url.searchParams.delete("id");
+        url.searchParams.delete("q");
+        url.searchParams.delete("tag");
+        if (replaceUrl) {
+          window.history.replaceState({ sessionId: null }, document.title, url.toString());
+        } else {
+          window.history.pushState({ sessionId: null }, document.title, url.toString());
+        }
       }
     }
 
-    function switchSession(id) {
+    function switchSession(id, updateUrl = true) {
       currentSessionId = id;
       const s = sessions.find(x => x.id === id);
       history = s ? s.history : [];
       log.innerHTML = "";
       saveSessions();
       restoreHistory();
+      if (updateUrl) updateURLWithSessionId(id, true);
     }
 
     function updateCurrentSession() {
-      const s = sessions.find(x => x.id === currentSessionId);
+      let s = sessions.find(x => x.id === currentSessionId);
+      if (!s) {
+        if (history.length === 0) return;
+        s = {
+          id: currentSessionId,
+          title: isEN() ? "My Chat" : "Obrolan Saya",
+          updatedAt: Date.now(),
+          history: []
+        };
+        sessions.unshift(s);
+      }
       if (s) {
         s.history = history;
         s.updatedAt = Date.now();
         // Generate title dynamically if it's the first message
-        if (s.title === "Obrolan Baru" || s.title === "New Chat") {
+        if (s.title === "Obrolan Saya" || s.title === "My Chat") {
           const firstUserMsg = history.find(h => h.role === "user");
           if (firstUserMsg) {
             let t = firstUserMsg.content.trim();
@@ -714,8 +768,27 @@
     };
 
     async function loadMentionData() {
-      // Satu endpoint /api/mentionable -> daftar LENGKAP teks kanonik (koleksi + tiap sutta
-      // yg punya file), sudah terformat server-side (MN 10, DN 22, dll).
+      // Coba ambil dari localStorage dulu biar instan
+      try {
+        const cached = localStorage.getItem("mentionData");
+        if (cached) {
+          const data = JSON.parse(cached);
+          if (Array.isArray(data.collections) && data.collections.length)
+            dynamicMentionData.collections = data.collections.map(c => ({
+              abbr: c.abbr, name: c.name || c.abbr, isCollection: true
+            }));
+          if (Array.isArray(data.suttas))
+            dynamicMentionData.suttas = data.suttas.map(s => ({
+              abbr: s.abbr, name: s.name || "", isCollection: false
+            }));
+          validMentionSet = new Set([
+            ...dynamicMentionData.suttas.map(s => normMention(s.abbr)),
+            ...dynamicMentionData.collections.map(c => normMention(c.abbr))
+          ]);
+        }
+      } catch (e) { }
+
+      // Tetap fetch dari server di background untuk update terbaru
       try {
         const res = await fetch("/api/mentionable");
         const data = await res.json();
@@ -727,6 +800,12 @@
           dynamicMentionData.suttas = data.suttas.map(s => ({
             abbr: s.abbr, name: s.name || "", isCollection: false
           }));
+
+        // Simpan ke cache
+        try {
+          localStorage.setItem("mentionData", JSON.stringify(data));
+        } catch (e) { }
+
         // Set kunci sutta valid (ternormalisasi) -> dipakai utk warnai mention
         // yg TAK ADA di korpus sebagai non-aktif. Termasuk koleksi (tanpa nomor).
         validMentionSet = new Set([
@@ -739,19 +818,13 @@
         // dgn contoh acak dari sumber (hanya tukar chips, animasi sapaan tak di-restart).
         const emptyEl = log.querySelector(".chat-empty-state");
         const chipsWrap = emptyEl && emptyEl.querySelector(".chat-empty-mentions .chat-empty-chips");
-        if (chipsWrap) {
+        if (chipsWrap && validMentionSet) {
           chipsWrap.innerHTML = sampleMentionExamples(4).map(mentionChipHTML).join("");
           bindMentionChips(chipsWrap);
         }
       } catch (e) {
         console.warn("Failed to load dynamic mention data", e);
-        validMentionSet = new Set();
-        const emptyEl = log.querySelector(".chat-empty-state");
-        const chipsWrap = emptyEl && emptyEl.querySelector(".chat-empty-mentions .chat-empty-chips");
-        if (chipsWrap) {
-          chipsWrap.innerHTML = sampleMentionExamples(4).map(mentionChipHTML).join("");
-          bindMentionChips(chipsWrap);
-        }
+        if (!validMentionSet) validMentionSet = new Set();
       }
     }
     // normMention: samakan "MN 10" / "mn10" -> "mn10" utk pencocokan validitas.
@@ -1311,7 +1384,6 @@
                 // Item 5: cegah dobel-kirim. Sekali diklik, kunci semua chip & jangan
                 // kirim kalau bot masih jalan.
                 if (isGenerating) return;
-                chipsWrap.querySelectorAll(".chat-followup-chip").forEach(c => c.disabled = true);
                 input.value = btn.textContent;
                 input.style.height = "auto";
                 if (typeof syncBackdrop === 'function') syncBackdrop();
@@ -1380,7 +1452,7 @@
             // Tunggu 1 frame agar layout terbuka dulu sebelum scroll + highlight.
             requestAnimationFrame(() => {
               highlightEl.scrollIntoView({ behavior: "smooth", block: "center" });
-              highlightEl.style.boxShadow = "0 0 0 2px var(--accent)";
+              highlightEl.style.boxShadow = "0 0 0 2px var(--ai-color)";
               setTimeout(() => highlightEl.style.boxShadow = "", 2000);
             });
           }
@@ -1595,7 +1667,7 @@
         const norm = fid.replace(/\s+/g, "").toLowerCase();
         if (seen.has(norm)) continue;
         seen.add(norm);
-        out.push({ fid, norm });
+        out.push({ fid, norm, raw: m[0] });
       }
       return out;
     }
@@ -1686,7 +1758,7 @@
           <button type="button" class="btn-primary chat-scope-broad" style="background: var(--bg-hover); color: var(--text-color); box-shadow: none;">${s18("No (Broad Search)", "Tidak (Cari luas)")}</button>
           <button type="button" class="btn-primary chat-scope-narrow">${s18("Yes (Focus)", "Ya (Fokus)")}</button>
         </div></div>`;
-        
+
         const el = bubble("chat-msg-bot chat-trans-bubble", html, true);
 
         el.querySelector(".chat-scope-narrow").addEventListener("click", () => {
@@ -1736,7 +1808,7 @@
         let ctx = text;
         mentions.forEach(mn => ctx = ctx.replace(mn.raw, ""));
         ctx = ctx.toLowerCase().replace(/[^\w\s]/g, "").trim();
-        
+
         if (!ctx) {
           askScope = false; // Hanya mention tok
         } else {
@@ -1779,6 +1851,7 @@
       userStopped = false;
       abortController = new AbortController();
       setSendMode(true);   // item 7: tombol Kirim -> Stop
+      document.querySelectorAll(".chat-followup-chip").forEach(c => c.disabled = true);
       const bot = bubble("chat-msg-bot",
         `<div class="chat-thinking-steps"></div><div class="chat-answer chat-typing" style="display:none;"></div>`, true);
       bot.classList.add("is-generating");  // gradient border shimmer
@@ -1788,13 +1861,66 @@
       let accumulatedAnswer = "";
       let hasFirstChunk = false;
 
-      // Ensure we don't send massive history
-      const historyToSend = history.map(h => ({ role: h.role, content: h.content })).slice(-6);
+      // Ensure we don't send massive history, and clean up assistant's <think> tags
+      const historyToSend = history.map(h => {
+        let content = h.content;
+        if (h.role === "assistant") {
+          content = content.replace(/<think>[\s\S]*?<\/think>\n*/gi, "")
+            .replace(/<think>[\s\S]*$/gi, "")
+            .replace(/\*\*(Rekomendasi Pertanyaan Lanjutan|Recommended Follow-up Questions):\*\*[\s\S]*/gi, "")
+            .trim();
+        }
+        return { role: h.role, content: content };
+      }).slice(-6);
 
       // Giliran user TIDAK di-commit ke history di sini — kalau di-push duluan lalu
       // di-stop/error tanpa reply, dia jadi `user` nyangkut tanpa `assistant` (konteks
       // ngaco + ke-restore pas reload). Commit user+assistant BERSAMAAN hanya saat
       // ada reply (sukses / parsial). Lihat catch & blok sukses.
+
+      function createAndAnimateSpoiler(container) {
+        if (!container || !container.children.length || container.querySelector(".chat-steps-spoiler")) return;
+        const steps = Array.from(container.children);
+        const det = document.createElement("details");
+        det.className = "chat-steps-spoiler";
+        det.style.cssText = "margin:0; font-size:0.8rem;";
+        det.open = true;
+        const sum = document.createElement("summary");
+        sum.style.cssText = "cursor:pointer; color:var(--text-muted); font-weight:500; list-style:none; display:flex; align-items:center; gap:6px; user-select:none;";
+        sum.innerHTML = `<i data-lucide="chevron-right" class="spoiler-arrow" style="width:14px;height:14px;"></i> <i data-lucide="sparkles" style="width:13px;height:13px;"></i> <span class="js-spoiler-title"></span> <span style="opacity:.6;">(${steps.length} <span class="js-spoiler-unit"></span>)</span>`;
+        setI18n(sum.querySelector(".js-spoiler-title"), "How myDhamma AI worked", "Proses myDhamma AI");
+        setI18n(sum.querySelector(".js-spoiler-unit"), "steps", "langkah");
+        const body = document.createElement("div");
+        body.style.cssText = "margin-top:6px; padding-left:8px; border-left:2px solid var(--border); overflow:hidden;";
+        steps.forEach(s => { s.style.display = ""; body.appendChild(s); });
+        det.appendChild(sum);
+        det.appendChild(body);
+        container.appendChild(det);
+        if (window.lucide) window.lucide.createIcons({ root: det });
+
+        requestAnimationFrame(() => {
+          // Set initial explicit values for transition to start from
+          body.style.maxHeight = body.scrollHeight + "px";
+          body.style.opacity = "1";
+          body.style.transition = "max-height 0.35s ease-in-out, opacity 0.25s ease-out, margin-top 0.35s ease-in-out";
+
+          // Force reflow so the browser registers the initial state before we change it
+          void body.offsetHeight;
+
+          // Apply target values
+          body.style.maxHeight = "0px";
+          body.style.opacity = "0";
+          body.style.marginTop = "0px";
+
+          setTimeout(() => {
+            det.removeAttribute("open");
+            body.style.transition = "";
+            body.style.maxHeight = "";
+            body.style.opacity = "";
+            body.style.marginTop = "6px";
+          }, 360);
+        });
+      }
 
       try {
         const res = await fetch(endpoint, {
@@ -1869,8 +1995,8 @@
                   labId = "Glosari koleksi: " + cs;
                 } else if (obj.data.kind === "name_match") {
                   const ns = obj.data.names.join(", ");
-                  labEn = "Sutta name match: " + ns;
-                  labId = "Kecocokan nama sutta: " + ns;
+                  labEn = "Text name match: " + ns;
+                  labId = "Kecocokan nama text: " + ns;
                 } else if (obj.data.kind === "nikaya_scope") {
                   const ss = obj.data.scopes.join(", ");
                   labEn = "Restricted to: " + ss;
@@ -1903,9 +2029,14 @@
             } else if (obj.type === "chunk") {
               if (currentStepEl) {
                 finalizeType(currentStepEl.querySelector(".step-label"));
-                currentStepEl.style.display = "none";
                 stepsContainer.classList.add("thinking-done");
               }
+
+              if (!hasFirstChunk) {
+                hasFirstChunk = true;
+                createAndAnimateSpoiler(stepsContainer);
+              }
+
               status.style.display = "";
               status.classList.remove("chat-typing");
               accumulatedAnswer += obj.text;
@@ -1932,7 +2063,7 @@
 
               let displayAnswer = accumulatedAnswer.replace(/<think>[\s\S]*?<\/think>\n*/gi, "").replace(/<think>[\s\S]*$/gi, "");
               // Hide follow-up questions during streaming to prevent ghosting/jumping
-              const loadingUI = `\n\n<div class="chat-thinking-step step-loading" style="margin-top:16px; padding:8px 0;"><span class="step-icon" style="display:inline-block; vertical-align:middle; margin-right:6px;"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-spin" style="color:var(--text-muted);"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg></span> <span class="step-label" style="font-size:0.85rem; color:var(--text-muted); vertical-align:middle;">${isEN() ? "Preparing follow-up questions..." : "Menyiapkan rekomendasi pertanyaan..."}</span></div>\n\n`;
+              const loadingUI = `\n\n<div class="chat-thinking-step step-loading" style="margin-top:16px; padding:8px 0;"><span class="step-icon" style="margin-right:6px;"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-spin" style="color:var(--text-muted);"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg></span> <span class="step-label" style="font-size:0.85rem; color:var(--text-muted);">${isEN() ? "Preparing follow-up questions..." : "Menyiapkan rekomendasi pertanyaan..."}</span></div>\n\n`;
               let hasFollowup = /\*\*Rekomendasi Pertanyaan Lanjutan:\*\*/i.test(displayAnswer) || /\*\*Recommended Follow-up Questions:\*\*/i.test(displayAnswer);
               displayAnswer = displayAnswer.replace(/\*\*(Rekomendasi Pertanyaan Lanjutan|Recommended Follow-up Questions):\*\*[\s\S]*/gi, "");
               const filtered = enforceTheravadaTerms(displayAnswer);
@@ -1990,30 +2121,24 @@
           currentStepEl.classList.remove("step-loading");
           currentStepEl.classList.add("step-done");
           const ic = currentStepEl.querySelector(".step-icon");
-          if (ic) ic.innerHTML = `<i data-lucide="check" style="width:14px;height:14px;color:var(--text-success);"></i>`;
+          if (ic) {
+            ic.innerHTML = `<i data-lucide="check" style="width:14px;height:14px;color:var(--text-success);"></i>`;
+            if (window.lucide) window.lucide.createIcons({ root: ic });
+          }
+          const lbl = currentStepEl.querySelector(".step-label");
+          if (lbl) {
+            lbl.dataset.i18nEn = "Done";
+            lbl.dataset.i18nId = "Selesai";
+            lbl.textContent = isEN() ? "Done" : "Selesai";
+          }
           currentStepEl = null;
         }
 
-        // Setelah jawaban tampil: lipat semua langkah proses (understand/retrieve/dst)
-        // jadi spoiler <details> tertutup yg bisa dibuka-tutup — transparan tapi ringkas.
+        // Setelah jawaban tampil: pastikan langkah proses (understand/retrieve/dst)
+        // terlipat jadi spoiler <details> tertutup (fallback jika tak ada chunk).
         if (stepsContainer && stepsContainer.children.length &&
           !stepsContainer.querySelector(".chat-steps-spoiler")) {
-          const steps = Array.from(stepsContainer.children);
-          const det = document.createElement("details");
-          det.className = "chat-steps-spoiler";
-          det.style.cssText = "margin:0 0 8px; font-size:0.8rem;";
-          const sum = document.createElement("summary");
-          sum.style.cssText = "cursor:pointer; color:var(--text-muted); font-weight:500; list-style:none; display:flex; align-items:center; gap:6px; user-select:none;";
-          sum.innerHTML = `<i data-lucide="sparkles" style="width:13px;height:13px;"></i> <span class="js-spoiler-title"></span> <span style="opacity:.6;">(${steps.length} <span class="js-spoiler-unit"></span>)</span>`;
-          setI18n(sum.querySelector(".js-spoiler-title"), "How myDhamma AI worked", "Proses myDhamma AI");
-          setI18n(sum.querySelector(".js-spoiler-unit"), "steps", "langkah");
-          const body = document.createElement("div");
-          body.style.cssText = "margin-top:6px; padding-left:8px; border-left:2px solid var(--border);";
-          steps.forEach(s => { s.style.display = ""; body.appendChild(s); });
-          det.appendChild(sum);
-          det.appendChild(body);
-          stepsContainer.appendChild(det);
-          if (window.lucide) window.lucide.createIcons({ root: det });
+          createAndAnimateSpoiler(stepsContainer);
         }
 
         history.push({ role: "user", content: text });
@@ -2071,6 +2196,7 @@
         userStopped = false;
         setSendMode(false);   // item 7: tombol kembali ke Kirim
         bot.classList.remove("is-generating");  // matikan gradient border shimmer
+        document.querySelectorAll(".chat-followup-chip").forEach(c => c.disabled = false);
       }
     }
 
@@ -2084,16 +2210,34 @@
       }
     } catch (e) { console.warn("Failed to load chat history", e); }
 
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlId = urlParams.get("id");
+
+    if (urlId) {
+      const found = sessions.find(x => x.id === urlId);
+      if (found) {
+        currentSessionId = found.id;
+      } else {
+        if (window.showToast) window.showToast(isEN() ? "Chat session not found." : "Sesi obrolan tidak ditemukan.");
+        currentSessionId = null; // force creation of new session
+      }
+    }
+
     if (!sessions || sessions.length === 0) {
-      createNewSession(false);
+      createNewSession(false, true, true);
     } else if (!currentSessionId) {
-      currentSessionId = sessions[0].id;
+      createNewSession(false, true, true);
+    } else {
+      updateURLWithSessionId(currentSessionId, true);
     }
 
     const initialSession = sessions.find(x => x.id === currentSessionId);
     if (initialSession) {
       history = initialSession.history || [];
       restoreHistory();
+    } else {
+      history = [];
+      renderEmptyState();
     }
     renderSidebar();
 
@@ -2138,7 +2282,7 @@
     if (prefillInput) {
       // Selalu mulai room baru biar konteks bersih (kecuali room skrg msh kosong). Hanya
       // MENGISI kotak (animasi ketik); TIDAK auto-kirim (user edit dulu).
-      if (history.length > 0) createNewSession(true);
+      if (history.length > 0) createNewSession(true, true, true);
       typeIntoInput(prefillInput);
 
       const chatInputWrap = root.querySelector(".chat-input-wrap");
