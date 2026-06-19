@@ -1180,7 +1180,10 @@
   }
 
   function createFragmentEl(frag, sutta, ctx) {
-    const el = document.createElement("div"); el.className = frag.author === "blurb" ? "fragment fragment-blurb" : "fragment";
+    const el = document.createElement("div");
+    el.className = frag.author === "blurb" ? "fragment fragment-blurb" : "fragment";
+    const targetId = (frag.ref && frag.ref[0]) || frag.ref_display || frag.id || "";
+    if (targetId) el.dataset.segmentId = targetId;
     const meta = document.createElement("div"); meta.className = "fragment-meta";
     const isKw = ctx && ctx.method && ctx.method.includes("keyword");
     const cleanRefDisplay = frag.ref_display ? frag.ref_display.split(", ").map(formatRef).join(", ") : null;
@@ -1318,14 +1321,15 @@
       const fragsContainer = document.createElement("div");
       fragsContainer.className = "author-frags-container";
 
+      const limit = (fctx && fctx.showAllFragments) ? Infinity : 3;
       blockFrags.forEach((f, idx) => {
         const fragEl = createFragmentEl(f, sutta, fctx);
         if (onFragment) onFragment(fragEl, f, sutta);
-        if (idx >= 3) fragEl.classList.add("hidden-frag");
+        if (idx >= limit) fragEl.classList.add("hidden-frag");
         fragsContainer.appendChild(fragEl);
       });
 
-      if (blockFrags.length > 3) {
+      if (blockFrags.length > limit) {
         const fadeOverlay = document.createElement("div");
         fadeOverlay.className = "frags-fade-overlay";
         fragsContainer.appendChild(fadeOverlay);
@@ -1341,14 +1345,40 @@
         toggleBtn.onclick = () => {
           const hidden = fragsContainer.querySelectorAll(".hidden-frag");
           for (let i = 0; i < STEP && i < hidden.length; i++) {
-            hidden[i].classList.remove("hidden-frag");
+            const el = hidden[i];
+            el.classList.remove("hidden-frag");
+            
+            el.style.opacity = "0";
+            el.style.transform = "translateY(-10px)";
+            el.style.display = "block";
+            
+            const h = el.scrollHeight;
+            el.style.maxHeight = "0px";
+            el.style.overflow = "hidden";
+            el.style.transition = "max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease, transform 0.4s ease";
+            
+            void el.offsetHeight;
+
+            el.style.maxHeight = h + 80 + "px";
+            el.style.opacity = "1";
+            el.style.transform = "translateY(0)";
+            
+            setTimeout(() => {
+              el.style.maxHeight = "none";
+              el.style.overflow = "";
+              el.style.transition = "";
+              el.style.transform = "";
+            }, 400);
           }
           const left = hidden.length - Math.min(STEP, hidden.length);
           if (left > 0) {
             toggleBtn.innerHTML = moreLabel(left);
             if (window.lucide) window.lucide.createIcons({ root: toggleBtn });
           } else {
-            fadeOverlay.remove();
+            // Fade out the overlay smoothly
+            fadeOverlay.style.transition = "opacity 0.3s ease";
+            fadeOverlay.style.opacity = "0";
+            setTimeout(() => fadeOverlay.remove(), 300);
             toggleBtn.remove();
           }
         };
@@ -1808,8 +1838,8 @@
         <div class="dk-dlg-msg">${esc(message)}</div>
       </div>
       <div class="dk-dlg-footer">
-        <button class="dk-dlg-btn cancel" id="dk-dlg-cancel">${cancelLabel}</button>
-        <button class="dk-dlg-btn ${isDanger ? "danger" : "primary"}" id="dk-dlg-confirm">${confirmLabel}</button>
+        <button class="dk-dlg-btn cancel" id="dk-dlg-cancel">${cancelLabel}<span class="dk-dlg-kbd">Esc</span></button>
+        <button class="dk-dlg-btn ${isDanger ? "danger" : "primary"}" id="dk-dlg-confirm">${confirmLabel}<span class="dk-dlg-kbd">↵</span></button>
       </div>`;
     if (window.lucide) window.lucide.createIcons({ root: dlg });
     dlg.showModal();
@@ -1817,10 +1847,15 @@
       let resolved = false;
       const doResolve = (val) => { if (!resolved) { resolved = true; dlg.close(); resolve(val); } };
       dlg.onclose = () => { if (!resolved) { resolved = true; resolve(false); } };
+      // Fokus ke tombol konfirmasi -> Enter langsung mengiyakan (sesuai hint ↵ di tombol).
+      dlg.querySelector("#dk-dlg-confirm").focus();
       dlg.querySelector("#dk-dlg-cancel").onclick = () => doResolve(false);
       dlg.querySelector("#dk-dlg-confirm").onclick = () => doResolve(true);
-      // Enter = confirm (Delete/Continue), Escape = cancel (handled natively by <dialog>)
-      dlg._enterHandler = (e) => { if (e.key === "Enter") { e.preventDefault(); doResolve(true); } };
+      // Enter = konfirmasi (Hapus/Lanjut), Escape = batal.
+      dlg._enterHandler = (e) => {
+        if (e.key === "Enter") { e.preventDefault(); doResolve(true); }
+        else if (e.key === "Escape") { e.preventDefault(); doResolve(false); }
+      };
       dlg.addEventListener("keydown", dlg._enterHandler);
     });
   }
@@ -1842,7 +1877,7 @@
         <input type="${opts.type || "text"}" id="dk-dlg-input" class="nm-rename-input" style="width: 100%; margin-top: 10px; box-sizing: border-box; padding: 8px 12px; font-size: 0.95rem;" value="${esc(defaultValue)}">
       </div>
       <div class="dk-dlg-footer">
-        <button class="dk-dlg-btn cancel" id="dk-dlg-cancel">${cancelLabel}</button>
+        <button class="dk-dlg-btn cancel" id="dk-dlg-cancel">${cancelLabel}<span class="dk-dlg-kbd">Esc</span></button>
         <button class="dk-dlg-btn primary" id="dk-dlg-confirm">${confirmLabel}</button>
       </div>`;
     dlg.showModal();

@@ -47,10 +47,15 @@
         [/\bBodhisattva\b/gi, "Bodhisatta"],
         [/\bArhat\b/gi, "Arahat"],
         [/\bBudha\b/gi, "Buddha"],
+        // Model sering salah eja "uposatha" -> "upasatha" (prefix "upa-" jauh lebih umum di Pali).
+        [/\bUpasatha\b/gi, "uposatha"],
         [/\bSatya\b/gi, "Sacca"],
         [/\bArya\b/gi, "Ariya"],
         [/\bSutera\b/gi, "Sutta"],
         [/\bSutra\b/gi, "Sutta"],
+        // Ejaan KBBI: "biksuni"/"biksu" -> "bikuni"/"biku" (biksuni dulu, biar tak keduluan biksu).
+        [/\bBiksuni\b/gi, "bikuni"],
+        [/\bBiksu\b/gi, "biku"],
         // Sanskerta teknis Buddhis yang sering bocor (mis. "kumpul-kumpul (skandhas)")
         [/\bSkandha(s)?\b/gi, "khandha"],
         [/\bDhyana(s)?\b/gi, "jhāna"],
@@ -117,6 +122,14 @@
         return `*${match}*`;
       });
 
+      // Italic JUGA semua kata ber-diakritik Pali (mis. satipaṭṭhāna, jhāna, paṭiccasamuppāda)
+      // yg sering tak masuk daftar di atas. Diakritik Pali = sinyal kuat istilah Pali. Lookbehind/
+      // ahead cegah dobel-wrap (kata yg sudah diapit * / _, atau di tengah kata lain).
+      const PALI_DIA = "āīūṁṃṅñṭḍṇḷ";
+      const PW = "A-Za-z" + PALI_DIA;
+      const paliDiaRegex = new RegExp(`(?<![*_${PW}])([${PW}]*[${PALI_DIA}][${PW}]*)(?![*_${PW}])`, "g");
+      res = res.replace(paliDiaRegex, "*$1*");
+
       // Calque "di mana" sbg konjungsi intrakalimat (", di mana <klausa>") -> pecah jadi kalimat baru.
       // Cuma pola berkoma (hampir pasti calque); "tahu di mana" / "di mana-mana" yg sah tak tersentuh.
       res = res.replace(/,\s*di\s+mana\s+(\S)/gi, (_m, c) => ". " + c.toUpperCase());
@@ -173,6 +186,42 @@
           continue;
         }
 
+        if (/^\s*>\s?/.test(lines[i])) {
+          const bqLines = [];
+          while (i < lines.length && /^\s*>\s?/.test(lines[i])) {
+            let content = lines[i].replace(/^\s*>\s?/, '');
+            bqLines.push(content);
+            i++;
+          }
+          const bqContent = bqLines.join('\n');
+          // Uniform: tiap baris '> ' -> <blockquote> (sesuai instruksi prompt utk kutipan
+          // langsung teks sutta). Dulu di-special-case (hanya kalau diapit */"), akibatnya
+          // blockquote model yg tak diapit ke-render jadi <p> biasa -> tampilan kutipan ngaco.
+          out.push('<blockquote><p>' + inline(bqContent).replace(/\n/g, '<br>') + '</p></blockquote>');
+          continue;
+        }
+
+        // GFM table: baris header ber-'|' diikuti baris pemisah (|---|---|). UI tak bisa
+        // nampilin pipe mentah, jadi render jadi <table> beneran. Pemisah wajib >=2 kolom.
+        const tableSep = l => /^\s*\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)+\|?\s*$/.test(l);
+        if (lines[i].includes("|") && i + 1 < lines.length && tableSep(lines[i + 1])) {
+          const cells = r => r.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map(c => c.trim());
+          const head = cells(lines[i]);
+          i += 2;                                           // lewati header + baris pemisah
+          const rows = [];
+          while (i < lines.length && lines[i].includes("|") && !blank(lines[i])
+            && !/^\s*#{1,6}\s+/.test(lines[i])) {
+            rows.push(cells(lines[i])); i++;
+          }
+          let t = "<table class='chat-table'><thead><tr>"
+            + head.map(c => "<th>" + inline(c) + "</th>").join("") + "</tr></thead><tbody>";
+          for (const r of rows) {
+            t += "<tr>" + head.map((_, ci) => "<td>" + inline(r[ci] || "") + "</td>").join("") + "</tr>";
+          }
+          out.push(t + "</tbody></table>");
+          continue;
+        }
+
         if (isUL(lines[i]) || isOL(lines[i])) {
           const ordered = isOL(lines[i]);
           const match = ordered ? isOL : isUL;
@@ -211,6 +260,16 @@
               } else {
                 li += nested;
               }
+              // Lazy continuation: baris polos TEPAT di bawah item (tanpa baris kosong) =
+              // lanjutan isi item itu -> gabung ke <li> biar ikut menjorok. Tanpa ini, model
+              // yg nulis "- **Judul:**" lalu penjelasan di baris berikutnya (bukan bullet)
+              // bikin isi ke-render <p> flush-left -> judul nge-bullet, isi nyangkut ke kiri.
+              while (i < lines.length && !blank(lines[i]) && !isUL(lines[i]) && !isOL(lines[i])
+                && !isSub(lines[i]) && !/^\s*#{1,6}\s+/.test(lines[i])
+                && !/^\s*>\s?/.test(lines[i]) && !/^\s*[-*_]{3,}\s*$/.test(lines[i])) {
+                li += "<br>" + inline(lines[i].trim());
+                i++;
+              }
               items.push(li + "</li>");
             } else if (blank(lines[i]) && i + 1 < lines.length && (match(lines[i + 1]) || isSub(lines[i + 1]))) {
               i++;                                           // skip blank between items
@@ -220,7 +279,11 @@
           out.push("<" + tag + ">" + items.join("") + "</" + tag + ">");
         } else {
           const para = [];
-          while (i < lines.length && !blank(lines[i]) && !isUL(lines[i]) && !isOL(lines[i]) && !/^\s*#{1,6}\s+/.test(lines[i])) {
+          // Stop juga di blockquote ('> ') & hr ('---'): tanpa ini, baris kutipan/garis
+          // yg nempel di bawah paragraf (tanpa baris kosong) keserap jadi <p> -> blockquote hilang.
+          while (i < lines.length && !blank(lines[i]) && !isUL(lines[i]) && !isOL(lines[i])
+            && !/^\s*#{1,6}\s+/.test(lines[i]) && !/^\s*>\s?/.test(lines[i])
+            && !/^\s*[-*_]{3,}\s*$/.test(lines[i])) {
             para.push(lines[i]); i++;
           }
           out.push("<p>" + para.map(inline).join("<br>") + "</p>");
@@ -287,11 +350,11 @@
         <div class="chat-widget">
           <div class="chat-log"></div>
           <form class="chat-input-row" autocomplete="off" style="position: relative;">
-            <div id="chat-mention-popup" class="chat-mention-popup"></div>
             <div class="chat-input-wrap">
+              <div id="chat-mention-popup" class="chat-mention-popup"></div>
               <div class="chat-input-inner">
-                <div class="chat-input-backdrop" aria-hidden="true"></div>
-                <textarea class="chat-input" rows="1" placeholder="${esc(opts.placeholder || (isEN() ? 'e.g. why do I keep suffering?' : 'mis. kenapa ya aku menderita terus?'))}"></textarea>
+                <div class="chat-input" contenteditable="true" role="textbox" aria-multiline="true"
+                    data-placeholder="${esc(opts.placeholder || (isEN() ? "Ask about Buddha's teachings..." : "Tanyakan ajaran Buddha..."))}"></div>
               </div>
               <button type="submit" class="btn-primary chat-send" title="${isEN() ? 'Send' : 'Kirim'}"><i data-lucide="arrow-up"></i></button>
             </div>
@@ -412,6 +475,10 @@
         if (el._typeTimer) { clearTimeout(el._typeTimer); el._typeTimer = null; }
         el.textContent = isEN() ? el.dataset.i18nEn : el.dataset.i18nId;
       });
+      container.querySelectorAll("[data-i18n-en-html]").forEach(el => {
+        el.innerHTML = isEN() ? el.dataset.i18nEnHtml : el.dataset.i18nIdHtml;
+        if (window.lucide) window.lucide.createIcons({ root: el });
+      });
       // "Obrolan Baru" / "New Chat"
       const newChatSpan = container.querySelector("[data-i18n='btn_new_chat']");
       if (newChatSpan) newChatSpan.textContent = tt("btn_new_chat", isEN() ? "New Chat" : "Obrolan Baru");
@@ -422,7 +489,7 @@
       container.querySelectorAll("[data-i18n-label]").forEach(el => {
         el.textContent = tt(el.dataset.i18nLabel, el.textContent);
       });
-      // Tombol Kirim / Send
+
       // Tombol Kirim / Send
       const sendBtn = container.querySelector(".chat-send");
       const chatInput = container.querySelector(".chat-input");
@@ -430,13 +497,12 @@
         if (sendBtn.classList.contains("chat-stop")) {
           sendBtn.title = isEN() ? "Stop" : "Berhenti";
         } else {
-          const hasText = chatInput.value.trim().length > 0;
+          const hasText = getInputText().length > 0;
           sendBtn.title = hasText ? tt("btn_send", isEN() ? "Send" : "Kirim") : (isEN() ? "Mention Text" : "Sebut");
         }
       }
-      // Placeholder textarea
       if (chatInput && !opts.placeholder) {
-        chatInput.placeholder = isEN() ? "e.g. why do I keep suffering?" : "mis. kenapa ya aku menderita terus?";
+        chatInput.dataset.placeholder = isEN() ? "Ask about Buddha's teachings..." : "Tanyakan ajaran Buddha...";
       }
       // Disclaimer
       const disc = container.querySelector(".chat-disclaimer");
@@ -537,6 +603,30 @@
     const form = container.querySelector(".chat-input-row");
     const input = container.querySelector(".chat-input");
     const sendBtn = container.querySelector(".chat-send");
+
+    function getInputText() {
+      let text = '';
+      input.childNodes.forEach(node => {
+        if (node.nodeType === Node.TEXT_NODE) {
+          text += node.textContent;
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+          text += node.textContent || '';
+        }
+      });
+      return text.replace(/\u00A0/g, ' ').replace(/\u200B/g, '').trim();
+    }
+
+    function clearInput() {
+      input.innerHTML = '';
+    }
+
+    function setInputText(text) {
+      clearInput();
+      if (text) {
+        input.appendChild(document.createTextNode(text));
+      }
+    }
+
     const sessionListEl = container.querySelector("#chat-session-list");
     const btnNewChat = container.querySelector("#btn-new-chat");
 
@@ -647,14 +737,12 @@
       });
       if (window.lucide) window.lucide.createIcons({ root: sessionListEl });
 
-      const newChatBtn = document.getElementById("btn-new-chat");
-      if (newChatBtn) {
-        if (!hasActiveInList) {
-          newChatBtn.classList.add("active");
-        } else {
-          newChatBtn.classList.remove("active");
-        }
-      }
+      // Tombol "Obrolan Baru" (sidebar) + tombol "new" (icon, pojok kanan atas mobile)
+      // sama-sama nyala "active" pas lagi di room kosong/baru (tak ada sesi aktif di list).
+      const newActive = !hasActiveInList;
+      [document.getElementById("btn-new-chat"), btnMobileNew].forEach(b => {
+        if (b) b.classList.toggle("active", newActive);
+      });
     }
 
     function saveSessions() {
@@ -673,7 +761,15 @@
       }
     }
 
+    // Pas dialog ref mobile kebuka, tombol Back (HP) harus NUTUP dialog dulu, bukan navigate.
+    // Saat buka kita pushState; Back -> popstate -> tutup popup & STOP (jangan ganti sesi).
+    let mobileRefClose = null;
+
     window.addEventListener("popstate", (e) => {
+      if (mobileRefClose) {
+        mobileRefClose(true); // true = dipanggil dari popstate, tak usah history.back()
+        return;
+      }
       const urlId = new URLSearchParams(window.location.search).get("id");
       if (urlId && urlId !== currentSessionId) {
         const s = sessions.find(x => x.id === urlId);
@@ -695,7 +791,7 @@
         saveSessions();
         log.innerHTML = "";
         if (opts.prefill && input) {
-          input.value = "";
+          clearInput();
           opts.prefill = null;
         }
         renderEmptyState();
@@ -880,7 +976,7 @@
         return;
       }
       mentionActiveIndex = -1; // start with no selection; first sutta item gets selected below
-      mentionPopup.innerHTML = filtered.map((s, i) => {
+      mentionPopup.innerHTML = `<div class="chat-mention-item chat-mention-header" style="font-size:0.75rem; color:var(--text-muted); justify-content:center; padding: 4px 12px; border-bottom: 1px solid var(--border-color); margin-bottom: 4px;">Tekan Enter atau Tap untuk memilih rujukan</div>` + filtered.map((s, i) => {
         if (s.isCollection) {
           return `<div class="chat-mention-item" data-abbr="${s.abbr}" data-idx="${i}">
             <span class="chat-mention-abbr">${s.abbr}</span>
@@ -914,41 +1010,129 @@
 
     function selectMention(abbr) {
       if (!currentMentionMatch) return;
-      const val = input.value;
-      const before = val.substring(0, currentMentionMatch.start);
-      const after = val.substring(currentMentionMatch.end);
-      // Kode mention pakai spasi (mis. "@MN 10") biar konsisten dgn suttaplex & UI lain.
-      const insert = `@${abbr} `;
-      input.value = before + insert + after;
+
+      const range = document.createRange();
+      range.setStart(input, 0);
+
+      // Posisikan start dan end berdasarkan indeks karakter
+      // Kita gunakan helper untuk menemukan node dan offset dari indeks karakter
+      function setRangeFromCharOffset(range, startOffset, endOffset) {
+        const walker = document.createTreeWalker(input, NodeFilter.SHOW_TEXT, null, false);
+        let currentPos = 0;
+        let startNode = null, startNodeOffset = 0;
+        let endNode = null, endNodeOffset = 0;
+
+        while (walker.nextNode()) {
+          const node = walker.currentNode;
+          const length = node.textContent.length;
+
+          if (!startNode && currentPos + length >= startOffset) {
+            startNode = node;
+            startNodeOffset = startOffset - currentPos;
+          }
+          if (!endNode && currentPos + length >= endOffset) {
+            endNode = node;
+            endNodeOffset = endOffset - currentPos;
+          }
+          if (startNode && endNode) break;
+          currentPos += length;
+        }
+
+        if (startNode) range.setStart(startNode, startNodeOffset);
+        else range.setStart(input, 0);
+
+        if (endNode) range.setEnd(endNode, endNodeOffset);
+        else range.setEnd(input, input.childNodes.length);
+      }
+
+      setRangeFromCharOffset(range, currentMentionMatch.start, currentMentionMatch.end);
+
+      // Hapus teks "@query"
+      range.deleteContents();
+
+      // Sisipkan zero-width space sbg jangkar agar browser bisa menghapus chip di awal div
+      const zws = document.createTextNode('\u200B');
+      range.insertNode(zws);
+      range.setStartAfter(zws);
+      range.collapse(true);
+
+      // Buat chip mention
+      const chip = document.createElement('span');
+      chip.className = 'chat-mention-chip';
+      chip.contentEditable = 'false';
+      chip.textContent = `@${abbr}`;
+
+      // Sisipkan chip
+      range.insertNode(chip);
+      range.setStartAfter(chip);
+      range.collapse(true);
+
+      const space = document.createTextNode('\u00A0'); // single non-breaking space
+      range.insertNode(space);
+
+      // Pindahkan kursor setelah spasi
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      const newRange = document.createRange();
+      newRange.setStartAfter(space);
+      newRange.collapse(true);
+      sel.addRange(newRange);
+
       mentionPopup.classList.remove("show");
-      input.focus();
-      input.setSelectionRange(before.length + insert.length, before.length + insert.length);
       currentMentionMatch = null;
-      syncBackdrop();
+      input.focus();
     }
 
     btnNewChat.addEventListener("click", requestNewChat);
 
     input.addEventListener("input", () => {
-      setSendMode(isGenerating); // Update the icon based on text
+      setSendMode(isGenerating);
+
+      // Bersihkan sisa <br> dari browser saat dikosongkan agar CSS :empty (placeholder) bisa tampil
+      if (input.innerHTML === '<br>' || input.innerHTML === '<br><br>') {
+        input.innerHTML = '';
+      }
+
       input.style.height = "auto";
       input.style.height = Math.min(input.scrollHeight, 140) + "px";
-      syncBackdrop();
+      input.style.overflowY = input.scrollHeight > 140 ? "auto" : "hidden";
 
-      const val = input.value;
-      const cursorPos = input.selectionStart;
-      const textBeforeCursor = val.substring(0, cursorPos);
-      // \.\.\d* — izinkan titik trailing (misal @Snp1.) agar popup tetap tampil
-      const match = textBeforeCursor.match(/(?:^|\s)@([\p{L}\p{M}\-]*(?:\s*\d+(?:\.\d*)?)?)$/u);
+      detectMention();
+    });
+
+    function detectMention() {
+      const sel = window.getSelection();
+      if (!sel.rangeCount) {
+        mentionPopup.classList.remove("show");
+        currentMentionMatch = null;
+        return;
+      }
+
+      const range = sel.getRangeAt(0).cloneRange();
+      // Ambil seluruh teks dari awal div contenteditable hingga posisi kursor
+      range.setStart(input, 0);
+      const textBeforeCursor = range.toString();
+
+      // Regex mendeteksi '@' diikuti oleh string query.
+      // Mendukung huruf, spasi opsional, dan angka, misalnya: "@MN", "@MN ", "@MN 16", "@MN16".
+      // Jika mengetik spasi SETELAH angka ("@MN 16 "), regex ini akan gagal (popup ditutup).
+      const match = textBeforeCursor.match(/(?:^|\s)@([\p{L}\p{M}\-]+(?:\s*\d*(?:\.\d*)?)?|)$/u);
 
       if (match) {
-        currentMentionMatch = { start: match.index + (match[0].startsWith(" ") ? 1 : 0), end: cursorPos };
-        renderMentionPopup(match[1]);
+        const query = match[1];
+
+        // Simpan posisi absolut (indeks karakter) dari '@' dan akhir kursor
+        currentMentionMatch = {
+          start: match.index + match[0].indexOf('@'),
+          end: textBeforeCursor.length
+        };
+
+        renderMentionPopup(query);
       } else {
         mentionPopup.classList.remove("show");
         currentMentionMatch = null;
       }
-    });
+    }
 
     input.addEventListener("keydown", e => {
       if (mentionPopup.classList.contains("show")) {
@@ -976,12 +1160,6 @@
           if (activeItem) selectMention(activeItem.dataset.abbr);
           return;
         }
-        // Spasi = Enter saat popup match: langsung pilih item aktif. Hanya jika ADA item
-        // aktif — kalau tidak, biarkan spasi diketik normal (jangan blokir input).
-        if (e.key === " ") {
-          const activeItem = items[mentionActiveIndex];
-          if (activeItem) { e.preventDefault(); selectMention(activeItem.dataset.abbr); return; }
-        }
         if (e.key === "Escape") {
           e.preventDefault();
           mentionPopup.classList.remove("show");
@@ -990,28 +1168,46 @@
         }
       }
 
-      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); }
+      if (e.key === "Enter" && !e.shiftKey) {
+        const isModifierPressed = e.ctrlKey || e.metaKey;
+        // Di mobile, Enter biasa murni buat baris baru. Tapi kalau pakai Ctrl/Cmd+Enter tetep kirim.
+        if (window.innerWidth <= 768 && !isModifierPressed) return;
+        e.preventDefault();
+        form.requestSubmit();
+      }
     });
 
     form.addEventListener("submit", e => {
       e.preventDefault();
 
-      mentionPopup.classList.remove("show");
-      currentMentionMatch = null;
-
-      // Item 7: saat bot sedang menjawab, tombol berfungsi sebagai STOP.
       if (isGenerating) { stopGeneration(); return; }
 
-      const val = input.value.trim();
+      const val = getInputText();
       if (!val) {
-        // if empty, the button is "at-sign", clicking it inserts '@'
-        input.value = "@";
         input.focus();
-        input.dispatchEvent(new Event("input"));
+        if (!sendBtn.classList.contains("chat-stop")) {
+          // Input kosong, tombol '@' diklik. Isi dengan '@' dan taruh kursor di akhirnya
+          input.innerHTML = "";
+          const textNode = document.createTextNode("@");
+          input.appendChild(textNode);
+
+          const sel = window.getSelection();
+          const range = document.createRange();
+          range.setStartAfter(textNode);
+          range.collapse(true);
+          sel.removeAllRanges();
+          sel.addRange(range);
+
+          input.dispatchEvent(new Event("input"));
+        }
         return;
       }
+
+      mentionPopup.classList.remove("show");
+      currentMentionMatch = null;
       send();
     });
+
 
     // Item 7: hentikan generasi atas permintaan user (beda dari abort saat pindah sesi:
     // di sini jawaban parsial yg sudah keluar dipertahankan, lihat catch AbortError).
@@ -1029,7 +1225,7 @@
         sendBtn.classList.add("chat-stop");
         sendBtn.disabled = false;
       } else {
-        const hasText = input.value.trim().length > 0;
+        const hasText = getInputText().length > 0;
         sendBtn.innerHTML = hasText ? '<i data-lucide="arrow-up"></i>' : '<i data-lucide="at-sign"></i>';
         if (window.lucide) window.lucide.createIcons({ root: sendBtn });
         sendBtn.title = hasText ? tt("btn_send", isEN() ? "Send" : "Kirim") : (isEN() ? "Mention" : "Sebut Teks");
@@ -1083,21 +1279,6 @@
     }
     // Chip utk bubble pesan user (final, ada padding).
     function highlightMentions(escaped) { return markMentions(escaped, "chat-mention-chip"); }
-    // Overlay backdrop di belakang textarea: highlight @mention saat MENGETIK (tanpa padding
-    // supaya posisi karakter tetap presisi dgn textarea transparan di atasnya).
-    const inputBackdrop = container.querySelector(".chat-input-backdrop");
-    function syncBackdrop() {
-      if (!inputBackdrop) return;
-      inputBackdrop.innerHTML = markMentions(esc(input.value), "chat-input-mark") + " ";
-      inputBackdrop.scrollTop = input.scrollTop;
-      input.style.overflowY = input.scrollHeight > 140 ? "auto" : "hidden";
-    }
-    if (inputBackdrop) {
-      // Aktifkan overlay (teks textarea jadi transparan) HANYA bila backdrop ada & JS jalan.
-      inputBackdrop.parentElement.classList.add("mention-overlay");
-      input.addEventListener("scroll", syncBackdrop);
-      syncBackdrop();
-    }
 
     function bubble(cls, html, animate) {
       clearEmptyState();              // item 20: pesan pertama menggusur empty-state
@@ -1160,17 +1341,28 @@
     function bindMentionChips(scope) {
       scope.querySelectorAll(".chat-empty-chip").forEach(btn => {
         btn.addEventListener("click", () => {
-          input.value = "@" + btn.dataset.mention + " ";
+          clearInput();
+          const chip = document.createElement('span');
+          chip.className = 'chat-mention-chip';
+          chip.contentEditable = 'false';
+          chip.textContent = '@' + btn.dataset.mention;
+          input.appendChild(chip);
+          input.appendChild(document.createTextNode(' '));
           input.style.height = "auto";
           input.style.height = Math.min(input.scrollHeight, 140) + "px";
-          syncBackdrop();
           input.focus();
-          input.setSelectionRange(input.value.length, input.value.length);
-          // Update ikon tombol karena set .value manual ga memicu event 'input'
+          // Pindahkan kursor setelah chip
+          const sel = window.getSelection();
+          const range = document.createRange();
+          range.setStartAfter(input.lastChild);
+          range.collapse(true);
+          sel.removeAllRanges();
+          sel.addRange(range);
           setSendMode(isGenerating);
         });
       });
     }
+
     // Contoh prompting biasa (topik) — ambil acak dari daftar bersama di common.js (DK).
     function sampleQueries(n) {
       const all = (DK.RECOMMENDED_QUERIES && (DK.RECOMMENDED_QUERIES[isEN() ? "en" : "id"] || DK.RECOMMENDED_QUERIES.id)) || [];
@@ -1255,10 +1447,10 @@
           currentMentionMatch = null;
 
           setTimeout(() => {
-            input.value = q;
+            setInputText(q);
             input.style.height = "auto";
-            syncBackdrop();
-            form.requestSubmit();   // bubble() akan clearEmptyState()
+            input.style.height = Math.min(input.scrollHeight, 140) + "px";
+            form.requestSubmit();
           }, 240);
         });
       });
@@ -1322,6 +1514,428 @@
       return dedupSuttas((results || []).filter(hasReadableText));
     }
 
+    // ── Inline-cite (tombol rujukan dalam teks) — DIPUSATKAN biar render final & streaming sama ──
+    // Linkify ref jadi tombol HANYA bila `isValid(base)` true (cegah ref ngarang jadi link palsu).
+    function linkifyCitations(html, isValid) {
+      const re = /(?:\(|\[)?([A-Za-z\-]+\s+\d+(?:\.\d+)*(?:-\d+)?)(?::([a-zA-Z0-9\.\-]+))?(?:\s*\([a-z]{2,3}\/[^)]+\))?(?:\)|\])?/gi;
+      let counter = 1;
+      const refMap = {};
+      const out = html.replace(re, (match, bookId, segment) => {
+        const base = bookId.trim();
+        if (!isValid(base)) return match;
+        
+        let cleanSegment = segment ? segment.trim() : "";
+        if (cleanSegment) {
+          cleanSegment = cleanSegment.replace(/[\.,;]+$/, "");
+        }
+        
+        const fullId = cleanSegment ? `${base}:${cleanSegment}` : base;
+
+        const normFullId = fullId.replace(/\s+/g, "").toLowerCase();
+        if (!refMap[normFullId]) {
+          refMap[normFullId] = counter++;
+        }
+        const num = refMap[normFullId];
+
+        // Gaya sujato: id sutta dikurung, segmen di luar kurung -> "[MN 51]:md2" / "[MN 51]:1.2".
+        // BUKAN footnote [1] — self-identifying, langsung tahu sutta+segmennya.
+        const displayText = cleanSegment ? `[${esc(base)}]:${esc(cleanSegment)}` : `[${esc(base)}]`;
+        const replacement = `<button type="button" class="chat-inline-cite" data-target="${esc(base)}" data-full-target="${esc(fullId)}" data-ref-num="${num}">${displayText}</button>`;
+        return replacement;
+      });
+      return out.replace(/[(\[](<button[^>]*class="chat-inline-cite"[^>]*>.*?<\/button>)[)\]]/gi, '$1');
+    }
+
+    // Sorot sementara (2 dtk) lalu hilang. `isCard` -> outline di DALAM box biar tak ke-clip
+    // overflow:hidden .chat-citations-list (kartu utuh akhirnya tampil di desktop, bukan
+    // cuma di popup mobile). Dulu di-set via el.style.outline inline.
+    function flashHighlight(el, isCard) {
+      if (!el) return;
+      el.classList.add("cite-flash");
+      if (isCard) el.classList.add("cite-flash-card");
+      setTimeout(() => el.classList.remove("cite-flash", "cite-flash-card"), 2000);
+    }
+
+    // Ordinal segmen utk pembandingan range: "md5"->{p:"md",n:5}, "4.20"->{p:"",n:4.2}.
+    // null kalau tak terurai (biar pemanggil fallback ke cocokan ujung).
+    function segOrdinal(seg) {
+      const m = (seg || "").match(/^([a-z]*)(\d+(?:\.\d+)?)$/i);
+      return m ? { p: m[1].toLowerCase(), n: parseFloat(m[2]) } : null;
+    }
+    // RANGE-AWARE: apakah fragment (normSegId "base:seg") tercakup target (normFullTarget
+    // "base:seg" atau "base:segA-segB"). Dulu range cuma cocok di ujung -> md5 di tengah
+    // md4-md6 ke-skip. Sekarang segmen tengah ikut kalau ada di antara.
+    function segInTarget(normFullTarget, normSegId) {
+      if (!normFullTarget.includes(":") || !normSegId) return false;
+      const tSeg = normFullTarget.slice(normFullTarget.indexOf(":") + 1);
+      const fSeg = normSegId.slice(normSegId.indexOf(":") + 1);
+      if (!tSeg || !fSeg) return false;
+      if (tSeg === fSeg) return true;
+      if (tSeg.includes("-")) {
+        const [a, b] = tSeg.split("-");
+        const of = segOrdinal(fSeg), oa = segOrdinal(a), ob = segOrdinal(b);
+        if (of && oa && ob && of.p === oa.p && of.p === ob.p) {
+          const lo = Math.min(oa.n, ob.n), hi = Math.max(oa.n, ob.n);
+          return of.n >= lo && of.n <= hi;
+        }
+        return fSeg === a || fSeg === b;   // fallback ujung utk format tak terurai
+      }
+      // Hierarki bertitik: target "4" boleh cocok "4.20" (batas TITIK).
+      if (fSeg.startsWith(tSeg + ".") || tSeg.startsWith(fSeg + ".")) return true;
+      // Selain itu HARUS exact string (sudah dicek di atas) — JANGAN samain numerik:
+      // biar "md2" != "md24" DAN "md2" != "md02" (leading zero = segmen beda).
+      return false;
+    }
+
+    // Komponen rujukan: { fullRef:"MN 92:md2-md3", base:"MN 92", name:"Abhayarājakumāra" }.
+    // base/fullRef dari atribut tombol; name dari kartu yg cocok. Dipakai tooltip (nama saja)
+    // & header sheet mobile (id + nama dua baris).
+    function citeRefName(btn) {
+      const fullRef = btn.getAttribute("data-full-target") || btn.getAttribute("data-target") || "";
+      const base = btn.getAttribute("data-target") || fullRef;
+      const { foundCard } = findCitation(btn);
+      const nameEl = foundCard && foundCard.querySelector(".sutta-card-name");
+      const name = nameEl ? nameEl.textContent.trim() : "";
+      return { fullRef, base, name };
+    }
+
+    // Klik rujukan -> scroll+highlight kartu/segmen. Pakai EVENT-DELEGATION di `log` (sekali),
+    // supaya tombol yg muncul progresif SAAT streaming pun langsung klikable tanpa re-bind.
+    function showMobileReferencePopup(highlightEl, foundSegs, foundCard, idText, nameText) {
+        let overlay = document.getElementById("mobile-ref-overlay");
+        let popup = document.getElementById("mobile-ref-popup");
+
+        if (!overlay) {
+            overlay = document.createElement("div");
+            overlay.id = "mobile-ref-overlay";
+            overlay.className = "mobile-ref-overlay";
+            document.body.appendChild(overlay);
+        }
+        if (!popup) {
+            popup = document.createElement("div");
+            popup.id = "mobile-ref-popup";
+            popup.className = "mobile-ref-popup";
+            const header = document.createElement("div");
+            header.className = "mobile-ref-popup-header";
+            header.innerHTML = `<span class="mobile-ref-popup-titlewrap"><i data-lucide="book-open" style="width:18px;height:18px;flex-shrink:0;"></i> <span class="mobile-ref-popup-titlecol"><span class="mobile-ref-popup-kicker"></span><span class="mobile-ref-popup-title"></span></span></span>`;
+            const closeBtn = document.createElement("button");
+            closeBtn.className = "mobile-ref-popup-close";
+            closeBtn.innerHTML = `<i data-lucide="x" style="width:20px;height:20px;"></i>`;
+            header.appendChild(closeBtn);
+            const contentEl = document.createElement("div");
+            contentEl.id = "mobile-ref-popup-content";
+            contentEl.className = "mobile-ref-popup-content";
+            popup.appendChild(header);
+            popup.appendChild(contentEl);
+            document.body.appendChild(popup);
+            // Klik backlink "Dirujuk: [n]" di dalam popup -> tutup popup. WAJIB di fase CAPTURE:
+            // handler anchor-nya manggil stopPropagation() (utk scroll+pulse ke [n]), jadi klik
+            // tak pernah sampai ke listener bubble. Capture jalan duluan, jadi popup tetap nutup.
+            contentEl.addEventListener("click", (e) => {
+                if (e.target.closest(".cite-backlink") && popup._close) popup._close();
+            }, true);
+        }
+
+        const content = document.getElementById("mobile-ref-popup-content");
+
+        // Header dua baris: id sutta (kicker) di atas, nama (judul) di bawah — tanpa kurung.
+        // Kalau sutta tak punya nama, id dijadikan judul & kicker dikosongkan (biar ga dobel).
+        const kickerEl = popup.querySelector(".mobile-ref-popup-kicker");
+        const titleEl = popup.querySelector(".mobile-ref-popup-title");
+        if (nameText) {
+            if (kickerEl) kickerEl.textContent = idText || "";
+            if (titleEl) titleEl.textContent = nameText;
+        } else {
+            if (kickerEl) kickerEl.textContent = "";
+            if (titleEl) titleEl.textContent = idText || (isEN() ? "Reference" : "Rujukan");
+        }
+
+        // Kalau popup masih nyimpen kartu dari buka sebelumnya (dibuka ulang tanpa nutup),
+        // balikin dulu biar tak ada kartu yatim.
+        if (popup._restoreCard) { popup._restoreCard(); popup._restoreCard = null; }
+
+        // Pindahkan kartu ASLI ke popup (appendChild = MOVE), jadi listener +Catatan,
+        // backlink "Dirujuk", & "Tanya lagi" tetap hidup — beda dgn cloneNode dulu yg
+        // membuang semua handler (tombolnya jadi mati). Placeholder utk balikin saat tutup.
+        const placeholder = document.createComment("mobile-ref-card-slot");
+        foundCard.parentNode.insertBefore(placeholder, foundCard);
+        content.innerHTML = "";
+        content.appendChild(foundCard);
+        const restoreCard = () => {
+            if (placeholder.parentNode) {
+                placeholder.parentNode.insertBefore(foundCard, placeholder);
+                placeholder.remove();
+            }
+        };
+        popup._restoreCard = restoreCard;
+
+        let closed = false;
+        function closePopup(fromPopstate = false) {
+            if (closed) return;
+            closed = true;
+            mobileRefClose = null; // Bebaskan intercept popstate
+            popup.classList.remove("show");
+            overlay.classList.remove("show");
+            
+            // Kalau tutupnya bukan dari tombol Back HP, kita harus buang state buatan tadi
+            // supaya histori bersih (tak numpuk state #popup).
+            if (!fromPopstate && window.location.hash === "#popup") {
+                window.history.back();
+            }
+
+            setTimeout(() => {
+                popup.style.display = "none";
+                overlay.style.display = "none";
+                restoreCard();
+                popup._restoreCard = null;
+            }, 300);
+        }
+        overlay.onclick = () => closePopup();
+        popup.querySelector(".mobile-ref-popup-close").onclick = () => closePopup();
+        popup._close = closePopup;   // dipakai listener capture backlink di atas
+
+        // Push state buatan spy pas HP dipencet Back, popstate ketangkap & tutup popup.
+        if (window.location.hash !== "#popup") {
+            window.history.pushState(null, "", window.location.pathname + window.location.search + "#popup");
+        }
+        mobileRefClose = closePopup;
+
+        if (window.lucide) window.lucide.createIcons({ root: popup });
+
+        overlay.style.display = "block";
+        popup.style.display = "flex";
+        void popup.offsetWidth;
+        popup.classList.add("show");
+        overlay.classList.add("show");
+
+        if (foundSegs && foundSegs.length > 0) {
+            setTimeout(() => {
+                const targetRect = foundSegs[0].getBoundingClientRect();
+                const contentRect = content.getBoundingClientRect();
+                const scrollTop = content.scrollTop + (targetRect.top - contentRect.top);
+                content.scrollTo({ top: scrollTop - 20, behavior: 'smooth' });
+                foundSegs.forEach(seg => flashHighlight(seg, false));
+            }, 350);
+        } else {
+            setTimeout(() => {
+                content.scrollTo({ top: 0, behavior: 'smooth' });
+                flashHighlight(foundCard, true);
+            }, 350);
+        }
+    }
+
+    function findCitation(btn) {
+      const scope = btn.closest(".chat-msg-bot");
+      if (!scope) return { foundCard: null, foundSegs: [], scope: null };
+      const target = btn.getAttribute("data-target");
+      const fullTarget = (btn.getAttribute("data-full-target") || "").replace(/\s+/g, "").toLowerCase();
+      let foundCard = null, foundSegs = [];
+      
+      scope.querySelectorAll(".sutta-card").forEach(card => {
+        const l = card.querySelector(".sutta-card-link");
+        const lText = l ? l.textContent.replace(/\s+/g, "").toLowerCase() : "";
+        const tText = target.replace(/\s+/g, "").toLowerCase();
+        if (lText.includes(tText)) {
+          foundCard = card;
+          if (fullTarget.includes(":")) {
+             // Range-aware (md4-md6 -> md4,md5,md6) lewat helper yg sama dgn render backlink.
+             card.querySelectorAll(".fragment").forEach(frag => {
+                if (frag.classList.contains("fragment-blurb")) return;
+                const normSegId = (frag.dataset.segmentId || "").replace(/\s+/g, "").toLowerCase();
+                if (segInTarget(fullTarget, normSegId)) foundSegs.push(frag);
+             });
+          }
+        }
+      });
+      return { foundCard, foundSegs, scope };
+    }
+
+    function handleCiteClick(btn) {
+      const { foundCard, foundSegs, scope } = findCitation(btn);
+      if (!scope) return;
+
+      const foundSeg = foundSegs[0] || null;
+      const highlightEl = foundSeg || foundCard;
+      if (highlightEl && window.innerWidth > 768) {
+        const listWrap = highlightEl.closest(".chat-citations-list");
+        if (listWrap && listWrap.classList.contains("collapsed-cites")) {
+          const expBtn = listWrap.parentElement.querySelector(".btn-expand-cites");
+          if (expBtn && expBtn.innerHTML.includes("chevron-down")) {
+            listWrap.style.transition = "none";
+            expBtn.click();
+            setTimeout(() => listWrap.style.transition = "", 50);
+          }
+        }
+      }
+
+      if (!highlightEl) {
+        // Jika rujukan belum tersedia (masih streaming), beri tahu user
+        const citations = scope.querySelector(".chat-citations");
+        if (!citations) {
+          const msg = isEN()
+            ? "References are still loading…"
+            : "Rujukan masih dimuat…";
+          if (DK.showToast) {
+            DK.showToast(msg, 2000);
+          } else if (window.showToast) {
+            window.showToast(msg);
+          }
+        }
+        return;
+      }
+
+      if (foundSegs.length > 0) {
+        foundSegs.forEach(seg => {
+          if (seg.classList.contains("hidden-frag")) {
+             const grp = seg.closest(".sutta-author-group")
+               || seg.closest(".author-frags-container") || foundCard;
+             if (grp) {
+               grp.querySelectorAll(".hidden-frag").forEach(f => f.classList.remove("hidden-frag"));
+               const fade = grp.querySelector(".frags-fade-overlay"); if (fade) fade.remove();
+               const moreBtn = grp.querySelector(".btn-show-more"); if (moreBtn) moreBtn.remove();
+             } else {
+               seg.classList.remove("hidden-frag");
+             }
+          }
+        });
+      }
+      
+      requestAnimationFrame(() => {
+        if (window.innerWidth <= 768) {
+            hideCiteTooltip(0);          // tutup tooltip long-press kalau masih nyangkut
+            // Header sheet dua baris: id sutta (kicker) + nama (judul), tanpa segmen md.
+            const cn = citeRefName(btn);
+            showMobileReferencePopup(highlightEl, foundSegs, foundCard, cn.base, cn.name);
+        } else {
+            const scrollBlock = foundSegs.length > 0 ? "center" : "start";
+            highlightEl.scrollIntoView({ behavior: "smooth", block: scrollBlock });
+            if (foundSegs.length > 0) {
+                foundSegs.forEach(el => flashHighlight(el, false));
+            } else {
+                // Kartu utuh: outline INSET (cite-flash-card) biar tak ke-clip overflow:hidden
+                // .chat-citations-list — sebelumnya outline luar ke-potong jadi tak tampak di desktop.
+                flashHighlight(highlightEl, true);
+            }
+        }
+      });
+    }
+    // Long-press di [n] (mobile): munculin nama+nomor kitab via toast, TANPA buka popup.
+    // Tap biasa tetap buka popup. lpSuppressClick mencegah klik penyerta setelah long-press.
+    let lpTimer = null, lpSuppressClick = false, lpStartX = 0, lpStartY = 0;
+    log.addEventListener("touchstart", (e) => {
+      const btn = e.target.closest && e.target.closest(".chat-inline-cite");
+      if (!btn) return;
+      const t = e.touches[0];
+      lpStartX = t.clientX; lpStartY = t.clientY;
+      lpSuppressClick = false;
+      clearTimeout(lpTimer);
+      lpTimer = setTimeout(() => {
+        lpTimer = null;
+        lpSuppressClick = true;
+        if (navigator.vibrate) navigator.vibrate(15);
+        showCiteTooltip(btn);     // long-press -> tooltip (nama+nomor kitab), bukan buka popup
+        hideCiteTooltip(2600);    // auto-hilang; tap mana pun juga menutupnya (lihat touchstart)
+      }, 500);
+    }, { passive: true });
+    log.addEventListener("touchmove", (e) => {
+      if (!lpTimer) return;
+      const t = e.touches[0];
+      if (Math.abs(t.clientX - lpStartX) > 10 || Math.abs(t.clientY - lpStartY) > 10) {
+        clearTimeout(lpTimer); lpTimer = null;   // geser = bukan long-press
+      }
+    }, { passive: true });
+    log.addEventListener("touchend", () => { clearTimeout(lpTimer); lpTimer = null; }, { passive: true });
+
+    log.addEventListener("click", (e) => {
+      const btn = e.target.closest && e.target.closest(".chat-inline-cite");
+      if (!btn) return;
+      if (lpSuppressClick) { lpSuppressClick = false; return; }   // baru long-press -> jangan buka popup
+      handleCiteClick(btn);
+    });
+
+    let citeTooltipTimer = null;
+    let activeTooltipBtn = null;
+    let citeTooltipHideTimer = null;
+    let citeTooltipEl = document.getElementById("cite-tooltip");
+
+    if (!citeTooltipEl) {
+        citeTooltipEl = document.createElement("div");
+        citeTooltipEl.id = "cite-tooltip";
+        citeTooltipEl.className = "cite-tooltip";
+        document.body.appendChild(citeTooltipEl);
+    }
+
+    // Tampilkan tooltip rujukan di atas/bawah tombol [n], panah nunjuk ke tengah tombol.
+    // Dipakai hover (desktop) & long-press (mobile).
+    function showCiteTooltip(btn) {
+        clearTimeout(citeTooltipHideTimer);
+        // Nama sutta aja (id+segmen udah keliatan di chip inline -> biar ga repetisi).
+        const { name, fullRef } = citeRefName(btn);
+        citeTooltipEl.textContent = name || fullRef;
+        // Reset placement class dulu supaya offsetHeight diukur tanpa panah lama.
+        citeTooltipEl.classList.remove("cite-tooltip-top", "cite-tooltip-bottom");
+        citeTooltipEl.style.display = "block";
+
+        const rect = btn.getBoundingClientRect();
+        // Default di ATAS tombol; kalau mentok atas viewport, pindah ke bawah.
+        const placeBottom = rect.top - citeTooltipEl.offsetHeight - 8 < 10;
+        const top = placeBottom ? rect.bottom + 8 : rect.top - citeTooltipEl.offsetHeight - 8;
+        // Class ini yg memunculkan panah/chevron-nya (lihat .cite-tooltip-top/bottom di CSS).
+        citeTooltipEl.classList.add(placeBottom ? "cite-tooltip-bottom" : "cite-tooltip-top");
+
+        let left = rect.left + (rect.width / 2) - (citeTooltipEl.offsetWidth / 2);
+        if (left < 10) left = 10;
+        if (left + citeTooltipEl.offsetWidth > window.innerWidth - 10) {
+            left = window.innerWidth - citeTooltipEl.offsetWidth - 10;
+        }
+        citeTooltipEl.style.top = top + "px";
+        citeTooltipEl.style.left = left + "px";
+        // Panah nunjuk ke TENGAH tombol (relatif ke kiri tooltip yg mungkin ter-clamp ke tepi).
+        citeTooltipEl.style.setProperty("--cite-arrow-left", (rect.left + rect.width / 2 - left) + "px");
+        citeTooltipEl.style.opacity = "1";
+    }
+    function hideCiteTooltip(delay = 0) {
+        clearTimeout(citeTooltipHideTimer);
+        citeTooltipHideTimer = setTimeout(() => {
+            citeTooltipEl.style.opacity = "0";
+            setTimeout(() => { citeTooltipEl.style.display = "none"; }, 200);
+        }, delay);
+    }
+
+    log.addEventListener("mouseover", (e) => {
+        if (window.innerWidth <= 768) return; // Desktop only
+        const btn = e.target.closest && e.target.closest(".chat-inline-cite");
+        if (!btn) return;
+        clearTimeout(citeTooltipTimer);
+        activeTooltipBtn = btn;
+        citeTooltipTimer = setTimeout(() => {
+            if (activeTooltipBtn === btn) showCiteTooltip(btn);
+        }, 400);
+    });
+
+    log.addEventListener("mouseout", (e) => {
+        if (window.innerWidth <= 768) return;
+        const btn = e.target.closest && e.target.closest(".chat-inline-cite");
+        if (!btn) return;
+        clearTimeout(citeTooltipTimer);
+        activeTooltipBtn = null;
+        setTimeout(() => { if (!citeTooltipEl.matches(":hover")) hideCiteTooltip(); }, 100);
+    });
+
+    citeTooltipEl.addEventListener("mouseleave", () => hideCiteTooltip());
+
+    // Tooltip = position:fixed; kalau di-scroll dia bakal "terbang" diam di tempat.
+    // Jadi begitu ada scroll, tutup. (Long-press mobile maupun hover desktop.)
+    const dismissTooltipOnScroll = () => {
+        if (citeTooltipEl.style.display === "block") {
+            clearTimeout(citeTooltipTimer);   // batalkan hover yg lagi nunggu muncul
+            activeTooltipBtn = null;
+            hideCiteTooltip(0);
+        }
+    };
+    log.addEventListener("scroll", dismissTooltipOnScroll, { passive: true });
+    window.addEventListener("scroll", dismissTooltipOnScroll, { passive: true, capture: true });
+
     function renderBotAnswer(botElement, answerText, results) {
       answerText = answerText || "";
       let thinks = [];
@@ -1338,6 +1952,7 @@
       filteredAns = filteredAns.replace(/^\s*(?:Berdasarkan|Menurut|Dari|Based on|According to)[^\n]{1,50}(?:kutip|dokumen|teks|referensi|sutta|passage|quote|text)[^\n]{1,50}(?:Anda|kamu|diberi|diserta|dikutip|di atas|sedia|provided|above|you)[^\n]*?(?:[:,]|\n)\s*/i, "Dalam ajaran Buddha, ");
       let ansHtml = mdLite(filteredAns);
 
+
       ansHtml = ansHtml.replace(/<p>__THINK_BLOCK_(\d+)__<\/p>/gi, function (match, idx) {
         return `<details class="chat-think"><summary>🤔 Proses Berpikir AI...</summary><div class="chat-think-content">${thinks[idx]}</div></details>\n`;
       }).replace(/__THINK_BLOCK_(\d+)__/gi, function (match, idx) {
@@ -1348,14 +1963,12 @@
         return `<details class="chat-think" open><summary>🤔 Sedang Berpikir...</summary><div class="chat-think-content">${thinks[idx]}</div></details>\n`;
       });
 
-      ansHtml = ansHtml.replace(/([A-Za-z\-]+\s+\d+(?:\.\d+)*(?:-\d+)?)(?::([a-zA-Z0-9\.\-]+))?(?:\s*\([a-z]{2,3}\/[^)]+\))?/gi, (match, bookId, segment) => {
-        const fullId = segment ? `${bookId.trim()}:${segment.trim()}` : bookId.trim();
-        if (fullId === bookId.trim()) {
-          const found = results.some(r => r.formatted_id.toLowerCase() === bookId.trim().toLowerCase() || r.sutta_id.toLowerCase() === bookId.trim().toLowerCase());
-          if (!found) return match;
-        }
-        return `<button type="button" class="chat-inline-cite" data-target="${esc(bookId.trim())}" data-full-target="${esc(fullId)}">${esc(match)}</button>`;
-      });
+      // Ref jadi tombol HANYA jika base-id-nya ADA di hasil retrieval. Ref ngarang (mis.
+      // "DN 16:4.20" yg tak pernah ditarik) -> biarkan teks polos, bukan link palsu menyesatkan.
+      ansHtml = linkifyCitations(ansHtml, base => results.some(r => {
+        const fid = (r.formatted_id || "").split(":")[0].toLowerCase();
+        return fid === base.toLowerCase() || (r.sutta_id || "").toLowerCase() === base.toLowerCase();
+      }));
       botElement.innerHTML = ansHtml;
 
       // Extract follow-up questions to move them to the bottom
@@ -1382,17 +1995,32 @@
             // Pola: singkatan koleksi + spasi opsional + angka (mis. MN 10, SN 22.59, AN 3.65,
             // Bu-Pj 1, Snp 1.8, Ud 8.3, Iti 110, Dhp 1, Thag 1.1, Vv 1.1, Pv 1.1, Mil …).
             // Lookbehind (?<![@\w]) cegah dobel-@ dan awalan kata lain yg kebetulan mirip.
+            // function addMentionAt(text) {
+            //   return text.replace(
+            //     /(?<![@\w])(\b(?:[A-Za-z]{1,4}(?:-[A-Za-z]{1,4})?)\s*\d[\d.]*)/g,
+            //     (m, ref) => {
+            //       // Hanya ubah jika ref cocok dengan salah satu singkatan koleksi yg dikenal
+            //       // ATAU ada di validMentionSet (supaya kata biasa tak ikut kena).
+            //       const norm = ref.replace(/\s+/g, "").toLowerCase();
+            //       const known = validMentionSet
+            //         ? validMentionSet.has(norm)
+            //         : /^(dn|mn|sn|an|dhp|ud|iti|snp|thag|thig|vv|pv|mil|bu|bi|sk|np|pc|pd|as|pj)\d/i.test(norm);
+            //       return known ? "@" + ref : m;
+            //     }
+            //   );
+            // }
+
             function addMentionAt(text) {
               return text.replace(
                 /(?<![@\w])(\b(?:[A-Za-z]{1,4}(?:-[A-Za-z]{1,4})?)\s*\d[\d.]*)/g,
                 (m, ref) => {
-                  // Hanya ubah jika ref cocok dengan salah satu singkatan koleksi yg dikenal
-                  // ATAU ada di validMentionSet (supaya kata biasa tak ikut kena).
                   const norm = ref.replace(/\s+/g, "").toLowerCase();
-                  const known = validMentionSet
-                    ? validMentionSet.has(norm)
-                    : /^(dn|mn|sn|an|dhp|ud|iti|snp|thag|thig|vv|pv|mil|bu|bi|sk|np|pc|pd|as|pj)\d/i.test(norm);
-                  return known ? "@" + ref : m;
+                  // Hanya tambahkan @ kalau validMentionSet sudah siap dan referensi dikenali
+                  if (validMentionSet && validMentionSet.has(norm)) {
+                    return "@" + ref;
+                  }
+                  // Kalau tidak dikenali, biarkan seperti semula (tanpa @)
+                  return ref;
                 }
               );
             }
@@ -1400,11 +2028,18 @@
             Array.from(nextEl.querySelectorAll("li")).forEach(li => {
               const btn = document.createElement("button");
               btn.className = "chat-followup-chip";
+              // linkifyCitations jalan duluan -> id sutta di dlm <li> sudah jadi tombol [1].
+              // Kalau baca li.textContent langsung, yg kebaca "[1]" bukan "MN 10". Jadi
+              // pulihkan dulu: ganti tiap tombol inline-cite -> data-target-nya (base id).
+              const liClone = li.cloneNode(true);
+              liClone.querySelectorAll(".chat-inline-cite").forEach(b => {
+                b.replaceWith(document.createTextNode(b.getAttribute("data-target") || b.textContent));
+              });
               // Item 6: buang segmen (mis. "MN 10:md2" -> "MN 10") — mesin tak bisa
               // memproses mention bersegmen, jadi rekomendasi pertanyaan tak boleh memuatnya.
               // Setelah buang segmen, ubah sutta ID jadi @mention kalau belum ada @-nya.
               btn.textContent = addMentionAt(
-                li.textContent.trim()
+                liClone.textContent.trim()
                   .replace(/(\b[A-Za-z]+(?:-[A-Za-z]+)?\s?\d+(?:\.\d+)*)\s*:\s*[A-Za-z0-9.\-]+/g, "$1")
               );
 
@@ -1412,7 +2047,7 @@
                 // Item 5: cegah dobel-kirim. Sekali diklik, kunci semua chip & jangan
                 // kirim kalau bot masih jalan.
                 if (isGenerating) return;
-                input.value = btn.textContent;
+                input.innerText = btn.textContent; // Gunakan innerText karena input sekarang berupa div contenteditable
                 input.style.height = "auto";
                 if (typeof syncBackdrop === 'function') syncBackdrop();
                 // Item 1: JANGAN input.focus() — auto-send langsung jalan, focus cuma
@@ -1423,7 +2058,9 @@
             });
 
             el.className = "chat-followups-title";
-            el.innerHTML = txt.includes("rekomendasi") ? "Rekomendasi Pertanyaan" : "Follow-up Questions";
+            el.setAttribute("data-i18n-en", "Follow-up questions:");
+            el.setAttribute("data-i18n-id", "Rekomendasi Pertanyaan Lanjutan:");
+            el.textContent = isEN() ? "Follow-up questions:" : "Rekomendasi Pertanyaan Lanjutan:";
 
             // Pindahkan header dan chip wrap ke kontainer baru, cabut dari aliran teks normal
             followUpContainer.appendChild(el);
@@ -1433,60 +2070,8 @@
         }
       });
 
-      botElement.querySelectorAll(".chat-inline-cite").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const target = btn.getAttribute("data-target");
-          const fullTarget = btn.getAttribute("data-full-target");
-          let foundCard = null;
-          let foundSeg = null;
-
-          // Item 8: segmen yang diminta (mis. "md2"/"1.2" dari "MN 10:md2") — kita
-          // cocokkan PER-SEGMEN, bukan string penuh "MN 10:md2" (yg sering gagal karena
-          // tag fragmen ditampilkan terpisah), supaya highlight jatuh tepat di segmennya.
-          const seg = (fullTarget && fullTarget.includes(":")) ? fullTarget.split(":").pop().trim() : null;
-          const segRe = seg ? new RegExp("(^|[\\s,:])" + seg.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "($|[\\s,])") : null;
-
-          botElement.parentElement.querySelectorAll(".sutta-card").forEach(card => {
-            const l = card.querySelector(".sutta-card-link");
-            if (l && l.textContent.includes(target)) {
-              foundCard = card;
-              // Cari segmen spesifik di dalam kartu ini
-              if (segRe) {
-                card.querySelectorAll(".fragment-ref").forEach(ref => {
-                  const rt = ref.textContent;
-                  if (rt.includes(":" + seg) || segRe.test(rt)) {
-                    foundSeg = ref.closest(".fragment");
-                  }
-                });
-              }
-            }
-          });
-
-          let highlightEl = foundSeg || foundCard;
-          if (highlightEl) {
-            // Item 1: kalau segmen target masih tersembunyi di balik "Tampilkan N lagi",
-            // EXPAND dulu seluruh grupnya (buang fade + tombol show-more), baru highlight.
-            if (foundSeg && foundSeg.classList.contains("hidden-frag")) {
-              const grp = foundSeg.closest(".sutta-author-group")
-                || foundSeg.closest(".author-frags-container") || foundCard;
-              if (grp) {
-                grp.querySelectorAll(".hidden-frag").forEach(f => f.classList.remove("hidden-frag"));
-                const fade = grp.querySelector(".frags-fade-overlay"); if (fade) fade.remove();
-                const moreBtn = grp.querySelector(".btn-show-more"); if (moreBtn) moreBtn.remove();
-              } else {
-                foundSeg.classList.remove("hidden-frag");
-              }
-            }
-            // Tunggu 1 frame agar layout terbuka dulu sebelum scroll + highlight.
-            requestAnimationFrame(() => {
-              highlightEl.scrollIntoView({ behavior: "smooth", block: "center" });
-              highlightEl.style.boxShadow = "0 0 0 2px var(--ai-color)";
-              setTimeout(() => highlightEl.style.boxShadow = "", 2000);
-            });
-          }
-        });
-      });
-      // Render tombol aksi (+ Catatan) untuk teks jawaban terlebih dahulu 
+      // (Klik rujukan ditangani via event-delegation di `log` -> handleCiteClick.)
+      // Render tombol aksi (+ Catatan) untuk teks jawaban terlebih dahulu
       // agar posisinya berada di atas heading Rujukan (di pojok kanan bawah teks jawaban)
       renderAnswerActions(botElement, answerText);
 
@@ -1496,7 +2081,7 @@
           if (s.mentioned) return true; // sutta yg di-mention user: selalu tampil
           if (!s.formatted_id) return false;
           const baseId = s.formatted_id.split(':')[0]; // misal "SN 20.9" dari "SN 20.9:md1"
-          return answerText.includes(s.formatted_id) || answerText.includes(baseId);
+          return textWithoutThink.includes(s.formatted_id) || textWithoutThink.includes(baseId);
         }));
 
         if (citedResults.length > 0) {
@@ -1555,13 +2140,16 @@
       wrap.className = "chat-citations";
       const ttl = document.createElement("div");
       ttl.className = "chat-citations-title";
+      ttl.setAttribute("data-i18n-en", "References");
+      ttl.setAttribute("data-i18n-id", "Rujukan");
       ttl.textContent = isEN() ? "References" : "Rujukan";
       wrap.appendChild(ttl);
 
       if (DK.renderSuttaCardsTo) {
-        // Konteks selalu tampil; dedup segmen-bersebelahan ditangani renderSuttaCardsTo
-        // (dedupTexts) — sama persis seperti hasil pencarian web-md, tanpa centangan.
-        DK.renderSuttaCardsTo(wrap, results, true, { showPreview: true },
+        const listWrap = document.createElement("div");
+        listWrap.className = "chat-citations-list";
+
+        DK.renderSuttaCardsTo(listWrap, results, true, { showPreview: true, showAllFragments: true },
           (fragEl, frag, sutta) => {
             const btn = document.createElement("button");
             btn.className = "btn-add-note";
@@ -1571,9 +2159,12 @@
             fragEl.appendChild(btn);
           });
 
-        // Tombol "Tanyakan lagi" — SATU per kartu sutta (di header), bukan per segmen.
-        // Tag sutta UTUH ke input chat di room yg SAMA (continuity).
-        wrap.querySelectorAll(".sutta-card").forEach((card, i) => {
+        listWrap.querySelectorAll(".fragment-score").forEach(score => {
+          score.innerHTML = "";
+          score.removeAttribute("title");
+        });
+
+        listWrap.querySelectorAll(".sutta-card").forEach((card, i) => {
           const sutta = results[i];
           if (!sutta) return;
           const header = card.querySelector(".sutta-card-header");
@@ -1581,22 +2172,176 @@
           if (!header || !title) return;
           const askBtn = document.createElement("button");
           askBtn.className = "btn-ask-again";
-          // Ikon @ — aksi-nya men-mention ulang sutta ini ke input; title/tooltip
-          // dipertahankan supaya maksudnya jelas (bukan sekadar "mention orang").
           askBtn.innerHTML = `<i data-lucide="at-sign"></i>`;
           askBtn.title = isEN() ? "Ask about this sutta again" : "Tanyakan sutta ini lagi";
           askBtn.setAttribute("aria-label", askBtn.title);
           askBtn.addEventListener("click", () => {
-            input.value = "@" + (sutta.formatted_id || sutta.sutta_id || "") + " ";
+            const mentionText = "@" + (sutta.formatted_id || sutta.sutta_id || "") + " ";
+            clearInput();
+            const chip = document.createElement('span');
+            chip.className = 'chat-mention-chip';
+            chip.contentEditable = 'false';
+            chip.textContent = mentionText.trim();
+            input.appendChild(chip);
+            input.appendChild(document.createTextNode(' '));
             input.style.height = "auto";
             input.style.height = Math.min(input.scrollHeight, 140) + "px";
-            syncBackdrop();
+            setSendMode(false);
             input.focus();
-            input.setSelectionRange(input.value.length, input.value.length);
+            const sel = window.getSelection();
+            const range = document.createRange();
+            range.setStartAfter(input.lastChild);
+            range.collapse(true);
+            sel.removeAllRanges();
+            sel.addRange(range);
+            input.scrollIntoView({ behavior: "smooth", block: "nearest" });
             input.scrollIntoView({ behavior: "smooth", block: "nearest" });
           });
-          header.insertBefore(askBtn, title); // kiri nomor kitab
+          header.insertBefore(askBtn, title);
         });
+
+        const inlineLinks = Array.from(parent.querySelectorAll(".chat-inline-cite"));
+        inlineLinks.forEach((lk) => {
+          if (!lk.id) lk.id = "inline-cite-" + Math.random().toString(36).substr(2, 9);
+        });
+
+        function injectBacklinks(containerEl, matchingLinks, isHeader = false) {
+            if (!containerEl || matchingLinks.length === 0) return;
+
+            let backlinkContainer;
+            if (isHeader) {
+                backlinkContainer = containerEl.querySelector(".frag-backlinks-badge");
+                if (!backlinkContainer) {
+                    backlinkContainer = document.createElement("div");
+                    backlinkContainer.className = "frag-backlinks-badge cite-backlinks-row";
+                    backlinkContainer.innerHTML = `<i data-lucide="corner-left-up" class="frag-backlinks-icon"></i> <span>${isEN() ? "Cited:" : "Dirujuk:"}</span>`;
+                    containerEl.appendChild(backlinkContainer);
+                    if (window.lucide) window.lucide.createIcons({ root: backlinkContainer });
+                }
+            } else {
+                backlinkContainer = containerEl.querySelector(".fragment-score");
+                if (!backlinkContainer) return;
+
+                if (!backlinkContainer.classList.contains("hijacked")) {
+                    backlinkContainer.innerHTML = `<i data-lucide="corner-left-up" class="frag-backlinks-icon"></i> <span>${isEN() ? "Cited:" : "Dirujuk:"}</span>`;
+                    backlinkContainer.classList.add("hijacked", "cite-backlinks-row");
+                    backlinkContainer.removeAttribute("title");
+                    if (window.lucide) window.lucide.createIcons({ root: backlinkContainer });
+                }
+            }
+
+            // Urutkan sebutan sesuai posisi di jawaban (atas->bawah), lalu label a, b, c…
+            // Kalau cuma 1x disebut, cukup panah "↑" (label "a" sendirian aneh).
+            const links = matchingLinks.slice().sort((x, y) =>
+                (x.compareDocumentPosition(y) & Node.DOCUMENT_POSITION_FOLLOWING) ? -1 : 1);
+            const multi = links.length > 1;
+            links.forEach((lk, i) => {
+                const a = document.createElement("a");
+                // a, b, c… (fallback ke angka kalau >26 sebutan); "↑" kalau tunggal.
+                a.textContent = multi ? (i < 26 ? String.fromCharCode(97 + i) : String(i + 1)) : "↑";
+                a.className = "cite-backlink";
+                a.title = isEN() ? "Jump to mention" : "Ke sebutan";
+                if (lk.id) a.dataset.backlinkTo = lk.id;   // dipakai juga oleh popup mobile
+                a.onclick = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    lk.scrollIntoView({ behavior: "smooth", block: "center" });
+                    lk.classList.add("highlight-pulse");
+                    setTimeout(() => lk.classList.remove("highlight-pulse"), 2000);
+                };
+                backlinkContainer.appendChild(a);
+            });
+        }
+
+        listWrap.querySelectorAll(".sutta-card").forEach((card, i) => {
+           const sutta = results[i];
+           if (!sutta) return;
+           const normSuttaId = (sutta.sutta_id || "").replace(/\s+/g, "").toLowerCase();
+           // Identitas kartu utk scoping backlink fragmen — sama persis dgn cara findCitation
+           // cocokin kartu (teks .sutta-card-link memuat base id), jadi tak regres utk sutta
+           // yg format sutta_id-nya beda (mis. vinaya).
+           const cardLinkText = (card.querySelector(".sutta-card-link")?.textContent || "")
+               .replace(/\s+/g, "").toLowerCase();
+
+           // 1. Check for whole-sutta links and put them in the header
+           const suttaMatchingLinks = inlineLinks.filter(lk => {
+               const fullTarget = (lk.getAttribute("data-full-target") || "").replace(/\s+/g, "").toLowerCase();
+               const target = (lk.getAttribute("data-target") || "").replace(/\s+/g, "").toLowerCase();
+               if (fullTarget.includes(":")) return false; // Ignore segment links
+               return (fullTarget === normSuttaId || (!fullTarget && target === normSuttaId));
+           });
+           
+           if (suttaMatchingLinks.length > 0) {
+               const cardHeader = card.querySelector(".sutta-card-header");
+               if (cardHeader) {
+                   injectBacklinks(cardHeader, suttaMatchingLinks, true);
+               }
+           }
+           
+           // 2. Check for fragment links
+           const frags = Array.from(card.querySelectorAll(".fragment"));
+           if (frags.length === 0) return;
+           
+           frags.forEach(fragEl => {
+               if (fragEl.classList.contains("fragment-blurb")) return; // Blurbs don't receive fragment backlinks
+               
+               const segId = fragEl.dataset.segmentId || "";
+               const normSegId = segId.replace(/\s+/g, "").toLowerCase();
+               
+               const matchingLinks = inlineLinks.filter(lk => {
+                   const fullTarget = (lk.getAttribute("data-full-target") || "").replace(/\s+/g, "").toLowerCase();
+                   if (!fullTarget.includes(":")) return false; // Must be a segment link
+                   // Base link HARUS milik kartu ini. Tanpa ini, segmen ber-md sama dari sutta
+                   // beda (mis. MN 10:md2 vs SN 22:md2) ikut ke-tag "Dirujuk" di kartu yg salah.
+                   const linkBase = (lk.getAttribute("data-target") || "").replace(/\s+/g, "").toLowerCase();
+                   if (!linkBase || !cardLinkText.includes(linkBase)) return false;
+                   // Range-aware: md5 di tengah md4-md6 ikut ke-tag, bukan cuma ujungnya.
+                   return segInTarget(fullTarget, normSegId);
+               });
+               if (matchingLinks.length > 0) {
+                  const metaEl = fragEl.querySelector(".fragment-meta");
+                  injectBacklinks(metaEl, matchingLinks, false);
+               }
+           });
+        });
+
+        wrap.appendChild(listWrap);
+
+        const cards = listWrap.querySelectorAll(".sutta-card");
+        if (cards.length > 0) {
+          // Default to collapsed state
+          listWrap.classList.add("collapsed-cites");
+          
+          const overlay = document.createElement("div");
+          overlay.className = "cites-fade-overlay";
+          listWrap.appendChild(overlay);
+
+          const expandBtn = document.createElement("button");
+          expandBtn.className = "btn-expand-cites";
+          let isExpanded = false;
+
+          function updateBtn() {
+            const enHTML = isExpanded ? `Hide References <i data-lucide='chevron-up'></i>` : `Show References <i data-lucide='chevron-down'></i>`;
+            const idHTML = isExpanded ? `Tutup Rujukan <i data-lucide='chevron-up'></i>` : `Tampilkan Rujukan <i data-lucide='chevron-down'></i>`;
+            expandBtn.setAttribute("data-i18n-en-html", enHTML);
+            expandBtn.setAttribute("data-i18n-id-html", idHTML);
+            expandBtn.innerHTML = isEN() ? enHTML : idHTML;
+          }
+          updateBtn();
+
+          expandBtn.addEventListener("click", () => {
+            isExpanded = !isExpanded;
+            if (isExpanded) {
+              listWrap.classList.remove("collapsed-cites");
+            } else {
+              listWrap.classList.add("collapsed-cites");
+            }
+            updateBtn();
+            if (window.lucide) window.lucide.createIcons({ root: expandBtn });
+          });
+
+          wrap.appendChild(expandBtn);
+        }
       } else {
         // Fallback tanpa DK: daftar ringkas
         results.forEach(s => {
@@ -1674,7 +2419,7 @@
           if (history.length && history[history.length - 1].role === "user") history.pop();
           updateCurrentSession();
         }
-        input.value = text;
+        setInputText(text);
         send();
       });
       botEl.appendChild(btn);
@@ -1749,15 +2494,55 @@
         const langSpan = l => `<span class="chat-trans-lang">(${s18(langName(l, true), langName(l, false))})</span>`;
 
         let html = `<div class="chat-answer chat-trans-picker"><div class="chat-trans-head" data-i18n-en="Pick the translation(s) to cite:" data-i18n-id="Pilih terjemahan yang hendak dikutip:">${isEN() ? "Pick the translation(s) to cite:" : "Pilih terjemahan yang hendak dikutip:"}</div>`;
+        let globalIdx = 1;
         pending.forEach((p, pi) => {
+          p.translations.sort((a, b) => {
+            const aIsSujato = /sujato/i.test(a.author);
+            const bIsSujato = /sujato/i.test(b.author);
+            const getScore = (t, isSuj) => {
+              if (isEN()) {
+                if (t.lang === "en" && isSuj) return 0;
+                if (t.lang === "en") return 1;
+                if (t.lang === "id") return 2;
+                if (t.lang === "pli") return 3;
+                return 4;
+              } else {
+                if (t.lang === "id") return 0;
+                if (t.lang === "en" && isSuj) return 1;
+                if (t.lang === "en") return 2;
+                if (t.lang === "pli") return 3;
+                return 4;
+              }
+            };
+            const diff = getScore(a, aIsSujato) - getScore(b, bIsSujato);
+            return diff !== 0 ? diff : a.author.localeCompare(b.author);
+          });
+
           html += `<div class="chat-trans-group"><div class="chat-trans-sutta">@${esc(p.mn.fid)}</div>`;
           p.translations.forEach((t, ti) => {
-            html += `<label class="chat-trans-opt"><input type="checkbox" data-pi="${pi}" data-lang="${esc(t.lang)}" data-author="${esc(t.author)}" data-source="${esc(t.source)}"${ti === 0 ? " checked" : ""}> <span>${esc(authorLabel(t.author, t.source))} ${langSpan(t.lang)}</span></label>`;
+            const kbd = globalIdx <= 9 ? `<span class="dk-dlg-kbd num-hint">${globalIdx}</span>` : "";
+            globalIdx++;
+            html += `<label class="chat-trans-opt"><input type="checkbox" data-pi="${pi}" data-lang="${esc(t.lang)}" data-author="${esc(t.author)}" data-source="${esc(t.source)}"${ti === 0 ? " checked" : ""}> <span class="chat-trans-opt-text">${esc(authorLabel(t.author, t.source))} ${langSpan(t.lang)}</span>${kbd}</label>`;
           });
           html += `</div>`;
         });
-        html += `<div class="chat-trans-actions"><button type="button" class="btn-primary chat-trans-go" data-i18n-en="Continue" data-i18n-id="Lanjut">${isEN() ? "Continue" : "Lanjut"}</button><button type="button" class="chat-trans-cancel" data-i18n-en="Cancel" data-i18n-id="Batal">${isEN() ? "Cancel" : "Batal"}</button></div></div>`;
+        html += `<div class="chat-trans-actions"><button type="button" class="chat-trans-cancel" data-i18n-en="Cancel" data-i18n-id="Batal">${isEN() ? "Cancel" : "Batal"}<span class="dk-dlg-kbd">Esc</span></button><button type="button" class="btn-primary chat-trans-go" data-i18n-en="Continue" data-i18n-id="Lanjut">${isEN() ? "Continue" : "Lanjut"}<span class="dk-dlg-kbd">↵</span></button></div></div>`;
         const el = bubble("chat-msg-bot chat-trans-bubble", html, true);
+        // Enter = Lanjut (fokuskan tombolnya + tangkap Enter dari checkbox di dalam bubble).
+        const goBtn = el.querySelector(".chat-trans-go");
+        goBtn.focus();
+        el.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") { e.preventDefault(); goBtn.click(); }
+          else if (e.key === "Escape") { e.preventDefault(); el.querySelector(".chat-trans-cancel").click(); }
+          else if (/^[1-9]$/.test(e.key)) {
+            const idx = parseInt(e.key, 10) - 1;
+            const checks = el.querySelectorAll('input[type="checkbox"]');
+            if (checks[idx]) {
+              e.preventDefault();
+              checks[idx].checked = !checks[idx].checked;
+            }
+          }
+        });
 
         el.querySelector(".chat-trans-go").addEventListener("click", () => {
           pending.forEach((p, pi) => {
@@ -1778,40 +2563,15 @@
       });
     }
 
-    function resolveScopePref() {
-      return new Promise(resolve => {
-        const s18 = (en, id) => `<span data-i18n-en="${esc(en)}" data-i18n-id="${esc(id)}">${esc(isEN() ? en : id)}</span>`;
-        let html = `<div class="chat-answer chat-trans-picker"><div class="chat-trans-head" data-i18n-en="Focus search ONLY on mentioned texts?" data-i18n-id="Fokus pencarian HANYA pada teks yang di-@?">${isEN() ? "Focus search ONLY on mentioned texts?" : "Fokus pencarian HANYA pada teks yang di-@?"}</div>`;
-        html += `<div class="chat-trans-actions" style="margin-top: 12px;">
-          <button type="button" class="chat-trans-cancel" style="margin-right: auto;">${s18("Cancel", "Batal")}</button>
-          <button type="button" class="btn-primary chat-scope-broad" style="background: var(--bg-hover); color: var(--text-color); box-shadow: none;">${s18("No (Broad Search)", "Tidak (Cari luas)")}</button>
-          <button type="button" class="btn-primary chat-scope-narrow">${s18("Yes (Focus)", "Ya (Fokus)")}</button>
-        </div></div>`;
-
-        const el = bubble("chat-msg-bot chat-trans-bubble", html, true);
-
-        el.querySelector(".chat-scope-narrow").addEventListener("click", () => {
-          el.innerHTML = `<div class="chat-answer chat-trans-done">${s18("Search Scope: ", "Cakupan Pencarian: ")}<strong>${s18("Mentioned texts only", "Hanya teks yang di-@")}</strong></div>`;
-          resolve({ broad_search: false, ok: true });
-        });
-        el.querySelector(".chat-scope-broad").addEventListener("click", () => {
-          el.innerHTML = `<div class="chat-answer chat-trans-done">${s18("Search Scope: ", "Cakupan Pencarian: ")}<strong>${s18("Explore all texts", "Eksplorasi teks lain")}</strong></div>`;
-          resolve({ broad_search: true, ok: true });
-        });
-        el.querySelector(".chat-trans-cancel").addEventListener("click", () => { el.remove(); resolve({ ok: false }); });
-      });
-    }
-
     async function send() {
       // Item 5: cegah dobel-kirim — set isGenerating SEKARANG (sebelum await apa pun)
       // supaya klik/submit kedua yg menyusul langsung tertolak.
       if (isGenerating) return;
-      const text = input.value.trim();
+      const text = getInputText();
       if (!text) return;
       isGenerating = true;
-      input.value = "";
+      clearInput();
       input.style.height = "auto";
-      syncBackdrop();
       closeMobileMenu();
       const userBubble = bubble("chat-msg-user", highlightMentions(esc(text)), true);
 
@@ -1820,67 +2580,22 @@
       const mentionPrefsForMsg = await resolveMentionPrefs(text);
       if (mentionPrefsForMsg === null) {
         userBubble.remove();
-        input.value = text;
+        setInputText(text);
         input.style.height = "auto";
         input.style.height = Math.min(input.scrollHeight, 140) + "px";
-        syncBackdrop();
         isGenerating = false;
         if (!log.querySelector(".chat-msg")) renderEmptyState();
         return;
       }
 
-      // Tanyakan cakupan pencarian HANYA jika ada mention dan konteksnya bukan sekadar meringkas sutta.
-      let isBroadSearch = false;
-      const mentions = extractMentions(text);
-      if (mentions.length > 0) {
-        let askScope = true;
-        let ctx = text;
-        mentions.forEach(mn => ctx = ctx.replace(mn.raw, ""));
-        ctx = ctx.toLowerCase().replace(/[^\w\s]/g, "").trim();
-
-        if (!ctx) {
-          askScope = false; // Hanya mention tok
-        } else {
-          const generic = new Set([
-            "jelaskan", "jelasin", "terangin", "terangkan", "apa", "itu", "tentang", "isi", "isinya",
-            "berisi", "dong", "tolong", "pls", "please", "kasih", "tau", "tahu", "ringkas", "ringkasan",
-            "summary", "summarize", "bahas", "membahas", "bantu", "jelaskn", "maksud", "maksudnya",
-            "arti", "artinya", "makna", "maknanya", "cerita", "ceritain", "di", "dalam", "menurut",
-            "dari", "mengenai", "soal", "seputar", "gimana", "bagaimana", "yg", "yang", "ada", "aja",
-            "saja", "sih", "ya", "woi", "sutta", "kitab", "teks", "buku", "pitaka", "vinaya", "jataka",
-            "ini", "tersebut", "nya", "bercerita"
-          ]);
-          const words = ctx.split(/\s+/);
-          if (words.every(w => generic.has(w))) askScope = false; // Cuma minta rangkuman
-        }
-
-        if (askScope) {
-          const scopeRes = await resolveScopePref();
-          if (!scopeRes.ok) {
-            // Bersihkan bubble dari DOM (termasuk bubble terjemahan yg terlanjur 'done')
-            let next = userBubble.nextElementSibling;
-            while (next) {
-              const temp = next;
-              next = next.nextElementSibling;
-              temp.remove();
-            }
-            userBubble.remove();
-            input.value = text;
-            input.style.height = "auto";
-            input.style.height = Math.min(input.scrollHeight, 140) + "px";
-            syncBackdrop();
-            isGenerating = false;
-            if (!log.querySelector(".chat-msg")) renderEmptyState();
-            return;
-          }
-          isBroadSearch = scopeRes.broad_search;
-        }
-      }
+      // Cakupan pencarian ditentukan backend (mention -> fokus sutta itu; tanpa mention ->
+      // semantic luas). Pertanyaan "Fokus atau cari luas?" DIHAPUS: backend mengabaikannya
+      // (redundan & membingungkan). Eksplorasi luas tetap tersedia lewat tombol "Cari sutta lain".
 
       userStopped = false;
       abortController = new AbortController();
       setSendMode(true);   // item 7: tombol Kirim -> Stop
-      document.querySelectorAll(".chat-followup-chip").forEach(c => c.disabled = true);
+      document.querySelectorAll(".chat-followup-chip, .btn-broad-search").forEach(c => c.disabled = true);
       const bot = bubble("chat-msg-bot",
         `<div class="chat-thinking-steps"></div><div class="chat-answer chat-typing" style="display:none;"></div>`, true);
       bot.classList.add("is-generating");  // gradient border shimmer
@@ -1889,6 +2604,10 @@
       let currentStepEl = null;
       let accumulatedAnswer = "";
       let hasFirstChunk = false;
+      // Base-id ref yg sudah tervalidasi dari step retrieval (found/tool) -> dipakai linkify
+      // sitasi SAAT streaming, biar tombol rujukan muncul bertahap & cuma utk teks yg benar2 ada.
+      const streamCiteBases = new Set();
+      const addCiteBase = v => { const b = (v || "").split(":")[0].trim().toLowerCase(); if (b) streamCiteBases.add(b); };
 
       // Ensure we don't send massive history, and clean up assistant's <think> tags
       const historyToSend = history.map(h => {
@@ -1955,7 +2674,7 @@
         const res = await fetch(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: text, history: historyToSend, stream: true, lang: isEN() ? "en" : "id", mention_prefs: mentionPrefsForMsg, broad_search: isBroadSearch }),
+          body: JSON.stringify({ message: text, history: historyToSend, stream: true, lang: isEN() ? "en" : "id", mention_prefs: mentionPrefsForMsg }),
           signal: abortController.signal
         });
         if (!res.ok || !res.body) {
@@ -1994,6 +2713,7 @@
                 labId = "Memproses: “" + qTrunc + "”";
               } else if (obj.stage === "found" && obj.count !== undefined) {
                 if (obj.count > 0) {
+                  (obj.ids || []).forEach(addCiteBase);   // validasi ref utk linkify streaming
                   const s = obj.ids.join(", ");
                   const mId = obj.more ? ` (+${obj.more} lagi)` : "";
                   const mEn = obj.more ? ` (+${obj.more} more)` : "";
@@ -2013,6 +2733,8 @@
                     const aname = (DK.authorLongName ? DK.authorLongName(p.author, p.source) : p.author) || "";
                     return "@" + p.mention + (aname ? " — " + aname : "") + (p.lang ? " (" + langLbl(p.lang) + ")" : "");
                   };
+                  (obj.data.mentions || []).forEach(addCiteBase);
+                  (obj.data.picks || []).forEach(p => addCiteBase(p.mention));
                   const ms = (Array.isArray(obj.data.picks) && obj.data.picks.length)
                     ? obj.data.picks.map(fmtPick).join(", ")
                     : obj.data.mentions.join(", ");
@@ -2023,6 +2745,7 @@
                   labEn = "Collection glossary: " + cs;
                   labId = "Glosari koleksi: " + cs;
                 } else if (obj.data.kind === "name_match") {
+                  (obj.data.names || []).forEach(addCiteBase);
                   const ns = obj.data.names.join(", ");
                   labEn = "Text name match: " + ns;
                   labId = "Kecocokan nama teks: " + ns;
@@ -2096,7 +2819,12 @@
               let hasFollowup = /\*\*Rekomendasi Pertanyaan Lanjutan:\*\*/i.test(displayAnswer) || /\*\*Recommended Follow-up Questions:\*\*/i.test(displayAnswer);
               displayAnswer = displayAnswer.replace(/\*\*(Rekomendasi Pertanyaan Lanjutan|Recommended Follow-up Questions):\*\*[\s\S]*/gi, "");
               const filtered = enforceTheravadaTerms(displayAnswer);
-              status.innerHTML = mdLite(filtered) + (hasFollowup ? loadingUI : "");
+              // Linkify rujukan SAAT streaming (progresif) — hanya base-id yg sudah tervalidasi
+              // dari step retrieval; klik ditangani delegasi di `log`. Render final tetap
+              // re-linkify dgn data hasil lengkap (renderBotAnswer).
+              const streamedHtml = linkifyCitations(mdLite(filtered),
+                base => streamCiteBases.has(base.toLowerCase()));
+              status.innerHTML = streamedHtml + (hasFollowup ? loadingUI : "");
               // Caret kedip "sedang mengetik" di akhir teks (selama belum nyiapin
               // followup). Disisip ke dalam blok terakhir biar inline di ujung kalimat.
               if (!hasFollowup) {
@@ -2131,18 +2859,45 @@
         status.classList.remove("chat-typing");
         status.innerHTML = "";
 
-        // Hanya tampilkan sutta yang BENAR-BENAR dikutip LLM (relevan). Cocokkan
-        // juga base-id ("SN 20.9" dari "SN 20.9:md1") karena LLM menulis id dasar.
-        // Tidak fallback ke seluruh hasil: kalau tak ada yang dikutip, jangan munculkan kartu.
+        // Hanya tampilkan sutta yang BENAR-BENAR dikutip LLM (relevan) di luar kotak "think".
+        // Cocokkan juga base-id ("SN 20.9" dari "SN 20.9:md1") karena LLM menulis id dasar.
+        const ansNoThink = ans.replace(/<think>[\s\S]*?<\/think>\n*/gi, "").replace(/<think>[\s\S]*$/gi, "");
         const finalResults = refineResults((final.results || []).filter(r => {
           if (r.mentioned) return true; // sutta yg di-mention user: selalu tampil
           if (!r.formatted_id) return false;
           const baseId = r.formatted_id.split(':')[0];
-          return ans.includes(r.formatted_id) || ans.includes(baseId);
+          return ansNoThink.includes(r.formatted_id) || ansNoThink.includes(baseId);
         }));
 
         renderBotAnswer(status, ans, finalResults);
 
+        // Tombol "Cari teks lain" hanya muncul jika memang ada topik yang bisa dieksplorasi
+        if (final && final.has_mention && final.total_results <= 2 && final.search_query) {
+          // Bersihkan referensi sutta untuk mendapatkan topik murni
+          const REF_RE = /@?\b(?:dn|mn|sn|an|kn|dhp|ud|iti|snp|vv|pv|thag|thig|bu-[a-z]+|bi-[a-z]+|pli-tv-[a-z-]+|ds|vb|dt|pp|kv|ya|patthana)\s*\d+(?:\.\d+)?(?:-\d+)?\b/gi;
+          const stripRefs = s => (s || "").replace(REF_RE, " ").replace(/\s+/g, " ").trim();
+          let topic = stripRefs(final.search_query) || stripRefs(final.query);
+
+          // Hanya buat tombol jika topik tidak kosong
+          if (topic) {
+            const broadBtn = document.createElement("button");
+            broadBtn.className = "btn-broad-search";
+            broadBtn.innerHTML = `<i data-lucide="search" style="width:14px;height:14px;margin-right:6px;"></i><span class="js-broad-label"></span>`;
+            setI18n(broadBtn.querySelector(".js-broad-label"), "Search other texts on this topic", "Cari teks lain tentang topik ini");
+            broadBtn.disabled = isGenerating;
+
+            broadBtn.addEventListener("click", () => {
+              if (isGenerating) return;
+              const searchMsg = isEN() ? `other texts about ${topic}` : `cari teks lain tentang ${topic}`;
+              setInputText(searchMsg);
+              input.style.height = "auto";
+              send();
+            });
+
+            bot.appendChild(broadBtn);
+            if (window.lucide) window.lucide.createIcons({ root: broadBtn });
+          }
+        }
         // Tandai step TERAKHIR (generate) selesai — kalau tidak, spinner-nya nyangkut
         // muter terus (step baru ditandai ✓ saat step berikutnya muncul, tapi generate
         // tak punya penerus).
@@ -2225,7 +2980,7 @@
         userStopped = false;
         setSendMode(false);   // item 7: tombol kembali ke Kirim
         bot.classList.remove("is-generating");  // matikan gradient border shimmer
-        document.querySelectorAll(".chat-followup-chip").forEach(c => c.disabled = false);
+        document.querySelectorAll(".chat-followup-chip, .btn-broad-search").forEach(c => c.disabled = false);
       }
     }
 
@@ -2281,10 +3036,18 @@
       const finishFocus = () => {
         if (window.innerWidth > 768) {
           input.focus();
-          input.setSelectionRange(input.value.length, input.value.length);
+          // Letakkan kursor di akhir
+          const sel = window.getSelection();
+          const range = document.createRange();
+          if (input.lastChild) {
+            range.setStartAfter(input.lastChild);
+          } else {
+            range.setStart(input, 0);
+          }
+          range.collapse(true);
+          sel.removeAllRanges();
+          sel.addRange(range);
         }
-        // Update tombol kirim: .value diset programmatic (bukan user ketik) jadi event
-        // `input` tidak terpicu → panggil setSendMode manual supaya ikon ↑ tampil.
         setSendMode(false);
         const wrap = container.querySelector(".chat-input-wrap");
         if (wrap) {
@@ -2299,18 +3062,18 @@
       const sizeAndSync = () => {
         input.style.height = "auto";
         input.style.height = Math.min(input.scrollHeight, 140) + "px";
-        syncBackdrop();
       };
-      if (prefersReduced()) { input.value = text; sizeAndSync(); finishFocus(); return; }
-      input.value = "";
+      if (prefersReduced()) { setInputText(text); sizeAndSync(); finishFocus(); return; }
+      clearInput();
       let i = 0;
       (function step() {
-        input.value = text.slice(0, ++i);
+        setInputText(text.slice(0, ++i));
         sizeAndSync();
         if (i < text.length) setTimeout(step, speed);
         else finishFocus();
       })();
     }
+
 
     if (prefillInput) {
       // Selalu mulai room baru biar konteks bersih (kecuali room skrg msh kosong). Hanya
@@ -2318,16 +3081,20 @@
       if (history.length > 0) createNewSession(true, true, true);
       typeIntoInput(prefillInput);
 
-      const chatInputWrap = root.querySelector(".chat-input-wrap");
+      const chatInputWrap = container.querySelector(".chat-input-wrap");
       if (chatInputWrap) {
         chatInputWrap.classList.remove("prefill-pulse");
         void chatInputWrap.offsetWidth; // trigger reflow
         chatInputWrap.classList.add("prefill-pulse");
       }
-      if (btnSend) {
-        btnSend.classList.remove("prefill-pulse");
-        void btnSend.offsetWidth;
-        btnSend.classList.add("prefill-pulse");
+      if (sendBtn) {
+        sendBtn.classList.remove("prefill-pulse");
+        void sendBtn.offsetWidth;
+        sendBtn.classList.add("prefill-pulse");
+      }
+    } else {
+      if (window.innerWidth > 768) {
+        setTimeout(() => input.focus(), 100);
       }
     }
 

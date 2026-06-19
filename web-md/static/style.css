@@ -1432,6 +1432,7 @@ a:hover {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+  flex-wrap: wrap;
   margin-bottom: 10px;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--border);
@@ -1514,9 +1515,51 @@ a:hover {
   align-items: center;
   flex-wrap: wrap;
   gap: 4px 12px;
-  margin-bottom: 6px;
+  margin-top: -12px;
+  margin-left: -12px;
+  margin-right: -12px;
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  background-color: var(--bg-hover, rgba(0,0,0,0.02));
+  border-bottom: 1px solid var(--border-color);
+  border-radius: 8px 8px 0 0;
   font-size: .75rem;
   color: var(--text-muted);
+}
+
+.frag-backlinks-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: auto;
+  margin-right: 80px;
+  background-color: var(--bg-card, #fff);
+  border: 1px solid var(--border-color);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  color: var(--text-color);
+}
+
+.frag-backlinks-badge span {
+  margin-right: 4px;
+}
+
+.frag-backlinks-icon {
+  width: 12px;
+  height: 12px;
+  margin-right: 4px;
+}
+
+.frag-backlinks-badge a {
+  cursor: pointer;
+  margin-left: 4px;
+  color: var(--accent, #f97316);
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+.frag-backlinks-badge a:hover {
+  text-decoration: none;
 }
 
 .fragment-ref,
@@ -6093,6 +6136,31 @@ html.show-seg-ref .rs-ex-sup {
 .dk-dlg-btn.cancel {
   background: var(--bg-tertiary);
   color: var(--text-secondary);
+  margin-right: auto;
+  /* Dorong tombol Batal ke ujung KIRI; tombol konfirmasi tetap di kanan. */
+}
+
+/* Hint "↵ Enter" kecil di dalam tombol konfirmasi (Enter = konfirmasi). */
+.dk-dlg-kbd {
+  display: inline-block;
+  margin-left: 7px;
+  padding: 1px 6px;
+  border-radius: 5px;
+  font-size: .72em;
+  font-weight: 600;
+  line-height: 1.4;
+  background: rgba(0, 0, 0, .18);
+  border: 1px solid rgba(0, 0, 0, .12);
+  opacity: .85;
+}
+
+/* Hint Enter HANYA utk perangkat berkeyboard fisik (desktop). Sentuh/mobile tak bisa
+   Enter -> sembunyikan ikonnya (logika Enter tak berdampak di sana, jadi aman). */
+@media (hover: none),
+(pointer: coarse) {
+  .dk-dlg-kbd {
+    display: none;
+  }
 }
 
 .dk-dlg-btn.cancel:hover {
@@ -6568,9 +6636,10 @@ html.show-seg-ref .rs-ex-sup {
   bottom: 24px;
   left: 50%;
   transform: translateX(-50%) translateY(16px);
-  background: var(--bg-card);
-  color: var(--text-primary);
-  border: 1px solid var(--border-strong);
+  /* Seragam dgn header ref viewer mobile (tint --ai-color) biar tak nyaru dgn bg. */
+  background: color-mix(in srgb, var(--ai-color) 12%, var(--bg-primary));
+  color: var(--ai-color);
+  border: 1px solid color-mix(in srgb, var(--ai-color) 35%, var(--border-color));
   border-radius: var(--radius-md);
   padding: 10px 18px;
   font-size: .82rem;
@@ -6578,7 +6647,7 @@ html.show-seg-ref .rs-ex-sup {
   opacity: 0;
   pointer-events: none;
   transition: opacity .2s ease, transform .2s ease;
-  z-index: 9999;
+  z-index: 10001;
   max-width: 90vw;
   text-align: center;
   box-shadow: var(--shadow-lg);
@@ -6686,6 +6755,14 @@ body.page-chat #app-header {
   border-color: var(--accent);
   color: var(--accent);
   transform: translateY(-1px);
+}
+
+/* Tombol "new" (icon) nyala aktif pas lagi di room kosong/baru — selaras dgn
+   .chat-new-btn.active di sidebar. */
+.chat-header-btn.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-subtle);
 }
 
 .chat-header-btn i {
@@ -6818,23 +6895,21 @@ body.page-chat #app-footer {
   inset: -1.5px;
   border-radius: inherit;
   padding: 1.5px;
-  background: conic-gradient(
-    from var(--gen-angle, 0deg),
-    transparent 0%,
-    #c89bff 10%,
-    #a255ff 25%,
-    #7c3aed 40%,
-    transparent 50%,
-    transparent 100%
-  );
+  background: conic-gradient(from var(--gen-angle, 0deg),
+      transparent 0%,
+      #c89bff 10%,
+      #a255ff 25%,
+      #7c3aed 40%,
+      transparent 50%,
+      transparent 100%);
   -webkit-mask:
     linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
-          mask:
+  mask:
     linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
-          mask-composite: exclude;
+  mask-composite: exclude;
   animation: gen-border-spin 2.4s linear infinite;
   pointer-events: none;
   z-index: -1;
@@ -6849,14 +6924,16 @@ body.page-chat #app-footer {
   border-radius: inherit;
   background: transparent;
   box-shadow: 0 0 12px 2px rgba(162, 85, 255, 0.18),
-              0 0 4px 1px rgba(124, 58, 237, 0.12);
+    0 0 4px 1px rgba(124, 58, 237, 0.12);
   pointer-events: none;
   z-index: -1;
   animation: gen-glow-pulse 2s ease-in-out infinite alternate;
 }
 
 @keyframes gen-border-spin {
-  to { --gen-angle: 360deg; }
+  to {
+    --gen-angle: 360deg;
+  }
 }
 
 /* Daftarkan custom property supaya bisa di-animasi (CSS Houdini @property) */
@@ -6867,27 +6944,30 @@ body.page-chat #app-footer {
 }
 
 @keyframes gen-glow-pulse {
-  from { opacity: 0.5; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0.5;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 /* Light theme: turunkan intensitas glow */
 [data-theme="light"] .chat-msg-bot.is-generating::before {
   opacity: 0.7;
-  background: conic-gradient(
-    from var(--gen-angle, 0deg),
-    transparent 0%,
-    #a855f7 10%,
-    #7c3aed 25%,
-    #6d28d9 40%,
-    transparent 50%,
-    transparent 100%
-  );
+  background: conic-gradient(from var(--gen-angle, 0deg),
+      transparent 0%,
+      #a855f7 10%,
+      #7c3aed 25%,
+      #6d28d9 40%,
+      transparent 50%,
+      transparent 100%);
 }
 
 [data-theme="light"] .chat-msg-bot.is-generating::after {
   box-shadow: 0 0 10px 2px rgba(124, 58, 237, 0.14),
-              0 0 3px 1px rgba(109, 40, 217, 0.10);
+    0 0 3px 1px rgba(109, 40, 217, 0.10);
 }
 
 /* Reduced motion: glow statik (tanpa rotasi), masih indah tapi diam */
@@ -6897,6 +6977,7 @@ body.page-chat #app-footer {
     background: linear-gradient(135deg, #c89bff, #a255ff, #7c3aed) border-box;
     opacity: 0.5;
   }
+
   .chat-msg-bot.is-generating::after {
     animation: none;
     opacity: 0.7;
@@ -6951,6 +7032,7 @@ body.page-chat #app-footer {
 }
 
 .chat-citations {
+  position: relative;
   margin-top: 14px;
   padding-top: 10px;
   border-top: 1px dashed var(--border-strong);
@@ -6967,6 +7049,49 @@ body.page-chat #app-footer {
 .chat-cite-fallback {
   padding: 4px 0;
   font-size: .9rem;
+}
+
+.chat-citations-list {
+  position: relative;
+  max-height: 4000px;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.chat-citations-list.collapsed-cites {
+  max-height: 100px;
+}
+.cites-fade-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: linear-gradient(to bottom, transparent, var(--bg-card));
+  pointer-events: none;
+  z-index: 1;
+  opacity: 1;
+  transition: opacity 0.3s ease-in-out;
+}
+.btn-expand-cites {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 4px;
+  padding: 8px;
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  position: relative;
+  z-index: 2;
+  transition: opacity var(--transition);
+}
+.btn-expand-cites:hover {
+  opacity: 0.8;
 }
 
 .chat-followups-container {
@@ -7012,6 +7137,38 @@ body.page-chat #app-footer {
   opacity: 0.5;
   cursor: not-allowed;
   pointer-events: none;
+}
+
+/* Tombol "Cari sutta lain tentang topik ini" — muncul setelah jawaban fokus ke mention */
+.btn-broad-search {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 12px;
+  padding: 6px 14px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-strong);
+  border-radius: 16px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  transition: all var(--transition);
+}
+
+.btn-broad-search:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn-broad-search:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Di dalam bubble bot, pastikan margin bawah konsisten */
+.chat-msg-bot .btn-broad-search {
+  margin-bottom: 8px;
 }
 
 /* Poin 4: picker terjemahan @mention (dirender sbg chat bubble). */
@@ -7063,6 +7220,10 @@ body.page-chat #app-footer {
   flex-shrink: 0;
 }
 
+.chat-trans-opt-text {
+  flex-grow: 1;
+}
+
 .chat-trans-lang {
   color: var(--text-muted);
   font-size: 0.8rem;
@@ -7084,6 +7245,8 @@ body.page-chat #app-footer {
   font-size: 0.85rem;
   padding: 6px 10px;
   border-radius: 8px;
+  margin-right: auto;
+  /* Dorong Batal ke ujung KIRI; tombol Lanjut tetap di kanan. */
 }
 
 .chat-trans-cancel:hover {
@@ -7159,6 +7322,7 @@ body.page-chat #app-footer {
 }
 
 .chat-input-inner {
+  overflow: hidden;
   flex: 1;
   position: relative;
   display: flex;
@@ -7166,9 +7330,9 @@ body.page-chat #app-footer {
   /* aligns text center with button center */
 }
 
+
 .chat-input {
   flex: 1;
-  resize: none;
   padding: 0 12px 0 0;
   border-radius: 0;
   border: none;
@@ -7179,56 +7343,35 @@ body.page-chat #app-footer {
   font-size: .95rem;
   line-height: 1.5;
   max-height: 140px;
-  position: relative;
-  z-index: 1;
   overflow-y: auto;
-}
-
-/* Sembunyikan teks asli HANYA saat overlay backdrop aktif (di-set JS) -> yg terlihat backdrop */
-.chat-input-wrap.mention-overlay .chat-input {
-  color: transparent;
-}
-
-.chat-input::placeholder {
-  color: var(--text-muted);
-}
-
-.chat-input-backdrop {
-  position: absolute;
-  inset: 0;
-  margin: 0;
-  padding: 0 12px 0 0;
-  border: none;
-  font-family: inherit;
-  font-size: .95rem;
-  line-height: 1.5;
-  white-space: pre-wrap;
-  overflow-wrap: break-word;
   word-break: break-word;
-  overflow: hidden;
-  color: var(--text-primary);
-  pointer-events: none;
-  z-index: 0;
+  white-space: pre-wrap;
+  outline: none;
 }
 
-.chat-input-mark {
+/* Placeholder via data attribute */
+.chat-input:empty::before {
+  content: attr(data-placeholder);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+/* Mention chip di dalam input */
+.chat-input .chat-mention-chip {
+  display: inline;
   border-radius: 4px;
   background: color-mix(in srgb, var(--accent) 22%, transparent);
   color: var(--accent);
-  /* JANGAN ubah berat/lebar glyph: backdrop harus PERSIS selebar teks textarea transparan
-     di atasnya, kalau tidak teks sesudah mention geser/wrap beda -> tampak "dobel"/berbayang. */
   font-weight: inherit;
+  padding: 1px 2px;
+  cursor: default;
 }
 
-/* Mention ke sutta yg tak ada di korpus -> non-aktif (abu, dicoret) */
-.chat-input-mark-inactive {
+/* Mention ke sutta yg tak ada di korpus -> non-aktif */
+.chat-input .chat-mention-chip-inactive {
   background: color-mix(in srgb, var(--text-muted) 18%, transparent);
   color: var(--text-muted);
   text-decoration: line-through;
-}
-
-.chat-input:focus {
-  outline: none;
 }
 
 .chat-send {
@@ -7324,13 +7467,60 @@ body.page-chat #app-footer {
   margin-bottom: 0;
 }
 
+/* BLOCKQUOTE UNTUK KUTIPAN SUTTA DI JAWABAN AI */
+.chat-answer blockquote {
+  border-left: 3px solid var(--ai-color, #7c3aed);
+  /* Garis ungu di kiri */
+  margin: 0.75em 0;
+  padding: 0.5em 1em;
+  background: var(--bg-hover, rgba(124, 58, 237, 0.05));
+  /* Latar belakang transparan */
+  font-style: italic;
+  border-radius: 0 6px 6px 0;
+  /* Sudut membulat di kanan */
+}
+
+.chat-answer blockquote p {
+  margin: 0;
+  white-space: pre-wrap;
+  /* Menjaga baris baru dari AI */
+}
+
+/* Tabel GFM dari jawaban AI (mdLite -> <table class="chat-table">). */
+.chat-answer table.chat-table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.75em 0;
+  font-size: 0.92em;
+  display: block;
+  overflow-x: auto;
+  /* Scroll horizontal di layar sempit, bukan jebol layout */
+}
+
+.chat-answer table.chat-table th,
+.chat-answer table.chat-table td {
+  border: 1px solid var(--border, rgba(124, 58, 237, 0.2));
+  padding: 0.45em 0.7em;
+  text-align: left;
+  vertical-align: top;
+}
+
+.chat-answer table.chat-table th {
+  background: var(--bg-hover, rgba(124, 58, 237, 0.07));
+  font-weight: 700;
+}
+
+.chat-answer table.chat-table tr:nth-child(even) td {
+  background: var(--bg-hover, rgba(124, 58, 237, 0.03));
+}
+
 .chat-answer h1,
 .chat-answer h2,
 .chat-answer h3,
 .chat-answer h4,
 .chat-answer h5,
 .chat-answer h6 {
-  font-variant: small-caps;
+  font-variant: normal;
   font-size: 1.1em;
   color: var(--text-secondary, var(--text-primary));
   font-weight: 700;
@@ -7377,43 +7567,52 @@ body.page-chat #app-footer {
   opacity: 1;
 }
 
-/* Inline Citation Chips */
+/* Inline Citation Wikipedia Style */
 .chat-inline-cite {
-  display: inline-flex;
-  align-items: center;
-  background: var(--bg-tertiary);
-  border: 1px solid color-mix(in srgb, var(--ai-color) 40%, var(--border-strong));
-  color: var(--ai-color);
-  padding: 1px 6px;
-  border-radius: 6px;
-  font-size: 0.85em;
+  /* Superscript gaya sujato: "[MN 51]:md2" kecil terangkat. */
+  display: inline-block;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0 1px;
   font-family: inherit;
+  font-size: 0.72em;
+  font-weight: 700;
+  vertical-align: super;
+  line-height: 1;
+  color: var(--purple, #a855f7);
   cursor: pointer;
-  margin: 0 3px;
-  vertical-align: baseline;
-  transition: all 0.15s ease;
+  white-space: nowrap;
+  text-decoration: none;
+  text-underline-offset: 2px;
+  transition: color 0.15s ease;
+  /* Long-press (mobile) buat munculin tooltip — jangan ke-select teks / muncul callout. */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .chat-inline-cite:hover {
-  background: color-mix(in srgb, var(--ai-color) 12%, transparent);
-  border-color: var(--ai-color);
-  color: var(--ai-color);
+  background: transparent;
+  border: none;
+  color: var(--ai-color-hover, #7b1fa2);
+  text-decoration: underline;
 }
 
 .sutta-card.flash-highlight,
-.chat-cite-fallback.flash-highlight {
+.chat-cite-fallback.flash-highlight,
+.fragment.flash-highlight {
   animation: flash-bg 1.5s ease-out;
 }
 
 @keyframes flash-bg {
   0% {
     background-color: color-mix(in srgb, var(--ai-color) 12%, transparent);
-    box-shadow: 0 0 0 2px var(--ai-color);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--ai-color) 12%, transparent);
   }
-
   100% {
     background-color: transparent;
-    box-shadow: none;
+    box-shadow: 0 0 0 0 transparent;
   }
 }
 
@@ -7991,7 +8190,8 @@ details.chat-steps-spoiler[open] summary .spoiler-arrow {
   position: absolute;
   bottom: 100%;
   left: 0;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
+  padding: 4px 0;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
@@ -8010,7 +8210,7 @@ details.chat-steps-spoiler[open] summary .spoiler-arrow {
 }
 
 .chat-mention-item {
-  padding: 8px 12px;
+  padding: 6px 12px;
   cursor: pointer;
   display: flex;
   justify-content: space-between;
@@ -8065,3 +8265,204 @@ details.chat-steps-spoiler[open] summary .spoiler-arrow {
   color: rgba(255, 255, 255, 0.6);
   text-decoration: line-through;
 }
+
+@keyframes highlightPulse {
+  0% { background-color: transparent; transform: scale(1); box-shadow: 0 0 0 0 transparent; color: var(--purple, #a855f7); }
+  15% { background-color: #fef08a; transform: scale(1.5); box-shadow: 0 0 0 4px #fef08a; color: #000; border-radius: 4px; }
+  85% { background-color: #fef08a; transform: scale(1.5); box-shadow: 0 0 0 4px #fef08a; color: #000; border-radius: 4px; }
+  100% { background-color: transparent; transform: scale(1); box-shadow: 0 0 0 0 transparent; color: var(--purple, #a855f7); }
+}
+
+.highlight-pulse {
+  animation: highlightPulse 2s ease-out;
+}
+
+.cite-tooltip {
+  position: fixed;
+  z-index: 10000;
+  max-width: 340px;
+  padding: 6px 12px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  font-size: .8rem;
+  line-height: 1.5;
+  color: var(--text-primary);
+  pointer-events: none;
+  opacity: 0;
+  display: none;
+  transition: opacity 0.2s ease;
+}
+
+.cite-tooltip::before, .cite-tooltip::after {
+  content: "";
+  position: absolute;
+  left: var(--cite-arrow-left, 50%);
+  transform: translateX(-50%);
+  border-style: solid;
+}
+
+.cite-tooltip::before { border-width: 7px; }
+.cite-tooltip::after { border-width: 6px; }
+
+.cite-tooltip.cite-tooltip-top::before {
+  top: 100%;
+  border-color: var(--border-strong) transparent transparent transparent;
+}
+.cite-tooltip.cite-tooltip-top::after {
+  top: 100%;
+  border-color: var(--bg-primary) transparent transparent transparent;
+}
+
+.cite-tooltip.cite-tooltip-bottom::before {
+  bottom: 100%;
+  border-color: transparent transparent var(--border-strong) transparent;
+}
+.cite-tooltip.cite-tooltip-bottom::after {
+  bottom: 100%;
+  border-color: transparent transparent var(--bg-primary) transparent;
+}
+
+/* Sorot kartu/segmen rujukan saat tombol [n] diklik (dulu outline inline-style).
+   Default offset di LUAR box (cocok utk segmen yg punya padding). Varian -card pakai
+   offset NEGATIF (di dalam box) supaya tak ke-clip overflow:hidden .chat-citations-list
+   -> outline kartu utuh akhirnya tampil di desktop, bukan cuma di popup mobile. */
+.cite-flash {
+  outline: 2px solid var(--ai-color);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.cite-flash-card {
+  outline-offset: -2px;
+}
+
+/* Anchor backlink "Dirujuk: a b c" (dulu a.style.* inline). Selector ke-2 menang
+   atas `.frag-backlinks-badge a` (yg warnanya accent) supaya badge header & frag seragam. */
+.cite-backlink,
+.frag-backlinks-badge a.cite-backlink {
+  cursor: pointer;
+  margin-left: 4px;
+  color: var(--purple, #a855f7);
+  font-weight: bold;
+  text-decoration: underline;
+}
+.cite-backlink:hover { text-decoration: none; }
+
+/* Baris "Dirujuk: a b c" dipaksa ke baris baru (dulu style.flexBasis/marginTop inline). */
+.cite-backlinks-row {
+  flex-basis: 100%;
+  margin-top: 4px;
+}
+/* Varian backlink yg "membajak" .fragment-score (skor disembunyikan, jadi baris Dirujuk). */
+.fragment-score.hijacked {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+/* Redupkan ikon + label "Dirujuk:" saja — anchor tetap ungu pekat. */
+.fragment-score.hijacked > span,
+.fragment-score.hijacked > .frag-backlinks-icon {
+  opacity: 0.7;
+}
+
+/* ── Popup rujukan mobile (bottom-sheet). Dulu seluruhnya di-style via Object.assign
+   inline di chat.js; sekarang kartu ASLI dipindah ke sini (listener +Catatan/backlink
+   tetap hidup), lalu dibalikin saat ditutup. ── */
+.mobile-ref-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9998;
+  opacity: 0;
+  display: none;
+  transition: opacity 0.3s ease-out;
+}
+.mobile-ref-overlay.show { opacity: 1; }
+.mobile-ref-popup {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--bg-primary, #fff);
+  border-top: 1px solid var(--border-color);
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 9999;
+  max-height: 75vh;
+  display: none;
+  flex-direction: column;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  transform: translateY(100%);
+  transition: transform 0.3s ease-out;
+}
+.mobile-ref-popup.show { transform: translateY(0); }
+.mobile-ref-popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid color-mix(in srgb, var(--ai-color) 35%, var(--border-color));
+  color: var(--ai-color);
+  background: color-mix(in srgb, var(--ai-color) 12%, var(--bg-primary));
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+}
+/* Ikon book-open ikut warna aksen (var --ai-color kontras di kedua tema). */
+.mobile-ref-popup-header svg,
+.mobile-ref-popup-header i { color: var(--ai-color); }
+/* Judul dua baris: id sutta (kicker, aksen) di atas, nama sutta (judul) di bawah. */
+.mobile-ref-popup-titlewrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+.mobile-ref-popup-titlecol {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+.mobile-ref-popup-kicker {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--ai-color);
+  /* JANGAN uppercase — id udah bener casing-nya (Snp/Ud/Iti dst); cuma DN/MN/SN/AN yg full kapital. */
+}
+.mobile-ref-popup-kicker:empty { display: none; }
+.mobile-ref-popup-title {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text-primary);
+  /* Nama panjang: wrap maks 2 baris lalu ellipsis (ga ke-potong mati 1 baris). */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.mobile-ref-popup-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 8px;
+  transition: background var(--transition), color var(--transition);
+}
+.mobile-ref-popup-close:hover {
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--ai-color) 14%, transparent);
+}
+.mobile-ref-popup-content {
+  padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+}
+.mobile-ref-popup-content .sutta-card { margin-bottom: 0; }
