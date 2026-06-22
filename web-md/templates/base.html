@@ -268,6 +268,34 @@
             </div>
             <div id="sutta-dialog-content" class="hidden"></div>
         </div>
+        
+        <div class="reader-fab-group dlg-fab-group">
+            <button id="dlg-sutta-scroll-top" class="toc-fab hidden" data-i18n-title="btn_scroll_top" title="Gulir ke Atas"
+                onclick="document.querySelector('#sutta-dialog .sutta-dialog-body').scrollTo({top:0,behavior:'smooth'})">
+                <i data-lucide="arrow-up"></i>
+            </button>
+            <div id="dlg-seg-fab" class="toc-fab hidden" data-i18n-title="seg_list_title" title="Daftar Segmen">
+                <i data-lucide="hash"></i>
+            </div>
+            <div id="dlg-toc-fab" class="toc-fab hidden" data-i18n-title="toc_title" title="Daftar Isi">
+                <i data-lucide="list"></i>
+            </div>
+        </div>
+        
+        <div id="dlg-seg-panel" class="toc-panel hidden">
+            <div class="toc-panel-header">
+                <span class="toc-panel-title" data-i18n="seg_list_title">Daftar Segmen</span>
+                <button id="dlg-seg-close" class="icon-btn"><i data-lucide="x"></i></button>
+            </div>
+            <div id="dlg-seg-list" class="toc-list"></div>
+        </div>
+        <div id="dlg-toc-panel" class="toc-panel hidden">
+            <div class="toc-panel-header">
+                <span class="toc-panel-title" data-i18n="toc_title">Daftar Isi</span>
+                <button id="dlg-toc-close" class="icon-btn"><i data-lucide="x"></i></button>
+            </div>
+            <div id="dlg-toc-list" class="toc-list"></div>
+        </div>
     </dialog>
 
     <!-- ==================== READER SETTINGS DIALOG ==================== -->

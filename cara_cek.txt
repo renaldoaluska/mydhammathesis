@@ -12,6 +12,21 @@ Kalau habis merubah kode (misal app.py) atau config, WAJIB direstart.
 - Web Eval:       systemctl --user restart mydhamma-eval
 - Tunnel CF:      systemctl --user restart cloudflared
 
+>> GRACEFUL RELOAD (tanpa downtime) — kapan boleh, kapan TIDAK:
+   - Ngedit prompts.json saja  -> TIDAK perlu restart sama sekali.
+     get_prompts() di app.py auto-reload via cek mtime tiap request.
+   - Ngedit KODE app.py        -> WAJIB restart penuh (perintah di atas).
+     JANGAN andalkan "kill -HUP" / "systemctl reload": karena gunicorn
+     pakai flag --preload, app sudah di-import master SEBELUM fork, jadi
+     HUP cuma fork ulang worker dari memori LAMA -> perubahan app.py TIDAK
+     kebaca. Satu-satunya cara kode app.py kepakai = restart penuh.
+   - Mau zero-downtime betulan utk kode? Hot-upgrade master gunicorn:
+       kill -USR2 <PID_MASTER>     # spawn master+worker baru di samping
+       kill -WINCH <PID_MASTER>    # matikan worker master lama (graceful)
+       kill -TERM  <PID_MASTER>    # matikan master lama setelah yakin OK
+     (PID master = `systemctl --user show -p MainPID mydhamma-web`)
+     Tapi utk dev biasa, `systemctl --user restart` jauh lebih simpel.
+
 Cek Status (Hijau = Aman, Merah = Mati/Error):
 - systemctl --user status mydhamma-web
 - systemctl --user status mydhamma-eval

@@ -10,6 +10,7 @@
   const i18n = {
     id: {
       confirm_delete: "Hapus catatan ini?",
+      confirm_delete_block: "Hapus blok catatan ini?",
       dlg_btn_ok: "OK",
       dlg_btn_cancel: "Batal",
       dlg_btn_continue: "Lanjutkan",
@@ -55,10 +56,11 @@
       btn_config_short: "Konfig Mesin",
       btn_reset: "Reset",
       btn_open_link: "Buka",
-      btn_open_blurb: "Hlm. Teks",
+      btn_open_blurb: "Buka",
       legend_title: '<span class="hide-mobile">Keterangan Simbol</span><span class="show-mobile">Ket. Simbol</span>',
       legend_segment: "Segmen Teks",
       legend_blurb: "Sinopsis",
+      legend_lang: "Bahasa",
       legend_author: "Penerjemah",
       legend_similarity: "Kemiripan Makna",
       legend_count: "Kecocokan Kata Kunci",
@@ -107,9 +109,14 @@
       btn_send: "Kirim",
       history_divider: "Riwayat",
       btn_new_chat: "Obrolan Baru",
+      note_poni_ai: "myDhamma AI",
+      note_poni_free: "Catatan bebas",
+      note_poni_quote: "Kutipan ayat",
+      sutta_md_notice: "<b>Catatan ID Segmen:</b> Teks ini menggunakan sistem penomoran paragraf internal myDhamma (ID berawalan \"md\") dikarenakan naskah sumber belum memiliki format penomoran standar.",
     },
     en: {
       confirm_delete: "Delete this note?",
+      confirm_delete_block: "Delete this note block?",
       dlg_btn_ok: "OK",
       dlg_btn_cancel: "Cancel",
       dlg_btn_continue: "Continue",
@@ -156,10 +163,11 @@
       btn_config_short: "Machine Config",
       btn_reset: "Reset",
       btn_open_link: "Open",
-      btn_open_blurb: "View Text",
+      btn_open_blurb: "Open",
       legend_title: "Legend",
       legend_segment: "Text Segment",
       legend_blurb: "Summary",
+      legend_lang: "Language",
       legend_author: "Translator",
       legend_similarity: "Semantic Match",
       legend_count: "Match Count",
@@ -207,6 +215,10 @@
       btn_send: "Send",
       history_divider: "History",
       btn_new_chat: "New Chat",
+      note_poni_ai: "myDhamma AI",
+      note_poni_free: "Custom note",
+      note_poni_quote: "Verse citation",
+      sutta_md_notice: "<b>Segment ID Note:</b> This text uses myDhamma's internal paragraph numbering system (IDs starting with \"md\") because the source manuscript lacks a standard numbering format.",
     },
   };
 
@@ -458,7 +470,7 @@
     const suttaId = data.sutta_id || "";
     const shortId = toShortId(suttaId);
     const isBlurb = data.author === "blurb";
-    const eyeIcon = `<i data-lucide="${isBlurb ? 'maximize-2' : 'book-open'}"></i>`;
+    const eyeIcon = `<i data-lucide="${isBlurb ? 'book' : 'book-open'}"></i>`;
 
     // pli first, then id, en, then any other langs
     const order = ["pli", "id", "en"];
@@ -471,7 +483,12 @@
       if (isBlurb) {
         url = `/${shortId}`;
       } else {
-        url = baseLink && firstRef ? `${baseLink}#${firstRef}` : baseLink;
+        // Pakai author yg DISIMPAN di blok (translator yg di-+Catatan), bukan author default
+        // dari available_links -> klik buka dialog viewer versi terjemahan + segmen yg sesuai.
+        const a = data.author && data.author !== "blurb" ? data.author : "";
+        url = (shortId && a)
+          ? `/${shortId}/${l}/${encodeURIComponent(a)}${firstRef ? "#" + firstRef : ""}`
+          : (baseLink && firstRef ? `${baseLink}#${firstRef}` : baseLink);
       }
       const title = `Buka di Dhammakathika (${l.toUpperCase()})`;
       const key = isBlurb ? "btn_open_blurb" : "btn_open_link";
@@ -481,6 +498,43 @@
         : `<span class="lang-tag ${l}">${eyeIcon} <span style="margin-left:2px;" data-i18n="${key}">${t(key)}</span></span>`} ${bodyHtml}</div>`;
     }
     return html;
+  }
+
+  // Linkify token rujukan ("MN 10:1.5", "Bu-Pj 1") di teks jawaban AI -> tombol "Buka" yg
+  // membuka DIALOG sutta viewer (bukan navigasi halaman teks). Hanya base-id yg BENAR-BENAR
+  // dikutip (ada di `refs`) jadi link; sisanya teks polos. `plain` di-esc dulu (aman HTML).
+  // Klik di-handle di createNoteBlockEl (data-sid -> openSuttaDialog).
+  function linkifyNoteRefs(plain, refs) {
+    const safe = esc(plain || "");
+    if (!refs || !refs.length) return safe;
+    const byId = {};
+    const byIdSeg = {};
+    refs.forEach(r => { 
+      if (r && r.id && r.sid) {
+        const normId = r.id.replace(/\s+/g, "").toLowerCase();
+        byId[normId] = r; 
+        if (r.seg) {
+          byIdSeg[normId + ":" + r.seg.replace(/[.,;]+$/, "")] = r;
+        }
+      } 
+    });
+    const re = /([A-Za-z]+(?:-[A-Za-z]+)?\s+\d+(?:\.\d+)*(?:-\d+)?)(?::([a-zA-Z0-9.\-]+))?/g;
+    const openLabel = getLang() === "en" ? "Open" : "Buka";
+    return safe.replace(re, (match, book, seg) => {
+      const normId = book.replace(/\s+/g, "").toLowerCase();
+      const cleanSeg = seg ? seg.replace(/[.,;]+$/, "") : "";
+      
+      let r = null;
+      if (cleanSeg && byIdSeg[normId + ":" + cleanSeg]) {
+        r = byIdSeg[normId + ":" + cleanSeg];
+      } else {
+        r = byId[normId];
+      }
+      
+      if (!r) return match;
+      // Segmen (mis. "1.5" / "md2") dipakai sbg hash -> dialog scroll ke segmennya.
+      return `<a role="button" tabindex="0" class="note-cite" data-sid="${esc(r.sid)}" data-author="${esc(r.author || "")}" data-seg="${esc(cleanSeg)}" data-lang="${esc(r.lang || "")}" title="${openLabel}">${match}</a>`;
+    });
   }
 
   // ========== Notes — Block Clipboard ==========
@@ -525,7 +579,11 @@
     delBtn.className = "block-del-btn";
     delBtn.textContent = "✕";
     delBtn.title = "Hapus blok";
-    delBtn.addEventListener("click", () => { wrapper.remove(); autoSave(); });
+    delBtn.addEventListener("click", async () => {
+      if (!await dkConfirm(t("confirm_delete_block"), { danger: true })) return;
+      wrapper.remove();
+      autoSave();
+    });
 
     const copyBtn = document.createElement("button");
     copyBtn.className = "block-move-btn";
@@ -555,10 +613,48 @@
       showToast(getLang() === "en" ? "Block copied to clipboard" : "Blok disalin ke clipboard");
     });
 
+    // "Poni" (bar atas) kiri: badge AI utk blok jawaban AI, atau nama+id (2 baris) utk blok
+    // sutta. Disisipkan sebelum tombol (margin-right:auto di CSS mendorong tombol ke kanan).
+    // Label poni pakai data-i18n -> ikut ke-update live saat ganti bahasa (applyCommonI18n).
+    let poniLabel = null;
+    if (block.type === "text" && block.source === "ai") {
+      wrapper.classList.add("note-block-ai");
+      poniLabel = document.createElement("div");
+      poniLabel.className = "note-poni-label note-poni-ai";
+      poniLabel.innerHTML = `<i data-lucide="sparkles"></i><span data-i18n="note_poni_ai">${t("note_poni_ai")}</span>`;
+    } else if (block.type === "text") {
+      poniLabel = document.createElement("div");
+      poniLabel.className = "note-poni-label note-poni-free";
+      poniLabel.innerHTML = `<i data-lucide="sticky-note"></i><span data-i18n="note_poni_free">${t("note_poni_free")}</span>`;
+    } else if (block.type === "sutta") {
+      // Kepala blok cukup label "Kutipan ayat"; id+nama sutta tampil di dalam (mini-header).
+      poniLabel = document.createElement("div");
+      poniLabel.className = "note-poni-label note-poni-quote";
+      poniLabel.innerHTML = `<i data-lucide="quote"></i><span data-i18n="note_poni_quote">${t("note_poni_quote")}</span>`;
+    }
+    if (poniLabel) actions.appendChild(poniLabel);
     actions.append(copyBtn, upBtn, downBtn, delBtn);
     wrapper.appendChild(actions);
 
-    if (block.type === "text") {
+    if (block.type === "text" && block.source === "ai") {
+      // Jawaban AI = read-only, dirender rapi (pre-wrap) + token rujukan jadi link "Buka".
+      const textEl = document.createElement("div");
+      textEl.className = "note-block-text note-block-ai-text";
+      textEl.contentEditable = "false";
+      textEl.innerHTML = linkifyNoteRefs(block.content || "", block.refs || []);
+      // Klik token rujukan -> buka DIALOG sutta viewer ("Buka"), bukan halaman teks.
+      textEl.querySelectorAll(".note-cite").forEach(a => {
+        const open = (e) => {
+          e.preventDefault();
+          const sid = a.dataset.sid;
+          const targetLang = a.dataset.lang || getLang();
+          if (sid) openSuttaDialog(sid, targetLang, a.dataset.author || "", a.dataset.seg || "");
+        };
+        a.addEventListener("click", open);
+        a.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") open(e); });
+      });
+      wrapper.appendChild(textEl);
+    } else if (block.type === "text") {
       const textEl = document.createElement("div");
       textEl.className = "note-block-text";
       textEl.contentEditable = "true";
@@ -572,7 +668,7 @@
       suttaEl.className = "note-block-sutta" + (isBlurb ? " note-block-blurb" : "");
       const noteName = d.sutta_name ? ` — ${esc(d.sutta_name)}` : "";
       const langs = Object.keys(d.texts || {}).map(k => langName(k)).join(", ");
-      const langHtml = langs ? `<span><i data-lucide="globe"></i> ${langs}</span>` : "";
+      const langHtml = langs ? `<span><i data-lucide="languages"></i> ${langs}</span>` : "";
       const authorHtml = (d.author && d.author !== "blurb") ? `<span><i data-lucide="user"></i> ${esc(authorLongName(d.author, d.source))}</span>` : "";
       suttaEl.innerHTML = `
         <div class="mini-header">
@@ -590,9 +686,13 @@
   function collectBlocksFromDOM() {
     const blocks = [];
     document.querySelectorAll("#note-blocks .note-block").forEach(el => {
+      const bd = el._blockData;
+      // Blok jawaban AI: read-only, simpan apa adanya (content+refs+source) dari _blockData
+      // supaya metadata tak hilang (DOM-nya HTML link, bukan teks editable).
+      if (bd && bd.type === "text" && bd.source === "ai") { blocks.push(bd); return; }
       const textEl = el.querySelector(".note-block-text");
       if (textEl) { blocks.push({ type: "text", content: textEl.textContent || "" }); return; }
-      if (el._blockData && el._blockData.type === "sutta") blocks.push(el._blockData);
+      if (bd && bd.type === "sutta") blocks.push(bd);
     });
     return blocks;
   }
@@ -980,34 +1080,73 @@
   }
 
   // ========== Download as PDF ==========
+  // Satu blok Catatan -> HTML cetak. Dipakai SEMUA jalur PDF (note aktif, single, bulk)
+  // biar konsisten; blok jawaban AI dapat label sumber spt di layar.
+  function noteBlockToPrintHtml(block) {
+    if (block.type === "text" && block.source === "ai") {
+      return `<div class="ai-block"><div class="block-label">✦ myDhamma AI</div><div class="text-block">${esc(block.content || "").replace(/\n/g, "<br>")}</div></div>`;
+    } else if (block.type === "text") {
+      return `<div class="text-block">${esc(block.content || "").replace(/\n/g, "<br>")}</div>`;
+    } else if (block.type === "sutta") {
+      const d = block.data || {};
+      const texts = d.texts || {};
+      // Baris 1: id + nama sutta (judul kuning). Baris 2 (baru): ref + penerjemah + bahasa.
+      // Teks per-bahasa TANPA label "ID:/EN:".
+      const langs = Object.keys(texts).map(l => langName(l)).join(", ");
+      const meta = [
+        d.ref_display || "",
+        d.author && d.author !== "blurb" ? authorLongName(d.author, d.source) : "",
+        langs
+      ].filter(Boolean).map(esc).join(" — ");
+      return `<div class="sutta-block">
+          <div class="sutta-ref"><strong>${esc(d.formatted_id || d.sutta_id || "")}${d.sutta_name ? " — " + esc(d.sutta_name) : ""}</strong></div>
+          ${meta ? `<div class="sutta-meta">${meta}</div>` : ""}
+          ${texts.id ? `<p>${esc(texts.id)}</p>` : ""}
+          ${texts.en ? `<p>${esc(texts.en)}</p>` : ""}
+          ${texts.pli ? `<p>${esc(texts.pli)}</p>` : ""}
+        </div>`;
+    }
+    return "";
+  }
+
+  // Baris tanggal dibuat/diedit utk header PDF (lokal sesuai bahasa aktif).
+  function noteDatesPrintHtml(note) {
+    const isEn = getLang() === "en";
+    const locale = isEn ? "en-GB" : "id-ID";
+    const fmt = { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" };
+    const c = note && note.created_at ? new Date(note.created_at).toLocaleString(locale, fmt) : "";
+    const u = note && note.updated_at ? new Date(note.updated_at).toLocaleString(locale, fmt) : "";
+    const parts = [];
+    if (c) parts.push(`${isEn ? "Created" : "Dibuat"}: ${esc(c)}`);
+    if (u && u !== c) parts.push(`${isEn ? "Edited" : "Diedit"}: ${esc(u)}`);
+    return parts.length ? `<div class="note-dates">${parts.join(" · ")}</div>` : "";
+  }
+
+  // CSS bersama buat semua HTML cetak Catatan (blok AI = ungu branding, ayat = oren accent).
+  const NOTE_PRINT_CSS = `
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  @page{margin:1.6cm}
+  body{font-family:serif;max-width:700px;margin:40px auto;color:#222;line-height:1.6}
+  h1{font-size:1.4em;border-bottom:1px solid #ccc;padding-bottom:8px;margin-bottom:6px}
+  .note-dates{font-size:.78em;color:#888;margin-bottom:24px}
+  .text-block{margin:12px 0}
+  .ai-block{margin:16px 0;border-left:3px solid #7c3aed;padding-left:12px}
+  .ai-block .block-label{font-size:.72em;color:#7c3aed;font-weight:700;margin-bottom:4px}
+  .ai-block .text-block{margin:0}
+  .sutta-block{background:#f9f6ef;padding:12px 16px;margin:16px 0;border-left:3px solid #e8a838}
+  .sutta-ref{font-size:.85em;color:#555;margin-bottom:2px}
+  .sutta-ref strong{color:#cf9412}
+  .sutta-meta{font-size:.78em;color:#777;margin-bottom:6px}
+  p{margin:4px 0}`;
+
   function downloadNotePdf() {
     if (!state.activeNote) return;
     const blocks = collectBlocksFromDOM();
     const title = esc(state.activeNote.title || "Catatan");
-    let body = "";
-    blocks.forEach(block => {
-      if (block.type === "text") {
-        body += `<div class="text-block">${esc(block.content || "").replace(/\n/g, "<br>")}</div>`;
-      } else if (block.type === "sutta") {
-        const d = block.data || {};
-        const texts = d.texts || {};
-        body += `<div class="sutta-block">
-          <div class="sutta-ref"><strong>${esc(d.formatted_id || d.sutta_id || "")}${d.sutta_name ? " — " + esc(d.sutta_name) : ""}</strong> — ${esc(d.ref_display || "")}${d.author && d.author !== "blurb" ? " — " + esc(authorLongName(d.author, d.source)) : ""}</div>
-          ${texts.id ? `<p><em>ID:</em> ${esc(texts.id)}</p>` : ""}
-          ${texts.en ? `<p><em>EN:</em> ${esc(texts.en)}</p>` : ""}
-          ${texts.pli ? `<p><em>PLI:</em> ${esc(texts.pli)}</p>` : ""}
-        </div>`;
-      }
-    });
+    const body = blocks.map(noteBlockToPrintHtml).join("");
     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${title}</title>
-<style>
-  body{font-family:serif;max-width:700px;margin:40px auto;color:#222;line-height:1.6}
-  h1{font-size:1.4em;border-bottom:1px solid #ccc;padding-bottom:8px;margin-bottom:24px}
-  .text-block{margin:12px 0}
-  .sutta-block{background:#f5f5f5;padding:12px 16px;margin:16px 0;border-left:3px solid #888}
-  .sutta-ref{font-size:.85em;color:#555;margin-bottom:6px}
-  p{margin:4px 0}
-</style></head><body><h1>${title}</h1>${body}</body></html>`;
+<style>${NOTE_PRINT_CSS}
+</style></head><body><h1>${title}</h1>${noteDatesPrintHtml(state.activeNote)}${body}</body></html>`;
     const blob = new Blob([html], { type: "text/html;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const win = window.open(url, "_blank");
@@ -1045,7 +1184,6 @@
       const newSearchWidth = e.clientX - mainRect.left;
       const newNotesWidth = mainRect.right - e.clientX;
       if (newSearchWidth > 350 && newNotesWidth > 280 && newNotesWidth < 600) {
-        searchPanel.style.flex = `0 0 ${newSearchWidth}px`;
         notesPanel.style.flex = `0 0 ${newNotesWidth}px`;
         lastNotesWidth = newNotesWidth;
       }
@@ -1113,7 +1251,7 @@
       return isKeyword && query ? highlightKeywords(esc(text), query) : `<span class="main-text">${esc(text)}</span>`;
     }
     const tgt = isBlurb ? ' target="_blank"' : "";
-    const icon = isBlurb ? "maximize-2" : "book-open";
+    const icon = isBlurb ? "book" : "book-open";
 
     const order = ["pli", "id", "en"];
     const langs = [...order.filter(l => texts[l]), ...Object.keys(texts).filter(l => !order.includes(l) && texts[l])];
@@ -1230,7 +1368,8 @@
 
     // Inside a grouped (per-text) card the author lives in a sub-header, so the
     // per-segment author is suppressed via ctx.hideAuthor to avoid redundancy.
-    const authorHtml = (!(ctx && ctx.hideAuthor) && frag.author && frag.author !== "blurb") ? `<span class="fragment-author" title="${t("legend_author")}: ${esc(authorLongName(frag.author, frag.source))}"><i data-lucide="user"></i> ${esc(authorLongName(frag.author, frag.source))}</span>` : "";
+    const dbSrc = (frag.db_source || "").toUpperCase();
+    const authorHtml = (!(ctx && ctx.hideAuthor) && frag.author && frag.author !== "blurb") ? `<span class="fragment-author" title="${t("legend_lang")}: ${dbSrc} | ${t("legend_author")}: ${esc(authorLongName(frag.author, frag.source))}"><i data-lucide="languages"></i> ${dbSrc} &bull; <i data-lucide="user"></i> ${esc(authorLongName(frag.author, frag.source))}</span>` : "";
     meta.innerHTML = `
       <span class="fragment-ref" title="${refTitle}"><i data-lucide="map-pin"></i> ${refDisplay}</span>
       ${authorHtml}
@@ -1298,7 +1437,7 @@
     // Only grouped cards (fragmentsOverride == null) get this; single-fragment
     // cards in ungrouped mode keep the per-segment author.
     const isGroupedCard = fragmentsOverride == null;
-    const authorKey = (f) => `${f.source || ""}::${f.author}`;
+    const authorKey = (f) => `${f.db_source || ""}::${f.source || ""}::${f.author}`;
     const hasAuthor = frags.some(f => f.author && f.author !== "blurb");
 
     const appendFrag = (parentEl, frag, fctx) => {
@@ -1312,8 +1451,9 @@
       block.className = "sutta-author-group";
       const label = document.createElement("div");
       label.className = "sutta-author-group-label";
-      label.title = `${t("legend_author")}: ${esc(authorLongName(head.author, head.source))}`;
-      label.innerHTML = `<i data-lucide="user"></i> ${esc(authorLongName(head.author, head.source))}`;
+      const dbSrc = (head.db_source || "").toUpperCase();
+      label.title = `${t("legend_lang")}: ${dbSrc} | ${t("legend_author")}: ${esc(authorLongName(head.author, head.source))}`;
+      label.innerHTML = `<i data-lucide="languages"></i> ${dbSrc} &bull; <i data-lucide="user"></i> ${esc(authorLongName(head.author, head.source))}`;
       block.appendChild(label);
 
 
@@ -1502,6 +1642,32 @@
         if (window.lucide) window.lucide.createIcons({ root: pop });
       });
     }
+
+    function bindDialogPanel(fabId, panelId, closeBtnId) {
+      const fab = document.getElementById(fabId);
+      const panel = document.getElementById(panelId);
+      const closeBtn = document.getElementById(closeBtnId);
+      if (!fab || !panel) return;
+      fab.addEventListener("click", () => {
+        panel.classList.toggle("hidden");
+        if (window.lucide) window.lucide.createIcons({ root: panel });
+      });
+      if (closeBtn) closeBtn.addEventListener("click", () => panel.classList.add("hidden"));
+      document.addEventListener("click", e => {
+        if (!panel.classList.contains("hidden") && !panel.contains(e.target) && e.target !== fab && !fab.contains(e.target))
+          panel.classList.add("hidden");
+      });
+    }
+    bindDialogPanel("dlg-toc-fab", "dlg-toc-panel", "dlg-toc-close");
+    bindDialogPanel("dlg-seg-fab", "dlg-seg-panel", "dlg-seg-close");
+
+    const dlgScrollTopBtn = document.getElementById("dlg-sutta-scroll-top");
+    const dlgScrollBody = document.querySelector("#sutta-dialog .sutta-dialog-body");
+    if (dlgScrollTopBtn && dlgScrollBody) {
+      dlgScrollBody.addEventListener("scroll", () => {
+        dlgScrollTopBtn.classList.toggle("hidden", dlgScrollBody.scrollTop < 200);
+      }, { passive: true });
+    }
   }
 
   function openSuttaDialog(suttaId, lang, author, hash) {
@@ -1676,7 +1842,7 @@
     if (hasMdSegment) {
       const notice = document.createElement("div");
       notice.className = "md-segment-notice";
-      notice.innerHTML = `<i data-lucide="info"></i> <span data-i18n="sutta_md_notice"><b>Catatan ID Segmen:</b> Teks ini menggunakan sistem penomoran paragraf internal myDhamma (ID berawalan "md") dikarenakan naskah sumber belum memiliki format penomoran standar.</span>`;
+      notice.innerHTML = `<i data-lucide="info"></i> <span data-i18n-html="sutta_md_notice">${t("sutta_md_notice")}</span>`;
       targetEl.appendChild(notice);
       if (window.lucide) window.lucide.createIcons({ root: notice });
     }
@@ -1755,7 +1921,10 @@
     targetEl.appendChild(container);
 
     if (hash) {
-      const target = targetEl.querySelector(`#${CSS.escape(idPrefix + hash)}`);
+      let target = targetEl.querySelector(`#${CSS.escape(idPrefix + hash)}`);
+      if (!target && !hash.includes(":") && data && data.sutta_id) {
+        target = targetEl.querySelector(`#${CSS.escape(idPrefix + data.sutta_id + ":" + hash)}`);
+      }
       if (target) {
         target.classList.add("dlg-target");
         setTimeout(() => target.scrollIntoView({ behavior: "smooth", block: "center" }), 80);
@@ -1767,6 +1936,127 @@
   function renderDialogSegments(targetHash) {
     if (!dlgState.data) return;
     renderSegments(dlg.content, dlgState.data, dlgState.lang, dlgState.displayMode, { idPrefix: "dlg-", hash: targetHash });
+    buildDialogToc();
+    buildDialogSegList();
+  }
+
+  function scrollToDialogSegment(anchorId) {
+    const dialogBody = document.querySelector("#sutta-dialog .sutta-dialog-body");
+    document.querySelectorAll("#sutta-dialog .sutta-segment.dlg-target").forEach(el => {
+      el.classList.remove("dlg-target");
+    });
+    const target = document.getElementById(anchorId);
+    if (target) {
+      target.classList.add("dlg-target");
+      if (dialogBody) {
+        const targetPos = target.offsetTop - dialogBody.offsetTop;
+        dialogBody.scrollTo({ top: targetPos - 20, behavior: "smooth" });
+      } else {
+        target.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+  }
+
+  function buildDialogToc() {
+    const fab = document.getElementById("dlg-toc-fab");
+    const list = document.getElementById("dlg-toc-list");
+    if (!fab || !list || !dlgState.data) return;
+
+    const entries = [];
+    dlgState.data.segments.forEach(s => {
+      const anchorId = s.ids && s.ids.length ? "dlg-" + s.ids[0] : "";
+      const ref = anchorId.includes(":") ? anchorId.split(":").pop() : anchorId;
+      if (ref.startsWith("0.")) return;
+      if (s.text && s.heading >= 1 && s.heading <= 5) {
+        entries.push({ anchorId, text: s.text, level: s.heading });
+        return;
+      }
+      const hp = (s.parts || []).find(p => p.heading >= 1 && p.heading <= 5);
+      if (hp) {
+        const htxt = String(hp.text || "").replace(/<[^>]+>/g, "").trim();
+        if (htxt) entries.push({ anchorId, text: htxt, level: hp.heading });
+      }
+    });
+    list.innerHTML = "";
+    if (entries.length === 0) { fab.classList.add("hidden"); return; }
+
+    entries.forEach(entry => {
+      const item = document.createElement("a");
+      item.className = `toc-item toc-h${entry.level}`;
+      item.textContent = entry.text;
+      if (entry.anchorId) {
+        item.href = `#${entry.anchorId}`;
+        item.addEventListener("click", (e) => {
+          e.preventDefault();
+          document.getElementById("dlg-toc-panel").classList.add("hidden");
+          scrollToDialogSegment(entry.anchorId);
+        });
+      }
+      list.appendChild(item);
+    });
+
+    fab.classList.remove("hidden");
+    if (window.lucide) window.lucide.createIcons({ root: fab });
+  }
+
+  function buildDialogSegList() {
+    const fab = document.getElementById("dlg-seg-fab");
+    const list = document.getElementById("dlg-seg-list");
+    if (!fab || !list || !dlgState.data) return;
+
+    const segs = dlgState.data.segments.filter(s => s.ids && s.ids.length && s.text);
+    list.innerHTML = "";
+    if (segs.length === 0) { fab.classList.add("hidden"); return; }
+
+    const addItem = (refLabel, text, anchorId, kind) => {
+      const txt = String(text || "").replace(/<[^>]+>/g, "").trim();
+      if (!txt) return;
+      const item = document.createElement("a");
+      const cls = kind === "heading" ? " seg-list-heading" : (kind === "speaker" ? " seg-list-speaker" : "");
+      item.className = "toc-item seg-list-item" + cls;
+      const refSpan = document.createElement("span");
+      refSpan.className = "seg-list-ref";
+      refSpan.textContent = refLabel;
+      const textSpan = document.createElement("span");
+      textSpan.className = "seg-list-text";
+      textSpan.textContent = txt;
+      item.appendChild(refSpan);
+      item.appendChild(textSpan);
+      if (anchorId) {
+        item.href = `#${anchorId}`;
+        item.addEventListener("click", e => {
+          e.preventDefault();
+          document.getElementById("dlg-seg-panel").classList.add("hidden");
+          scrollToDialogSegment(anchorId);
+        });
+      }
+      list.appendChild(item);
+    };
+
+    const isHeadingPart = p => p.heading >= 1;
+    const isSpeakerPart = p => !isHeadingPart(p) && /class=['"][^'"]*speaker/i.test(String(p.text || ""));
+
+    segs.forEach(seg => {
+      const anchorId = "dlg-" + seg.ids[0];
+      if (seg.heading >= 1 && seg.heading <= 5) {
+        addItem("§", seg.text, anchorId, "heading");
+        return;
+      }
+      const parts = seg.parts || [];
+      const leadParts = parts.filter(p => isHeadingPart(p) || isSpeakerPart(p));
+      leadParts.forEach(p =>
+        isHeadingPart(p)
+          ? addItem("§", p.text, anchorId, "heading")
+          : addItem("»", p.text, anchorId, "speaker")
+      );
+      const contentText = leadParts.length
+        ? parts.filter(p => !isHeadingPart(p) && !isSpeakerPart(p)).map(p => p.text || "").join(" ")
+        : seg.text;
+      addItem(compactRef(seg.ids), contentText, anchorId, "");
+    });
+
+    fab.classList.remove("hidden");
+    if (window.lucide) window.lucide.createIcons({ root: fab });
   }
 
   function interceptDkLinks() {
@@ -2549,30 +2839,10 @@
   async function downloadSingleNotePdf(id) {
     const note = lsNotesGet(id);
     const title = esc(note.title || "Catatan");
-    let body = "";
-    (note.blocks || []).forEach(block => {
-      if (block.type === "text") {
-        body += `<div class="text-block">${esc(block.content || "").replace(/\n/g, "<br>")}</div>`;
-      } else if (block.type === "sutta") {
-        const d = block.data || {};
-        const texts = d.texts || {};
-        body += `<div class="sutta-block">
-          <div class="sutta-ref"><strong>${esc(d.formatted_id || d.sutta_id || "")}${d.sutta_name ? " — " + esc(d.sutta_name) : ""}</strong> — ${esc(d.ref_display || "")}${d.author && d.author !== "blurb" ? " — " + esc(authorLongName(d.author, d.source)) : ""}</div>
-          ${texts.id ? `<p><em>ID:</em> ${esc(texts.id)}</p>` : ""}
-          ${texts.en ? `<p><em>EN:</em> ${esc(texts.en)}</p>` : ""}
-          ${texts.pli ? `<p><em>PLI:</em> ${esc(texts.pli)}</p>` : ""}
-        </div>`;
-      }
-    });
+    const body = (note.blocks || []).map(noteBlockToPrintHtml).join("");
     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${title}</title>
-<style>
-  body{font-family:serif;max-width:700px;margin:40px auto;color:#222;line-height:1.6}
-  h1{font-size:1.4em;border-bottom:1px solid #ccc;padding-bottom:8px;margin-bottom:24px}
-  .text-block{margin:12px 0}
-  .sutta-block{background:#f5f5f5;padding:12px 16px;margin:16px 0;border-left:3px solid #888}
-  .sutta-ref{font-size:.85em;color:#555;margin-bottom:6px}
-  p{margin:4px 0}
-</style></head><body><h1>${title}</h1>${body}</body></html>`;
+<style>${NOTE_PRINT_CSS}
+</style></head><body><h1>${title}</h1>${noteDatesPrintHtml(note)}${body}</body></html>`;
     const blob = new Blob([html], { type: "text/html;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const win = window.open(url, "_blank");
@@ -2587,33 +2857,13 @@
 
     function buildNoteHtml(note) {
       const title = esc(note.title || "Catatan");
-      let body = "";
-      (note.blocks || []).forEach(block => {
-        if (block.type === "text") {
-          body += `<div class="text-block">${esc(block.content || "").replace(/\n/g, "<br>")}</div>`;
-        } else if (block.type === "sutta") {
-          const d = block.data || {};
-          const texts = d.texts || {};
-          body += `<div class="sutta-block">
-            <div class="sutta-ref"><strong>${esc(d.formatted_id || d.sutta_id || "")}${d.sutta_name ? " — " + esc(d.sutta_name) : ""}</strong> — ${esc(d.ref_display || "")}${d.author && d.author !== "blurb" ? " — " + esc(authorLongName(d.author, d.source)) : ""}</div>
-            ${texts.id ? `<p><em>ID:</em> ${esc(texts.id)}</p>` : ""}
-            ${texts.en ? `<p><em>EN:</em> ${esc(texts.en)}</p>` : ""}
-            ${texts.pli ? `<p><em>PLI:</em> ${esc(texts.pli)}</p>` : ""}
-          </div>`;
-        }
-      });
-      return `<section class="note-section"><h1>${title}</h1>${body}</section>`;
+      const body = (note.blocks || []).map(noteBlockToPrintHtml).join("");
+      return `<section class="note-section"><h1>${title}</h1>${noteDatesPrintHtml(note)}${body}</section>`;
     }
 
     const combinedBody = notes.map(buildNoteHtml).join('<div class="page-break"></div>');
     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Catatan</title>
-<style>
-  body{font-family:serif;max-width:700px;margin:40px auto;color:#222;line-height:1.6}
-  h1{font-size:1.4em;border-bottom:1px solid #ccc;padding-bottom:8px;margin-bottom:24px}
-  .text-block{margin:12px 0}
-  .sutta-block{background:#f5f5f5;padding:12px 16px;margin:16px 0;border-left:3px solid #888}
-  .sutta-ref{font-size:.85em;color:#555;margin-bottom:6px}
-  p{margin:4px 0}
+<style>${NOTE_PRINT_CSS}
   .note-section{margin-bottom:40px}
   .page-break{page-break-after:always}
 </style></head><body>${combinedBody}</body></html>`;
@@ -2727,17 +2977,138 @@
     if (window.lucide) window.lucide.createIcons({ root: pop });
   }
 
+  async function showTranslationMenu(anchorEl, suttaId, firstRef, fallbackHref) {
+    const existing = document.getElementById("dk-open-menu");
+    if (existing) {
+      const sameAnchor = existing._anchor === anchorEl;
+      existing.remove();
+      if (sameAnchor) return;
+    }
+
+    const pop = document.createElement("div");
+    pop.id = "dk-open-menu";
+    pop.className = "dk-open-menu";
+    pop._anchor = anchorEl;
+
+    pop.innerHTML = `<div style="padding: 8px 12px; font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px;"><i data-lucide="loader-2" class="spin" style="width:14px;height:14px;"></i> ${getLang() === "en" ? "Loading..." : "Memuat..."}</div>`;
+
+    const openDialog = document.querySelector("dialog[open]");
+    (openDialog || document.body).appendChild(pop);
+
+    function positionPop() {
+      const rect = anchorEl.getBoundingClientRect();
+      const ph = pop.offsetHeight, pw = pop.offsetWidth;
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const top = spaceBelow >= ph + 6 ? rect.bottom + 4 : Math.max(4, rect.top - ph - 4);
+      const left = Math.max(4, Math.min(rect.left, window.innerWidth - pw - 4));
+      pop.style.top = top + "px";
+      pop.style.left = left + "px";
+    }
+    positionPop();
+
+    function cleanup() {
+      pop.remove();
+      document.removeEventListener("click", dismiss, true);
+      document.removeEventListener("keydown", onEsc, true);
+    }
+    const dismiss = (ev) => { if (!pop.contains(ev.target)) cleanup(); };
+    const onEsc = (ev) => { if (ev.key === "Escape") cleanup(); };
+    setTimeout(() => {
+      document.addEventListener("click", dismiss, true);
+      document.addEventListener("keydown", onEsc, true);
+    }, 0);
+
+    if (window.lucide) window.lucide.createIcons({ root: pop });
+
+    try {
+      const res = await fetch(`/api/sutta-translations/${encodeURIComponent(suttaId)}`);
+      if (!res.ok) throw new Error("Failed to fetch translations");
+      const data = await res.json();
+      
+      if (data.is_collection || !data.translations || data.translations.length === 0) {
+        cleanup();
+        showOpenMenu(anchorEl, fallbackHref);
+        return;
+      }
+
+      pop.innerHTML = "";
+      
+      const head = document.createElement("div");
+      head.style.padding = "6px 12px 4px";
+      head.style.fontSize = "0.75rem";
+      head.style.fontWeight = "600";
+      head.style.textTransform = "uppercase";
+      head.style.letterSpacing = "0.05em";
+      head.style.color = "var(--text-muted)";
+      head.style.borderBottom = "1px solid var(--border-strong)";
+      head.style.marginBottom = "4px";
+      head.textContent = getLang() === "en" ? "Select Translation:" : "Pilih Terjemahan:";
+      pop.appendChild(head);
+
+      data.translations.forEach(tr => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "dk-open-menu-item";
+        b.style.display = "flex";
+        b.style.alignItems = "center";
+        b.style.justifyContent = "flex-start";
+        b.style.gap = "12px";
+        b.style.padding = "10px 16px";
+        b.style.width = "100%";
+        
+        const langSpan = document.createElement("span");
+        langSpan.className = `lang-tag ${tr.lang}`;
+        langSpan.style.margin = "0";
+        langSpan.style.fontSize = "0.7rem";
+        langSpan.style.padding = "3px 8px";
+        langSpan.style.flexShrink = "0";
+        langSpan.textContent = tr.lang.toUpperCase();
+        
+        const textSpan = document.createElement("span");
+        textSpan.style.fontSize = "0.9rem";
+        textSpan.style.fontWeight = "500";
+        textSpan.style.flex = "1";
+        textSpan.style.textAlign = "left";
+        textSpan.textContent = tr.author_name || tr.author || tr.lang;
+        
+        b.appendChild(langSpan);
+        b.appendChild(textSpan);
+        
+        b.addEventListener("click", (ev) => {
+          ev.preventDefault();
+          ev.stopPropagation();
+          cleanup();
+          openSuttaDialog(suttaId, tr.lang, tr.author || "", firstRef || "");
+        });
+        pop.appendChild(b);
+      });
+
+      if (window.lucide) window.lucide.createIcons({ root: pop });
+      positionPop();
+    } catch (err) {
+      cleanup();
+      showOpenMenu(anchorEl, fallbackHref);
+    }
+  }
+
   document.addEventListener("DOMContentLoaded", () => {
     initTheme();
 
-    // Blurb "Hlm. Teks" links open a small "here / new tab" chooser instead of
-    // navigating directly. Delegated so it survives note/result re-renders.
+    // Blurb "Buka" links open a translation chooser instead of navigating directly.
     document.addEventListener("click", (e) => {
       const link = e.target.closest && e.target.closest("a.dk-open-menu-link");
       if (!link) return;
       e.preventDefault();
       e.stopPropagation();
-      showOpenMenu(link, link.href);
+      
+      const suttaId = link.getAttribute("data-sutta-id");
+      const firstRef = link.getAttribute("data-first-ref");
+      
+      if (suttaId) {
+        showTranslationMenu(link, suttaId, firstRef, link.href);
+      } else {
+        showOpenMenu(link, link.href);
+      }
     }, true);
     initDialog();
     interceptDkLinks();
