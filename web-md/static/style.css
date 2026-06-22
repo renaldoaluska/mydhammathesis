@@ -7539,8 +7539,10 @@ body.page-chat #app-footer {
   /* Menjaga baris baru dari AI */
 }
 
-/* Tabel GFM dari jawaban AI (mdLite -> <table class="chat-table">). */
-.chat-answer table.chat-table {
+/* Tabel GFM dari jawaban AI (mdLite -> <table class="chat-table">). Dipakai di jawaban chat
+   DAN di blok jawaban AI yg disimpan ke Catatan (renderAiNoteHtml -> .note-block-ai-text). */
+.chat-answer table.chat-table,
+.note-block-ai-text table.chat-table {
   border-collapse: collapse;
   width: 100%;
   margin: 0.75em 0;
@@ -7551,19 +7553,25 @@ body.page-chat #app-footer {
 }
 
 .chat-answer table.chat-table th,
-.chat-answer table.chat-table td {
+.chat-answer table.chat-table td,
+.note-block-ai-text table.chat-table th,
+.note-block-ai-text table.chat-table td {
   border: 1px solid var(--border, rgba(124, 58, 237, 0.2));
   padding: 0.45em 0.7em;
   text-align: left;
   vertical-align: top;
+  white-space: normal;
+  /* Override pre-wrap container Catatan -> teks sel bungkus normal, bukan pre */
 }
 
-.chat-answer table.chat-table th {
+.chat-answer table.chat-table th,
+.note-block-ai-text table.chat-table th {
   background: var(--bg-hover, rgba(124, 58, 237, 0.07));
   font-weight: 700;
 }
 
-.chat-answer table.chat-table tr:nth-child(even) td {
+.chat-answer table.chat-table tr:nth-child(even) td,
+.note-block-ai-text table.chat-table tr:nth-child(even) td {
   background: var(--bg-hover, rgba(124, 58, 237, 0.03));
 }
 

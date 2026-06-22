@@ -537,6 +537,85 @@
     });
   }
 
+  const _MD_TABLE_SEP = l => /^\s*\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)+\|?\s*$/.test(l);
+  const _MD_CELLS = r => r.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map(c => c.trim());
+
+  // Render konten blok AI di Catatan: sama spt linkifyNoteRefs (esc + linkify rujukan; newline
+  // diurus CSS pre-wrap), TAPI blok tabel GFM ('| a | b |' diikuti '|---|---|') dirender jadi
+  // <table> beneran supaya tak tampil pipe mentah. Tiap sel tetap di-linkify rujukannya.
+  //   opts.br    -> teks non-tabel pakai <br> (konteks tanpa pre-wrap, mis. cetak/print)
+  //   opts.print -> tabel pakai inline-style (dokumen cetak tak memuat CSS situs)
+  function renderAiNoteHtml(content, refs, opts) {
+    opts = opts || {};
+    const lines = (content || "").split("\n");
+    const tOpen = opts.print
+      ? "<table style=\"border-collapse:collapse;width:100%;margin:.6em 0;font-size:.92em\">"
+      : "<table class='chat-table note-ai-table'>";
+    const thS = opts.print ? " style=\"border:1px solid #c7b8ea;padding:.4em .65em;text-align:left;background:#f1ecfa;font-weight:700\"" : "";
+    const tdS = opts.print ? " style=\"border:1px solid #c7b8ea;padding:.4em .65em;text-align:left;vertical-align:top\"" : "";
+    let out = "", buf = [];
+    const flush = () => {
+      while (buf.length && buf[buf.length - 1].trim() === "") buf.pop();   // rapikan blank sblm tabel
+      if (buf.length) {
+        let h = linkifyNoteRefs(buf.join("\n"), refs);
+        if (opts.br) h = h.replace(/\n/g, "<br>");
+        out += h;
+      }
+      buf = [];
+    };
+    let i = 0;
+    while (i < lines.length) {
+      if (lines[i].includes("|") && i + 1 < lines.length && _MD_TABLE_SEP(lines[i + 1])) {
+        flush();
+        const head = _MD_CELLS(lines[i]); i += 2;                          // lewati header + pemisah
+        const rows = [];
+        while (i < lines.length && lines[i].includes("|") && lines[i].trim() !== "") {
+          rows.push(_MD_CELLS(lines[i])); i++;
+        }
+        let tb = tOpen + "<thead><tr>"
+          + head.map(c => "<th" + thS + ">" + linkifyNoteRefs(c, refs) + "</th>").join("") + "</tr></thead><tbody>";
+        for (const r of rows) {
+          tb += "<tr>" + head.map((_, ci) => "<td" + tdS + ">" + linkifyNoteRefs(r[ci] || "", refs) + "</td>").join("") + "</tr>";
+        }
+        out += tb + "</tbody></table>";
+        while (i < lines.length && lines[i].trim() === "") i++;            // buang blank setelah tabel
+      } else {
+        buf.push(lines[i]); i++;
+      }
+    }
+    flush();
+    return out;
+  }
+
+  // Ratakan kolom tabel GFM jadi teks rapi (utk tombol Salin/clipboard): lebar tiap kolom =
+  // sel terpanjang, sel di-pad. Tetap markdown valid (pipa + pemisah) tapi enak dibaca di
+  // editor/monospace alih-alih pipa berantakan. Baris non-tabel dibiarkan apa adanya. Idempoten.
+  function mdAlignTables(text) {
+    const lines = (text || "").split("\n");
+    const out = [];
+    let i = 0;
+    while (i < lines.length) {
+      if (lines[i].includes("|") && i + 1 < lines.length && _MD_TABLE_SEP(lines[i + 1])) {
+        const head = _MD_CELLS(lines[i]);
+        const body = [];
+        let j = i + 2;
+        while (j < lines.length && lines[j].includes("|") && lines[j].trim() !== "") { body.push(_MD_CELLS(lines[j])); j++; }
+        const ncol = head.length;
+        const w = [];
+        for (let c = 0; c < ncol; c++) {
+          w[c] = (head[c] || "").length;
+          for (const r of body) w[c] = Math.max(w[c], (r[c] || "").length);
+        }
+        const fmt = row => "| " + Array.from({ length: ncol }, (_, c) => (row[c] || "").padEnd(w[c])).join(" | ") + " |";
+        out.push(fmt(head));
+        out.push("| " + w.map(x => "-".repeat(Math.max(3, x))).join(" | ") + " |");
+        for (const r of body) out.push(fmt(r));
+        i = j;
+      } else { out.push(lines[i]); i++; }
+    }
+    return out.join("\n");
+  }
+
   // ========== Notes — Block Clipboard ==========
   let _copiedBlock = null;
 
@@ -595,7 +674,7 @@
 
       let clipText = "";
       if (block.type === "text") {
-        clipText = block.content || "";
+        clipText = mdAlignTables(block.content || "");   // tabel GFM -> kolom rata di clipboard
       } else if (block.type === "sutta") {
         const d = block.data || {};
         const texts = d.texts || {};
@@ -641,7 +720,7 @@
       const textEl = document.createElement("div");
       textEl.className = "note-block-text note-block-ai-text";
       textEl.contentEditable = "false";
-      textEl.innerHTML = linkifyNoteRefs(block.content || "", block.refs || []);
+      textEl.innerHTML = renderAiNoteHtml(block.content || "", block.refs || []);
       // Klik token rujukan -> buka DIALOG sutta viewer ("Buka"), bukan halaman teks.
       textEl.querySelectorAll(".note-cite").forEach(a => {
         const open = (e) => {
@@ -1051,7 +1130,7 @@
     let text = (state.activeNote.title || "Catatan") + "\n" + "=".repeat(40) + "\n\n";
     blocks.forEach(block => {
       if (block.type === "text") {
-        text += (block.content || "") + "\n\n";
+        text += mdAlignTables(block.content || "") + "\n\n";   // tabel GFM -> kolom rata
       } else if (block.type === "sutta") {
         const d = block.data || {};
         const texts = d.texts || {};
@@ -1084,7 +1163,8 @@
   // biar konsisten; blok jawaban AI dapat label sumber spt di layar.
   function noteBlockToPrintHtml(block) {
     if (block.type === "text" && block.source === "ai") {
-      return `<div class="ai-block"><div class="block-label">✦ myDhamma AI</div><div class="text-block">${esc(block.content || "").replace(/\n/g, "<br>")}</div></div>`;
+      // Print: tabel GFM -> <table> inline-style (dok cetak tanpa CSS situs); teks pakai <br>.
+      return `<div class="ai-block"><div class="block-label">✦ myDhamma AI</div><div class="text-block">${renderAiNoteHtml(block.content || "", block.refs || [], { br: true, print: true })}</div></div>`;
     } else if (block.type === "text") {
       return `<div class="text-block">${esc(block.content || "").replace(/\n/g, "<br>")}</div>`;
     } else if (block.type === "sutta") {
@@ -2232,7 +2312,7 @@
     state, esc, buildMiniTexts, addBlockToNote, showNotePicker, updateAllLinksInDOM, copyNote, downloadNotePdf, t, getLang,
     highlightKeywords, buildFragTextLines, createFragmentEl, createSuttaCardEl, renderSuttaCardsTo, openSuttaDialog,
     compactRef, showToast, renderSegments, buildDisplayToggle, buildScLinks, langName, authorLongName,
-    alert: dkAlert, confirm: dkConfirm, prompt: dkPrompt, RECOMMENDED_QUERIES,
+    alert: dkAlert, confirm: dkConfirm, prompt: dkPrompt, RECOMMENDED_QUERIES, mdAlignTables,
   };
 
   // ========== Reader display settings (Segmen) ==========

@@ -206,6 +206,7 @@ def _group_suttas(entries: list) -> list:
             "source": e.get("source"),
             "file_base_name": e.get("file_base_name"),
             "parts": e.get("parts"),
+            "heading": e.get("heading", 0),   # >0 = judul section/sub-section (utk skeleton @mention overview)
             "score_type": e.get("score_type", "cosine"),
         }
         g = by_sutta.setdefault(sid, {"max_score": -1e9, "fragments": []})
@@ -279,9 +280,11 @@ def _fill_frag_context(frag, cache):
     if idx is None:
         return
     if idx > 0:
-        frag["context_before"][lang] = (chunks[idx - 1].get(text_key) or "").strip()
+        frag.setdefault("context_before", {})[lang] = (chunks[idx - 1].get(text_key) or "").strip()
+        frag.setdefault("context_before_refs", {})[lang] = chunks[idx - 1].get("chunk_ids") or []
     if idx < len(chunks) - 1:
-        frag["context_after"][lang] = (chunks[idx + 1].get(text_key) or "").strip()
+        frag.setdefault("context_after", {})[lang] = (chunks[idx + 1].get(text_key) or "").strip()
+        frag.setdefault("context_after_refs", {})[lang] = chunks[idx + 1].get("chunk_ids") or []
 
 
 # ============================================================
@@ -967,6 +970,7 @@ _PALI_DIACRITIC_MAP = [
     (r"panna", "paññā"), (r"metta", "mettā"), (r"karuna", "karuṇā"), (r"mudita", "muditā"),
     (r"upekkha", "upekkhā"), (r"tanha", "taṇhā"), (r"anatta", "anattā"), (r"sankhara", "saṅkhāra"),
     (r"nikaya", "nikāya"), (r"tipitaka", "tipiṭaka"), (r"patimokkha", "pātimokkha"),
+    (r"tipiṭika", "tipiṭaka"), (r"piṭika", "piṭaka"),   # typo model: -ṭika -> -ṭaka (Piṭaka/Tipiṭaka)
     (r"sotapanna", "sotāpanna"), (r"sakadagami", "sakadāgāmī"), (r"anagami", "anāgāmī"),
     (r"kasina", "kasiṇa"), (r"sangha", "saṅgha"),
 ]
@@ -1010,7 +1014,81 @@ def _enforce_theravada_terms(text: str) -> str:
     # baru. Soft-rule di prompt sering dilanggar model kecil; ini penegakan deterministik.
     # Hanya pola berkoma (hampir pasti calque); "tahu di mana"/"di mana-mana" yg sah tak tersentuh.
     text = re.sub(r",\s*di\s+mana\s+(\S)", lambda m: ". " + m.group(1).upper(), text, flags=re.IGNORECASE)
+    text = _fix_collection_names(text)
     return text
+
+
+# Validator nama koleksi: nama nikāya/koleksi ditulis GABUNG (Saṁyuttanikāya, Suttanipāta),
+# bukan ber-spasi, & harus COCOK dgn kode dalam kurung. Sumber nama = reader (grounded korpus),
+# bukan hard-code. Model kecil sering (a) memberi spasi ('Saṁyutta Nikāya') atau (b) mengonflasi
+# ('Saṁyutta Nipāta' utk Snp). KODE dipercaya > nama (kode pendek jarang salah).
+_COLL_NAMES_MAP = None
+_COLL_NAME_RE = None
+
+
+def _collection_names_map() -> dict:
+    """{kode_lower: nama kanonik gabung}, mis. {'sn':'Saṁyuttanikāya','snp':'Suttanipāta'}."""
+    global _COLL_NAMES_MAP
+    if _COLL_NAMES_MAP is None:
+        m = {}
+        for c in reader.collection_codes():
+            nm = reader._sutta_names.get(str(c).lower())
+            if nm:
+                m[str(c).lower()] = nm
+        _COLL_NAMES_MAP = m
+    return _COLL_NAMES_MAP
+
+
+def _collection_name_re():
+    global _COLL_NAME_RE
+    if _COLL_NAME_RE is None:
+        codes = sorted(_collection_names_map().keys(), key=len, reverse=True)
+        alt = "|".join(re.escape(str(c)) for c in codes)
+        # Nama = 1-2 kata berhuruf-awal kapital TEPAT sebelum '(KODE)'. Kode case-insensitive &
+        # tanpa angka di dalam kurung (cegah match rujukan sutta spt '(MN 10)'). Kata pemandu
+        # kapital di depan (mis. 'Berisi') otomatis tak ikut krn pola butuh '(' tepat sesudahnya.
+        _COLL_NAME_RE = re.compile(
+            r'((?:[A-Z][^\W\d_]*\s+)?[A-Z][^\W\d_]*)\s*\(\s*((?i:' + alt + r'))\s*\)')
+    return _COLL_NAME_RE
+
+
+def _norm_coll(s: str) -> str:
+    return unicodedata.normalize("NFD", (s or "").lower()).encode("ascii", "ignore").decode().replace(" ", "")
+
+
+def _shared_suffix_len(a: str, b: str) -> int:
+    n = 0
+    for x, y in zip(reversed(a), reversed(b)):
+        if x != y:
+            break
+        n += 1
+    return n
+
+
+def _fix_collection_names(text: str) -> str:
+    """Tegakkan nama koleksi kanonik-gabung sesuai kode dalam kurung:
+      (1) benar tapi ber-spasi: 'Saṁyutta Nikāya (SN)' -> 'Saṁyuttanikāya (SN)'
+      (2) salah utk kodenya   : 'Saṁyutta Nipāta (Snp)' -> 'Suttanipāta (Snp)'
+    Aman: frasa non-nama ('Bagian Penting (SN)') TAK disentuh — hanya bila ternormalisasi sama
+    ATAU se-tipe (berbagi akhiran >=5 huruf, mis. '…nipata'). Kata terakhir yg SUDAH kanonik
+    dibiarkan (mis. 'Berisi Saṁyuttanikāya (SN)')."""
+    if not text:
+        return text
+    names = _collection_names_map()
+
+    def repl(m):
+        name, code = m.group(1), m.group(2)
+        canon = names.get(code.lower())
+        if not canon:
+            return m.group(0)
+        nN, nC = _norm_coll(name), _norm_coll(canon)
+        if _norm_coll(name.split()[-1]) == nC:        # kata terakhir sudah kanonik-gabung -> biarkan
+            return m.group(0)
+        if nN == nC or _shared_suffix_len(nN, nC) >= 5:
+            return canon + " (" + code + ")"
+        return m.group(0)
+
+    return _collection_name_re().sub(repl, text)
 
 
 def _strip_invented_pali_glosses(text: str, source: str) -> str:
@@ -1281,6 +1359,75 @@ def _ascii_lower(s: str) -> str:
     return unicodedata.normalize("NFD", s).encode("ascii", "ignore").decode().lower()
 
 
+# Kata generik penanda niat "bahas/rangkum SELURUH sutta" (overview), bukan subjek spesifik.
+# REQUEST = kata-minta substantif (bahas/poin/ringkas/intinya) -> sinyal kuat overview & cukup
+# kuat utk MEMICU carry kueri tanpa-subjek. FILLER = generik/sapaan (dong/tentang/yang) -> ikut
+# di-strip tapi TAK memicu carry sendirian. Union dipakai utk cek "ada subjek tersisa?".
+_OVERVIEW_REQUEST_WORDS = {
+    "bahas", "membahas", "dibahas", "bahasan", "jelaskan", "jelasin", "menjelaskan",
+    "penjelasan", "ceritakan", "ringkas", "ringkasan", "rangkum", "rangkuman", "merangkum",
+    "isinya", "isi", "intinya", "inti", "poin", "poinnya", "pointer", "highlight", "penting",
+    "pentingnya", "ikhtisar", "gambaran", "uraian", "uraikan", "maksud", "maksudnya",
+    "overview", "summary", "summarize", "summarise", "discuss", "explain", "gist",
+}
+_OVERVIEW_FILLER_WORDS = {
+    "cerita", "tentang", "mengenai", "soal", "perihal", "tolong", "coba", "kasih", "garis",
+    "besar", "umum", "about", "content", "contents", "sutta", "teks", "khotbah", "kotbah",
+    "dong", "yang", "biar", "gimana", "seperti", "kalau", "kira", "deh", "nih", "saja", "sih",
+}
+_OVERVIEW_VERB_STOPWORDS = _OVERVIEW_REQUEST_WORDS | _OVERVIEW_FILLER_WORDS
+
+# Klitik Indonesia (akhiran melekat): di-strip sebelum cek kosakata supaya bentuk ber-imbuhan
+# ('poinnya'->'poin', 'ringkasnya'->'ringkas') dikenali sama dgn akarnya. Dipakai bersama oleh
+# deteksi overview & filter istilah Pali (cegah Indo ber-klitik nyangkut sbg "istilah hilang").
+_ID_CLITIC_RE = re.compile(r'(nya|kah|lah|pun|mu|ku|kan)$')
+
+
+def _strip_clitic(w: str) -> str:
+    return _ID_CLITIC_RE.sub('', w)
+
+
+def _overview_subject_tokens(query: str, mentions: list | None = None) -> list:
+    """Token 'subjek' yg tersisa setelah buang mention + kode koleksi + kata overview/nama
+    (akar pasca-klitik ikut dicek). Kosong = kueri tak punya subjek sendiri (minta gambaran)."""
+    q = _ascii_lower(query)
+    for m in (mentions or []):               # buang token mention itu sendiri (kode + angka)
+        q = q.replace(_ascii_lower(m), " ")
+    codes = {_ascii_lower(str(c)) for c in _collection_codes() if c}
+    out = []
+    for w in re.findall(r'[^\W\d_]+', q):
+        if len(w) < 4:
+            continue
+        wr = _strip_clitic(w)
+        if w in _OVERVIEW_VERB_STOPWORDS or wr in _OVERVIEW_VERB_STOPWORDS:
+            continue
+        if w in _NAME_MATCH_STOPWORDS or wr in _NAME_MATCH_STOPWORDS or w in codes:
+            continue
+        out.append(w)
+    return out
+
+
+def _mention_is_overview(query: str, mentions: list) -> bool:
+    """True kalau user cuma minta gambaran umum sutta yg di-@mention ('bahas apa', 'isinya
+    apa') tanpa subjek spesifik. False kalau ada subjek (mis. 'vedananupassana di @MN10').
+    Sengaja konservatif: ragu -> False (perilaku lama), karena false-positive (narik kerangka
+    saat user mau section spesifik) lebih buruk daripada false-negative."""
+    if not mentions:
+        return False
+    return not _overview_subject_tokens(query, mentions)
+
+
+def _is_contentless_followup(query: str) -> bool:
+    """True kalau kueri tak punya subjek sendiri TAPI ada kata-minta substantif ('poin-poinnya
+    apa', 'ringkasnya dong', 'intinya apa') -> hanya bermakna sbg lanjutan topik sebelumnya,
+    jadi layak meng-carry mention terakhir. Butuh REQUEST word biar sapaan kosong ('ok deh')
+    tak ikut memicu."""
+    if _overview_subject_tokens(query):
+        return False
+    return any(w in _OVERVIEW_REQUEST_WORDS or _strip_clitic(w) in _OVERVIEW_REQUEST_WORDS
+               for w in re.findall(r'[^\W\d_]+', _ascii_lower(query)))
+
+
 def _detect_nikaya_scope(text: str) -> set:
     """Set kode nikaya ({'AN'}, ...) yg disebut tanpa angka. Kosong bila tak ada."""
     scope = set(_NIKAYA_CODE_RE.findall(text))
@@ -1451,6 +1598,14 @@ def _detect_pali_terms(query: str, target_lang: str):
             continue
         if key in target_set:           # kata ini ADA di terjemahan -> bukan istilah hilang
             continue
+        # Klitik Indonesia (-nya/-kah/-lah/-pun/-mu/-ku/-kan): kalau AKAR-nya ada di korpus
+        # target, ini kata Indo ber-imbuhan ('poinnya'->'poin') yg cuma luput krn klitik,
+        # BUKAN istilah Pali hilang -> jangan picu fuzzy/gerbang botched-Pali. Uniform morfologi.
+        _root = _strip_clitic(key)
+        if _root != key and _root in target_set:
+            continue
+        if key in _OVERVIEW_VERB_STOPWORDS or _root in _OVERVIEW_VERB_STOPWORDS:
+            continue                          # kata-minta overview ('isinya','poinnya') bukan Pali
         seen.add(key)
         m = _pali_fuzzy(key, 0.84)
         if m:
@@ -1577,7 +1732,22 @@ def _get_overlap_length(s1: str, s2: str) -> int:
         if s1.endswith(s2[:i]):
             return i
     return 0
-    
+
+
+def _truncate_sentence(t: str, n: int) -> str:
+    """Potong t ke <= ~n char, sebisanya di batas kalimat (.!?) supaya kutipan wakil section
+    tak putus di tengah. Fallback: potong di spasi terakhir + elipsis."""
+    t = (t or "").strip()
+    if len(t) <= n:
+        return t
+    cut = t[:n]
+    ends = list(re.finditer(r'[.!?]["\'”’]?(?:\s|$)', cut))
+    if ends and ends[-1].end() > n * 0.5:
+        return cut[:ends[-1].end()].strip()
+    sp = cut.rfind(" ")
+    return (cut[:sp].strip() if sp > n * 0.5 else cut.strip()) + " …"
+
+
 def _passages_for_prompt(suttas: list, prompt_db: str, expand: set | None = None, enum: bool = False) -> list:
     """Ratakan suttas -> daftar passage utk teks-tool LLM. Tiap passage: formatted_id (dgn segmen),
     sutta_name, pitaka, synopsis (blurb), text (fragmen terbaik pd bahasa prompt_db).
@@ -1616,15 +1786,16 @@ def _passages_for_prompt(suttas: list, prompt_db: str, expand: set | None = None
             # Selain itu 5 chunk terbaik.
             limit = None if fid in expand else (8 if enum else 5)
             bodies_subset = bodies if limit is None else bodies[:limit]
-            # Urutkan berdasarkan segmen dari kecil ke besar secara logis (natural sort)
+            # Urutan dokumen (natural sort by segmen) = dasar perakitan.
             bodies_sorted = sorted(bodies_subset, key=_seg_sort_key)
-            
+            max_len = 4000 if fid in expand else (3200 if enum else 2000)
+
             parts, part_langs = [], []
             core_texts = set()
             for f in bodies_sorted:
                 t, _ = _ftext(f)
                 if t: core_texts.add(t)
-                
+
             seen_texts = set()
             last_raw_text = ""
 
@@ -1635,42 +1806,88 @@ def _passages_for_prompt(suttas: list, prompt_db: str, expand: set | None = None
                 # kalau bukan teks utama (n) dan udah ada di core_texts, skip aja
                 if not is_core and text in core_texts:
                     return
-                    
+
                 overlap = _get_overlap_length(last_raw_text, text)
                 if overlap > 0:
                     clean_text = text[overlap:].strip()
                 else:
                     clean_text = text.strip()
-                    
+
                 if clean_text:
                     # Ganti titik jadi garis miring tunggal ( / ) sebagai penanda pindah baris (line break) bait puisi.
-                    # Ini ngasih tahu LLM bahwa ada jeda struktural (beda baris) tanpa harus memutus tata bahasa 
+                    # Ini ngasih tahu LLM bahwa ada jeda struktural (beda baris) tanpa harus memutus tata bahasa
                     # kalimat kalau aslinya emang nyambung ke baris bawahnya.
                     if not re.search(r'[.!?]["\']?$', clean_text):
                         clean_text += " /"
                     parts.append(f"{tag} {clean_text}")
                     last_raw_text = text
-                    
+
                 seen_texts.add(text)
 
-            for f in bodies_sorted:
-                t, L = _ftext(f)
-                if not t: continue
-                part_langs.append(L)
+            def _seg_tag(f):
                 refs = f.get("ref") or []
-                f_seg = ""
-                if refs and ":" in refs[0]:
-                    f_seg = ":" + refs[0].split(":", 1)[1]
+                return (":" + refs[0].split(":", 1)[1]) if (refs and ":" in refs[0]) else ""
+
+            heading_frags = [f for f in bodies_sorted if f.get("heading", 0) > 0]
+            if fid in expand and heading_frags:
+                # OVERVIEW (@mention 'bahas apa'): KERANGKA judul + 1 kutipan isi representatif
+                # PER SECTION, tersebar merata se-sutta (bukan front-load). Section = judul + isi
+                # di bawahnya s/d judul berikut; wakil = isi TERPANJANG (paling informatif),
+                # dipotong ke jatah merata. Judul identik berulang (refrain mis. 'Pandangan
+                # Terang') di-collapse ke kemunculan pertama -> hemat budget utk struktur EKOR.
+                sections, cur_h, cur_c = [], None, []
+                for f in bodies_sorted:
+                    if f.get("heading", 0) > 0:
+                        sections.append((cur_h, cur_c)); cur_h, cur_c = f, []
+                    else:
+                        cur_c.append(f)
+                sections.append((cur_h, cur_c))
+                uniq, seen_h = [], set()
+                for h, c in sections:
+                    if h is None and not c:
+                        continue
+                    ht = _ftext(h)[0] if h is not None else ""
+                    if ht and ht in seen_h:        # judul identik = refrain/boilerplate -> lewati
+                        continue
+                    if ht: seen_h.add(ht)
+                    uniq.append((h, c))
+                skel_len = sum(len(_ftext(h)[0]) + 12 for h, _ in uniq if h is not None)
+                n_c = sum(1 for _, c in uniq if c) or 1
+                share = max(220, (max_len - skel_len) // n_c)
+                for h, c in uniq:
+                    if h is not None:
+                        ht, hl = _ftext(h)
+                        if ht:
+                            part_langs.append(hl)
+                            add_part(f"[{fid}{_seg_tag(h)}]", ht, is_core=True)
+                    if not c:
+                        continue
+                    rep = max(c, key=lambda x: len(_ftext(x)[0]))   # isi terpanjang = paling informatif
+                    rt, rl = _ftext(rep)
+                    if not rt:
+                        continue
+                    part_langs.append(rl)
+                    add_part(f"[{fid}{_seg_tag(rep)}]", _truncate_sentence(rt, share), is_core=True)
+            else:
+                # Non-overview (search biasa / mention spesifik): rakit fragmen + konteks urut segmen.
+                for f in bodies_sorted:
+                    t, L = _ftext(f)
+                    if not t: continue
+                    part_langs.append(L)
+                    ctx_b = f.get("context_before", {}).get(L)
+                    if ctx_b:
+                        refs_b = f.get("context_before_refs", {}).get(L) or []
+                        tag_b = (":" + refs_b[0].split(":", 1)[1]) if (refs_b and ":" in refs_b[0]) else ""
+                        add_part(f"[{fid}{tag_b}]", ctx_b, is_core=False)
                     
-                ctx_b = f.get("context_before", {}).get(L)
-                add_part(f"[{fid}]", ctx_b, is_core=False)
+                    add_part(f"[{fid}{_seg_tag(f)}]", t, is_core=True)
                     
-                add_part(f"[{fid}{f_seg}]", t, is_core=True)
-                    
-                ctx_a = f.get("context_after", {}).get(L)
-                add_part(f"[{fid}]", ctx_a, is_core=False)
-                
-            max_len = 4000 if fid in expand else (3200 if enum else 2000)
+                    ctx_a = f.get("context_after", {}).get(L)
+                    if ctx_a:
+                        refs_a = f.get("context_after_refs", {}).get(L) or []
+                        tag_a = (":" + refs_a[0].split(":", 1)[1]) if (refs_a and ":" in refs_a[0]) else ""
+                        add_part(f"[{fid}{tag_a}]", ctx_a, is_core=False)
+
             text = "\n".join(parts)[:max_len]
             text_lang = next((L for L in part_langs if L != "pli"), "pli" if part_langs else None)
         else:
@@ -1721,7 +1938,7 @@ def _ghost_ref_re():
         codes = sorted((str(c) for c in _collection_codes() if c), key=len, reverse=True)
         alt = "|".join(re.escape(c) for c in codes)
         _GHOST_REF_RE = re.compile(
-            r'\(?\b(' + alt + r')\s*(\d+(?:\.\d+)?(?:-\d+)?)(:[\w.\-]+)?\)?',
+            r'\(?\b(' + alt + r')\s*(\d+(?:\.\d+)*(?:-\d+)?)(:[\w.\-]+)?\)?',
             re.IGNORECASE)
     return _GHOST_REF_RE
 
@@ -1796,10 +2013,10 @@ def api_chat():
         
         # Ekstraksi mentions (rujukan eksplisit) dari kueri agen DAN kueri asli user —
         # supaya "@MN10" selalu dihormati walau agen menulis ulang kuerinya.
-        # \d+(?:\.\d+)?(?:-\d+)? -> dukung RANGE (mis. Dhp 1-20, Thag 1.1-10) karena banyak
+        # \d+(?:\.\d+)*(?:-\d+)? -> dukung RANGE (mis. Dhp 1-20, Thag 1.1-10) karena banyak
         # teks dikelompokkan per-vagga dgn id ber-range (dhp1-20). Tanpa ini "@Dhp 1-20"
         # ke-truncate jadi "dhp1" yg tak resolve -> hasil kosong.
-        _MENTION_RE = r'@?\b((?:dn|mn|sn|an|kn|khp|dhp|ud|iti|snp|vv|pv|thag|thig|tha-ap|thi-ap|bv|cp|ja|mnd|cnd|ps|pe|nett|mil|bu-[a-z]+|bi-[a-z]+|pli-tv-[a-z\-]+|ds|vb|dt|pp|kv|ya|patthana)\s*\d+(?:\.\d+)?(?:-\d+)?)\b'
+        _MENTION_RE = r'@?\b((?:dn|mn|sn|an|kn|khp|dhp|ud|iti|snp|vv|pv|thag|thig|tha-ap|thi-ap|bv|cp|ja|mnd|cnd|ps|pe|nett|mil|bu-[a-z]+|bi-[a-z]+|pli-tv-[a-z\-]+|ds|vb|dt|pp|kv|ya|patthana)\s*\d+(?:\.\d+)*(?:-\d+)?)\b'
         mentions = re.findall(_MENTION_RE, t_query + " " + query, re.IGNORECASE)
         # Dedup CASE-INSENSITIF (cegah "MN 10" & "mn 10" dianggap dua mention berbeda ->
         # dobel di trace/penarikan). Simpan bentuk pertama yg terlihat.
@@ -1826,6 +2043,17 @@ def api_chat():
                 for h in reversed(history):
                     if h.get("role") != "assistant":
                         continue
+                    prev = re.findall(_MENTION_RE, h.get("content") or "", re.IGNORECASE)
+                    if prev:
+                        mentions = list(dict.fromkeys(m.strip() for m in prev))[:2]
+                        carried_ctx = True
+                        break
+            # Lanjutan TANPA subjek sendiri ('poin-poinnya apa', 'ringkasnya dong', 'intinya
+            # apa') -> hanya bermakna sbg kelanjutan; carry mention TERAKHIR (user/asisten, mana
+            # pun yg terdekat). Aman dari lock-in: 'apa itu X' punya subjek -> _is_contentless
+            # False -> tak ke-carry. Memberi jangkar (anti gerbang 'ga nemu') + niat overview.
+            if not mentions and _is_contentless_followup(query):
+                for h in reversed(history):
                     prev = re.findall(_MENTION_RE, h.get("content") or "", re.IGNORECASE)
                     if prev:
                         mentions = list(dict.fromkeys(m.strip() for m in prev))[:2]
@@ -1889,6 +2117,7 @@ def api_chat():
                 "carried": carried_ctx,
                 "mentions": list(dict.fromkeys(m.strip() for m in mentions)),
                 "picks": picks,
+                "overview": _mention_is_overview(query, mentions),
             })
         if name_hits:
             trace.append({
@@ -1903,9 +2132,10 @@ def api_chat():
         # Fallback bahasa utk mention: korpus pilihan -> id -> en -> pli, supaya sutta yg
         # di-mention tetap kebawa walau tak ada terjemahan Indo (ambil Inggris, lalu Pāli).
         _mention_langs = [eff_dbs[0]] + [L for L in ("id", "en", "pli") if L != eff_dbs[0]]
-        # for m in mentions:
-        #     mclean = m.lower().replace(" ", "")
-        #     prefs = _prefs_norm.get(mclean)
+        # Niat "bahas apa" (overview, tanpa subjek spesifik) -> tarik KERANGKA judul dulu biar
+        # struktur sutta panjang tak hilang ke-potong. "vedananupassana di @MN10" -> spesifik,
+        # biarkan relevance biasa. Dihitung sekali (sama utk semua mention di giliran ini).
+        _overview = _mention_is_overview(query, mentions)
         for m in mentions:
             mclean = m.lower().replace(" ", "")
             # Resolve short-id ke full-id (mis. "bi-pc9" → "pli-tv-bi-vb-pc9")
@@ -1925,7 +2155,8 @@ def api_chat():
                     # difilter author, segmen author terpilih bisa habis tergusur html yg lebih
                     # panjang (bug rujukan tak lengkap). Tarik luas dulu, baru filter author.
                     # hits = engine.exact_sutta_match(mclean, _L, max_chunks=400, query=t_query)
-                    hits = engine.exact_sutta_match(mfull, _L, max_chunks=400, query=t_query)
+                    hits = engine.exact_sutta_match(mfull, _L, max_chunks=400, query=t_query,
+                                                    headings_first=_overview)
                     m_hits += [h for h in hits
                                if h.get("author") == "blurb" or (_L, h.get("author")) in want]
                 exact_suttas.extend(m_hits)
@@ -1933,7 +2164,8 @@ def api_chat():
                 m_hits = []
                 for _L in _mention_langs:
                     # m_hits = engine.exact_sutta_match(mclean, _L, max_chunks=24, query=t_query)
-                    m_hits = engine.exact_sutta_match(mfull, _L, max_chunks=24, query=t_query)
+                    m_hits = engine.exact_sutta_match(mfull, _L, max_chunks=24, query=t_query,
+                                                      headings_first=_overview)
                     if any(h.get("author") != "blurb" for h in m_hits):
                         break   # dapat teks isi (bukan cuma blurb) -> berhenti di bahasa ini
                 exact_suttas.extend(m_hits)
@@ -2299,7 +2531,13 @@ def api_chat():
 
         norm_src = unicodedata.normalize("NFD", all_source_text.lower()).encode("ascii", "ignore").decode() if all_source_text else ""
         parts = []
-        
+
+        # Base-id sutta yg grounded giliran ini -> dipakai utk buang "sitasi hantu" LANGSUNG
+        # saat streaming (di filter kurung di bawah), bukan cuma di akhir. Tanpa ini ref hantu
+        # dalam kurung (mis. '(SN 12.48:md9)') sempat nongol lalu hilang di final = kedip aneh.
+        _grounded_bases = {(s.get("formatted_id") or "").split(":")[0].replace(" ", "").lower()
+                           for s in all_unique_suttas}
+
         paren_buf = ""
         in_paren = False
 
@@ -2325,8 +2563,10 @@ def api_chat():
                                 keep = False
                         
                         if keep:
-                            out_buf += paren_buf
-                            
+                            # Lolos cek-gloss, tapi masih bisa berisi RUJUKAN hantu (base sutta
+                            # tak grounded) -> bersihkan di sini juga supaya stream = final (tak kedip).
+                            out_buf += _strip_ghost_refs(paren_buf, _grounded_bases)
+
                         paren_buf = ""
                     elif len(paren_buf) > 100:
                         in_paren = False
@@ -2353,10 +2593,9 @@ def api_chat():
         # (butuh >=2 spasi indent di frontend isSub) tak ikut ke-flatten jadi 1 level.
         answer = re.sub(r"(?<=\S)[ \t]{2,}", " ", answer)
 
-        # Buang "sitasi hantu": ref ber-nomor yg TAK di-retrieve giliran ini (datang dari history/
-        # ingatan model) -> tak akan punya kartu. Yg grounded (ada di all_unique_suttas) dibiarkan.
-        _grounded_bases = {(s.get("formatted_id") or "").split(":")[0].replace(" ", "").lower()
-                           for s in all_unique_suttas}
+        # Buang "sitasi hantu" sisa: ref ber-nomor TELANJANG (tanpa kurung) yg TAK di-retrieve
+        # giliran ini lolos filter-kurung streaming -> bersihkan di final. Yg dalam kurung sudah
+        # dibuang live di atas (idempoten -> aman dijalankan ulang). _grounded_bases dihitung di atas.
         answer = _strip_ghost_refs(answer, _grounded_bases)
 
         cited = _cited_only(answer, all_unique_suttas)

@@ -236,33 +236,44 @@ def keyword_search_phrase(query, lang, top_k=10, include_titles=True, include_bl
     return out
 
 
-def exact_sutta_match(sutta_id, lang, max_chunks=5, query=None):
-    """Pencarian eksak (bypass) untuk memaksa sutta ID spesifik selalu nomor 1."""
+def exact_sutta_match(sutta_id, lang, max_chunks=5, query=None, headings_first=False):
+    """Pencarian eksak (bypass) untuk memaksa sutta ID spesifik selalu nomor 1.
+
+    headings_first=True (dipakai jalur @mention 'bahas apa' = overview): JANGAN buang
+    segmen judul yang pendek; kembalikan blurb + SEMUA judul section (heading>0, urut
+    dokumen, di-sampling rata kalau kebanyakan) sbg KERANGKA struktur + sebagian isi.
+    Tanpa ini sutta panjang cuma kebaca bagian depan (body kepotong max_len di hilir) ->
+    section ekor (mis. perenungan perasaan/pikiran/dhamma) hilang dari konteks."""
     corpus, bm25, _ = _load_bm25(lang)
     if not corpus:
         return []
     out = []
-    
+
     # 1. Cari blurb/sinopsis dulu (karena secara abjad file author mungkin di bawah)
     # File blurb itu gabungan koleksi (misal mn-blurbs), jadi cek dari ref-nya
     for i, e in enumerate(corpus):
         if e.get("author") == "blurb" and sutta_id in e.get("ref", []):
             out.append({**e, "score": 1.0, "score_type": "exact", "corpus_idx": i})
-            
-    # 2. Cari semua teks utama untuk sutta ini
-    main_chunks = []
+
+    # 2. Pisah teks utama: judul (heading>0) vs isi. Mode overview pertahankan judul
+    #    walau pendek; mode biasa buang chunk <5 kata (biasanya cuma judul/nomor urut).
+    main_chunks, head_chunks = [], []
     for i, e in enumerate(corpus):
-        if e.get("file_base_name") == sutta_id and e.get("author") != "blurb":
-            # Buang chunk yang isinya kurang dari 5 kata (biasanya cuma judul/nomor urut)
-            if len(e.get("text", "").split()) < 5:
-                continue
-            main_chunks.append((i, e))
-            
-    # 3. Urutkan chunk: jika ada kueri, pakai relevansi BM25; jika tidak, berdasar panjang teks
+        if e.get("file_base_name") != sutta_id or e.get("author") == "blurb":
+            continue
+        words = e.get("text", "").split()
+        if headings_first and e.get("heading", 0) > 0:
+            if words:                       # buang garbage 0-kata; judul valid tetap masuk
+                head_chunks.append((i, e))
+            continue
+        if len(words) < 5:                  # isi terlalu pendek -> lewati
+            continue
+        main_chunks.append((i, e))
+
+    # 3. Urutkan isi: jika ada kueri, pakai relevansi BM25; jika tidak, berdasar panjang teks
     if query and bm25 and main_chunks:
         q_tokens = _tok(query)
         if q_tokens:
-            import numpy as np
             scores = bm25.get_scores(q_tokens)
             # Pasangkan score dengan chunk, urutkan berdasar score BM25 tertinggi
             scored_chunks = [(scores[i], i, e) for i, e in main_chunks]
@@ -272,10 +283,19 @@ def exact_sutta_match(sutta_id, lang, max_chunks=5, query=None):
             main_chunks.sort(key=lambda x: len(x[1].get("text", "")), reverse=True)
     else:
         main_chunks.sort(key=lambda x: len(x[1].get("text", "")), reverse=True)
-        
-    for idx, (i, e) in enumerate(main_chunks[:max_chunks]):
+
+    # 4. Kerangka judul (urut dokumen) selalu ikut DULU di mode overview. Sampling rata
+    #    kalau melebihi cap, supaya ujung sutta tetap terwakili (bukan cuma 40 judul awal).
+    head_chunks.sort(key=lambda x: x[0])
+    _HCAP = 40
+    if len(head_chunks) > _HCAP:
+        step = len(head_chunks) / _HCAP
+        head_chunks = [head_chunks[int(k * step)] for k in range(_HCAP)]
+    for i, e in head_chunks:
         out.append({**e, "score": 1.0 - (len(out) * 0.001), "score_type": "exact", "corpus_idx": i})
-                
+    for i, e in main_chunks[:max_chunks]:
+        out.append({**e, "score": 1.0 - (len(out) * 0.001), "score_type": "exact", "corpus_idx": i})
+
     return out
 
 

@@ -1281,6 +1281,7 @@
     // Step 2: Pre-fill input. ?q= (dari pencarian) & ?tag= (dari halaman sutta) HANYA mengisi
     // kotak input, TIDAK auto-kirim — biar user bisa edit dulu sebelum bertanya.
     let prefillInput = null;
+    let prefillTagParam = null;
     const _params = new URLSearchParams(window.location.search);
     const qParam = _params.get("q");
     const tagParam = _params.get("tag");   // ?tag=MN 10 -> buka room baru + tag sutta
@@ -1288,7 +1289,7 @@
       prefillInput = qParam;
       window.history.replaceState({}, document.title, "/chat");
     } else if (tagParam) {
-      prefillInput = "@" + tagParam.trim() + " ";
+      prefillTagParam = tagParam.trim();
       window.history.replaceState({}, document.title, "/chat");
     }
 
@@ -2146,16 +2147,18 @@
         // Poin 10: blok "Rekomendasi Pertanyaan Lanjutan" jangan ikut ke +Catatan.
         .replace(/\n*\*\*\s*(?:Rekomendasi Pertanyaan(?: Lanjutan)?|Recommended Follow-up Questions)\s*:?\s*\*\*[\s\S]*$/i, "");
       t = enforceTheravadaTerms(t);
-      return t
+      t = t
         .replace(/^\s*#{1,6}\s+/gm, "")                  // heading -> teks biasa
         .replace(/^\s*[-*_]{3,}\s*$/gm, "")              // garis pemisah
         .replace(/\*\*(.+?)\*\*/g, "$1")                 // **tebal**
         .replace(/__(.+?)__/g, "$1")
         .replace(/(^|[^*_])\*(?!\s)([^*]+?)\*(?!\*)/g, "$1$2")  // *miring*
         .replace(/(^|[^*_])_(?!\s)([^_]+?)_(?!_)/g, "$1$2")     // _miring_
-        .replace(/^\s*[-*]\s+/gm, "• ")                  // bullet -> •
-        .replace(/\n{3,}/g, "\n\n")
-        .trim();
+        .replace(/^\s*[-*]\s+/gm, "• ");                 // bullet -> •
+      // Tabel GFM: ratakan kolom (pipa+pemisah dipertahankan) -> rapi saat di-Salin & saat
+      // disimpan ke Catatan (renderAiNoteHtml tetap mem-parse-nya jadi <table> di tampilan).
+      if (window.DK && window.DK.mdAlignTables) t = window.DK.mdAlignTables(t);
+      return t.replace(/\n{3,}/g, "\n\n").trim();
     }
 
     // Tombol simpan JAWABAN (teks) ke Catatan — reuse panel Catatan asli via DK.
@@ -3257,11 +3260,35 @@
     }
 
 
-    if (prefillInput) {
+    if (prefillInput || prefillTagParam) {
       // Selalu mulai room baru biar konteks bersih (kecuali room skrg msh kosong). Hanya
-      // MENGISI kotak (animasi ketik); TIDAK auto-kirim (user edit dulu).
+      // MENGISI kotak (animasi ketik/masukin chip); TIDAK auto-kirim (user edit dulu).
       if (history.length > 0) createNewSession(true, true, true);
-      typeIntoInput(prefillInput);
+      
+      if (prefillTagParam) {
+        clearInput();
+        const chip = document.createElement('span');
+        chip.className = 'chat-mention-chip';
+        chip.contentEditable = 'false';
+        chip.textContent = `@${prefillTagParam}`;
+        input.appendChild(chip);
+        
+        const space = document.createTextNode('\u00A0');
+        input.appendChild(space);
+        
+        if (window.innerWidth > 768) {
+          input.focus();
+          const sel = window.getSelection();
+          const range = document.createRange();
+          range.setStartAfter(space);
+          range.collapse(true);
+          sel.removeAllRanges();
+          sel.addRange(range);
+        }
+        setSendMode(false);
+      } else {
+        typeIntoInput(prefillInput);
+      }
 
       const chatInputWrap = container.querySelector(".chat-input-wrap");
       if (chatInputWrap) {
