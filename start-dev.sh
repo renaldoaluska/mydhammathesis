@@ -1,4 +1,4 @@
-1#!/usr/bin/env bash
+#!/usr/bin/env bash
 # ============================================================
 # start-dev.sh — Jalankan semua service myDhamma dalam 1 tmux session
 #
