@@ -30,7 +30,7 @@ python src/code/sync-hf/2-pull-hf.py --a
 
 ---
 
-## 🌐 Menjalankan Aplikasi Web (`web-md`)
+## 🌐 Menjalankan Aplikasi Web (`web-md` & `web-eval`)
 
 ### Opsi A: Jalankan Semua Service Sekaligus (Rekomendasi via Tmux)
 Jalankan skrip manajemen 1-klik:
@@ -38,7 +38,8 @@ Jalankan skrip manajemen 1-klik:
 ./start-dev.sh
 ```
 Aplikasi web akan otomatis aktif di:
-- 📱 **web-md**: `http://localhost:5002` (atau IP Server `http://<IP-SERVER>:5002`)
+- 📱 **web-md** (Pencarian & Chatbot): `http://localhost:5002` (atau IP `http://<IP-SERVER>:5002`)
+- 📊 **web-eval** (Antarmuka Evaluasi): `http://localhost:5001` (atau IP `http://<IP-SERVER>:5001`)
 
 *Perintah utilitas:*
 - Cek Status: `./start-dev.sh status`
@@ -46,10 +47,8 @@ Aplikasi web akan otomatis aktif di:
 - Attach ke Terminal Tmux: `tmux attach -t mydhamma`
 
 ### Opsi B: Jalankan Web Secara Manual
-```bash
-python web-md/app.py
-```
-Akses di peramban (browser) melalui: `http://localhost:5002`
+- **web-md**: `python web-md/app.py` → `http://localhost:5002`
+- **web-eval**: `python web-eval/eval_app.py` → `http://localhost:5001`
 
 ---
 
