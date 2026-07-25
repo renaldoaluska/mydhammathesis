@@ -29,36 +29,9 @@ Thumbs.db
 .vscode/
 .idea/
 
-# ── Artefak BESAR — disimpan di HF Hub, di-sync via src/code/6-sync-hf/ ──
-# Embeddings (precompute) & cache pencarian
+# Ignored outputs
+src/output/
 embeddings/
-*.pkl
-*.npy
-
-# Korpus mentah SuttaCentral — re-fetch via src/code/1-get-data/
-#src/output/1-get-data/sc-raw/
-# Base model lokal — re-fetch via 1-get-data; pin revisi tetap di-track
-src/output/1-get-data/base-models/*
-!src/output/1-get-data/base-models/revisions.json
-
-# Model hasil training (GPL) — re-fetch via sync-hf/
-src/output/4-training/models/
-src/output/7-retraining/models/
-
-# Cloudflare tunnel executable & logs
-cloudflared
-*.log
-
-# Data training/praproses GENERATED — regenerate via pipeline, terlalu besar utk GitHub
-# (gpl/: train/triples/passages/queries.jsonl  •  chunk korpus  •  backup pkl  •  log run)
-src/output/1-get-data/sc-raw/
-src/output/3-praproses/
-src/output/4-training/gpl/
-src/output/7-retraining/gpl-*/
-*_chunked.jsonl
-*.jsonl
-*.pkl.bak
-*.log
 
 # Yang TETAP di-track (kecil, hasil analisis/eval) ──
 # src/output/2-eksplor/   -> statistik + analisis (txt/csv/png) : DI-TRACK

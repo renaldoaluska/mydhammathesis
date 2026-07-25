@@ -1,0 +1,23 @@
+nohup: ignoring input
+[2026-07-13 21:57:09 +0700] [3843567] [INFO] Starting gunicorn 26.0.0
+[2026-07-13 21:57:09 +0700] [3843567] [INFO] Listening at: http://127.0.0.1:5002 (3843567)
+[2026-07-13 21:57:09 +0700] [3843567] [INFO] Using worker: gthread
+[2026-07-13 21:57:09 +0700] [3843568] [INFO] Booting worker with pid: 3843568
+[2026-07-13 21:57:10 +0700] [3843567] [INFO] Control socket listening at /run/user/1007/gunicorn.ctl
+[reader] 7,289 bilara, 6,326 html, 24,291 nama, 22,762 pitaka, 5,560 blurb (0.58s)
+[-] Warmup: waiting for server to be ready...
+[+] Server is ready!
+[-] Warming up 3 corpora via HTTP (Hybrid search)...
+  [1/3] ID... OK (47 results)
+  [2/3] EN... OK (9 results)
+  [3/3] PLI... OK (17 results)
+[+] Warmup done!
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 4348.58it/s]
+Loading weights:   0%|          | 0/393 [00:00<?, ?it/s]Loading weights:  83%|████████▎ | 327/393 [00:00<00:00, 3269.40it/s]Loading weights: 100%|██████████| 393/393 [00:00<00:00, 3698.22it/s]
+[chat] client disconnect → upstream LLM stream closed, token generation aborted
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 3141.16it/s]
+Loading weights:   0%|          | 0/136 [00:00<?, ?it/s]Loading weights:  20%|█▉        | 27/136 [00:00<00:00, 232.99it/s]Loading weights:  40%|████      | 55/136 [00:00<00:00, 248.28it/s]Loading weights: 100%|██████████| 136/136 [00:00<00:00, 435.54it/s]
+[2026-07-13 23:56:42 +0700] [3843567] [INFO] Handling signal: term
+[2026-07-13 23:56:42 +0700] [3843568] [INFO] Worker exiting (pid: 3843568)
+  [config.load_st_model] buffer RoPE gte di-materialize ulang (/home/paps21/palisemantic5026221144/mydhamma/src/output/4-training/models/gpl-gte-multilingual-base; kompat transformers v5)
+[2026-07-13 23:56:51 +0700] [3843567] [INFO] Shutting down: Master
