@@ -8,6 +8,7 @@ Tambah/ubah model cukup di sini — file lain mengikuti. (NO redundansi.)
 Acuan metodologi: ../rencana.txt, ../STRUKTUR.txt
 """
 
+import os
 import re
 from pathlib import Path
 
@@ -57,7 +58,7 @@ NEEDS_PREFIX    = {m["name"]: m["needs_prefix"] for m in REGISTRY}
 # Train EN + ID (PLI tidak di-GPL: tak ada komponen Pali; lihat rencana.txt).
 # NOTE: pilihan default; finalisasi menunggu ACC (rencana.txt TODO).
 GPL_QUERY_GEN      = "doc2query/msmarco-14langs-mt5-base-v1"        # mT5 doc2query multilingual (id+en)
-GPL_CROSS_ENCODER  = "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1"   # cross-encoder MS MARCO multilingual
+GPL_CROSS_ENCODER  = os.environ.get("GPL_CROSS_ENCODER", "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1")   # cross-encoder MS MARCO multilingual (bisa di-override env var)
 GPL_QUERIES_PER_PASSAGE = 3
 GPL_TRAIN_LANGS    = ("en", "id")
 GPL_SUTTA_ONLY     = False   # SCOPE adaptasi domain. False = CANON-WIDE (Vinaya+Sutta+Abhidhamma)
@@ -75,6 +76,10 @@ GPL_MIN_WORDS      = 8        # min kata passage utk SUMBER latih GPL (judul/fra
 GPL_MARGIN_TARGET_STD = 0.25  # skala TARGET margin teacher (3-pseudo-label). Bi-encoder ST
                               # menormalisasi embedding -> selisih cosine terbatas (~<=2); margin
                               # CE mentah (std~5) dibagi agar std~ini, supaya MarginMSE konvergen.
+
+# UDAPDR (Saad-Falcon 2023) App.B: fine-tune retriever LANGSUNG lemah; gain di reranker.
+GPL_RERANKER_BATCH = 16       # batch fine-tune reranker (auto-turun bila OOM)
+GPL_RERANKER_LR    = 5e-6     # UDAPDR App.B: lr 5e-6, 1 epoch, cross-entropy
 
 # =============================================================================
 # HF HUB (sync server kampus <-> PC lokal; lihat sync-hf/)
@@ -98,7 +103,7 @@ def resolve_model(name: str) -> str:
     (reproducible, offline-safe). Selain itu kembalikan `name` apa adanya
     (path model GPL lewat tanpa diubah; base belum di-download fallback ke HF id).
     """
-    name = str(name)
+    # name is already expected to be str
     local = BASE_MODELS_DIR / name.split("/")[-1]
     return str(local) if ("/" in name and local.exists()) else name
 

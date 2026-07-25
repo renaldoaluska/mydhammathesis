@@ -167,22 +167,6 @@ a:hover {
   border-radius: 4px;
 }
 
-/* --- Research banner --- */
-#research-banner {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background: #c0392b;
-  color: #fff;
-  text-align: center;
-  font-size: .72rem;
-  font-weight: 600;
-  letter-spacing: .03em;
-  padding: 5px 16px;
-  line-height: 1.4;
-  flex-shrink: 0;
-}
-
 /* --- Header --- */
 #app-header {
   height: var(--header-h);
@@ -231,26 +215,6 @@ a:hover {
 .header-subtitle {
   font-size: .8rem;
   color: var(--text-muted);
-}
-
-/* Indikator pembeda Eval 1 vs Eval 2 (badge + garis warna header) */
-.eval-num-badge {
-  font-size: .7rem;
-  font-weight: 800;
-  letter-spacing: .07em;
-  padding: 3px 9px;
-  border-radius: 6px;
-  white-space: nowrap;
-}
-
-.eval-num-1 {
-  background: var(--eval1-color, #e8a838);
-  color: #0f0f14;
-}
-
-.eval-num-2 {
-  background: var(--eval2-color, #4f7cff);
-  color: #fff;
 }
 
 body[data-eval="1"] #app-header {
@@ -467,31 +431,6 @@ body[data-eval="2"] #app-header {
   align-items: center;
 }
 
-/* --- Scroll to Top Button --- */
-.btn-scroll-top {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  z-index: 130;
-  width: 40px;
-  height: 40px;
-  border: 1px solid var(--border-strong);
-  border-radius: 50%;
-  background: var(--bg-primary);
-  color: var(--text-secondary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, .15);
-  transition: opacity .2s, transform .2s;
-}
-
-.btn-scroll-top:hover {
-  background: var(--accent-subtle);
-  color: var(--accent);
-}
-
 .btn-scroll-top.hidden {
   opacity: 0;
   pointer-events: none;
@@ -501,29 +440,6 @@ body[data-eval="2"] #app-header {
 .btn-scroll-top .lucide {
   width: 20px;
   height: 20px;
-}
-
-/* --- Options Header (label + action buttons) --- */
-
-/* --- Search Actions (config & advanced buttons) --- */
-
-.btn-ghost {
-  background: none;
-  border: 1px dashed var(--border-strong);
-  border-radius: var(--radius-md);
-  padding: 8px 16px;
-  color: var(--text-muted);
-  cursor: pointer;
-  font-size: .85rem;
-  width: 100%;
-  transition: all var(--transition);
-  margin-top: 8px;
-}
-
-.btn-ghost:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-  background: var(--accent-subtle);
 }
 
 .btn-ghost.danger:hover {
@@ -639,7 +555,6 @@ body[data-eval="2"] #app-header {
   color: var(--text-primary);
 }
 
-
 [data-theme="dark"] .model-select option {
   background-color: #22222e;
   color: #e8e6f0;
@@ -748,12 +663,6 @@ body[data-eval="2"] #app-header {
   background: var(--accent-subtle);
 }
 
-/* Seg-ref checkbox inline in control-group / dialog header */
-.seg-ref-cb-label {
-  margin-left: 6px;
-  opacity: 0.8;
-}
-
 .hidden {
   display: none !important;
 }
@@ -833,30 +742,6 @@ body[data-eval="2"] #app-header {
   }
 }
 
-/* Results Grid (dual model) */
-
-/* --- Pagination --- */
-
-#pagination .btn-page {
-  padding: 4px 14px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--bg-card);
-  color: var(--text-primary);
-  cursor: pointer;
-  font-size: .82rem;
-}
-
-#pagination .btn-page:hover:not(:disabled) {
-  background: var(--accent);
-  color: #fff;
-}
-
-#pagination .btn-page:disabled {
-  opacity: .35;
-  cursor: not-allowed;
-}
-
 /* --- Sutta Card (Notion-like block) --- */
 .sutta-card {
   background: var(--bg-card);
@@ -913,11 +798,6 @@ body[data-eval="2"] #app-header {
   flex-shrink: 0;
 }
 
-.sutta-card-links {
-  display: flex;
-  gap: 6px;
-}
-
 /* Fragment inside sutta card */
 .fragment {
   padding: 10px 12px;
@@ -952,7 +832,6 @@ body[data-eval="2"] #app-header {
   font-weight: 700;
   color: var(--text-muted)
 }
-
 
 .fragment-score {
   font-weight: 500;
@@ -1041,162 +920,13 @@ body[data-eval="2"] #app-header {
   border-radius: 3px;
 }
 
-/* Add to notes button */
-.btn-add-note {
-  position: absolute;
-  /* top: 8px; */
-  bottom: 8px;
-  right: 8px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 2px 8px;
-  font-size: .65rem;
-  cursor: pointer;
-  color: var(--accent);
-  font-weight: 600;
-  opacity: 0.6;
-  transition: all var(--transition);
-}
-
 .fragment:hover .btn-add-note {
   opacity: 1;
-}
-
-.btn-add-note:hover,
-.btn-add-note:active {
-  opacity: 1;
-  background: var(--accent);
-  color: #0f0f14;
-  border-color: var(--accent);
-}
-
-.btn-retry {
-  margin-top: 12px;
-  padding: 6px 18px;
-  background: var(--accent-subtle);
-  color: var(--accent);
-  border: 1px solid var(--accent);
-  border-radius: 6px;
-  font-size: .85rem;
-  cursor: pointer;
-  transition: all var(--transition);
-}
-
-.btn-retry:hover {
-  background: var(--accent);
-  color: #0f0f14;
-}
-
-/* --- Note Picker Popover --- */
-.dk-note-picker {
-  position: fixed;
-  z-index: 9999;
-  min-width: 200px;
-  max-width: 280px;
-  max-height: 320px;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-md);
-  box-shadow: 0 6px 24px rgba(0, 0, 0, .25);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.dk-note-picker-list {
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
-
-.dk-note-picker-header {
-  padding: 8px 12px 6px;
-  font-size: .7rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: .06em;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.dk-note-picker-close {
-  background: transparent;
-  border: none;
-  padding: 2px;
-  margin-left: -4px;
-  /* Geser sedikit ke kiri agar sejajar dengan padding */
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: inherit;
-  border-radius: 4px;
-  transition: all var(--transition);
-}
-
-.dk-note-picker-close:hover {
-  background: var(--danger);
-  /* Menggunakan warna merah bawaan temamu */
-  color: #fff;
-}
-
-.dk-note-picker-item {
-  display: block;
-  width: 100%;
-  text-align: left;
-  padding: 8px 12px;
-  background: none;
-  border: none;
-  color: var(--text-primary);
-  font-size: .85rem;
-  cursor: pointer;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  transition: background .1s;
-}
-
-.dk-note-picker-item:hover {
-  background: var(--bg-tertiary);
 }
 
 .dk-note-picker-item.active {
   color: var(--accent);
   font-weight: 600;
-}
-
-.dk-note-picker-empty {
-  padding: 8px 12px;
-  font-size: .82rem;
-  color: var(--text-muted);
-  margin: 0;
-}
-
-.dk-note-picker-divider {
-  border: none;
-  border-top: 1px solid var(--border);
-  margin: 0;
-}
-
-.dk-note-picker-new {
-  display: block;
-  width: 100%;
-  text-align: left;
-  padding: 8px 12px;
-  background: none;
-  border: none;
-  color: var(--accent);
-  font-size: .85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background .1s;
-}
-
-.dk-note-picker-new:hover {
-  background: var(--accent-subtle);
 }
 
 /* --- Notes Panel --- */
@@ -1226,28 +956,6 @@ body[data-eval="2"] #app-header {
   box-shadow: 0 6px 24px rgba(0, 0, 0, .25);
 }
 
-.dk-open-menu-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  padding: 8px 10px;
-  background: none;
-  border: none;
-  border-radius: var(--radius-sm);
-  color: var(--text-primary);
-  font-size: .82rem;
-  font-family: var(--font-sans);
-  text-align: left;
-  cursor: pointer;
-  transition: background .1s, color .1s;
-}
-
-.dk-open-menu-item:hover {
-  background: var(--accent-subtle);
-  color: var(--accent);
-}
-
 .dk-open-menu-item .lucide {
   width: 15px;
   height: 15px;
@@ -1275,7 +983,6 @@ body[data-eval="2"] #app-header {
   #app-main {
     flex-direction: column;
   }
-
 
   #resize-handle {
     display: none;
@@ -1348,21 +1055,6 @@ body[data-eval="2"] #app-header {
   .theme-pill-opt {
     padding: 2px 7px;
     font-size: .65rem;
-  }
-
-  /* ── Header row 2: nav tabs ───────────────────────────── */
-
-  .nav-tab {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    font-size: .65rem;
-    border-radius: 6px;
-    white-space: nowrap;
-    overflow: hidden;
-    padding: 0 4px;
   }
 
   .nav-full {
@@ -1513,138 +1205,8 @@ body[data-eval="2"] #app-header {
     opacity: .85;
   }
 
-  /* ── Sutta dialog: full screen ────────────────────────── */
-  #sutta-dialog {
-    inset: 0;
-    border-radius: 0;
-    max-width: 100vw;
-    max-height: 100dvh;
-  }
-
-  .sutta-dialog-header {
-    padding: 12px 14px 6px;
-    gap: 8px;
-  }
-
-
-
-  .sutta-dialog-close {
-    top: 10px;
-    right: 10px;
-    width: 30px;
-    height: 30px;
-  }
-
-  .sutta-dialog-controls {
-    gap: 6px;
-  }
-
-  .sutta-dialog-lang-toggle {
-    min-width: 0;
-    flex-shrink: 1;
-  }
-
-  .sutta-dialog-sc-links {
-    order: 3;
-    margin-left: auto;
-    height: 30px;
-    display: flex;
-    align-items: center;
-  }
-
-  .sutta-dialog-body {
-    padding: 8px 6px;
-  }
-
-  .sutta-segment {
-    padding: 6px 8px;
-  }
-
-  /* ── Search controls ──────────────────────────────────── */
-  .sutta-dialog-display-toggle {
-    order: 4;
-    width: 100%;
-    /* margin-top: 4px; */
-  }
-
-  /* Dialog popup mobile: satu baris — dropdown isi sisa, tombol toggle di kanan (sinkron dengan reader-controls-sticky) */
-  .sutta-dialog-header .sutta-dialog-controls {
-    flex-wrap: nowrap;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .sutta-dialog-header .sutta-dialog-lang-toggle {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .sutta-dialog-header .sutta-lang-dropdown {
-    width: 100%;
-  }
-
-  /* override: display toggle tetap inline di kanan, bukan full-width baris baru */
-  .sutta-dialog-header .sutta-dialog-display-toggle {
-    order: 0;
-    width: auto;
-    margin-top: 0;
-    flex-shrink: 0;
-  }
-
-  /* Sutta reader mobile: satu baris — dropdown isi sisa, tombol toggle (ikon) di kanan */
-  .reader-controls-sticky .sutta-dialog-controls {
-    flex-wrap: nowrap;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .reader-controls-sticky .sutta-dialog-lang-toggle {
-    flex: 1;
-  }
-
-  .reader-controls-sticky .sutta-lang-dropdown {
-    width: 100%;
-  }
-
-  /* override stack global: toggle display inline di kanan, bukan full-width baris baru */
-  .reader-controls-sticky .sutta-dialog-display-toggle {
-    order: 0;
-    width: auto;
-    margin-top: 0;
-    flex-shrink: 0;
-  }
-
-  /* Tombol aksi (Setelan & Halaman Teks) jadi icon-only di mobile */
-  .sutta-dialog-open-label {
-    display: none;
-  }
-
   .control-group {
     flex: 1;
-  }
-
-  /* ── Eval dashboard ───────────────────────────────────── */
-  #eval-dashboard {
-    padding: 16px 12px 32px;
-    gap: 16px;
-  }
-
-  .eval-dashboard-inner {
-    gap: 14px;
-  }
-
-  .eval-dashboard-title {
-    font-size: 1.1rem;
-  }
-
-  .eval-dashboard-card {
-    padding: 10px 12px;
-    gap: 10px;
-  }
-
-  .eval-dashboard-card-icon {
-    font-size: 1.3rem;
-    width: 30px;
   }
 
   /* ── Footer ───────────────────────────────────────────── */
@@ -1666,12 +1228,6 @@ body[data-eval="2"] #app-header {
     justify-content: center;
   }
 
-  .footer-tentang-link {
-    display: inline-block !important;
-    padding: 6px 14px !important;
-    margin: 6px 0 !important;
-  }
-
   .footer-info-group {
     justify-content: center;
     flex-wrap: wrap;
@@ -1685,47 +1241,8 @@ body[data-eval="2"] #app-header {
   }
 }
 
-/* ================================================================
-   SUTTA READER PAGE
-   ================================================================ */
-
-/* Segment container */
-.sutta-segments {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-/* Single segment */
-.sutta-segment {
-  position: relative;
-  padding: 8px 12px;
-  border-radius: var(--radius-sm);
-  transition: background var(--transition), padding var(--transition);
-  line-height: 1.7;
-}
-
 html.show-seg-ref .sutta-segment {
   padding-top: 24px;
-}
-
-.sutta-segment:hover {
-  background: var(--bg-tertiary);
-}
-
-.sutta-segment:target {
-  background: var(--accent-subtle);
-  outline: 2px solid var(--accent);
-  outline-offset: -2px;
-}
-
-
-.seg-text {
-  font-family: var(--font-sans);
-  font-size: .92rem;
-  color: var(--text-primary);
-  overflow-wrap: anywhere;
-  word-break: break-word;
 }
 
 .verse-num {
@@ -1758,13 +1275,6 @@ html.show-seg-ref .verse-sep {
   display: none;
 }
 
-@media (max-width: 768px) {
-
-  .seg-ref-cb-label:not(.verse-sep-cb-label) {
-    order: 2;
-  }
-}
-
 .seg-untranslated {
   opacity: 0.55;
   font-style: italic;
@@ -1781,20 +1291,6 @@ html.show-seg-ref .verse-sep {
   opacity: 0.9;
 }
 
-.seg-add-btn .short {
-  display: none;
-}
-
-@media (max-width: 768px) {
-  .seg-add-btn .full {
-    display: none;
-  }
-
-  .seg-add-btn .short {
-    display: inline;
-  }
-}
-
 .kw-short {
   display: none;
 }
@@ -1807,65 +1303,6 @@ html.show-seg-ref .verse-sep {
   .kw-short {
     display: inline;
   }
-}
-
-/* Sutta heading levels */
-.sutta-heading-1 {
-  margin-top: 1.6em;
-}
-
-.sutta-heading-1 .seg-text,
-.sutta-heading-1 .seg-col {
-  font-size: 1.18rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 4px;
-}
-
-.sutta-heading-2 {
-  margin-top: 1em;
-}
-
-.sutta-heading-2 .seg-text,
-.sutta-heading-2 .seg-col {
-  font-size: 1.02rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.sutta-heading-3 {
-  margin-top: 0.6em;
-}
-
-.sutta-heading-3 .seg-text,
-.sutta-heading-3 .seg-col {
-  font-size: .92rem;
-  font-weight: 600;
-  font-style: italic;
-  color: var(--text-secondary);
-}
-
-.sutta-heading-4 {
-  margin-top: 0.4em;
-}
-
-.sutta-heading-4 .seg-text,
-.sutta-heading-4 .seg-col {
-  font-size: .88rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-
-.sutta-heading-5 {
-  margin-top: 0.3em;
-}
-
-.sutta-heading-5 .seg-text,
-.sutta-heading-5 .seg-col {
-  font-size: .84rem;
-  font-weight: 500;
-  color: var(--text-secondary);
 }
 
 /* Folded body heading rendered as a ".0" lead part inside a content segment
@@ -1920,53 +1357,6 @@ html.show-seg-ref .verse-sep {
   /* margin-top: .3em; */
 }
 
-/* Side-by-side */
-.sutta-segments.side-by-side .sutta-segment {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  align-items: start;
-}
-
-.seg-col {
-  font-family: var(--font-sans);
-  font-size: .88rem;
-  line-height: var(--reader-line-height, 1.7);
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-
-.seg-primary {
-  color: var(--text-primary);
-}
-
-.seg-secondary {
-  color: var(--text-muted);
-  font-style: italic;
-}
-
-/* Segment ref badge — hidden by default, toggled via html.show-seg-ref */
-.seg-ref {
-  position: absolute;
-  top: 4px;
-  left: 12px;
-  /* font-size: .58rem; */
-  font-size: .60rem;
-  font-family: "Inter", sans-serif;
-  font-weight: 700;
-  color: var(--text-muted);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity var(--transition);
-  background: var(--bg-secondary);
-  padding: 1px 5px;
-  border-radius: 4px;
-  white-space: nowrap;
-  /* max-width: 34px; */
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 html.show-seg-ref .seg-ref {
   opacity: 1;
   pointer-events: auto;
@@ -1974,70 +1364,6 @@ html.show-seg-ref .seg-ref {
 
 html.show-seg-ref .sutta-segment:hover .seg-ref {
   opacity: 0.85;
-}
-
-/* Add to notes button (appears on hover, always visible on touch) */
-.seg-add-btn {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  font-size: .65rem;
-  font-weight: 600;
-  padding: 2px 8px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--bg-secondary);
-  color: var(--accent);
-  cursor: pointer;
-  opacity: 0;
-  transition: all var(--transition);
-}
-
-.sutta-segment:hover .seg-add-btn {
-  opacity: 1;
-}
-
-.seg-add-btn:hover {
-  opacity: 1;
-  background: var(--accent);
-  color: #0f0f14;
-  border-color: var(--accent);
-}
-
-@media (hover: none) {
-  .seg-add-btn {
-    opacity: .35;
-  }
-
-  .btn-add-note {
-    opacity: .35;
-  }
-}
-
-/* ================================================================
-   NAV TABS (Search / Browse)
-   ================================================================ */
-
-.nav-tabs {
-  display: flex;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-strong);
-  border-radius: 20px;
-  padding: 2px;
-  align-items: center;
-}
-
-.nav-tab {
-  background: transparent;
-  border: none;
-  border-radius: 18px;
-  padding: 5px 14px;
-  color: var(--text-muted);
-  cursor: pointer;
-  font-size: .8rem;
-  font-weight: 600;
-  transition: all var(--transition);
-  white-space: nowrap;
 }
 
 .nav-tab.active {
@@ -2048,7 +1374,6 @@ html.show-seg-ref .sutta-segment:hover .seg-ref {
 .nav-tab:hover:not(.active) {
   color: var(--text-primary);
 }
-
 
 /* ================================================================
    BROWSE TREE
@@ -2061,8 +1386,6 @@ html.show-seg-ref .sutta-segment:hover .seg-ref {
 /* ── Sutta row ── */
 
 /* ── Language badges ── */
-
-
 
 /* ================================================================
    PANEL FOOTER (Non-sticky, inside scrollable area)
@@ -2157,7 +1480,6 @@ html.show-seg-ref .sutta-segment:hover .seg-ref {
     max-width: 200px;
   }
 
-
 }
 
 .footer-logo-wrap:hover::after {
@@ -2169,36 +1491,6 @@ html.show-seg-ref .sutta-segment:hover .seg-ref {
 .footer-logo:hover {
   filter: grayscale(0) opacity(1) !important;
   transform: scale(1.1);
-}
-
-.footer-center {
-  flex: 1;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 0 16px;
-  line-height: 1.4;
-}
-
-.footer-tentang-link {
-  font-size: .72rem;
-  color: var(--text-secondary);
-  text-decoration: none;
-  padding: 3px 10px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--bg-tertiary);
-  transition: background .15s, border-color .15s, color .15s;
-  white-space: nowrap;
-}
-
-.footer-tentang-link:hover {
-  background: var(--bg-card-hover);
-  border-color: var(--accent);
-  color: var(--accent);
 }
 
 .footer-right {
@@ -2271,18 +1563,11 @@ html.show-seg-ref .sutta-segment:hover .seg-ref {
   transform: translateY(0);
 }
 
-
 @media (max-width: 650px) {
   .panel-footer {
     flex-direction: column;
     gap: 8px;
     text-align: center;
-  }
-
-  .footer-center {
-    text-align: center;
-    padding: 4px 0;
-    justify-content: center;
   }
 
   .footer-right {
@@ -2364,13 +1649,6 @@ html.show-seg-ref .sutta-segment:hover .seg-ref {
   color: var(--text-secondary);
   font-size: .84rem;
   line-height: 1.5;
-}
-
-/* Criteria list (intro + sidebar) */
-.eval-criteria-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
 }
 
 .eval-criteria-item {
@@ -2696,58 +1974,6 @@ html.show-seg-ref .sutta-segment:hover .seg-ref {
   margin-bottom: 0;
 }
 
-#eval-step-info {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-wrap: wrap;
-  margin-bottom: 6px;
-}
-
-.eval-step-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 10px;
-  border-radius: 12px;
-  font-size: .75rem;
-  font-weight: 600;
-  background: var(--accent-subtle);
-  color: var(--accent);
-}
-
-.eval-step-badge strong {
-  color: var(--text-primary);
-}
-
-.eval-step-badge-muted {
-  display: inline-flex;
-  padding: 3px 10px;
-  border-radius: 12px;
-  font-size: .72rem;
-  background: var(--bg-tertiary);
-  color: var(--text-muted);
-}
-
-#eval-query-display {
-  font-size: 1rem;
-  font-weight: 500;
-  font-family: var(--font-serif);
-  color: var(--text-primary);
-  line-height: 1.5;
-  padding: 10px 14px;
-  border-radius: var(--radius-md);
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-}
-
-.eval-query-label {
-  color: var(--text-muted);
-  font-size: .8rem;
-  font-family: var(--font-sans);
-  font-weight: 600;
-}
-
 .eval-grade-row {
   display: flex;
   align-items: center;
@@ -2832,7 +2058,6 @@ html.show-seg-ref .sutta-segment:hover .seg-ref {
   outline-offset: -2px;
   animation: evalPulse .6s ease 2;
 }
-
 
 .eval-model-sources {
   display: none;
@@ -3013,29 +2238,6 @@ html.show-seg-ref .sutta-segment:hover .seg-ref {
   margin-top: 8px;
 }
 
-.eval-sidebar-progress-track {
-  flex: 1;
-  height: 6px;
-  background: var(--border);
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.eval-sidebar-progress-fill {
-  height: 100%;
-  width: 0%;
-  background: var(--accent, #6366f1);
-  border-radius: 3px;
-  transition: width 0.3s;
-}
-
-.eval-sidebar-progress-label {
-  font-size: .7rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  white-space: nowrap;
-}
-
 .eval-sidebar-prog-table {
   width: 100%;
   border-collapse: collapse;
@@ -3138,76 +2340,15 @@ tr.eval-prog-current .eval-prog-num {
   font-size: .7rem;
 }
 
-.eval-progress-stat {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: .8rem;
-  color: var(--text-secondary);
-  margin-bottom: 6px;
-}
-
-.eval-progress-bar-mini {
-  flex: 1;
-  height: 6px;
-  background: var(--bg-tertiary);
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.eval-progress-fill {
-  height: 100%;
-  background: var(--accent);
-  border-radius: 3px;
-  transition: width .3s ease;
-}
-
-.eval-progress-detail {
-  font-size: .75rem;
-  color: var(--text-muted);
-  line-height: 1.5;
-}
-
-.eval-sidebar-model-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 8px;
-  border-radius: var(--radius-sm);
-  font-size: .75rem;
-  color: var(--text-muted);
-  transition: all var(--transition);
-}
-
 .eval-sidebar-model-item.active {
   background: var(--accent-subtle);
   color: var(--accent);
   font-weight: 600;
 }
 
-.eval-sidebar-model-num {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--bg-tertiary);
-  font-size: .65rem;
-  font-weight: 700;
-  flex-shrink: 0;
-}
-
 .eval-sidebar-model-item.active .eval-sidebar-model-num {
   background: var(--accent);
   color: #0f0f14;
-}
-
-.eval-sidebar-model-corpora {
-  font-size: .65rem;
-  color: var(--text-muted);
-  margin-left: auto;
-  opacity: .7;
 }
 
 .eval-hide-scores .fragment-score {
@@ -3314,183 +2455,10 @@ tr.eval-prog-current .eval-prog-num {
   width: fit-content;
 }
 
-
-/* ================================================================
-   SUTTA DIALOG
-   ================================================================ */
-#sutta-dialog {
-  position: fixed;
-  inset: 16px;
-  width: auto;
-  height: auto;
-  max-width: calc(100vw - 32px);
-  max-height: calc(100vh - 32px);
-  margin: 0;
-  padding: 0;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-lg);
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  box-shadow: 0 24px 80px rgba(0, 0, 0, .5);
-  z-index: 1000;
-}
-
-#sutta-dialog[open] {
-  display: flex;
-  flex-direction: column;
-}
-
-#sutta-dialog::backdrop {
-  background: rgba(0, 0, 0, .55);
-  backdrop-filter: blur(4px);
-}
-
-/* ==================== READER SETTINGS DIALOG ==================== */
-
-/* Pratinjau tunggal: satu blok yang mencerminkan semua setelan pembaca
-   (segmen, gaya, ukuran, tinggi baris) sekaligus */
-
-/* Teks pratinjau ikut gaya huruf (sans/serif lewat .reader-serif), ukuran (zoom
-   diset via JS pada elemen ini), & tinggi baris aktif */
-
-/* Toggle switch (Segmen) */
-
-/* Tombol gaya huruf tampil dengan font aslinya biar kelihatan bedanya */
-
-/* Ruas pratinjau: badge ref melayang di pojok kiri-atas (mirip .seg-ref pembaca),
-   bukan inline. Beri ruang di atas teks saat "Segmen" aktif. */
-
-/* Nomor baris inline di awal teks (mirip .verse-num), tampil saat "Segmen" aktif */
-
-#sutta-content {
-  padding: 0 24px 24px;
-}
-
-@media (max-width: 768px) {
-  #sutta-content {
-    padding: 0 6px 12px;
-  }
-
-  /* Nav atas ikut inset konten mobile (nav bawah sudah 0 + padding #sutta-content) */
-  .sp-nav.sutta-sp-nav {
-    padding-left: 6px;
-    padding-right: 6px;
-  }
-}
-
-.sutta-dialog-header {
-  position: sticky;
-  z-index: 10;
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border);
-  padding: 16px 24px 12px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
 #search-scroll .sutta-dialog-header {
   margin-left: -20px;
   margin-right: -20px;
   margin-top: -10px;
-}
-
-/* Reader: judul tidak sticky (biar ke-scroll); border bawah dipindah ke bar sticky */
-
-/* Bar kontrol (dropdown + toggle) — sticky di atas saat scroll.
-   top negatif = nutup padding-top #search-scroll (10px) biar nempel flush. */
-
-.reader-controls-sticky .sutta-dialog-controls {
-  margin: 0;
-}
-
-.sutta-header-top {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-
-.sutta-header-top h2 {
-  min-width: 0;
-  flex: 1;
-}
-
-.sutta-dialog-header h2 {
-  margin: 0;
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  padding-right: 44px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-@media (max-width: 768px) {
-  .sutta-dialog-header h2 {
-    font-size: .95rem;
-    padding-right: 40px;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 2px;
-  }
-}
-
-.sutta-dialog-header h2 svg {
-  width: 20px;
-  height: 20px;
-  color: var(--accent);
-  flex-shrink: 0;
-}
-
-.sutta-dialog-controls {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.sutta-dialog-lang-toggle {
-  display: flex;
-  gap: 4px;
-  min-width: 0;
-  flex-shrink: 1;
-}
-
-.sutta-lang-dropdown {
-  padding: 5px 10px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-strong);
-  background: var(--bg-card);
-  color: var(--text-primary);
-  font-size: .82rem;
-  font-family: var(--font-sans);
-  cursor: pointer;
-  transition: border-color var(--transition);
-  max-width: 100%;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.sutta-lang-dropdown:hover,
-.sutta-lang-dropdown:focus {
-  border-color: var(--accent);
-  outline: none;
-}
-
-.sutta-dialog-lang-toggle .toggle-btn {
-  padding: 4px 12px;
-  font-size: .8rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--bg-tertiary);
-  color: var(--text-secondary);
-  cursor: pointer;
-  text-decoration: none;
-  transition: all var(--transition);
 }
 
 .sutta-dialog-lang-toggle .toggle-btn.active {
@@ -3504,25 +2472,6 @@ tr.eval-prog-current .eval-prog-num {
   background: var(--bg-card-hover);
 }
 
-.sutta-dialog-sc-links {
-  display: flex;
-  gap: 4px;
-  margin-left: auto;
-  align-items: center;
-}
-
-/* Mobile: native select dropdown, Desktop: individual links */
-
-.sutta-dialog-sc-links a {
-  font-size: .75rem;
-  font-weight: 700;
-  padding: 3px 8px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  text-decoration: none;
-  transition: all var(--transition);
-}
-
 .sutta-dialog-sc-links a.id {
   color: var(--tag-id);
 }
@@ -3533,166 +2482,6 @@ tr.eval-prog-current .eval-prog-num {
 
 .sutta-dialog-sc-links a.pli {
   color: var(--tag-pli);
-}
-
-.sutta-dialog-sc-links a:hover {
-  background: var(--bg-card);
-  filter: brightness(1.2);
-}
-
-.sutta-dialog-close {
-  position: absolute;
-  top: 12px;
-  right: 16px;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text-secondary);
-  width: 32px;
-  height: 32px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all var(--transition);
-  z-index: 11;
-}
-
-.sutta-dialog-close svg {
-  width: 18px;
-  height: 18px;
-}
-
-.sutta-dialog-close:hover {
-  background: var(--danger);
-  color: #fff;
-  border-color: var(--danger);
-}
-
-/* Grup tombol aksi (Atur + Buka Sutta) — sebelah kiri close button */
-.sutta-dialog-actions {
-  position: absolute;
-  top: 12px;
-  right: 56px;
-  /* 32px (close) + 8px gap + 16px margin */
-  display: flex;
-  gap: 8px;
-  z-index: 11;
-}
-
-.sutta-dialog-open-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 0 10px;
-  height: 32px;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text-secondary);
-  font-size: .78rem;
-  font-weight: 600;
-  text-decoration: none;
-  cursor: pointer;
-  transition: all var(--transition);
-  z-index: 11;
-  white-space: nowrap;
-}
-
-.sutta-dialog-open-btn svg {
-  width: 14px;
-  height: 14px;
-  flex-shrink: 0;
-}
-
-.sutta-dialog-open-btn:hover {
-  background: var(--accent-subtle);
-  color: var(--accent);
-  border-color: var(--accent);
-}
-
-.dlg-open-popover .btn-ghost {
-  border-radius: 0;
-  border: none;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg-secondary);
-  justify-content: flex-start;
-  gap: 8px;
-  padding: 9px 14px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  width: 100%;
-  margin-top: 0;
-  color: var(--text-primary);
-  display: flex;
-  align-items: center;
-}
-
-.dlg-open-popover .btn-ghost:last-child {
-  border-bottom: none;
-}
-
-.dlg-open-popover .btn-ghost:hover {
-  background: var(--accent-subtle);
-  color: var(--accent);
-}
-
-
-
-.sutta-dialog-body {
-  flex: 1;
-  overflow-y: auto;
-  padding: 24px;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Reuse sutta segment styles inside dialog */
-#sutta-dialog .sutta-segments {
-  max-width: 900px;
-  margin: 0 auto;
-}
-
-
-
-/* Display mode toggle in dialog header */
-.sutta-dialog-display-toggle {
-  display: flex;
-  gap: 4px;
-}
-
-/* Saat kosong (teks Pāḷi / non-segmented), jangan sisakan ruang/margin hantu */
-.sutta-dialog-display-toggle:empty {
-  display: none;
-}
-
-/* Tombol mode tampil ter-disable (teks Pāḷi / non-segmented) */
-.sutta-dialog-display-toggle .toggle-btn:disabled {
-  opacity: .4;
-  cursor: not-allowed;
-}
-
-
-#sutta-dialog-display-toggle {
-  margin-left: auto;
-}
-
-.sutta-dialog-display-toggle .toggle-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px 8px;
-  font-size: .75rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--bg-tertiary);
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all var(--transition);
-}
-
-.sutta-dialog-display-toggle .toggle-btn svg {
-  width: 14px;
-  height: 14px;
 }
 
 .sutta-dialog-display-toggle .toggle-btn.active {
@@ -3729,20 +2518,6 @@ tr.eval-prog-current .eval-prog-num {
   }
 }
 
-/* ================================================================
-   EVAL DASHBOARD PAGE
-   ================================================================ */
-
-#eval-dashboard {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 32px 20px 40px;
-  gap: 28px;
-  width: 100%;
-}
-
-
 .eval-topbar {
   display: flex;
   align-items: center;
@@ -3764,82 +2539,6 @@ tr.eval-prog-current .eval-prog-num {
     margin-left: -14px;
     margin-right: -14px;
   }
-}
-
-.eval-dashboard-inner {
-  max-width: 560px;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.eval-dashboard-title {
-  font-size: 1.4rem;
-  font-weight: 700;
-  margin: 0;
-}
-
-.eval-dashboard-desc {
-  color: var(--text-muted);
-  margin: 0;
-  font-size: .9rem;
-}
-
-.eval-dashboard-cards {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.eval-dashboard-card {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 16px 18px;
-  border-radius: var(--radius-md);
-  text-decoration: none;
-  color: var(--text-primary);
-  transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
-}
-
-.eval-dashboard-card:hover {
-  background: var(--accent-subtle) !important;
-  transform: translateX(3px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, .15);
-}
-
-.eval-dashboard-card-icon {
-  font-size: 1.6rem;
-  flex-shrink: 0;
-  width: 40px;
-  text-align: center;
-}
-
-.eval-dashboard-card-body {
-  flex: 1;
-}
-
-.eval-dashboard-card-body h3 {
-  font-size: .95rem;
-  font-weight: 700;
-  margin: 0 0 3px;
-}
-
-.eval-dashboard-card-body p {
-  font-size: .8rem;
-  color: var(--text-muted);
-  margin: 0;
-}
-
-.eval-dashboard-card-arrow {
-  font-size: 1.1rem;
-  color: var(--text-muted);
-  transition: color var(--transition);
-}
-
-.eval-dashboard-card:hover .eval-dashboard-card-arrow {
-  color: var(--accent);
 }
 
 /* ================================================================
@@ -4197,7 +2896,6 @@ tr.eval-prog-current .eval-prog-num {
   white-space: nowrap;
 }
 
-
 /* ========== Toast notification ========== */
 #dk-toast {
   position: fixed;
@@ -4494,160 +3192,8 @@ tr.eval-prog-current .eval-prog-num {
   color: var(--text-secondary);
 }
 
-/* ===== Tentang page ===== */
-.tentang-md {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 24px 20px 48px;
-  line-height: 1.7;
-}
-
-.tentang-md h1,
-.tentang-md h2,
-.tentang-md h3 {
-  margin-top: 1.6em;
-  margin-bottom: .4em;
-}
-
-.tentang-md p {
-  margin-bottom: .9em;
-}
-
-.tentang-md code {
-  font-family: monospace;
-  font-size: .88em;
-}
-
-.tentang-md :not(pre)>code {
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border);
-  border-radius: 3px;
-  padding: 1px 5px;
-}
-
-.tentang-md table {
-  border-collapse: collapse;
-  min-width: 100%;
-  margin-bottom: 1em;
-}
-
-.tentang-md .table-wrapper {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  margin-bottom: 1em;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-}
-
-.tentang-md .table-wrapper table {
-  margin-bottom: 0;
-  border: none;
-}
-
-.tentang-md .table-wrapper table {
-  margin-bottom: 0;
-}
-
-.tentang-md th,
-.tentang-md td {
-  border: 1px solid var(--border);
-  padding: 6px 12px;
-  text-align: left;
-  white-space: nowrap;
-}
-
-.tentang-md ul,
-.tentang-md ol {
-  padding-left: 1.6em;
-  margin-bottom: .9em;
-}
-
-.tentang-md li {
-  margin-bottom: .25em;
-}
-
-.tentang-md li>ul,
-.tentang-md li>ol {
-  margin-bottom: 0;
-}
-
-.tentang-toc-fab {
-  position: fixed;
-  top: calc(var(--banner-h, 28px) + var(--header-h) + 12px);
-  left: 16px;
-  z-index: 200;
-  padding: 6px 14px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--bg-card);
-  color: var(--text-primary);
-  font-size: .8rem;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, .18);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  transition: background .15s, box-shadow .15s, transform .1s;
-  white-space: nowrap;
-}
-
-.tentang-toc-fab:hover {
-  background: var(--bg-card-hover);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, .25);
-}
-
-.tentang-toc-popover {
-  position: fixed;
-  top: calc(var(--banner-h, 28px) + var(--header-h) + 52px);
-  left: 16px;
-  z-index: 199;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, .22);
-  padding: 8px 0;
-  min-width: 220px;
-  max-width: 320px;
-  max-height: calc(100vh - var(--header-h) - 80px);
-  overflow-y: auto;
-  display: none;
-}
-
 .tentang-toc-popover.open {
   display: block;
-}
-
-.tentang-toc-popover a {
-  display: block;
-  padding: 5px 16px;
-  font-size: .78rem;
-  color: var(--text-secondary);
-  text-decoration: none;
-  line-height: 1.35;
-  transition: background .1s, color .1s;
-}
-
-.tentang-toc-popover a:hover {
-  background: var(--bg-tertiary);
-  color: var(--accent);
-}
-
-@media (max-width: 768px) {
-  .tentang-toc-fab {
-    top: auto !important;
-    left: auto !important;
-    bottom: 16px;
-    right: 16px;
-  }
-
-  .tentang-toc-popover {
-    top: auto !important;
-    left: 16px !important;
-    right: 16px;
-    bottom: 60px;
-    max-width: none;
-    max-height: 60vh;
-  }
 }
 
 /* ===== Suttaplex Breadcrumbs ===== */
@@ -4696,22 +3242,6 @@ tr.eval-prog-current .eval-prog-num {
 .sp-back-btn svg {
   width: 15px;
   height: 15px;
-}
-
-/* ── Language buttons ── */
-
-/* ── Suttaplex prev/next navigation ── */
-/* Nav prev/next halaman baca — sejajarkan dgn teks konten, padding vertikal simetris */
-.sp-nav.sutta-sp-nav {
-  padding: 20px 24px;
-}
-
-/* Nav bawah ada DI DALAM #sutta-content (sudah padding samping 24px),
-   jadi jangan dobel; cukup garis pemisah dari teks di atasnya. */
-#sutta-content .sp-nav.sutta-sp-nav {
-  padding-left: 0;
-  padding-right: 0;
-  border-top: 1px solid var(--border);
 }
 
 /* ── Reader (sutta page) header controls ── */
@@ -4828,55 +3358,6 @@ tr.eval-prog-current .eval-prog-num {
 
 .dk-dlg-btn.danger:hover {
   filter: brightness(1.15);
-}
-
-/* ── Sutta floating button group (TOC + Seg) ── */
-
-.reader-serif .seg-text,
-.reader-serif .seg-col {
-  font-family: var(--font-serif);
-}
-
-#sutta-body .sutta-segment,
-#sutta-dialog-content .sutta-segment {
-  line-height: var(--reader-line-height, 1.7);
-}
-
-/* Segment list item */
-.seg-list-item {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  white-space: normal;
-}
-
-.seg-list-ref {
-  font-family: "JetBrains Mono", "Fira Code", monospace;
-  font-size: .74rem;
-  font-weight: 600;
-  color: var(--accent);
-  flex-shrink: 0;
-}
-
-.seg-list-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: .80rem;
-}
-
-/* Folded body-heading entries in the segment list (kept distinct from ".1" content). */
-.seg-list-heading .seg-list-text {
-  font-weight: 700;
-  color: var(--text-primary);
-  white-space: normal;
-}
-
-/* Speaker (".0") entries in the segment list — own row, like headings but lighter. */
-.seg-list-speaker .seg-list-text {
-  font-weight: 600;
-  color: var(--accent);
-  white-space: normal;
 }
 
 /* Pitaka badge in search results */

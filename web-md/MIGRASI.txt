@@ -1,0 +1,65 @@
+============================================================
+MIGRASI web-md: server kampus -> VPS (CPU-only) + API LLM (OpenRouter/DeepInfra/dll)
+============================================================
+Prinsip: kode UDAH portable (path relatif ke src/config.py; backend/device/
+reranker via env). Migrasi = COPY DATA + ISI .env. Tidak ada edit kode.
+Ops detail (systemd+gunicorn, cloudflared) lihat cara_cek.txt.
+
+------------------------------------------------------------
+1. DATA yang WAJIB di-copy  (config prod = e5-base saja)
+------------------------------------------------------------
+  a. Kode        -> mydhamma/web-md/, mydhamma/web/, mydhamma/src/config.py, reader.py
+  b. Korpus      -> src/output/ (teks/nama/tree/blurb/chunk yg dibaca reader.py)
+  c. Embed e5    -> src/output/embeddings/web/embed_{id,en,pli}_multilingual-e5-base.pt  (~1.4 GB)
+  d. Model e5    -> src/output/1-get-data/base-models/multilingual-e5-base/              (~1.1 GB)
+
+  JANGAN di-copy (fat, tak dipakai prod):
+    - src/output/7-retraining/  &  4-training/models/       (zoo GPL, puluhan GB)
+    - embeddings/web/*  SELAIN *multilingual-e5-base.pt      (bge-m3 + gpl variants, ~25 GB)
+    - base-models/  selain e5  (bge-m3 ~2.2GB, gte ~0.6GB)
+    - ~/.cache/huggingface  (~29 GB — biarkan VPS download ulang HANYA yg perlu)
+    - src/output/5-eval/  (kecuali web-eval ikut dideploy)
+
+  Contoh rsync (urutan --include sebelum --exclude yg lebih luas):
+    rsync -avz --progress \
+      --include='*/' \
+      --include='embed_*_multilingual-e5-base.pt' \
+      --exclude='embeddings/web/embed_*' \
+      --exclude='7-retraining/***' \
+      --exclude='4-training/models/***' \
+      --exclude='base-models/bge-m3/***' \
+      --exclude='base-models/gte-*/***' \
+      mydhamma/  user@vps:/srv/mydhamma/
+
+------------------------------------------------------------
+2. RERANKER  (BAAI/bge-reranker-v2-m3, ~2.3 GB)
+------------------------------------------------------------
+  - Auto-download dari HuggingFace saat pertama kali chat/search rerank jalan.
+  - Set HF_HOME (lihat .env) ke path persisten -> tak download ulang tiap restart.
+  - Butuh internet di VPS saat first-run.
+
+------------------------------------------------------------
+3. ENV  (inti "tinggal switch")
+------------------------------------------------------------
+  cp web-md/.env.example web-md/.env
+  -> isi LLM_API_KEY + MYDHAMMA_CHAT_MODEL (ID persis dari openrouter.ai/models).
+  RAM 8GB (paket XL): MYDHAMMA_CHAT_RERANK=1 / SEARCH_RERANK=1   (kualitas penuh)
+  RAM 4GB (paket L) : MYDHAMMA_CHAT_RERANK=0 / SEARCH_RERANK=0   (buang ~2.3GB, tanpa rerank exp5)
+
+  Guard: kalau CHAT_BACKEND=api tapi LLM_API_KEY kosong, app cetak
+  PERINGATAN jelas saat boot + chat balas [LLM API HTTP 401] (dulu diam-diam
+  nyoba Ollama 127.0.0.1:11434 yg tak ada di VPS -> error menyesatkan).
+
+------------------------------------------------------------
+4. JALANIN
+------------------------------------------------------------
+  python -m venv venv && venv/bin/pip install -r requirements.txt   # atau daftar dep manual
+  set -a; . web-md/.env; set +a
+  # Samakan dgn service produksi (~/.config/systemd/user/mydhamma-web.service):
+  # 1 worker + 4 thread, TANPA --preload (model di memori 1x, tak diduplikasi antar-worker).
+  gunicorn -w 1 --threads 4 --timeout 120 -b 127.0.0.1:5002 \
+    --access-logfile - --access-logformat '%({cf-connecting-ip}i)s "%(r)s" %(s)s %(M)sms' app:app
+  cloudflared tunnel ...   (domain -> 127.0.0.1:5002)
+
+  Catatan: edit app.py = WAJIB restart penuh; config.json & prompts.json auto-reload.
+  Detail reload/HUP per-service: lihat mydhamma/cara_cek.txt bag. 1.

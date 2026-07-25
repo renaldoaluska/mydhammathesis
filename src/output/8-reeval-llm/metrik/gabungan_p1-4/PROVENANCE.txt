@@ -1,0 +1,31 @@
+POOL GABUNGAN PENYEMPURNA 1-4 (scoped) — provenance
+=====================================================
+Dibuat: 2026-07-20 (untuk naskah Bab 4 subbab 4.2.2.2.5 Gabungan Penyempurna 1-4).
+
+TUJUAN
+  Apple-to-apple SATU pool untuk garis penyesuaian bobot saja (base + exp0 + P1-4),
+  TANPA kontaminasi rerank (exp5.x) & ablasi (exp6). Pool all-inclusive
+  (metrik/gabungan/) TETAP dipakai utk 4.4 Perbandingan Menyeluruh.
+
+CARA BUAT (deterministik, grade beku TIDAK disentuh)
+  sumber anotasi : output/8-reeval-llm/anotasi/gabungan/ (konsensus 2 judge, 5812 baris/judge)
+  filter versi   : {base, gpl, exp1, exp2, exp3, exp4, exp4.1, exp4.2, exp4.3}
+                   (exp5.x & exp6 DIBUANG) -> 2093 baris/judge subset (+base/gpl)
+  hitung ulang   : fungsi PRODUKSI 4-run_eval.py (eval_ndcg/precision/spearman),
+                   IDCG global-pool = union pasase HANYA di subset ini.
+  VALIDASI       : harness reproduksi nDCG full-pool identik ke metrik/gabungan lama
+                   (top: exp5.4.3=0.7665, exp5.0=0.7594, ...) sebelum difilter.
+
+CATATAN nDCG POOL-DEPENDENT
+  Nilai di pool ini BEDA dari (a) pool per-exp (exp1/, exp2/, ...) & (b) pool
+  all-inclusive (gabungan/), karena IDCG dihitung atas himpunan pasase berbeda.
+  Ini SATU-SATUNYA pool yang sah utk perbandingan apple-to-apple ANTAR seluruh P1-4.
+
+HASIL INTI (nDCG@5 konsensus)
+  1. gpl-multilingual-e5-base (Penyempurna 4.3)  0.7378  <- soup exp3, TERTINGGI
+  2. multilingual-e5-base (base)                  0.7217
+  3. gpl-gte-multilingual-base (Penyempurna 4.3)  0.6978
+  4. gte-multilingual-base (base)                 0.6829
+  ... (adaptasi murni & soup lain SEMUA di bawah base)
+  -> Hanya soup-of-terbaik (4.3) yg menembus/menyamai base; garis adaptasi bobot
+     tidak menghasilkan kemenangan bersih atas base.

@@ -1,0 +1,750 @@
+================================================================================
+  DRAF NASKAH BAB 4 & BAB 5 (SIAP SALIN KE DOKUMEN)
+  Sumber angka: rangkuman_bab4_hasil.txt (+ hasil exp6 & gabungan 2026-07-18),
+  refleksi_bab5_kontribusi_dan_saran.txt, artefak run di src/output/.
+  KONVENSI: semua path gambar relatif terhadap src/output/.
+  Penanda:  <<masukkan gambar <<path>> di sini>>  = sisipkan gambar
+            <<buat tabel berisi ...>>             = buat tabel
+            <<LENGKAPI: ...>>                     = data belum ada di repo
+================================================================================
+
+BAB 4  HASIL DAN PEMBAHASAN
+
+Bab ini memaparkan hasil penelitian sesuai tahapan metodologi pada Bab 3,
+diikuti pembahasan yang menafsirkan temuan-temuan tersebut. Bagian hasil
+(4.1) disusun mengikuti alur pengerjaan, mulai dari persiapan data,
+adaptasi domain, pemeringkatan ulang, dan perbandingan menyeluruh
+antar-konfigurasi, hingga pengembangan prototipe. Bagian pembahasan (4.2)
+menganalisis kualitas korpus, keandalan instrumen evaluasi, mekanisme di
+balik temuan utama, serta kelemahan sistem.
+
+--------------------------------------------------------------------------------
+4.1  Hasil Penelitian
+--------------------------------------------------------------------------------
+
+Seluruh evaluasi kinerja temu balik pada bab ini menggunakan harness yang
+identik, yaitu 30 kueri berbahasa Indonesia yang disusun bersama pakar,
+korpus Indonesia, lima hasil teratas (top-5) per sistem, dan rubrik
+relevansi empat tingkat (0–3, mengikuti konvensi TREC). Nilai relevansi
+setiap pasase bersifat beku (frozen) dan digunakan ulang lintas
+eksperimen, sehingga pasase yang sama tidak pernah dinilai dua kali dan
+seluruh perbandingan bersifat apel-ke-apel. Penilaian dilakukan oleh
+empat pakar manusia (tahap adaptasi awal) dan dua penilai LLM (Claude
+Opus 4.8 dan Gemini 3.1 Pro) yang tervalidasi silang terhadap pakar
+(Subbab 4.2.2); angka utama yang dilaporkan adalah konsensus (rata-rata)
+kedua penilai LLM.
+
+4.1.1  Hasil Persiapan Data
+
+Tahap persiapan data mencakup pengumpulan korpus dari SuttaCentral,
+eksplorasi karakteristik korpus untuk merumuskan aturan pemenggalan
+(chunking), dan praproses yang menghasilkan indeks siap-retrieval dalam
+tiga bahasa.
+
+4.1.1.1  Hasil Pengumpulan Data
+
+Pengumpulan data dilakukan terhadap repositori SuttaCentral dalam dua
+format utama, yakni (1) bilara-data, teks tersegmentasi yang ter-align
+antarbahasa pada tingkat segmen, dan (2) html_text, terjemahan warisan
+(legacy) berformat HTML. Selain teks sutta, dikumpulkan pula metadata
+nama sutta, struktur pitaka, dan ringkasan (blurb) sebagai dokumen
+pendukung pencarian. Sumber dokumen yang terkumpul terdiri atas 7.289
+dokumen bilara, 6.326 dokumen html, 24.291 entri nama, 22.762 entri
+struktur pitaka, dan 5.560 blurb.
+
+Dari sisi bahasa, dokumen teks utama hasil pengumpulan terdiri atas 4.077
+dokumen berbahasa Indonesia, 6.433 dokumen berbahasa Inggris, dan 7.286
+dokumen Pali. Ketimpangan jumlah ini mencerminkan kondisi nyata
+ketersediaan terjemahan, sebab belum seluruh Kanon Pali diterjemahkan ke
+bahasa Indonesia, sementara teks akar (root text) Pali dan terjemahan
+Inggris relatif lengkap.
+
+<<buat tabel berisi jumlah dokumen per koleksi (nikaya/pitaka) per bahasa,
+  sumber: src/output/3-praproses/2-statistik.txt bagian 2 — kolom: Koleksi,
+  Indonesia, Inggris, Pali; baris utama a.l. AN (1.356/1.409/1.408),
+  DN (35/35/34), MN (153/153/152), SN (1.816/1.820/1.819),
+  SNP (73/74/73), THAG (264/264/264), dst.>>
+
+<<masukkan gambar <<3-praproses/2-statistik/2-dokumen-per-koleksi.png>> di sini>>
+Gambar 4.x menunjukkan sebaran dokumen per koleksi pada ketiga bahasa.
+Terlihat koleksi khotbah utama (empat Nikāya, yakni DN, MN, SN, dan AN)
+tersedia nyaris lengkap di ketiga bahasa, sedangkan sebagian koleksi
+Khuddaka Nikāya dan Abhidhamma baru tersedia dalam bahasa Inggris dan
+Pali.
+
+4.1.1.2  Hasil Eksplorasi Data
+
+Eksplorasi data menghasilkan dua keluaran utama. Keluaran pertama berupa
+karakterisasi model yang akan digunakan. Kedua model inti berukuran
+sebanding, yaitu multilingual-e5-base dengan 278,0 juta parameter dan
+gte-multilingual-base dengan 305,4 juta parameter, sementara pembanding
+bge-m3 jauh lebih besar (567,8 juta parameter) dan BM25 merupakan
+baseline leksikal tanpa parameter neural [sumber:
+2-eksplor/1-parameter.txt]. Keluaran kedua berupa karakterisasi struktur
+korpus (hierarki koleksi, pola segmentasi bilara, elemen struktural HTML
+seperti heading, penanda akhir bagian, kolofon, dan label tebal) yang
+dirumuskan menjadi berkas aturan pemenggalan chunk_rules.json. Aturan
+inilah yang menjadi dasar praproses pada tahap berikutnya.
+
+<<buat tabel berisi ringkasan parameter model (Model, Peran, Jumlah
+  Parameter): multilingual-e5-base | inti | 278,0 juta;
+  gte-multilingual-base | inti | 305,4 juta; bge-m3 | pembanding | 567,8
+  juta; BM25 | pembanding leksikal | — >>
+
+<<LENGKAPI (opsional): angka temuan eksplorasi spesifik (mis. distribusi
+  panjang segmen, jumlah pola struktural per jenis) dari
+  src/output/2-eksplor/3-analisis-korpus.txt dan 4-analisis-lanjutan.txt
+  bila pembimbing meminta detail kuantitatif tahap eksplorasi.>>
+
+4.1.1.3  Hasil Praproses Data
+
+Praproses menerapkan dua jalur pemenggalan yang berbeda sesuai sifat
+sumbernya. Dokumen bilara dipenggal dengan menggabungkan segmen-segmen
+pendek yang ter-align hingga mencapai ukuran chunk yang wajar, sedangkan
+dokumen html dipenggal dengan memotong dokumen panjang pada batas
+struktural (heading dan paragraf). Hasil akhirnya berjumlah 444.247
+chunk, terdiri atas 53.402 chunk Indonesia, 220.654 chunk Inggris, dan
+170.191 chunk Pali [sumber: 3-praproses/2-statistik.txt].
+
+<<masukkan gambar <<3-praproses/2-statistik/1-chunk-per-bahasa.png>> di sini>>
+
+Dari sisi panjang, chunk hasil praproses kompatibel dengan batas masukan
+model, dengan rata-rata 68,9 token, persentil-95 sebesar 212 token, dan
+persentil-99 sebesar 374 token; sebanyak 97,0% chunk berada di bawah 256
+token dan 99,7% di bawah 512 token, seluruhnya aman terhadap batas
+panjang pelatihan GPL yang ditetapkan 384 token [sumber:
+3-praproses/3-panjang.txt].
+
+<<masukkan gambar <<3-praproses/2-statistik/3-panjang-karakter.png>> di sini>>
+
+Kualitas hasil praproses diverifikasi menyeluruh dari empat sisi [sumber:
+3-praproses/verdict.txt]. Pertama, hanya 4 chunk (0,0009%) melebihi 5.000
+karakter, dan keempatnya adalah teks panjang yang sah (aturan Vinaya dan
+MN 113), bukan artefak parsing. Kedua, seluruh level heading h1–h6
+tertangkap pemenggal (h4 = 4.221, h5 = 1.991, h6 = 3.975 unit). Ketiga,
+penanda struktural (label, penanda akhir sutta/bagian, kolofon, dan
+sejenisnya, dengan total lebih dari 5.900 unit) berhasil di-tag dan
+dikecualikan dari isi utama serta dari data pelatihan. Keempat, tidak
+tersisa chunk sampah (junk = 0). Setelah seluruh sumber (termasuk nama,
+struktur pitaka, dan blurb) digabung, indeks retrieval akhir berukuran
+52.707 entri untuk bahasa Indonesia, 355.066 entri untuk bahasa Inggris,
+dan 443.145 entri untuk bahasa Pali [sumber: log build pool
+7-retraining].
+
+4.1.2  Hasil Adaptasi Domain
+
+Adaptasi domain dievaluasi melalui satu replikasi resep GPL apa adanya
+(Eksperimen 0) dan serangkaian eksperimen penyempurna yang masing-masing
+mengubah tepat satu variabel dari resep tersebut, sehingga setiap temuan
+dapat diatribusikan ke variabel penyebabnya. Peta lengkap eksperimen
+disajikan pada tabel berikut.
+
+<<buat tabel berisi peta eksperimen — kolom: Kode, Variabel yang Diubah,
+  Pembanding Sah; baris: exp0 | replikasi GPL as-published (kueri mT5 +
+  teacher mMiniLM + MarginMSE; 563.073 contoh; 10.000 langkah) | base;
+  exp1 | langkah 10k→5k | exp0; exp2 | generator kueri mT5→gemma2:2b |
+  exp0; exp3 | teacher mMiniLM→bge-reranker-v2-m3 | exp2; exp4.0–4.3 |
+  interpolasi bobot (soup) base⊕{exp0,exp1,exp2,exp3}, α=0,5 dikunci |
+  exp0 & base; exp6 (ablasi) | langkah 10k→140.000 (anggaran penuh) |
+  exp0 & base. Sumber: code/7-retraining/perbedaan-eksperimen.txt>>
+
+4.1.2.1  Hasil Pelatihan Generative Pseudo-Labeling (GPL)
+
+Pelatihan GPL (Eksperimen 0) menggunakan ±189 ribu pasase (Indonesia +
+Inggris) yang menghasilkan 563.073 contoh latih (tiga kueri sintetis per
+pasase, sesuai rumus paper GPL untuk ukuran korpus tersebut), berjalan
+10.000 langkah dengan objektif MarginMSE pada kedua model inti. Kurva
+loss pelatihan menunjukkan konvergensi yang wajar tanpa anomali.
+
+<<masukkan gambar <<4-training/kurva-loss/kurva_loss_semua.png>> di sini>>
+
+Hasil evaluasi ekstrinsik oleh empat pakar (n = 30 kueri) menunjukkan
+GPL tidak memperbaiki relevansi; sebaliknya, presisi justru turun
+signifikan. Pada nDCG@5, gte base memperoleh 0,6982 berbanding 0,6748
+pada GPL (Δ −0,0234; tidak signifikan, p = 0,58), dan e5 base 0,7123
+berbanding 0,6475 (Δ −0,0648; tidak signifikan, p = 0,20). Pada P@5,
+gte turun sebesar 0,0800 (Wilcoxon p = 0,0235, signifikan) dan e5
+sebesar 0,1267 (sign-test p = 0,0414, signifikan); pada gabungan dua
+keluarga, 68% kueri memburuk (sign-test p = 0,0336, signifikan).
+Korelasi Spearman berarah negatif tetapi tidak signifikan. Base unggul
+atau setara pada semua metrik; tidak ada satu metrik pun tempat GPL
+unggul [sumber: 5-eval/rangkuman_analisis.txt §1–2].
+
+<<masukkan gambar <<5-eval/3-ndcg/konsensus/plot_ndcg.png>> di sini>>
+<<masukkan gambar <<5-eval/3-ndcg/konsensus/plot_ndcg_delta.png>> di sini>>
+<<masukkan gambar <<5-eval/4-precision/konsensus/plot_precision.png>> di sini>>
+
+<<buat tabel berisi hasil pakar base vs GPL per model per metrik (nDCG@5,
+  P@5, MRR@5, Spearman) beserta Δ dan nilai p — sumber:
+  5-eval/{3-ndcg,4-precision,5-spearman}/konsensus/*_per_model.csv dan
+  5-eval/rangkuman_analisis.txt>>
+
+Temuan penting yang menyertai hasil ini adalah paradoks antara evaluasi
+intrinsik dan ekstrinsik. Pada evaluasi intrinsik (geometri embedding),
+GPL justru menang telak; celah jarak kosinus intra- dan antar-sutta
+melebar menjadi 0,2103 (gpl-gte) dan 0,2033 (gpl-e5), sekitar empat kali
+lipat base e5 (0,0509). Artinya, pelatihan MarginMSE benar-benar
+berhasil menajamkan keterpisahan antar-sutta, tetapi ketajaman itu tidak
+sejalan dengan relevansi fine-grained menurut pakar; "lebih terstruktur"
+tidak sama dengan "lebih relevan" [sumber:
+5-eval/rangkuman_analisis.txt §6].
+
+<<masukkan gambar <<5-eval/2-intrinsic/intra-inter-similarity.png>> di sini>>
+
+Untuk memastikan regresi ini bukan artefak teknis, dilakukan audit
+keadilan pipeline; konsistensi prefix e5 ("query: "/"passage: ")
+diverifikasi identik antara pelatihan dan inferensi pada empat titik.
+Audit lolos seluruhnya, sehingga regresi gpl-e5 bukan disebabkan
+kesalahan implementasi [sumber: 5-eval/rangkuman_analisis.txt §5].
+
+4.1.2.2  Hasil Eksperimen Penyempurna 1–4
+
+Empat garis penyempurnaan diuji untuk menjawab apakah kegagalan
+Eksperimen 0 disebabkan komponen resep tertentu. Seluruh hasil berikut
+adalah konsensus dua penilai LLM.
+
+a. Eksperimen Penyempurna 1 mengubah jumlah langkah dari 10 ribu menjadi
+   5 ribu. Hipotesis over-adaptation tidak terdukung; nDCG@5 e5 sebesar
+   0,6104 dan gte 0,5927, sementara base memperoleh 0,7199 dan 0,6796
+   pada harness yang sama. Terhadap base, e5 signifikan lebih buruk
+   (nDCG p = 0,0118; P@5 p = 0,0033), dan terhadap exp0, gte justru
+   signifikan di bawah exp0 (p = 0,048). Jumlah langkah bukan pengungkit
+   [sumber: metrik/exp1/].
+
+b. Eksperimen Penyempurna 2 mengganti generator kueri dari mT5 ke
+   gemma2:2b. Meskipun audit sampel buta menunjukkan kueri gemma2 jauh
+   lebih natural (5/5, berbanding mT5 yang 4/5 nonsens), hasilnya nol;
+   terhadap exp0, e5 berubah +0,010 (tidak signifikan) dan gte −0,072
+   (p = 0,055), dengan menang/kalah gabungan 27/27 (sign-test p = 1,0).
+   Mengganti generator kueri tidak menyelamatkan adaptasi. Sebagai
+   catatan lingkup yang ditetapkan di muka (pre-registered), gemma2:2b
+   adalah instansiasi hemat sumber daya (batas bawah), sehingga hasil
+   negatif ini tidak menjadi vonis bagi seluruh pendekatan
+   LLM-query-generation [sumber: metrik/exp2/].
+
+c. Eksperimen Penyempurna 3 mengganti teacher dari mMiniLM ke
+   bge-reranker-v2-m3, dan menjadi satu-satunya garis dengan arah
+   perbaikan konsisten. Terhadap exp2 (pembanding sah satu-variabel),
+   nDCG naik pada kedua keluarga (e5 +0,026 dan gte +0,043, keduanya
+   tidak signifikan) dan P@5 gabungan menang 25/12 (sign-test p = 0,047,
+   nominal signifikan). Meski demikian, terhadap base hasilnya tetap
+   jauh di bawah (Δ nDCG −0,077/−0,049); kalibrasi teacher memperbaiki
+   sedikit, tetapi bukan bottleneck utama [sumber: metrik/exp3/].
+
+d. Eksperimen Penyempurna 4 menguji keluarga model soup (interpolasi
+   bobot θ = 0,5·base + 0,5·checkpoint, tanpa pelatihan; α dikunci di
+   muka). Hipotesis "obat drift" gagal pada bahan dengan drift terdalam;
+   soup exp4.0 (base⊕exp0) mendarat persis di kinerja exp0 (e5 0,6177
+   berbanding 0,6181; datar, p > 0,74), bukan di tengah antara base dan
+   exp0. Meski demikian, keluarga ini memperlihatkan pola informatif.
+   Kualitas soup monoton mengikuti kualitas bahannya (4.0 ≈ 4.1 < 4.2 <
+   4.3), dan puncaknya, exp4.3 (base⊕exp3) dengan e5 0,7403 dan gte
+   0,6973, signifikan di atas exp0 (nDCG p = 0,0086) tetapi hanya seri
+   statistik terhadap base (menang/kalah 28/28, p = 1,0). Pembacaan yang
+   jujur atas pola ini adalah bahwa perbaikan datang dari kembalinya
+   bobot mendekat ke base, bukan dari nilai tambah adaptasi, sehingga
+   klaim bahwa soup mengalahkan base tidak diambil [sumber:
+   metrik/exp4.0–4.3/; metrik/gabungan/signifikansi_exp4.*.txt].
+
+<<masukkan gambar <<8-reeval-llm/metrik/gabungan/konsensus/ndcg/plot_ndcg_exp1_delta.png>> di sini>>
+<<masukkan gambar <<8-reeval-llm/metrik/gabungan/konsensus/ndcg/plot_ndcg_exp3_delta.png>> di sini>>
+<<masukkan gambar <<8-reeval-llm/metrik/gabungan/konsensus/ndcg/plot_ndcg_exp4.3_delta.png>> di sini>>
+
+<<buat tabel berisi rekap Penyempurna 1–4 — kolom: Eksperimen, Variabel,
+  nDCG@5 e5, nDCG@5 gte, vs Pembanding Sah (Δ, p), vs Base (Δ, p),
+  Kesimpulan satu baris — angka dari butir a–d di atas>>
+
+Evaluasi intrinsik ulang atas seluruh checkpoint eksperimen menegaskan
+pola paradoks yang sama seperti Eksperimen 0; geometri yang semakin
+terstruktur tidak diikuti perbaikan relevansi.
+
+<<masukkan gambar <<8-reeval-llm/6-reintrinsic/intra-inter-similarity.png>> di sini>>
+
+4.1.2.3  Hasil Ablasi Jumlah Langkah Penuh
+
+Ablasi ini menjawab pertanyaan yang tersisa dari Subbab 3.2.3.3, yaitu
+apakah 10.000 langkah pelatihan (pilihan berbasis anggaran waktu)
+membatasi hasil adaptasi, atau dengan kata lain apakah anggaran penuh
+akan mengubah kesimpulan. Model gte dilatih ulang dengan resep yang
+identik dengan Eksperimen 0 (kueri mT5, teacher mMiniLM, data latih
+identik byte-per-byte) dan hanya satu variabel yang diubah, yakni jumlah
+langkah yang dinaikkan 14 kali lipat menjadi 140.000 (±55,5 jam pada GPU
+RTX A2000 12GB). Ablasi dibatasi satu keluarga model (gte) demi
+efisiensi anggaran komputasi; kontrol satu-variabel membuat perbandingan
+exp6 terhadap exp0 menjadi banding-langkah yang bersih.
+
+Pada pool per-eksperimen (konsensus dua penilai LLM), exp6 memperoleh
+nDCG@5 0,6232, di bawah GPL/exp0 (0,6720) dan base gte (0,6928),
+sementara e5 base tetap teratas (0,7309). Pada P@5, exp6 memperoleh
+0,5111 berbanding 0,6000 pada GPL dan 0,6400 pada base gte. Terhadap
+GPL/exp0, seluruh selisih tidak signifikan (nDCG@5 Δ̄ = −0,0660,
+Wilcoxon p = 0,1742; P@5 Δ̄ = −0,1037, p = 0,0832; Spearman p = 1,0),
+artinya 14 kali lipat anggaran langkah menghasilkan model yang secara
+statistik setara dengan versi 10 ribu langkah.
+
+Pada pool gabungan (apel-ke-apel seluruh konfigurasi), posisi exp6
+konsisten dengan nDCG@5 0,6117, dan terhadap base presisinya signifikan
+lebih buruk (P@5 Δ̄ = −0,1630; Wilcoxon p = 0,0103; sign-test
+p = 0,0266; 16 kueri kalah berbanding 5 menang) [sumber: metrik/exp6/;
+metrik/gabungan/signifikansi_exp6_vs_GPL.txt & _vs_B.txt].
+
+<<masukkan gambar <<8-reeval-llm/metrik/exp6/konsensus/ndcg/plot_ndcg.png>> di sini>>
+<<masukkan gambar <<8-reeval-llm/metrik/exp6/konsensus/ndcg/plot_ndcg_GPL_delta.png>> di sini>>
+<<masukkan gambar <<8-reeval-llm/metrik/gabungan/konsensus/precision/plot_precision_exp6_delta.png>> di sini>>
+
+<<buat tabel berisi hasil ablasi langkah penuh — kolom: Konfigurasi,
+  nDCG@5, P@5, MRR@5; baris: base gte (0,6928 / 0,6400 / 0,7611),
+  GPL 10k (0,6720 / 0,6000 / 0,8361), exp6 140k (0,6232 / 0,5111 /
+  0,8037) — pool per-eksperimen, konsensus; sumber:
+  metrik/exp6/konsensus/*/ *_per_model.csv>>
+
+Dengan demikian, catatan kondisional pada Tabel 3.6 (Catatan 4a) kini
+terjawab secara empiris bahwa jumlah langkah bukan faktor pembatas.
+Pernyataan metodologis bahwa konfigurasi 10.000 langkah "tidak diklaim
+sebagai batas atas" terverifikasi; anggaran penuh pun tidak menghasilkan
+lonjakan, bahkan tidak mengubah satu kesimpulan pun. Garis adaptasi
+tertutup dari sisi anggaran pelatihan.
+
+4.1.3  Hasil Pemeringkatan Ulang (Eksperimen Penyempurna 5)
+
+Berbeda dari seluruh garis sebelumnya yang mengubah bobot retriever,
+Eksperimen Penyempurna 5 bekerja pada tingkat sistem. Retriever, yang
+bobotnya tidak disentuh, mengambil 100 kandidat teratas, lalu
+cross-encoder multilingual bge-reranker-v2-m3 (±568 juta parameter)
+menyusun ulang urutannya, dan lima teratas dievaluasi pada harness yang
+sama. Anti-leakage tetap dijaga; reranker dipilih dari benchmark publik
+dan probe pada data latih, sementara 30 kueri pakar tidak pernah dipakai
+memilih komponen.
+
+a. exp5.base (rerank di atas retriever base) merupakan satu-satunya
+   konfigurasi dengan titik estimasi di atas base yang konsisten pada
+   dua keluarga, dengan nDCG@5 e5 0,7522 (base 0,7290; Δ +0,023) dan
+   gte 0,7360 (base 0,6912; Δ +0,045). Gabungan menang/kalah 35/21
+   (sign-test p = 0,081), sedangkan Wilcoxon per keluarga p = 0,21
+   (gte) dan 0,43 (e5), sehingga belum signifikan (n = 30). Pola
+   metriknya koheren dengan mekanisme reranking, yakni nDCG/MRR naik
+   sementara P@5 datar; perbaikan terjadi pada urutan, bukan cakupan.
+
+b. exp5.0–5.4 menerapkan rerank identik di atas retriever hasil
+   adaptasi exp0–exp3 dan soup exp4.0. Terhadap GPL-nya masing-masing,
+   rerank "menyelamatkan" adaptasi secara signifikan pada hampir semua
+   sel; contoh terkuatnya 5.0-e5 yang naik dari 0,614 menjadi 0,769
+   (Wilcoxon p < 0,0001; gabungan 42/11, p < 0,0001). Terhadap base,
+   titik estimasi berada di atas base pada seluruh 10 sel (Δ +0,026
+   s.d. +0,088), tetapi hanya nominal signifikan pada sign-test
+   gabungan dua varian (5.0 p = 0,0086; 5.1 p = 0,036) dan tidak tegak
+   pada Wilcoxon.
+
+c. exp5.4.1–5.4.3 menerapkan rerank di atas soup exp4.1–4.3 untuk
+   melengkapi keluarga. Pada papan gabungan, titik estimasi tertinggi
+   seluruh penelitian dipegang 5.4.3-gte (nDCG@5 0,7665), tetapi pola
+   antar-varian bersifat model-dependent (pada e5, 5.4.x justru di
+   bawah 5.4); tidak ada varian yang dominan konsisten.
+
+d. Temuan kunci antar-varian diperoleh ketika seluruh kelas two-stage
+   diuji pada eval gabungan dengan satu pool, satu anotasi, dan satu
+   IDCG. Tidak ada varian yang mengalahkan exp5.base (sign-test
+   p = 0,50–1,00); seluruh kelas two-stage seri statistik. Spread
+   single-stage yang lebar (base 0,73 berbanding GPL 0,62 pada e5)
+   menciut menjadi 0,74–0,78 pasca-rerank, sehingga kualitas
+   first-stage nyaris tak lagi menentukan skor akhir. Konsekuensinya,
+   konfigurasi termurah di kelas teratas, yaitu base + rerank
+   (exp5.base), menjadi rekomendasi utama [sumber: metrik/exp5.*/;
+   metrik/gabungan/signifikansi_exp5.*_vs_exp5.base.txt].
+
+<<masukkan gambar <<8-reeval-llm/metrik/gabungan/konsensus/ndcg/plot_ndcg_exp5_delta.png>> di sini>>
+<<masukkan gambar <<8-reeval-llm/metrik/gabungan/konsensus/ndcg/plot_ndcg_exp5.0_delta.png>> di sini>>
+
+<<buat tabel berisi hasil keluarga rerank — kolom: Konfigurasi
+  (5.base, 5.0–5.4, 5.4.1–5.4.3), first-stage yang dipakai, nDCG@5 e5,
+  nDCG@5 gte, vs GPL (p), vs base (p) — angka pool gabungan dari
+  metrik/gabungan/konsensus/ndcg/ndcg_per_model.csv, signifikansi dari
+  metrik/exp5.*/signifikansi{,_vsB}.txt>>
+
+4.1.4  Perbandingan Menyeluruh Antar-Konfigurasi
+
+Untuk menghindari bias pool (nilai nDCG bergantung pada komposisi pool
+penilaian), seluruh 39 konfigurasi dibandingkan ulang pada satu pool
+gabungan dengan satu anotasi dan satu IDCG global. Papan akhir (nDCG@5
+konsensus, korpus Indonesia, 30 kueri) memperlihatkan struktur dua kelas
+yang tegas.
+
+Kelas two-stage (dengan rerank) menempati seluruh puncak papan pada
+rentang 0,69–0,77. Posisi teratas dipegang 5.4.3-gte dengan 0,7665,
+disusul rapat oleh 5.0-e5 (0,7594), 5.2-gte (0,7583), dan 5.1-e5
+(0,7582), sementara exp5.base memperoleh 0,7509 (e5) dan 0,7359 (gte).
+Seluruh anggota kelas ini seri statistik satu sama lain.
+
+Kelas single-stage (bobot retriever saja) dipimpin base e5 (0,7185)
+bersama satu-satunya penyentuh level base, yaitu soup exp4.3 (0,7349
+pada e5, seri statistik dengan base); menyusul base gte (0,6803), lalu
+seluruh varian adaptasi, yakni GPL 0,6608 (gte) dan 0,6103 (e5),
+exp1–exp3 pada rentang 0,59–0,65, dan exp6 (0,6117), serta pembanding
+bge-m3 (0,6478) dan BM25 (0,6034).
+
+Tidak satu pun dari sembilan varian adaptasi bobot (exp0–exp4.3 + exp6)
+signifikan di atas base; sebaliknya, kelas two-stage secara kolektif
+berada di atasnya. Dua fakta ini adalah temuan utama penelitian dalam
+satu gambar.
+
+<<masukkan gambar <<8-reeval-llm/metrik/gabungan/konsensus/ndcg/plot_ndcg.png>> di sini>>
+<<masukkan gambar <<8-reeval-llm/metrik/gabungan/konsensus/ndcg/plot_ndcg_per_query_heatmap.png>> di sini>>
+
+<<buat tabel berisi papan peringkat lengkap 39 konfigurasi (pool
+  gabungan) — kolom: Peringkat, Model, Versi, Kelas (single/two-stage),
+  nDCG@5 — data lengkap: metrik/gabungan/konsensus/ndcg/
+  ndcg_per_model.csv; pisahkan visual kelas 1 vs kelas 2 (garis atau
+  arsiran) sesuai kaidah "tabel wajib memisahkan kelas sistem">>
+
+Sebagai catatan pembacaan, angka pada papan gabungan berbeda tipis dari
+angka pool per-eksperimen karena IDCG global-pool membesar ketika pasase
+ternilai bertambah; seluruh delta dan uji signifikansi selalu dihitung
+pada pool yang sama sehingga perbandingan tetap apel-ke-apel.
+
+4.1.5  Hasil Pengembangan Prototipe
+
+4.1.5.1  Hasil Identifikasi Kebutuhan Dasar
+
+Kebutuhan dasar prototipe diidentifikasi melalui analisis aplikasi
+sejenis yang telah ada (SuttaCentral, Tipitaka.app, DhammaCitta).
+Analisis tersebut menghasilkan empat kebutuhan utama, yaitu (1)
+pencarian yang memahami makna kueri bahasa Indonesia sehari-hari,
+kesenjangan utama aplikasi existing yang hanya menyediakan pencarian
+kata kunci; (2) pencarian kata kunci tradisional sebagai pelengkap; (3)
+pembaca sutta dengan konteks (navigasi, teks Pali berdampingan); dan
+(4) antarmuka dwibahasa. Metodologi pengembangan mengikuti Rapid
+Prototyping (Naumann & Jenkins, 1982) sebagaimana diuraikan pada Subbab
+3.2.6.
+
+<<buat tabel berisi hasil analisis aplikasi existing — kolom: Aplikasi,
+  Kemampuan Pencarian, Keterbatasan; baris: SuttaCentral, Tipitaka.app,
+  DhammaCitta; rangkum dari dokumen analisis kebutuhan prototipe
+  (web-md/metodologi_prototipe.txt)>>
+
+4.1.5.2  Hasil Perancangan dan Implementasi
+
+Prototipe diimplementasikan sebagai aplikasi web (backend Flask dan
+frontend vanilla JavaScript, keputusan sadar demi kesederhanaan dan
+umur panjang tanpa ketergantungan framework) dengan fitur berikut:
+
+  1. Tiga metode pencarian, yaitu Makna (dense retrieval memakai model
+     hasil evaluasi), Kata Kunci (BM25 sadar-frasa), dan Hibrida
+     (penggabungan Reciprocal Rank Fusion); pengguna dapat memilih
+     model/konfigurasi mesin dari antarmuka.
+  2. Pembaca sutta dengan teks Pali berdampingan (side-by-side),
+     perluasan rantai elisi (peyyāla) antar-sutta rujukan, dan catatan.
+  3. Asisten percakapan (chat) berbasis retrieval-augmented generation
+     yang memakai model bahasa lokal via Ollama dengan pola agentic
+     tool-calling; model memutuskan kapan mengambil pasase, jawaban
+     selalu menyitir sumber, dan resolusi istilah Pali tak-terterjemah
+     didukung pencocokan fuzzy ke korpus Pali.
+  4. Antarmuka dwibahasa (Indonesia/Inggris) dengan alih bahasa
+     langsung, serta konfigurasi retrieval two-stage (ensemble + rerank
+     cross-encoder) sesuai temuan terbaik penelitian (Subbab 4.1.3).
+
+Prototipe digelar (deployed) pada infrastruktur mandiri dan dapat
+diakses publik. <<masukkan tangkapan layar antarmuka pencarian di sini>>
+<<masukkan tangkapan layar pembaca sutta (mode berdampingan Pali) di sini>>
+<<masukkan tangkapan layar fitur chat dengan sitasi di sini>>
+
+4.1.5.3  Hasil Evaluasi Kebergunaan
+
+<<LENGKAPI: hasil evaluasi kebergunaan (SUS) belum tersedia sebagai
+  artefak di repositori. Setelah kuesioner SUS terkumpul, isi subbab ini
+  dengan: (1) profil responden (jumlah, latar belakang); (2) skor SUS
+  per responden dan rata-rata beserta interpretasi skala Bangor/Brooke
+  (di atas 68 = di atas rata-rata); (3) rincian per butir pertanyaan;
+  (4) masukan kualitatif responden; sertakan <<buat tabel skor SUS per
+  responden>> dan <<buat grafik distribusi skor per butir>>.>>
+
+--------------------------------------------------------------------------------
+4.2  Pembahasan
+--------------------------------------------------------------------------------
+
+4.2.1  Kualitas Korpus dan Praproses
+
+Verifikasi praproses (Subbab 4.1.1.3) menunjukkan pipeline data yang
+bersih; tidak ada chunk rusak, seluruh level heading tertangkap, penanda
+struktural dikecualikan dengan benar, dan sisa junk nol. Lebih penting
+lagi untuk validitas temuan utama, indeks dan chunk yang sama dipakai
+oleh semua sistem, sehingga cacat praproses apa pun, seandainya ada,
+hanya dapat menggeser skor absolut seluruh sistem serentak dan tidak
+dapat menjelaskan kekalahan relatif adaptasi terhadap base.
+
+Dua properti korpus yang berpotensi menjadi perancu telah diuji
+langsung. Properti pertama, redundansi topik/pericope (banyak sutta
+paralel bertopik sama), diuji pada tingkat per-kueri dan ditolak
+(korelasi r ≈ 0 terhadap delta kinerja). Properti kedua adalah stub
+elisi (peyyāla), chunk pendek seperti "Selanjutnya sama seperti sutta
+sebelumnya" yang memang bagian sah teks terjemahan SN. Dihitung pada
+pool evaluasi beku, model base tidak pernah menarik stub semacam ini ke
+top-5 (0 dari 150), sementara model GPL menarik 3–4 dari 150 (2,0–2,7%)
+dan hampir semuanya dinilai 0 oleh penilai. Skalanya terlalu kecil untuk
+menjelaskan selisih kinerja, tetapi arahnya informatif. Pelatihan GPL
+membuat model sedikit lebih "tertarik" pada stub, dan hal ini masuk akal
+secara mekanisme karena kueri sintetis turut dibangkitkan dari stub
+tersebut saat pelatihan, sehingga stub diajarkan sebagai jawaban yang
+valid. Implikasi praktisnya menjadi saran penelitian (Bab 5), yakni
+menyaring stub elisi dari korpus pelatihan, bukan dari indeks pencarian,
+karena stub tetap sah sebagai isi teks.
+
+Terakhir, analisis ketidakcocokan istilah (kueri pakar memakai istilah
+yang jarang atau absen di idiolek penerjemah korpus, misalnya "membalas
+budi" dan "proliferasi mental") justru menegaskan nilai pencarian
+semantik. Base mencetak nDCG lebih tinggi pada lima kueri ber-istilah
+langka (rata-rata 0,759) daripada pada 25 kueri lain (0,704); retrieval
+dense menjembatani kesenjangan kosakata yang akan mematikan pencarian
+leksikal.
+
+4.2.2  Keandalan LLM-Judge sebagai Proksi Pakar
+
+Keputusan menilai eksperimen lanjutan dengan dua penilai LLM (bukan
+pakar) divalidasi bertingkat. Pertama, kesepakatan antar-pakar sendiri
+moderat (kappa kuadratik rata-rata 0,4576, kategori "sedang"),
+mencerminkan subjektivitas relevansi doktrinal, sementara kesepakatan
+antar-LLM lebih tinggi dan stabil (0,6143 pada tahap base/GPL; 0,62–0,65
+di seluruh eksperimen lanjutan; 0,6333 pada ablasi langkah). Kedua, dan
+lebih substantif, LLM-judge mereproduksi urutan peringkat pakar
+(e5-base > gte-base > gpl-gte, dengan gpl-e5 rendah), sehingga instrumen
+ini sahih untuk membandingkan sistem, yang memang menjadi fungsinya di
+penelitian ini.
+
+<<masukkan gambar <<5-eval/6-iaa/plot_iaa.png>> di sini>>
+<<masukkan gambar <<8-reeval-llm/metrik/gabungan/konsensus/iaa/plot_iaa.png>> di sini>>
+
+Karakteristik kedua penilai berbeda dan saling melengkapi. Gemini
+konsisten lebih longgar (57% pasase dinilai 3, berbanding 29% pada
+Claude), dan studi kasus stub elisi memperlihatkan modus kegagalannya;
+seluruh 8 stub pada pool beku dinilai ≥2 oleh Gemini, tampaknya karena
+terpancing kecocokan kata kunci ("selanjutnya", "identik"), sementara
+Claude menilai 7 dari 8 stub dengan nilai 0. Konsensus dua penilai
+meredam gaya individual ini. Arah biasnya penting dicatat. Karena
+stub-stub tersebut ditarik oleh model GPL, kelonggaran Gemini justru
+menguntungkan skor GPL, dan GPL tetap kalah, sehingga temuan utama kokoh
+terhadap bias instrumen. LLM-judge di sini berfungsi sebagai triangulasi
+instrumen yang tervalidasi, bukan pengganti ground-truth pakar.
+
+4.2.3  Mengapa Adaptasi Domain Tidak Mengungguli Model Dasar
+
+Dari sembilan varian adaptasi bobot, yaitu replikasi (exp0), langkah
+lebih sedikit (exp1), langkah 14 kali lebih banyak (exp6/ablasi), kueri
+sintetis lebih natural (exp2), teacher lebih terkalibrasi (exp3), dan
+empat interpolasi bobot (exp4.0–4.3), tidak satu pun mengungguli base.
+Konvergensi sembilan hasil ini, bersama analisis per-kueri, mengunci
+diagnosis pada dua mekanisme.
+
+Mekanisme pertama adalah headroom yang minim. Pola per-kueri menunjukkan
+adaptasi bekerja sebagai perturbasi net-negatif; kemenangan hanya muncul
+pada kueri yang base-nya lemah, kekalahan justru pada kueri yang base-nya
+kuat, dengan magnitudo kekalahan 1,5–1,9 kali kemenangan dan pola
+monoton lintas tercile kekuatan base. Model multilingual modern dilatih
+pada data web masif yang kemungkinan besar sudah mencakup terjemahan
+Kanon Pali yang beredar publik, sehingga domain ini tidak "asing" bagi
+base. Paper GPL sendiri memperoleh gain justru pada domain yang jauh
+dari distribusi base (BEIR out-of-domain); prasyarat itu tidak terpenuhi
+di sini.
+
+Mekanisme kedua adalah distillation ceiling. Rantai supervisi sintetis
+(kueri buatan dan margin teacher) membawa noise lebih besar daripada
+sinyal yang ditambahkannya ke model yang sudah kuat. Diagnosis ini
+dikunci oleh simetri exp3 dan exp5 yang dirancang di muka, ketika
+cross-encoder yang sama gagal menolong saat dipakai sebagai teacher
+distilasi (exp3, train-time) tetapi berhasil saat dipakai langsung
+(exp5, query-time). Bottleneck-nya adalah transfer distilasi, bukan
+kualitas cross-encoder-nya.
+
+Paradoks intrinsik dan ekstrinsik (Subbab 4.1.2.1) melengkapi gambaran
+ini; pelatihan sukses secara geometris (keterpisahan antar-sutta menjadi
+sekitar empat kali lipat), tetapi geometri tersebut bergerak menjauh
+dari relevansi fine-grained pakar.
+
+Penjelasan-penjelasan alternatif telah diuji langsung dan tereliminasi,
+mencakup bug implementasi (audit prefix empat titik lolos; cache
+retrieval deterministik, dengan dua build independen identik sha256),
+cacat praproses (Subbab 4.2.1; korpus sama untuk semua sistem, junk
+nol), ketidakcocokan istilah penerjemah (base justru lebih tinggi pada
+kueri mismatch), redundansi pericope (r ≈ 0), jumlah langkah (diuji dua
+arah, 5 ribu pada exp1 dan 140 ribu pada ablasi, keduanya nol efek),
+generator kueri (exp2), teacher (exp3), dan irreversibilitas linear
+drift (exp4). Temuan negatif ini karenanya bukan artefak, melainkan
+properti kombinasi metode dan domain; adaptasi unsupervised gaya GPL
+tidak diperlukan untuk domain yang masih tercakup distribusi model
+multilingual modern.
+
+4.2.4  Signifikansi Pemeringkatan Ulang (Eksperimen Penyempurna 5)
+
+Keberhasilan reranking, satu-satunya arah dengan titik estimasi
+konsisten di atas base, koheren secara mekanisme dengan seluruh temuan
+lain. Pertama, pola metriknya khas reranking; nDCG dan MRR naik
+sementara P@5 datar, artinya perbaikan terjadi pada urutan hasil, bukan
+pada cakupan dokumen relevan. Kedua, cross-encoder bersifat
+menyeragamkan; spread single-stage yang lebar menciut pasca-rerank,
+sehingga kerusakan geometri akibat adaptasi tertutupi selama pasase
+relevan masih lolos ke 100 kandidat teratas. Inilah mengapa adaptasi
+tidak lagi merugikan setelah rerank, tetapi juga tidak memberi
+keuntungan teruji di atas base+rerank. Ketiga, klaim dijaga jujur
+sebagai "arah menjanjikan dengan titik estimasi di atas base pada dua
+keluarga", bukan "signifikan mengalahkan base" (Wilcoxon belum tegak
+pada n = 30), dan kontribusi ini berada pada tingkat sistem dengan biaya
+inferensi nyata (cross-encoder 568 juta parameter untuk 100 kandidat per
+kueri) yang wajib dipertimbangkan saat penerapan. Konfigurasi yang
+direkomendasikan tetap yang termurah di kelas teratas, yakni base +
+rerank (exp5.base), karena seluruh varian first-stage seri statistik
+setelah rerank.
+
+4.2.5  Tinjauan Kelemahan Sistem
+
+  1. Dari sisi daya uji statistik, n = 30 kueri pakar memberi daya
+     sedang, sehingga p > 0,05 dibaca sebagai "belum terbukti berbeda",
+     bukan bukti kesetaraan.
+  2. Banyak uji dilakukan pada test set yang sama (multiple testing);
+     hal ini dimitigasi dengan pre-registrasi desain, pembanding sah
+     satu-variabel, dan disiplin tidak mengklaim hasil
+     nominal-signifikan tunggal sebagai temuan kuat.
+  3. Eksperimen lanjutan dinilai oleh proksi LLM-judge yang tervalidasi
+     terhadap pakar, bukan oleh pakar langsung, dan kueri evaluasi hanya
+     berbahasa Indonesia (korpus Inggris dan Pali tidak dievaluasi
+     pakar).
+  4. Terdapat anomali baseline berupa bge-m3 yang mengembalikan 0 hasil
+     untuk satu kueri di korpus Indonesia; rata-ratanya dihitung atas 29
+     kueri, dengan perlakuan seragam di semua penilai dan justru
+     menguntungkan baseline.
+  5. Pada prototipe, retrieval two-stage menambah latensi karena
+     inferensi cross-encoder per kueri; asisten chat bergantung pada
+     model bahasa lokal berukuran terbatas yang masih dapat keliru pada
+     istilah Pali di luar konteks pasase yang disitir; dan
+     infrastrukturnya satu simpul.
+  6. Evaluasi kebergunaan prototipe <<LENGKAPI: rangkum keterbatasan SUS
+     (jumlah responden, sifat sampel) setelah datanya tersedia>>.
+
+4.2.6  Evaluasi Kebergunaan
+
+<<LENGKAPI: pembahasan hasil SUS setelah data terkumpul — bandingkan
+  skor rata-rata terhadap ambang 68 (rata-rata industri), tautkan butir
+  ber-skor rendah dengan rencana perbaikan antarmuka, dan diskusikan
+  keselarasan masukan kualitatif responden dengan temuan teknis (mis.
+  apakah pengguna merasakan manfaat pencarian makna vs kata kunci —
+  paralel dengan temuan kuantitatif Subbab 4.2.1 tentang kueri
+  ber-istilah langka).>>
+
+================================================================================
+
+BAB 5  KESIMPULAN DAN SARAN
+
+[CATATAN PENOMORAN: templat Anda menulis 5.3/5.4; draf ini memakai
+ 5.1/5.2, sesuaikan dengan konvensi dokumen final.]
+
+--------------------------------------------------------------------------------
+5.1  Kesimpulan
+--------------------------------------------------------------------------------
+
+Berdasarkan hasil penelitian dan pembahasan, dapat ditarik kesimpulan
+sebagai berikut:
+
+1. Sistem temu balik informasi untuk pencarian semantik multibahasa pada
+   Kanon Pali berhasil dibangun. Korpus tiga bahasa dengan 444.247 chunk
+   hasil praproses yang terverifikasi bersih telah terindeks penuh, dan
+   prototipe web fungsional dengan tiga metode pencarian (makna, kata
+   kunci, hibrida), pembaca sutta berdampingan Pali, serta asisten
+   percakapan ber-retrieval telah digelar dan dapat diakses publik.
+
+2. Terhadap pertanyaan sejauh mana adaptasi domain meningkatkan kualitas
+   temu balik, penelitian ini menemukan batas berlakunya metode
+   adaptasi. Adaptasi unsupervised gaya GPL, yang direplikasi apa adanya
+   lalu diurai sistematis satu variabel per eksperimen (jumlah langkah
+   dua arah, 5 ribu dan 140 ribu; generator kueri; teacher; interpolasi
+   bobot), tidak mengungguli model multilingual dasar. Tidak satu pun
+   dari sembilan varian signifikan di atas base pada dua keluarga model,
+   dengan regresi P@5 yang signifikan pada asesmen pakar (replikasi)
+   maupun pada ablasi anggaran penuh, dan varian terbaiknya (soup
+   base⊕exp3) hanya menyamai base secara statistik. Mekanismenya
+   terdiagnosis dan terdokumentasi, yaitu (i) headroom yang minim,
+   karena domain sudah tercakup distribusi pelatihan model multilingual
+   modern sehingga adaptasi bekerja sebagai perturbasi net-negatif, dan
+   (ii) distillation ceiling, karena supervisi sintetis lebih lemah
+   daripada model yang hendak diperbaikinya, dikunci oleh simetri exp3
+   dan exp5.
+
+3. Peningkatan kualitas yang terverifikasi arahnya justru dicapai pada
+   tataran arsitektur sistem. Retrieve-then-rerank dengan cross-encoder
+   multilingual menghasilkan titik estimasi nDCG@5 tertinggi dan
+   konsisten di atas base pada kedua keluarga model (belum tegak pada
+   uji Wilcoxon, n = 30), dengan seluruh varian first-stage seri
+   statistik setelah rerank, sehingga konfigurasi paling efisien adalah
+   model dasar ditambah rerank, tanpa pelatihan apa pun.
+
+4. Metodologi evaluasi yang dibangun, meliputi 30 kueri pakar, anotasi
+   4 pakar, validasi silang 2 penilai LLM (kappa antar-LLM 0,62–0,65,
+   mereproduksi peringkat pakar), grade beku yang digunakan ulang, dan
+   uji signifikansi berpasangan, merupakan benchmark evaluasi temu balik
+   Kanon Pali berbahasa Indonesia yang, sepanjang penelusuran, pertama
+   tersedia, dan dapat digunakan ulang oleh penelitian lanjutan.
+
+5. <<LENGKAPI: kesimpulan kebergunaan prototipe (skor SUS rata-rata dan
+   interpretasinya) setelah data evaluasi kebergunaan tersedia.>>
+
+--------------------------------------------------------------------------------
+5.2  Saran
+--------------------------------------------------------------------------------
+
+Untuk penelitian selanjutnya, disarankan hal-hal berikut (urut
+prioritas):
+
+1. Uji headroom sebaiknya menjadi prosedur baku sebelum adaptasi domain
+   apa pun, yaitu mengevaluasi model dasar pada sampel kueri target
+   terlebih dahulu; adaptasi hanya rasional bila base terbukti lemah.
+   Prasyarat inilah yang dipenuhi domain-domain BEIR pada paper GPL
+   tetapi tidak oleh domain penelitian ini, dan pemeriksaannya hanya
+   membutuhkan pilot kecil.
+
+2. Pendalaman retrieve-then-rerank layak dilanjutkan sebagai
+   satu-satunya arah positif, mencakup perbandingan sistematis reranker
+   multilingual, analisis biaya-kualitas (latensi/VRAM terhadap nDCG),
+   distilasi reranker besar ke model kecil untuk deployment hemat, dan
+   perluasan jumlah kueri evaluasi agar uji signifikansi berdaya cukup
+   untuk menegakkan keunggulan two-stage yang pada penelitian ini baru
+   tampak pada titik estimasi.
+
+3. Retrieval lintas-bahasa (kueri Indonesia ke pasase Pali/Inggris)
+   merupakan sasaran adaptasi yang masih memiliki headroom di korpus
+   ini, karena alignment ke bahasa kanonik kuno adalah kelemahan nyata
+   model dasar, dengan supervisi nyata yang sudah tersedia gratis dari
+   struktur korpus berupa ratusan ribu pasangan terjemahan sejajar
+   bilara (id-en-pli). Kans ini terlewat oleh desain GPL, yang
+   menyintesis kueri buatan padahal korpusnya sendiri menyediakan
+   pasangan berlabel.
+
+4. Jika garis adaptasi bobot hendak dilanjutkan, tiga pelajaran
+   penelitian ini sebaiknya menjadi prasyarat desain, yaitu (a)
+   supervisi harus lebih kuat daripada student, misalnya label dari LLM
+   frontier yang terbukti berkorelasi dengan pakar (test set pakar tetap
+   held-out murni), bukan rantai model kecil lokal; (b) mekanisme latih
+   yang membatasi drift, seperti parameter-efficient fine-tuning,
+   learning rate kecil, dan interpolasi WiSE-FT yang direncanakan sejak
+   awal, bukan sebagai obat pasca-hoc; dan (c) kenop resep yang belum
+   teruji terisolasi, meliputi pembersihan hard-negative (false-negative
+   pericope), generator kueri kelas ~7B, serta kombinasi teacher terbaik
+   dengan anggaran langkah penuh (bge-reranker sebagai teacher pada 140
+   ribu langkah), resep terkuat yang belum sempat diuji.
+
+5. Penyaringan stub elisi (peyyāla) dari korpus pelatihan, bukan dari
+   indeks pencarian, disarankan karena temuan Subbab 4.2.1 menunjukkan
+   pelatihan GPL mengajarkan stub sebagai jawaban valid; penyaringan
+   sederhana pada tahap penyiapan data latih menutup sumber noise ini.
+
+6. Pengembangan prototipe dapat dilanjutkan dengan evaluasi kebergunaan
+   berskala lebih besar <<LENGKAPI: sesuaikan dengan hasil SUS>>,
+   dukungan pencarian lintas-bahasa pada antarmuka, dan kajian
+   latensi-kualitas konfigurasi two-stage pada perangkat keras terbatas.
+
+================================================================================
+CATATAN UNTUK PENULIS (hapus sebelum diserahkan):
+- Semua angka pada draf ini diambil dari artefak run: rangkuman_bab4_
+  hasil.txt, metrik/exp6/ & metrik/gabungan/ (run 2026-07-18), 5-eval/,
+  3-praproses/, 2-eksplor/. Bila ada pembaruan run, sinkronkan angka.
+- Gambar yang dirujuk semuanya SUDAH ADA di path yang ditulis, kecuali
+  tangkapan layar prototipe (buat manual) dan grafik SUS (belum ada
+  datanya).
+- Dua blok <<LENGKAPI>> besar: SUS (4.1.5.3, 4.2.6, kesimpulan 5, saran
+  6) dan detail eksplorasi opsional (4.1.1.2).
+================================================================================

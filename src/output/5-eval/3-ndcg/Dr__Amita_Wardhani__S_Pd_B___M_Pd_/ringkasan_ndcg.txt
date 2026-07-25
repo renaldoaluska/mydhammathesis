@@ -1,0 +1,14 @@
+=== nDCG [Dr. Amita Wardhani, S.Pd.B., M.Pd.] — 2026-07-01 13:40 ===
+Pakar: Dr__Amita_Wardhani__S_Pd_B___M_Pd_   Korpus: ID
+Kueri/Model: 30/6
+IDCG: global-pool per (korpus,kueri) — base vs GPL diadu ke ideal sama.
+
+Terbaik nDCG@5: multilingual-e5-base (B,ID) = 0.7759
+
+-- Peringkat (acuan: nDCG@5) --
+   1. @5=0.7759  multilingual-e5-base (B,ID)
+   2. @5=0.7676  gte-multilingual-base (B,ID)
+   3. @5=0.7521  gpl-gte-multilingual-base (GPL,ID)
+   4. @5=0.7301  gpl-multilingual-e5-base (GPL,ID)
+   5. @5=0.6834  bge-m3 (B,ID)
+   6. @5=0.6777  BM25 (B,ID)

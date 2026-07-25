@@ -1,0 +1,7 @@
+﻿Model,Versi,Korpus,nDCG@5
+multilingual-e5-base,B,ID,0.7334
+gte-multilingual-base,B,ID,0.695
+gpl-gte-multilingual-base,GPL,ID,0.6747
+bge-m3,B,ID,0.6623
+gpl-multilingual-e5-base,GPL,ID,0.6192
+BM25,B,ID,0.6161

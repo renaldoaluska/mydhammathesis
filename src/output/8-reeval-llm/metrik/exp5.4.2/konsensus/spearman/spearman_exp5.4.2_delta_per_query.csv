@@ -1,0 +1,48 @@
+﻿Korpus,Family,query_id,kueri,B,GPL,exp5.4.2,Δ(exp5.4.2-B)
+ID,multilingual-e5-base,23,penjelasan tentang pandangan terang,0.6669,-0.2294,-0.9747,-1.6416
+ID,gte-multilingual-base,20,penggambaran terhadap keagungan buddha,0.3078,-0.3689,-1.0,-1.3078
+ID,gte-multilingual-base,14,apa makna kekosongan,0.7071,0.7454,-0.6,-1.3071
+ID,gte-multilingual-base,21,jenis jenis manusia,0.4472,0.7071,-0.7071,-1.1543
+ID,gte-multilingual-base,13,berbagai jenis pemberian,0.866,0.8721,0.0,-0.866
+ID,gte-multilingual-base,15,apa kualitas yang harus dimiliki oleh seorang penceramah,0.527,0.6882,-0.2236,-0.7506
+ID,multilingual-e5-base,25,perasaan malu dan takut,0.4472,0.3536,-0.2887,-0.7359
+ID,multilingual-e5-base,22,cara mengikis kotoran batin,0.0,0.7906,-0.7255,-0.7255
+ID,multilingual-e5-base,17,kewajiban seorang umat awam,0.3536,0.0527,-0.3536,-0.7072
+ID,multilingual-e5-base,16,harta yang paling bernilai,-0.0513,0.7071,-0.7071,-0.6558
+ID,multilingual-e5-base,20,penggambaran terhadap keagungan buddha,0.3162,-0.3162,-0.2052,-0.5214
+ID,gte-multilingual-base,22,cara mengikis kotoran batin,0.866,0.7379,0.3591,-0.5069
+ID,multilingual-e5-base,26,bersatu di kehidupan selanjutnya,-0.3536,,-0.6708,-0.3172
+ID,gte-multilingual-base,29,jenis orang yang tak boleh ditahbiskan,0.0,-0.7071,-0.3162,-0.3162
+ID,multilingual-e5-base,13,berbagai jenis pemberian,0.7906,0.6156,0.527,-0.2636
+ID,multilingual-e5-base,8,manfaat pelaksaan sila,0.1622,0.3591,0.0,-0.1622
+ID,multilingual-e5-base,15,apa kualitas yang harus dimiliki oleh seorang penceramah,0.4472,0.4617,0.3162,-0.131
+ID,gte-multilingual-base,17,kewajiban seorang umat awam,-0.2236,0.3078,-0.3536,-0.13
+ID,gte-multilingual-base,11,siapa yang layak disebut sebagai brahmana,0.5643,0.4472,0.4472,-0.1171
+ID,gte-multilingual-base,1,cara mengatasi kemarahan,0.3162,-0.3536,0.2236,-0.0926
+ID,multilingual-e5-base,24,apa yang terjadi pada saat pencapaian pencerahan,-0.7255,,-0.7826,-0.0571
+ID,gte-multilingual-base,25,perasaan malu dan takut,-0.2635,-0.866,-0.2887,-0.0252
+ID,multilingual-e5-base,4,mengapa harus membalas budi orangtua,0.3536,0.3536,0.3536,0.0
+ID,gte-multilingual-base,6,apa itu kemurahan hati,0.7071,0.8944,0.7071,0.0
+ID,gte-multilingual-base,30,apa itu proliferasi mental,0.866,0.2887,0.8944,0.0284
+ID,multilingual-e5-base,14,apa makna kekosongan,-0.7071,,-0.6489,0.0582
+ID,multilingual-e5-base,5,perumpamaan perumpamaan,0.866,0.9487,0.9487,0.0827
+ID,gte-multilingual-base,24,apa yang terjadi pada saat pencapaian pencerahan,0.5441,0.3078,0.6309,0.0868
+ID,multilingual-e5-base,12,kewajiban seorang bhikkhu,0.6669,0.2635,0.866,0.1991
+ID,multilingual-e5-base,7,penjelasan tentang perhatian murni,0.1054,0.0513,0.3162,0.2108
+ID,multilingual-e5-base,11,siapa yang layak disebut sebagai brahmana,0.2052,0.7071,0.4617,0.2565
+ID,gte-multilingual-base,2,cara mengatasi ngantuk,0.3627,,0.7071,0.3444
+ID,gte-multilingual-base,9,jenis jenis kotoran batin,0.2294,0.2236,0.5798,0.3504
+ID,gte-multilingual-base,7,penjelasan tentang perhatian murni,0.2887,0.9747,0.6708,0.3821
+ID,gte-multilingual-base,23,penjelasan tentang pandangan terang,-0.2962,-0.9177,0.1118,0.408
+ID,multilingual-e5-base,29,jenis orang yang tak boleh ditahbiskan,0.1026,0.7071,0.5774,0.4748
+ID,gte-multilingual-base,16,harta yang paling bernilai,0.2887,0.3536,0.7826,0.4939
+ID,gte-multilingual-base,8,manfaat pelaksaan sila,-0.6669,0.6882,-0.1026,0.5643
+ID,gte-multilingual-base,12,kewajiban seorang bhikkhu,0.0,0.9487,0.5774,0.5774
+ID,multilingual-e5-base,6,apa itu kemurahan hati,0.2236,-0.1026,0.8721,0.6485
+ID,gte-multilingual-base,3,apa penyebab penderitaan,-0.7071,0.7071,0.0,0.7071
+ID,multilingual-e5-base,3,apa penyebab penderitaan,-0.7071,,0.0,0.7071
+ID,multilingual-e5-base,9,jenis jenis kotoran batin,-0.1579,0.1026,0.6325,0.7904
+ID,multilingual-e5-base,10,kriteria kesucian,-0.3689,-0.7826,0.4617,0.8306
+ID,multilingual-e5-base,30,apa itu proliferasi mental,0.0,0.3536,0.866,0.866
+ID,gte-multilingual-base,26,bersatu di kehidupan selanjutnya,-0.527,0.7255,0.6325,1.1595
+ID,gte-multilingual-base,10,kriteria kesucian,-0.6156,-0.7906,0.9747,1.5903

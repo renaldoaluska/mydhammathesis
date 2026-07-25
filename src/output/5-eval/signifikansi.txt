@@ -1,0 +1,19 @@
+=== UJI SIGNIFIKANSI base vs GPL (konsensus pakar) ===
+Wilcoxon signed-rank: paired per-kueri, memperhitungkan magnitudo (scipy.stats.wilcoxon).
+Sign test: binomial p=0.5 atas jumlah menang/kalah, arah saja (scipy.stats.binomtest).
+Signifikan jika p < 0.05.
+
+=== nDCG@5 ===  (sumber: 3-ndcg/konsensus/ndcg_gpl_delta_per_query.csv)
+  gte-multilingual-base      n=30 | basē=0.6982 gpl̄=0.6748 Δ̄=-0.0234 | menang/kalah/seri=13/17/0 | Wilcoxon p=0.5838 | sign-test p=0.5847
+  multilingual-e5-base       n=30 | basē=0.7123 gpl̄=0.6475 Δ̄=-0.0648 | menang/kalah/seri=10/19/1 | Wilcoxon p=0.1982 | sign-test p=0.1360
+  GABUNGAN                          | menang/kalah=23/36 (61% minus) | sign-test p=0.1175
+
+=== P@5 ===  (sumber: 4-precision/konsensus/precision_gpl_delta_per_query.csv)
+  gte-multilingual-base      n=30 | basē=0.4467 gpl̄=0.3667 Δ̄=-0.0800 | menang/kalah/seri=7/11/12 | Wilcoxon p=0.0235 | sign-test p=0.4807
+  multilingual-e5-base       n=30 | basē=0.4467 gpl̄=0.3200 Δ̄=-0.1267 | menang/kalah/seri=5/15/10 | Wilcoxon p=0.0741 | sign-test p=0.0414
+  GABUNGAN                          | menang/kalah=12/26 (68% minus) | sign-test p=0.0336
+
+=== Spearman ===  (sumber: 5-spearman/konsensus/spearman_gpl_delta_per_query.csv)
+  gte-multilingual-base      n=30 | basē=0.1280 gpl̄=0.0846 Δ̄=-0.0434 | menang/kalah/seri=14/15/1 | Wilcoxon p=0.8542 | sign-test p=1.0000
+  multilingual-e5-base       n=29 | basē=0.2004 gpl̄=0.1365 Δ̄=-0.0639 | menang/kalah/seri=13/16/0 | Wilcoxon p=0.4946 | sign-test p=0.7111
+  GABUNGAN                          | menang/kalah=27/31 (53% minus) | sign-test p=0.6940

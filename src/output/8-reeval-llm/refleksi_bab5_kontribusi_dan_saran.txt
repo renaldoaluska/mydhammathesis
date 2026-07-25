@@ -1,0 +1,132 @@
+================================================================================
+  REFLEKSI — KONTRIBUSI, KEPUTUSAN DESAIN, DAN SARAN PENELITIAN LANJUTAN
+  (bahan bab 5: kesimpulan & saran; pendamping rangkuman_bab4_hasil.txt)
+  Disusun 2026-07-07; diperbarui 2026-07-09 (keluarga exp4.0-4.3 + exp5.0).
+  SIFAT DOKUMEN: interpretasi & rekomendasi (bukan output run); semua
+  rujukan angka mengacu ke rangkuman_bab4_hasil.txt & artefaknya.
+================================================================================
+
+[1] KONTRIBUSI PENELITIAN (apa yang tetap berdiri meski hasil adaptasi negatif)
+--------------------------------------------------------------------------------
+Hasil positif dan kontribusi adalah dua hal berbeda; penelitian ini tidak
+memperoleh yang pertama pada garis adaptasi, tetapi menghasilkan yang kedua:
+
+1. REPLIKASI + ABLASI SISTEMATIS: GPL direplikasi apa-adanya (exp0) lalu
+   diurai satu-variabel-per-eksperimen (steps/exp1, generator kueri/exp2,
+   teacher/exp3, interpolasi bobot/keluarga soup exp4.0-4.3). Disiplin
+   isolasi variabel ini membuat temuan negatifnya dapat diatribusikan,
+   bukan sekadar "tidak work".
+2. BOUNDARY CONDITION untuk metode yang banyak dikutip: GPL tidak memberi
+   manfaat — dan merugikan secara terukur — pada domain yang sudah tercakup
+   distribusi model multilingual modern. Berguna bagi peneliti berikutnya
+   sebelum menginvestasikan sumber daya ke arah yang sama.
+3. BENCHMARK EVALUASI (kemungkinan pertama untuk temu-balik Kanon Pali
+   berbahasa Indonesia): 30 kueri pakar + anotasi 4 pakar + validasi silang
+   2 LLM-judge + IAA + grade beku reusable + pipeline signifikansi. Dataset
+   dan metodologi evaluasi kerap lebih berumur panjang daripada metode.
+4. DIAGNOSIS MEKANISME (bukan sekadar skor): headroom minim + distillation
+   ceiling, dikunci oleh simetri exp3<->exp5, pola headroom/tercile, dan
+   keluarga soup yang monoton mengikuti kualitas bahan — puncaknya (exp4.3)
+   hanya MENYAMAI base, menegaskan langit-langit ada di base itu sendiri
+   (rangkuman_bab4_hasil.txt [5][8]).
+5. JALUR KONSTRUKTIF YANG BEKERJA: retrieve-then-rerank (kelas exp5.base +
+   5.0-5.4) — titik estimasi tertinggi, konsisten dua keluarga model, siap
+   dipakai sistem; antar-varian first-stage SERI setelah rerank, jadi
+   konfigurasi termurah (base + rerank) tetap rekomendasi utama.
+
+[2] REFLEKSI KEPUTUSAN DESAIN (jujur, untuk pembelajaran)
+--------------------------------------------------------------------------------
+Memilih GPL pada tahap proposal adalah keputusan yang DAPAT DIPERTANGGUNG-
+JAWABKAN dengan informasi saat itu: metode peer-reviewed (NAACL 2022) dengan
+banyak sitasi, cocok dengan kendala (tanpa label domain, GPU 12GB, model
+lokal). Fakta bahwa base multilingual 2024 sudah "menguasai" domain religius
+Indonesia adalah TEMUAN penelitian ini — bukan sesuatu yang diketahui di muka.
+Risiko riset yang diambil kalah secara hasil, menang secara informasi.
+
+PELAJARAN META (paling mahal): lakukan UJI HEADROOM sebelum memilih treatment.
+Satu minggu pilot mengevaluasi base pada ~10 kueri kasar akan menunjukkan
+base sudah kuat -> "ruang perbaikan sempit; adaptasi = risiko tinggi imbal
+rendah" -> pivot dini. Diagnosis dahulu, baru pengobatan.
+
+[3] SARAN PENELITIAN LANJUTAN (urut prioritas; bab 5)
+--------------------------------------------------------------------------------
+1. UJI HEADROOM SEBAGAI PROSEDUR BAKU: sebelum adaptasi domain apa pun,
+   evaluasi base pada sampel kueri target. Adaptasi hanya rasional bila
+   base terbukti lemah (prasyarat yang dipenuhi domain-domain BEIR pada
+   paper GPL, tetapi tidak oleh domain penelitian ini).
+2. PENDALAMAN RETRIEVE-THEN-RERANK (melanjutkan exp5, satu-satunya arah
+   positif): banding sistematis reranker multilingual; analisis biaya-
+   kualitas (latensi/VRAM vs nDCG); distilasi reranker besar ke model kecil
+   untuk deployment hemat; perluasan n kueri agar uji signifikansi berdaya.
+3. CROSS-LINGUAL RETRIEVAL: kueri Indonesia -> pasase Pali/Inggris.
+   Infrastruktur sudah ada (indeks id+en+pli); problem ini khas korpus
+   kanonik dan tidak terjawab oleh "pakai base saja".
+4. JALUR LABEL-LLM (5-eval/rangkuman_analisis.txt §8b): LLM-judge melabeli
+   ratusan kueri sebagai data latih; 30 kueri pakar tetap held-out murni.
+   Menyerang akar masalah yang terdiagnosis: mengganti supervisi sintetis
+   yang lebih lemah dari student dengan supervisi yang lebih kuat.
+5. KENOP RESEP YANG BELUM TERUJI TERISOLASI (jika garis adaptasi hendak
+   dilanjutkan orang lain): pembersihan hard-negative (false-negative
+   pericope), query-gen kelas ~7B (InPars-Light).
+
+[3b] JIKA ADAPTASI DOMAIN TETAP MENJADI TUJUAN — BENTUK YANG TEPAT
+--------------------------------------------------------------------------------
+Pertanyaan "metode yang lebih baik atau model yang lebih kuat?" jawabannya:
+KEDUANYA, tetapi keduanya baru relevan SETELAH satu keputusan yang lebih
+hulu dibereskan — MEMILIH SASARAN ADAPTASI YANG PUNYA HEADROOM. Urutannya:
+
+(1) GANTI SASARAN, BUKAN (HANYA) RESEP. Diagnosis penelitian ini: pada tugas
+    monolingual ID, base sudah dekat langit-langit -> adaptasi apa pun
+    (secanggih apa pun metodenya, sekuat apa pun modelnya) hanya punya ruang
+    kecil dan risiko drift besar. Sasaran yang MASIH punya headroom di korpus
+    ini: (a) retrieval lintas-bahasa kueri-ID -> pasase PALI (alignment
+    bahasa kanonik kuno = kelemahan nyata base); (b) pemahaman istilah Pali
+    tak-terterjemah di kueri. Adaptasi rasional hanya di tempat base terbukti
+    lemah — itulah prasyarat yang dipenuhi eksperimen BEIR pada paper GPL.
+
+(2) SUPERVISI HARUS LEBIH KUAT DARI STUDENT (belajar dari distillation
+    ceiling). Dua sumber yang memenuhi syarat itu di korpus ini:
+    - PASANGAN TERJEMAHAN SEJAJAR bilara (segmen id-en-pli ter-align) =
+      supervisi ASLI dari struktur korpus, bukan sintetis; gratis, bersih,
+      ratusan ribu pasangan; tepat untuk sasaran cross-lingual (1a).
+      Ini kans yang terlewat oleh desain GPL (yang membuat kueri sintetis
+      padahal korpusnya sendiri sudah menyediakan pasangan berlabel).
+    - LABEL LLM FRONTIER (5-eval/rangkuman_analisis.txt §8b): penilai yang
+      terbukti berkorelasi pakar melabeli ratusan kueri latih; test set
+      pakar tetap held-out murni.
+    Yang TIDAK memenuhi syarat (terbukti): rantai model kecil lokal
+    (mT5-small, mMiniLM, gemma2:2b) — seluruhnya lebih lemah dari e5/gte
+    yang hendak dilatih.
+
+(3) MEKANISME LATIH YANG MEMBATASI DRIFT (belajar dari pola headroom/
+    tercile): parameter-efficient fine-tuning (LoRA/adapter — hanya
+    sebagian kecil bobot bergerak), learning-rate kecil + langkah sedikit
+    dengan validasi held-out, dan interpolasi WiSE-FT sebagai REGULARISASI
+    yang direncanakan sejak awal — bukan obat pasca-hoc: keluarga exp4.0-4.3
+    menunjukkan interpolasi pasca-hoc paling banter mengembalikan ke level
+    base (exp4.3 seri statistik), tidak pernah memberi nilai tambah.
+
+(4) SOAL "MODEL LEBIH KUAT": memperkuat STUDENT saja tidak menjawab masalah
+    (base sudah di langit-langit tugas ID; dan exp3 menunjukkan teacher
+    lebih kuat pun tidak menembus ceiling distilasi). Model lebih kuat
+    relevan pada POSISI SUPERVISI (teacher/labeler frontier, poin 2) dan
+    pada RERANKER (jalur exp5) — bukan pada mengganti-ganti retriever.
+
+Ringkas: bukan "GPL diganti metode X" atau "e5 diganti model Y", melainkan
+ubah SASARAN ke tugas ber-headroom (cross-lingual/istilah Pali), pakai
+supervisi NYATA yang lebih kuat dari student (pasangan sejajar korpus +
+label LLM), dan latih dengan rem drift (PEFT + WiSE-FT terencana).
+
+[4] FRAMING KESIMPULAN YANG DISARANKAN
+--------------------------------------------------------------------------------
+"Penelitian ini menguji hipotesis adaptasi domain secara menyeluruh dan
+menemukan batas berlakunya: untuk korpus yang telah tercakup distribusi
+model retrieval multilingual modern, adaptasi unsupervised gaya GPL tidak
+diperlukan dan cenderung merugikan; peningkatan kualitas dicapai melalui
+arsitektur sistem (retrieve-then-rerank). Kontribusi penelitian mencakup
+sistem temu-balik multibahasa yang berfungsi, benchmark evaluasi
+multi-asesor untuk domain ini, temuan negatif yang terdiagnosis
+mekanismenya, dan jalur perbaikan yang terverifikasi arahnya."
+(BUKAN: "adaptasi domain gagal" tanpa kualifikasi — lihat scope klaim di
+rangkuman_bab4_hasil.txt [9]-[10].)
+================================================================================

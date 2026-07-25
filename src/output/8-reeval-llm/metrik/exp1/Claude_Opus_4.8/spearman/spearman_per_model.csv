@@ -1,0 +1,9 @@
+﻿Model,Versi,Korpus,Spearman,Spearman (tanpa heading)
+gpl-multilingual-e5-base,GPL,ID,0.4534,0.4534
+gpl-gte-multilingual-base,GPL,ID,0.4311,0.4311
+gpl-gte-multilingual-base,exp1,ID,0.4234,0.4234
+BM25,B,ID,0.3885,0.3885
+gpl-multilingual-e5-base,exp1,ID,0.3854,0.3854
+gte-multilingual-base,B,ID,0.3582,0.3582
+multilingual-e5-base,B,ID,0.2966,0.2966
+bge-m3,B,ID,0.13,0.13

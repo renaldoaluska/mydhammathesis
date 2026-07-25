@@ -1,0 +1,20 @@
+﻿Model,Inter,Intra,Gap
+exp3-gte (retrain),0.0474,0.2823,0.2349
+exp3-e5 (retrain),0.0408,0.2718,0.231
+exp2-gte (retrain),0.0606,0.2906,0.23
+exp2-e5 (retrain),0.0527,0.2705,0.2178
+exp1-e5 (retrain),0.0224,0.2374,0.215
+gte-multilingual-base (gpl),0.0707,0.281,0.2103
+exp1-gte (retrain),0.0505,0.2599,0.2094
+multilingual-e5-base (gpl),0.0372,0.2405,0.2033
+exp4.3-gte (retrain),0.2746,0.4692,0.1946
+exp4.2-gte (retrain),0.2851,0.4788,0.1937
+exp4.1-gte (retrain),0.3061,0.4866,0.1805
+exp4.0-gte (retrain),0.3467,0.5193,0.1726
+bge-m3 (base),0.4449,0.5873,0.1424
+exp4.3-e5 (retrain),0.4495,0.5876,0.1381
+exp4.2-e5 (retrain),0.4642,0.5985,0.1343
+exp4.0-e5 (retrain),0.457,0.5892,0.1322
+exp4.1-e5 (retrain),0.4701,0.601,0.1309
+gte-multilingual-base (base),0.5485,0.6684,0.1199
+multilingual-e5-base (base),0.7872,0.8381,0.0509

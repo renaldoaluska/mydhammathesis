@@ -1,0 +1,7 @@
+﻿Model,Inter,Intra,Gap
+gte-multilingual-base (gpl),0.0707,0.281,0.2103
+multilingual-e5-base (gpl),0.0372,0.2405,0.2033
+exp6-gte (retrain),0.0256,0.2241,0.1985
+bge-m3 (base),0.4449,0.5873,0.1424
+gte-multilingual-base (base),0.5485,0.6684,0.1199
+multilingual-e5-base (base),0.7872,0.8381,0.0509

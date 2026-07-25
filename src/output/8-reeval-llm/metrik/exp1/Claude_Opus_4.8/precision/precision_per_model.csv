@@ -1,0 +1,9 @@
+﻿Model,Versi,Korpus,P@5,MRR@5,P@5 (tanpa heading),MRR@5 (tanpa heading)
+gte-multilingual-base,B,ID,0.6,0.7622,0.6,0.7622
+multilingual-e5-base,B,ID,0.5667,0.7328,0.5667,0.7328
+gpl-gte-multilingual-base,GPL,ID,0.5267,0.6956,0.5267,0.6956
+gpl-multilingual-e5-base,exp1,ID,0.5267,0.7733,0.5267,0.7733
+gpl-gte-multilingual-base,exp1,ID,0.5133,0.6956,0.5133,0.6956
+gpl-multilingual-e5-base,GPL,ID,0.4933,0.7667,0.4933,0.7667
+bge-m3,B,ID,0.4828,0.7138,0.4828,0.7138
+BM25,B,ID,0.4133,0.5389,0.4133,0.5389

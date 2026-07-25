@@ -1,0 +1,9 @@
+=== P@5 + MRR@5 (relevan grade>=2) [Aryanto Firnadi, M.A. (B.Dh.)] ===
+Pakar: Aryanto_Firnadi__M_A___B_Dh__
+
+   1. P@5=0.4467 MRR=0.6083 (tanpa heading)  gte-multilingual-base (B,ID)
+   2. P@5=0.4000 MRR=0.5900 (tanpa heading)  multilingual-e5-base (B,ID)
+   3. P@5=0.3733 MRR=0.5372 (tanpa heading)  gpl-gte-multilingual-base (GPL,ID)
+   4. P@5=0.3467 MRR=0.5694 (tanpa heading)  gpl-multilingual-e5-base (GPL,ID)
+   5. P@5=0.3034 MRR=0.4810 (tanpa heading)  bge-m3 (B,ID)
+   6. P@5=0.2267 MRR=0.3806 (tanpa heading)  BM25 (B,ID)

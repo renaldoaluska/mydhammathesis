@@ -44,7 +44,17 @@ class Logger:
     def __getattr__(self, name): return getattr(self.t, name)
 
 
-def _needs_prefix(name): return "e5" in name.lower()
+def _needs_prefix(name):
+    """Butuh prefix 'query:/passage:'? Kanonik dari config (REGISTRY[].needs_prefix),
+    bukan tebak literal 'e5'. Base = lookup langsung; GPL = folder gpl-<short> ->
+    cocokkan short-name model REGISTRY yg butuh prefix (gpl-multilingual-e5-base =
+    turunan e5 -> butuh; gpl-gte-multilingual-base -> tidak)."""
+    n = str(name)
+    if n in config.NEEDS_PREFIX:
+        return config.NEEDS_PREFIX[n]
+    short = Path(n).name
+    return any(req and str(base).split("/")[-1] in short
+               for base, req in config.NEEDS_PREFIX.items())
 
 
 def load_en_by_sutta():
@@ -79,7 +89,11 @@ def load_en_by_sutta():
 
 def collect_models():
     """[(path_or_name, label)] base (REGISTRY) + gpl (MODELS_DIR)."""
-    items = [(e["name"], f"{e['name'].split('/')[-1]} (base)") for e in config.REGISTRY]
+    items = [
+        (n, f"{n.split('/')[-1]} (base)")
+        for e in config.REGISTRY
+        for n in [str(e["name"])]
+    ]
     if config.MODELS_DIR.exists():
         for d in sorted(config.MODELS_DIR.iterdir()):
             if d.is_dir() and (d / "config.json").exists() and d.name.startswith("gpl-"):
@@ -98,9 +112,15 @@ def main():
 
     random.seed(config.GPL_SEED)
     keys = [k for k, v in by.items() if len(v) >= 2]
-    all_texts = [t for v in by.values() for t in v]
+    all_keys = list(by.keys())
     intra = [tuple(random.sample(by[k], 2)) for k in random.sample(keys, min(N_SAMPLE, len(keys)))]
-    inter = [tuple(random.sample(all_texts, 2)) for _ in range(N_SAMPLE)]
+    # inter = 2 sutta BERBEDA (pilih 2 key beda dulu, baru 1 teks tiap key). Bukan 2 teks
+    # acak global: itu bisa nyasar ambil 2 chunk se-sutta jadi 'inter' -> distribusi inter
+    # kotor & gap mengecil semu. intra tak berubah (RNG sama, di-konsumsi sebelum inter).
+    inter = []
+    for _ in range(N_SAMPLE):
+        ka, kb = random.sample(all_keys, 2)
+        inter.append((random.choice(by[ka]), random.choice(by[kb])))
     pairs = intra + inter
     labels = ["Intra"] * len(intra) + ["Inter"] * len(inter)
     A = [p[0] for p in pairs]
@@ -138,7 +158,7 @@ def main():
     summary.to_csv(OUT_DIR / "intra_inter_per_model.csv", encoding="utf-8-sig")
 
     fig, ax = plt.subplots(figsize=(10, max(4, 0.5 * df["Model"].nunique())))
-    sns.boxplot(data=df, y="Model", x="Cosine", hue="Tipe", palette="Set2", ax=ax)
+    sns.boxplot(data=df, y="Model", x="Cosine", hue="Tipe", palette="Set2", ax=ax)  # type: ignore[arg-type]
     ax.set_title("Intra vs Inter-Sutta Cosine (EN)")
     fig.tight_layout()
     fig.savefig(OUT_DIR / "intra-inter-similarity.png", dpi=150, bbox_inches="tight")

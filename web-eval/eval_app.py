@@ -117,7 +117,12 @@ def _limit_passages(suttas, k=EVAL_PASSAGE_K):
     sutta: cache nyimpen top-10 SUTTA (superset); ini motong ke top-k FRAGMEN saat
     serve/hitung (subset, non-destruktif — grade lama tetap valid)."""
     flat = [(s, fr) for s in (suttas or []) for fr in s.get("fragments", [])]
-    flat.sort(key=lambda sf: -float(sf[1].get("score", 0)))
+    # tiebreak (ref, author) deterministik — seragam dgn 1-build-cache.py: skor tersimpan
+    # sudah 4dp, jadi pasase yg skornya seri TAK BOLEH diurut by urutan list (non-determ);
+    # kalau seri, ref lalu author yg mutusin -> pool top-k stabil & reproducible.
+    flat.sort(key=lambda sf: (-float(sf[1].get("score", 0)),
+                              sf[1].get("ref_display") or ",".join(sf[1].get("ref", [])),
+                              sf[1].get("author", "")))
     out, idx = [], {}
     for s, fr in flat[:k]:
         sid = s.get("sutta_id")
@@ -396,8 +401,12 @@ def api_eval_submit(eval_type):
 
     COLS = ["query_id", "query", "model", "versi", "db", "rank",
             "sutta_id", "ref", "author", "retrieved_text", "cosine_sim", "grade"]
-    # author masuk KEY: ref tak unik lintas penerjemah, jadi (ref,author) yg bedain pasase.
-    KEY = ("query_id", "model", "versi", "db", "rank", "ref", "author")
+    # KEY = identitas pasase per-model, BUKAN posisinya. author masuk krn ref tak unik
+    # lintas penerjemah ((ref,author) yg bedain pasase). rank & versi SENGAJA di luar KEY:
+    # rank = atribut volatil dari cache (rebuild bisa geser rank) dan versi cuma turunan
+    # model. Kalau rank ikut KEY, rebuild cache -> rank beda -> baris lama jadi "ghost"
+    # duplikat alih2 ke-update di tempat. Di luar KEY -> re-grade meng-update baris yg sama.
+    KEY = ("query_id", "model", "db", "ref", "author")
 
     rows = {}
     if filename.exists():

@@ -1,266 +1,116 @@
 /* ============================================================
-   Dhammakathika — Shared Logic (loaded via base.html)
+   Dhammakathika --- Shared Logic (loaded via base.html)
    Handles: theme, source toggle, notes panel, resize handle
    ============================================================ */
 
 (function () {
   "use strict";
 
-  // ========== Shared i18n (notes panel strings) ==========
-  const i18n = {
-    id: {
-      confirm_delete: "Hapus catatan ini?",
-      confirm_delete_block: "Hapus blok catatan ini?",
-      dlg_btn_ok: "OK",
-      dlg_btn_cancel: "Batal",
-      dlg_btn_continue: "Lanjutkan",
-      dlg_btn_delete: "Hapus",
-      btn_add_note: "+ Catatan",
-      btn_add_note_short: "+",
-      btn_open_sutta: "Halaman Teks",
-      btn_open_here: "Buka di sini",
-      btn_open_newtab: "Tab baru",
-      btn_single: "Terjemahan Saja",
-      btn_sidebyside: "Berdampingan Pāḷi",
-      msg_copied: "Catatan telah disalin ke clipboard!",
-      footer_student: "Penyusun:",
-      footer_supervisor: "Pembimbing:",
-      title_its: "Institut Teknologi Sepuluh Nopember",
-      title_stab: "Sekolah Tinggi Agama Buddha Kertarajasa",
-      title_styab: "Sekolah Tinggi Agama Buddha Syailendra",
-      title_sc: "SuttaCentral",
-      nav_search: "Mesin Pencari",
-      nav_search_full: "Mesin Pencari",
-      nav_search_short: "Mesin Cari",
-      nav_browse: "Telusuri",
-      cb_seg_ref: "Segmen",
-      btn_reader_settings: "Setelan",
-      rs_title: "Setelan",
-      rs_section_display: "Tampilan Teks",
-      rs_seg_desc: "Menampilkan kode rujukan tiap ruas teks beserta nomor barisnya. Berguna saat ingin mengutip atau menemukan baris tertentu secara tepat.",
-      rs_preview_label: "Pratinjau",
-      toc_title: "Daftar Isi",
-      seg_list_title: "Daftar Segmen",
-      btn_scroll_top: "Gulir ke Atas",
-      font_panel_title: "Teks",
-      font_panel_size: "Ukuran",
-      font_panel_line_height: "Tinggi baris",
-      font_panel_font: "Gaya",
-      font_style_hint: "Sans: tanpa kait, bersih & modern. Serif: berkait kecil, terasa klasik seperti buku cetak.",
-      btn_advanced: "Tingkat Lanjut",
-      config_search_engine: "Konfigurasi Mesin Pencari",
-      config_search_engine_desc: "Centang model yang ingin digabungkan pada pencarian biasa (bukan mode tingkat lanjut).",
-      hint_click_info: "Klik ikon <i data-lucide=\"info\" style=\"width: 14px; height: 14px; display: inline-block; vertical-align: -2px;\"></i> untuk lihat fungsi dari masing-masing opsi.",
-      err_no_config: "Konfigurasi model belum ada",
-      btn_manage_notes: "Kelola",
-      btn_config_short: "Konfig Mesin",
-      btn_reset: "Reset",
-      btn_open_link: "Buka",
-      btn_open_blurb: "Buka",
-      legend_title: '<span class="hide-mobile">Keterangan Simbol</span><span class="show-mobile">Ket. Simbol</span>',
-      legend_segment: "Segmen Teks",
-      legend_blurb: "Sinopsis",
-      legend_lang: "Bahasa",
-      legend_author: "Penerjemah",
-      legend_similarity: "Kemiripan Makna",
-      legend_count: "Kecocokan Kata Kunci",
-      ensemble_config_title: "Konfigurasi Gabungan Model",
-      hint_ensemble_warning: "Ubah konfigurasi ini hanya jika Anda paham, karena akan sangat memengaruhi hasil pencarian. Anda dapat mereset kapan saja, konfigurasi ini hanya tersimpan di perangkat Anda.",
-      confirm_reset_ensemble: "Reset konfigurasi gabungan model ke setelan awal dari server?",
-      btn_save: "Simpan",
-      nm_title: "Kelola Catatan",
-      nm_select_all: "Pilih Semua",
-      nm_delete_selected: "Hapus",
-      nm_download_selected: "Unduh PDF",
-      nm_confirm_bulk: "Hapus catatan yang dipilih?",
-      nm_blocks: "blok",
-      nm_col_title: "Judul",
-      nm_col_created: "Dibuat",
-      nm_col_edited: "Disunting",
-      footer_tentang: "Tentang myDhamma",
-      notes_title: '<i data-lucide="pen-line"></i> Catatan',
-      notes_title_mobile: 'Catatan',
-      btn_new_note: "+ Baru",
-      ph_note_title: "Judul catatan…",
-      btn_add_text: "+ Tambah Catatan Bebas",
-      note_add_sutta_hint: "Untuk menambahkan ayat Tipiṭaka ke Catatan, gunakan menu Telusuri/Pencarian/AI Chat di panel kiri, lalu klik tombol <b>+ Catatan</b> pada bagian ayat yang ingin ditambahkan.",
-      btn_paste_block: "Tempel Blok",
-      notes_empty: "Pilih atau buat catatan baru<br>untuk mulai menyusun pembabaran Dhamma.",
-      btn_empty_new_note: "+ Buat Catatan Baru",
-      btn_send: "Kirim",
-      chat_subtitle: "Chat myDhamma AI",
-      chat_disclaimer: "⚠ AI dapat membuat kesalahan; selalu periksa rujukannya.",
-      sutta_not_found: "Sutta tidak ditemukan.",
-      loading_sutta: "Memuat teks…",
-      sp_not_found: "Sutta tidak tersedia dalam korpus.",
-      research_banner: "TERBATAS UNTUK RISET — BELUM UNTUK PUBLIK",
-      panel_sidebar: "Bilah Sisi",
-      select_corpus: "— Pilih korpus —",
-      btn_goto: "Lompat ke Teks",
-      btn_chat_ai: "Tanya AI",
-      goto_title: "Lompat ke Teks",
-      goto_collection_ph: "mis. MN, DN",
-      goto_number_ph: "mis. 22, 56.11",
-      goto_or: "atau",
-      goto_title_ph: "Cari berdasarkan judul...",
-      goto_btn_open: "Buka",
-      lbl_language: "Target Bahasa",
-      lbl_pitaka: "Piṭaka",
-      btn_send: "Kirim",
-      history_divider: "Riwayat",
-      btn_new_chat: "Obrolan Baru",
-      note_poni_ai: "myDhamma AI",
-      note_poni_free: "Catatan bebas",
-      note_poni_quote: "Kutipan ayat",
-      sutta_md_notice: "<b>Catatan ID Segmen:</b> Teks ini menggunakan sistem penomoran paragraf internal myDhamma (ID berawalan \"md\") dikarenakan naskah sumber belum memiliki format penomoran standar.",
-    },
-    en: {
-      confirm_delete: "Delete this note?",
-      confirm_delete_block: "Delete this note block?",
-      dlg_btn_ok: "OK",
-      dlg_btn_cancel: "Cancel",
-      dlg_btn_continue: "Continue",
-      dlg_btn_delete: "Delete",
-      btn_add_note: "+ Notes",
-      btn_add_note_short: "+ Note",
-      btn_open_sutta: "Text Page",
-      btn_open_here: "Open here",
-      btn_open_newtab: "New tab",
-      btn_single: "Translation Only",
-      btn_sidebyside: "Side by Side with Pāḷi",
-      msg_copied: "Note copied to clipboard!",
-      footer_student: "Researcher:",
-      footer_supervisor: "Supervisor:",
-      title_its: "Sepuluh Nopember Institute of Technology",
-      title_stab: "Kerataraja Buddhist College",
-      title_styab: "Syailendra Buddhist College",
-      title_sc: "SuttaCentral",
-      nav_search: "Search Engine",
-      nav_search_full: "Search Engine",
-      nav_search_short: "Search",
-      nav_browse: "Browse",
-      panel_sidebar: "Sidebar",
-      cb_seg_ref: "Segments",
-      btn_reader_settings: "Settings",
-      rs_title: "Settings",
-      rs_section_display: "Text Display",
-      rs_seg_desc: "Shows the reference code and line number of each text segment. Useful for quoting or pinpointing a specific line.",
-      rs_preview_label: "Preview",
-      toc_title: "Table of Contents",
-      seg_list_title: "Segment List",
-      font_panel_title: "Text",
-      font_panel_size: "Size",
-      font_panel_line_height: "Line height",
-      font_panel_font: "Style",
-      font_style_hint: "Sans: no serifs, clean & modern. Serif: small strokes, classic like printed books.",
-      btn_scroll_top: "Scroll to Top",
-      btn_advanced: "Advanced",
-      config_search_engine: "Search Engine Configuration",
-      config_search_engine_desc: "Check the models you want to combine for the simple search mode (not advanced mode).",
-      hint_click_info: "Click the <i data-lucide=\"info\" style=\"width: 14px; height: 14px; display: inline-block; vertical-align: -2px;\"></i> icon to learn the function of each option.",
-      err_no_config: "Model configuration missing",
-      btn_manage_notes: "Manage",
-      btn_config_short: "Machine Config",
-      btn_reset: "Reset",
-      btn_open_link: "Open",
-      btn_open_blurb: "Open",
-      legend_title: "Legend",
-      legend_segment: "Text Segment",
-      legend_blurb: "Summary",
-      legend_lang: "Language",
-      legend_author: "Translator",
-      legend_similarity: "Semantic Match",
-      legend_count: "Match Count",
-      ensemble_config_title: "Model Ensemble Configuration",
-      hint_ensemble_warning: "Change this configuration only if you understand it, as it will significantly affect search results. You can reset it anytime, this configuration is only saved on your device.",
-      confirm_reset_ensemble: "Reset ensemble model configuration to server defaults?",
-      btn_save: "Save",
-      nm_title: "Manage Notes",
-      nm_select_all: "Select All",
-      nm_delete_selected: "Delete",
-      nm_download_selected: "Download PDF",
-      nm_confirm_bulk: "Delete selected notes?",
-      nm_blocks: "blocks",
-      nm_col_title: "Title",
-      nm_col_created: "Created",
-      nm_col_edited: "Edited",
-      footer_tentang: "About myDhamma",
-      notes_title: '<i data-lucide="pen-line"></i> Notes',
-      notes_title_mobile: 'Notes',
-      btn_new_note: "+ New",
-      ph_note_title: "Note title…",
-      btn_add_text: "+ Add Custom Note",
-      note_add_sutta_hint: "To add a Tipiṭaka passage to your Notes, use the Browse/Search/AI Chat menu in the left panel, then click the <b>+ Notes</b> button on the desired passage.",
-      btn_paste_block: "Paste Block",
-      notes_empty: "Select or create a new note<br>to start composing your talk.",
-      btn_empty_new_note: "+ Create New Note",
-      btn_send: "Send",
-      chat_subtitle: "Chat myDhamma AI",
-      chat_disclaimer: "⚠ AI may make mistakes; always check the citations.",
-      sutta_not_found: "Sutta not found.",
-      loading_sutta: "Loading text…",
-      sp_not_found: "Sutta not available in the corpus.",
-      research_banner: "IN DEVELOPMENT — FOR RESEARCH PURPOSES ONLY ",
-      select_corpus: "— Select corpus —",
-      btn_goto: "Jump to Text",
-      btn_chat_ai: "Ask AI",
-      goto_title: "Go to Text",
-      goto_collection_ph: "e.g. MN, DN",
-      goto_number_ph: "e.g. 22, 56.11",
-      goto_or: "or",
-      goto_title_ph: "Search by title...",
-      goto_btn_open: "Open",
-      lbl_language: "Target Language",
-      lbl_pitaka: "Piṭaka",
-      btn_send: "Send",
-      history_divider: "History",
-      btn_new_chat: "New Chat",
-      note_poni_ai: "myDhamma AI",
-      note_poni_free: "Custom note",
-      note_poni_quote: "Verse citation",
-      sutta_md_notice: "<b>Segment ID Note:</b> This text uses myDhamma's internal paragraph numbering system (IDs starting with \"md\") because the source manuscript lacks a standard numbering format.",
-    },
+  // ========== Global Fetch Interceptor for Access Gate ==========
+  const originalFetch = window.fetch;
+  window.fetch = async function (...args) {
+    const res = await originalFetch.apply(this, args);
+    if (res.status === 401) {
+      window.location.reload();
+      return res;
+    }
+    return res;
   };
 
+  // ========== Shared i18n ==========
+  // Kamus dipindah ke static/i18n.js (window.DK_I18N) supaya nambah bahasa UI
+  // tak perlu nyentuh logic. Fallback {} kalau i18n.js gagal dimuat -> t() balikin key.
+  const i18n = window.DK_I18N || { id: {}, en: {} };
+
   function getLang() { return localStorage.getItem("dk-lang") || "id"; }
-  function t(key) { return (i18n[getLang()] || i18n.id)[key] || key; }
+  // t(key, vars): dict bersama + interpolasi {name}. vars opsional -> string ber-angka
+  // (mis. "{n} hasil dalam {s} sutta") tetap di dict, tak perlu hardcode inline.
+  function t(key, vars) {
+    let s = (i18n[getLang()] || i18n.id)[key] || key;
+    if (vars) s = s.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? vars[k] : m));
+    return s;
+  }
+
+  // Urutan bahasa utk DAFTAR terjemahan (picker "Pilih Terjemahan" & dropdown
+  // suttaplex): Pali dulu, lalu bahasa web terpilih, lalu EN, lalu sisanya (alfabet).
+  // Satu sumber biar semua daftar konsisten — dan tak lagi hardcode ["pli","id","en"]
+  // yg diam-diam MEMBUANG bahasa lain kalau korpus punya lebih banyak bahasa.
+  function langRank(l) {
+    const sel = getLang();
+    return l === "pli" ? 0 : l === sel ? 1 : l === "en" ? 2 : 3;
+  }
+  function orderLangs(langs) {
+    return [...langs].sort((a, b) => langRank(a) - langRank(b) || a.localeCompare(b));
+  }
+
+  // ── ?chat=1 (redirect dari /chat lama): stash q/tag & BERSIHKAN URL sekarang,
+  // di parse-time --- common.js dieksekusi sebelum index.js, jadi index.js tidak
+  // keburu membaca ?q= sebagai kueri pencarian. Panel dibuka saat init DOM siap.
+  let _pendingChatOpen = null;
+  try {
+    const _cp = new URLSearchParams(window.location.search);
+    if (_cp.get("chat") === "1") {
+      // `id` (sesi chat dari link /chat?id= lama & chip riwayat) ikut distash ---
+      // dulu cuma dihapus dari URL tanpa dipakai -> chip "Riwayat Anda" buka room salah.
+      _pendingChatOpen = { q: _cp.get("q") || null, tag: _cp.get("tag") || null, session: _cp.get("id") || null };
+      ["chat", "q", "tag", "id"].forEach(k => _cp.delete(k));
+      const _qs = _cp.toString();
+      window.history.replaceState({}, document.title,
+        window.location.pathname + (_qs ? "?" + _qs : "") + window.location.hash);
+    }
+  } catch (_e) { }
+
+  // ── Chat panel (kanan): lazy-mount mesin chat (chat.js) sekali, saat pertama dibuka.
+  let _chatInstance = null;
+  function mountChat(prefill) {
+    const root = document.getElementById("chat-root");
+    if (!root || !window.DhammaChat) return null;
+    if (!_chatInstance) {
+      _chatInstance = window.DhammaChat.mount(root, {
+        embedded: true,
+        prefillQ: prefill && prefill.q ? prefill.q : null,
+        prefillTag: prefill && prefill.tag ? prefill.tag : null,
+      });
+    } else if (prefill && (prefill.q || prefill.tag)) {
+      _chatInstance.prefill(prefill.q || null, prefill.tag || null);
+    }
+    // Buka room spesifik (chip riwayat chat di home / redirect /chat?id=). Setelah
+    // mount/prefill: pada mount pertama instance restore room aktif terakhir dulu,
+    // lalu openSession memindahkannya ke sesi yang diminta (async, ada guard generate).
+    if (_chatInstance && prefill && prefill.session && _chatInstance.openSession) {
+      _chatInstance.openSession(prefill.session);
+    }
+    return _chatInstance;
+  }
 
   window.refreshIcons = function () { if (window.lucide) lucide.createIcons(); };
 
   function applyCommonI18n() {
     const lang = getLang();
-    const pill = document.getElementById("btn-lang-toggle");
-    if (pill) {
-      pill.setAttribute("data-active", lang);
-      pill.querySelectorAll(".lang-pill-opt").forEach(o =>
-        o.classList.toggle("active", o.dataset.lang === lang)
-      );
+    const langDd = document.getElementById("lang-select");
+    if (langDd) {
+      const lbl = langDd.querySelector("#lang-dd-label");
+      if (lbl) lbl.textContent = lang.toUpperCase();
+      langDd.querySelectorAll(".lang-dd-item").forEach(it =>
+        it.classList.toggle("active", it.dataset.lang === lang));
     }
     document.documentElement.lang = lang;
-    document.querySelectorAll("[data-i18n]").forEach(el => {
-      const v = t(el.getAttribute("data-i18n"));
-      if (v !== el.getAttribute("data-i18n")) el.textContent = v;
+    // Semua tipe attr i18n mendukung data-i18n-vars (JSON) utk interpolasi {var} ---
+    // dipakai label dinamis (mis. trace chat "Menemukan {count} teks: {ids}"), jadi
+    // elemen cukup nyimpen key+vars & sweep ini me-render ulang di bahasa aktif.
+    const sweep = (attr, apply) => document.querySelectorAll(`[${attr}]`).forEach(el => {
+      const key = el.getAttribute(attr);
+      let vars;
+      const raw = el.getAttribute("data-i18n-vars");
+      if (raw) { try { vars = JSON.parse(raw); } catch (_e) { /* vars rusak -> render tanpa interpolasi */ } }
+      const v = t(key, vars);
+      if (v !== key) apply(el, v);
     });
-    document.querySelectorAll("[data-i18n-html]").forEach(el => {
-      const v = t(el.getAttribute("data-i18n-html"));
-      if (v !== el.getAttribute("data-i18n-html")) el.innerHTML = v;
-    });
-    document.querySelectorAll("[data-i18n-tooltip]").forEach(el => {
-      const v = t(el.getAttribute("data-i18n-tooltip"));
-      if (v !== el.getAttribute("data-i18n-tooltip")) {
-        el.setAttribute("data-tooltip", v);
-      }
-    });
-    document.querySelectorAll("[data-i18n-title]").forEach(el => {
-      const v = t(el.getAttribute("data-i18n-title"));
-      if (v !== el.getAttribute("data-i18n-title")) el.setAttribute("title", v);
-    });
-    document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
-      const v = t(el.getAttribute("data-i18n-placeholder"));
-      if (v !== el.getAttribute("data-i18n-placeholder")) {
-        el.setAttribute("placeholder", v);
-      }
-    });
+    sweep("data-i18n", (el, v) => { el.textContent = v; });
+    sweep("data-i18n-html", (el, v) => { el.innerHTML = v; });
+    sweep("data-i18n-tooltip", (el, v) => el.setAttribute("data-tooltip", v));
+    sweep("data-i18n-title", (el, v) => el.setAttribute("title", v));
+    sweep("data-i18n-placeholder", (el, v) => el.setAttribute("placeholder", v));
     refreshIcons();
   }
 
@@ -375,7 +225,7 @@
     return `${suttaPrefix}${first}-${last}`;
   }
 
-  // Toast notification — moves inside open <dialog> so it's above the top layer
+  // Toast notification --- moves inside open <dialog> so it's above the top layer
   function showToast(msg, duration) {
     duration = duration || 2200;
     const openDialog = document.querySelector("dialog[open]");
@@ -397,22 +247,48 @@
     }));
   }
 
+  function getParentId(id) {
+    if (!id || !id.includes(":")) return id || "";
+    const p = id.split(":");
+    const prefix = p[0];
+    const ref = p[1];
+    const refParts = ref.split(".");
+    if (refParts.length <= 1) return prefix;
+    return prefix + ":" + refParts.slice(0, -1).join(".");
+  }
+
   function renderPartsHtml(parts, key, opts) {
     key = key || "text";
     opts = opts || {};
     const headingAware = !!opts.headingAware;
     const isHeading = !!opts.isHeading;
+    // pliFallback (opt-in, HANYA dari renderSegments = viewer/dialog): KHUSUS bagian
+    // HEADER (part/segmen heading, id akhiran .0 dst.) yg tak diterjemahkan -> diisi
+    // teks Pāli-nya. BODY untranslated TETAP "…" apa pun kondisinya --- termasuk segmen
+    // utuh peyyāla (mis. mn134:5.3-16): itu elisi, nyalin Pāli malah menyesatkan.
+    // Kartu pencarian/chat & catatan TIDAK menyalakan flag ini (perilaku lama utuh).
+    const pliFallback = !!opts.pliFallback;
     // Bilara: tiap part adalah baris bait asli → pakai <br>, tanpa ‖ dan tanpa nomor
     const isBilara = parts.length > 0 && !!parts[0].bilara;
+    let hasValidPart = false;
     return parts.map((p, i) => {
       // Folded body heading (".0" lead part): render as a block heading, no verse number.
       if (p.heading) {
         const lvl = Math.min(Math.max(p.heading, 1), 6);
-        const htxt = String(p.text || "").replace(/<[^>]+>/g, "").trim();
+        // Hormati key: kolom Pāli (side-by-side) render p.pli --- dulu selalu p.text
+        // (terjemahan), jadi heading di kolom Pāli malah kosong saat terjemahannya kosong.
+        let htxt = String((key === "pli" ? p.pli : p.text) || "").replace(/<[^>]+>/g, "").trim();
+        // Heading tak-terterjemah (mis. vatthu Dhp) -> fallback Pāli-nya di viewer/dialog.
+        if (!htxt && pliFallback && key !== "pli") {
+          htxt = String(p.pli || "").replace(/<[^>]+>/g, "").trim();
+        }
+        hasValidPart = false; // Reset valid part after heading so we don't get a separator
         return `<div class="seg-heading seg-heading-${lvl}">${esc(htxt)}</div>`;
       }
-      const verseNum = p.num !== undefined ? p.num : (p.id && p.id.includes(":") ? p.id.split(":").pop() : "");
-      const primary = key === "id" ? (p.text || "") : (p[key] || "");
+      const verseNum = p.num ? p.num : (p.id && p.id.includes(":") ? p.id.split(":").pop() : "");
+      let primary;
+      if (key === "id") primary = p.text || "";
+      else primary = key === "pli" ? (p.pli || "") : (p[key] || p.text || "");
       let content;
       if (headingAware && key !== "pli") {
         const raw = primary.trim();
@@ -426,7 +302,8 @@
           content = primary;
         }
       } else {
-        content = primary || p.text || p.pli || p.en || "";
+        if (key === "pli") content = primary;
+        else content = primary || p.text || p.pli || p.en || "";
       }
 
       if (typeof content === 'string' && content.includes('speaker')) {
@@ -437,22 +314,39 @@
         });
       }
 
+      if (!String(content).trim()) return "";
+
+      let sep = "";
       if (isBilara) {
-        // Bilara: tanpa pembatas apapun, TAPI nomor subsegmen tetap ditampilkan
-        const hideSuperscript = parts.length === 1 && !String(verseNum).includes('.');
+        // Bilara: tampilkan ‖ hanya jika paragraf/bait berubah
+        const prevId = i > 0 ? parts[i - 1].id : null;
+        const currentId = p.id;
+        const parentChanged = prevId && currentId && (getParentId(prevId) !== getParentId(currentId));
+        sep = (hasValidPart && parentChanged) ? `<span class="verse-sep">‖</span>` : "";
+        const hideSuperscript = !opts.showVerseNum && parts.length === 1 && !String(verseNum).includes('.');
         const supHtml = hideSuperscript ? "" : `<sup class="verse-num">${verseNum}</sup>`;
-        return `${supHtml}${content}`;
+        hasValidPart = true;
+        return `${sep}${supHtml}${content}`;
       } else {
-        // HTML (dari br): render keduanya (‖ dan nomor). CSS akan mengatur mana yang tampil (berdasarkan opsi show-seg-ref)
-        const sep = i > 0 ? `<span class="verse-sep">‖</span>` : "";
-        const hideSuperscript = parts.length === 1 && !String(verseNum).includes('.');
+        // HTML (dari br): render ‖ + nomor (CSS pilih mana tampil via show-seg-ref). Tapi ‖ itu
+        // device kolom TERJEMAHAN (pemisah baris puisi id/non-bilara biar tanda baca tak nyatu);
+        // kolom Pāli punya tanda bacanya sendiri -> JANGAN kasih ‖ di sana.
+        sep = (hasValidPart && key !== "pli") ? `<span class="verse-sep">‖</span>` : "";
+        // Subfragmen TUNGGAL (potongan md yg tak terbagi) = tak ada subdivisi nyata, nomor
+        // superscript cuma nyampah -> sembunyikan DI MANA PUN (reader + kartu search/chat),
+        // walau showVerseNum. Multi-part: perilaku lama (tampil kecuali disembunyikan & bukan
+        // nomor hierarki ber-titik).
+        const hideSuperscript = parts.length === 1
+          ? true
+          : (!opts.showVerseNum && !String(verseNum).includes('.'));
         const supHtml = hideSuperscript ? "" : `<sup class="verse-num">${verseNum}</sup>`;
+        hasValidPart = true;
         return `${sep}${supHtml}${content}`;
       }
     }).join(isBilara ? " " : " ");
   }
 
-  // ========== Notes — buildMiniTexts ==========
+  // ========== Notes --- buildMiniTexts ==========
   function buildMiniTexts(data) {
     const texts = data.texts || {};
     const availLinks = data.available_links || {};
@@ -490,9 +384,13 @@
           ? `/${shortId}/${l}/${encodeURIComponent(a)}${firstRef ? "#" + firstRef : ""}`
           : (baseLink && firstRef ? `${baseLink}#${firstRef}` : baseLink);
       }
-      const title = `Buka di Dhammakathika (${l.toUpperCase()})`;
+      const title = `${t("open_in_reader")} (${l.toUpperCase()})`;
       const key = isBlurb ? "btn_open_blurb" : "btn_open_link";
-      const bodyHtml = (data.parts && data.parts_lang === l) ? renderPartsHtml(data.parts, l) : esc(texts[l]);
+      // Pure-Pāli (lang=pli): part menaruh teks Pāli di p.text, BUKAN p.pli, jadi
+      // renderPartsHtml(key="pli") baca p.pli -> kosong (catatan jadi hampa). Fallback ke
+      // texts[l] (segText = teks Pāli utuh) kalau render part-nya kosong.
+      let bodyHtml = (data.parts && data.parts_lang === l) ? renderPartsHtml(data.parts, l, { headingAware: true }) : esc(texts[l]);
+      if (!bodyHtml || !bodyHtml.replace(/<[^>]+>/g, "").trim()) bodyHtml = esc(texts[l] || "");
       html += `<div>${url
         ? `<a href="${url}" class="lang-tag ${l}${isBlurb ? ' dk-open-menu-link' : ''}" title="${title}" data-sutta-id="${suttaId}" data-first-ref="${firstRef}"${isBlurb ? ' data-is-blurb="1"' : ''}>${eyeIcon} <span style="margin-left:2px;" data-i18n="${key}">${t(key)}</span></a>`
         : `<span class="lang-tag ${l}">${eyeIcon} <span style="margin-left:2px;" data-i18n="${key}">${t(key)}</span></span>`} ${bodyHtml}</div>`;
@@ -509,28 +407,28 @@
     if (!refs || !refs.length) return safe;
     const byId = {};
     const byIdSeg = {};
-    refs.forEach(r => { 
+    refs.forEach(r => {
       if (r && r.id && r.sid) {
         const normId = r.id.replace(/\s+/g, "").toLowerCase();
-        byId[normId] = r; 
+        byId[normId] = r;
         if (r.seg) {
           byIdSeg[normId + ":" + r.seg.replace(/[.,;]+$/, "")] = r;
         }
-      } 
+      }
     });
     const re = /([A-Za-z]+(?:-[A-Za-z]+)?\s+\d+(?:\.\d+)*(?:-\d+)?)(?::([a-zA-Z0-9.\-]+))?/g;
     const openLabel = getLang() === "en" ? "Open" : "Buka";
     return safe.replace(re, (match, book, seg) => {
       const normId = book.replace(/\s+/g, "").toLowerCase();
       const cleanSeg = seg ? seg.replace(/[.,;]+$/, "") : "";
-      
+
       let r = null;
       if (cleanSeg && byIdSeg[normId + ":" + cleanSeg]) {
         r = byIdSeg[normId + ":" + cleanSeg];
       } else {
         r = byId[normId];
       }
-      
+
       if (!r) return match;
       // Segmen (mis. "1.5" / "md2") dipakai sbg hash -> dialog scroll ke segmennya.
       return `<a role="button" tabindex="0" class="note-cite" data-sid="${esc(r.sid)}" data-author="${esc(r.author || "")}" data-seg="${esc(cleanSeg)}" data-lang="${esc(r.lang || "")}" title="${openLabel}">${match}</a>`;
@@ -540,51 +438,134 @@
   const _MD_TABLE_SEP = l => /^\s*\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)+\|?\s*$/.test(l);
   const _MD_CELLS = r => r.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map(c => c.trim());
 
-  // Render konten blok AI di Catatan: sama spt linkifyNoteRefs (esc + linkify rujukan; newline
-  // diurus CSS pre-wrap), TAPI blok tabel GFM ('| a | b |' diikuti '|---|---|') dirender jadi
-  // <table> beneran supaya tak tampil pipe mentah. Tiap sel tetap di-linkify rujukannya.
-  //   opts.br    -> teks non-tabel pakai <br> (konteks tanpa pre-wrap, mis. cetak/print)
-  //   opts.print -> tabel pakai inline-style (dokumen cetak tak memuat CSS situs)
+  // Render konten blok AI di Catatan jadi blok HTML rapi (cermin mdLite di bubble chat). Teks
+  // sudah di-mdToPlain (bold/heading dilucuti; bullet -> "• " dgn indentasi dipertahankan;
+  // tabel GFM diratakan). Di sini direkonstruksi: tabel -> <table>, list (•/-/* & 1. ber-indentasi)
+  // -> <ul>/<ol> nested rekursif, sisanya -> <p> (dipisah baris kosong). Tiap teks di-linkify
+  // rujukannya. opts.print -> dok cetak tanpa CSS situs, jadi tabel/list/paragraf pakai inline-style.
   function renderAiNoteHtml(content, refs, opts) {
     opts = opts || {};
-    const lines = (content || "").split("\n");
+    const lines = mathLite((content || "").normalize("NFC")).replace(/\r/g, "").split("\n");
     const tOpen = opts.print
       ? "<table style=\"border-collapse:collapse;width:100%;margin:.6em 0;font-size:.92em\">"
       : "<table class='chat-table note-ai-table'>";
     const thS = opts.print ? " style=\"border:1px solid #c7b8ea;padding:.4em .65em;text-align:left;background:#f1ecfa;font-weight:700\"" : "";
     const tdS = opts.print ? " style=\"border:1px solid #c7b8ea;padding:.4em .65em;text-align:left;vertical-align:top\"" : "";
-    let out = "", buf = [];
-    const flush = () => {
-      while (buf.length && buf[buf.length - 1].trim() === "") buf.pop();   // rapikan blank sblm tabel
-      if (buf.length) {
-        let h = linkifyNoteRefs(buf.join("\n"), refs);
-        if (opts.br) h = h.replace(/\n/g, "<br>");
-        out += h;
+    const ulS = opts.print ? " style=\"margin:.3em 0 .55em;padding-left:1.4em\"" : "";
+    const liS = opts.print ? " style=\"margin:.15em 0\"" : "";
+    const pS = opts.print ? " style=\"margin:0 0 .55em\"" : "";
+
+    const lk = s => linkifyNoteRefs(s, refs);
+    const isBullet = l => /^[ \t]*[•\-*][ \t]+/.test(l);
+    const isOrdered = l => /^[ \t]*\d+[.)][ \t]+/.test(l);
+    const isItem = l => isBullet(l) || isOrdered(l);
+    const isBlank = l => /^[ \t]*$/.test(l);
+    const indentOf = l => l.match(/^[ \t]*/)[0].replace(/\t/g, "  ").length;
+    const isTable = j => lines[j].includes("|") && j + 1 < lines.length && _MD_TABLE_SEP(lines[j + 1]);
+
+    let i = 0, out = "";
+
+    // Satu level list mulai di lines[i] (base = indentasinya). Item ber-indentasi lebih dalam
+    // -> sublist (rekursif); lebih dangkal -> milik list induk (berhenti). Baris kosong di
+    // antara item ditoleransi selama item berikut masih bagian list ini.
+    // depth = level nesting saat ini (1 = terluar). MAKSIMAL 3 level --- selaras dgn render chat
+    // (renderNestedList di chat.js). Di level 3, item ber-indentasi lebih dalam TAK nyarang lagi:
+    // diperlakukan sbg sibling di level 3 supaya tampilan catatan = tampilan jawaban.
+    const MAX_DEPTH = 3;
+    function renderList(base, depth) {
+      depth = depth || 1;
+      const ordered = isOrdered(lines[i]) && !isBullet(lines[i]);
+      const tag = ordered ? "ol" : "ul";
+      let html = "<" + tag + ulS + ">";
+      while (i < lines.length) {
+        if (isBlank(lines[i])) {
+          let j = i + 1; while (j < lines.length && isBlank(lines[j])) j++;
+          if (j < lines.length && isItem(lines[j]) && indentOf(lines[j]) >= base) { i = j; continue; }
+          break;
+        }
+        if (!isItem(lines[i]) || indentOf(lines[i]) < base) break;
+        // Lebih dalam dari base -> sublist, TAPI cuma kalau belum mentok level 3. Mentok ->
+        // jatuh ke bawah, diproses sbg item biasa di level ini (sibling, bukan sarang baru).
+        if (indentOf(lines[i]) > base && depth < MAX_DEPTH) { html += renderList(indentOf(lines[i]), depth + 1); continue; }
+        const m = lines[i].match(/^[ \t]*(?:[•\-*]|(\d+)[.)])[ \t]+(.*)$/);
+        const val = (ordered && m && m[1]) ? " value=\"" + m[1] + "\"" : "";
+        let li = "<li" + val + liS + ">" + lk(((m && m[2]) || "").trim());
+        i++;
+        while (i < lines.length && !isBlank(lines[i]) && indentOf(lines[i]) > base) {
+          if (isItem(lines[i])) {
+            if (depth < MAX_DEPTH) li += renderList(indentOf(lines[i]), depth + 1);   // sublist
+            else break;                                                  // level 3 -> biar jadi sibling di luar
+          }
+          else { li += "<br>" + lk(lines[i].trim()); i++; }             // lanjutan teks item
+        }
+        html += li + "</li>";
       }
-      buf = [];
-    };
-    let i = 0;
+      return html + "</" + tag + ">";
+    }
+
     while (i < lines.length) {
-      if (lines[i].includes("|") && i + 1 < lines.length && _MD_TABLE_SEP(lines[i + 1])) {
-        flush();
-        const head = _MD_CELLS(lines[i]); i += 2;                          // lewati header + pemisah
+      if (isBlank(lines[i])) { i++; continue; }
+      if (isTable(i)) {
+        const head = _MD_CELLS(lines[i]); i += 2;                        // lewati header + pemisah
         const rows = [];
         while (i < lines.length && lines[i].includes("|") && lines[i].trim() !== "") {
           rows.push(_MD_CELLS(lines[i])); i++;
         }
         let tb = tOpen + "<thead><tr>"
-          + head.map(c => "<th" + thS + ">" + linkifyNoteRefs(c, refs) + "</th>").join("") + "</tr></thead><tbody>";
+          + head.map(c => "<th" + thS + ">" + lk(c) + "</th>").join("") + "</tr></thead><tbody>";
         for (const r of rows) {
-          tb += "<tr>" + head.map((_, ci) => "<td" + tdS + ">" + linkifyNoteRefs(r[ci] || "", refs) + "</td>").join("") + "</tr>";
+          tb += "<tr>" + head.map((_, ci) => "<td" + tdS + ">" + lk(r[ci] || "") + "</td>").join("") + "</tr>";
         }
         out += tb + "</tbody></table>";
-        while (i < lines.length && lines[i].trim() === "") i++;            // buang blank setelah tabel
+      } else if (isItem(lines[i])) {
+        out += renderList(indentOf(lines[i]));
       } else {
-        buf.push(lines[i]); i++;
+        const para = [];
+        while (i < lines.length && !isBlank(lines[i]) && !isItem(lines[i]) && !isTable(i)) {
+          para.push(lines[i].trim()); i++;
+        }
+        out += "<p" + pS + ">" + para.map(lk).join("<br>") + "</p>";
       }
     }
-    flush();
     return out;
+  }
+
+  // LaTeX-lite -> teks kebaca. Model kadang emit notasi math ("$\rightarrow$",
+  // "$6 \text{ jalur kontak}\times 3 = 18$") yg tanpa renderer math tampil MENTAH.
+  // Konversi konservatif ke unicode/teks polos, SATU sumber utk chat (mdLite render +
+  // mdToPlain salin/simpan) & catatan (renderAiNoteHtml) biar sinkron.
+  // Anti-nyasar: span $...$ hanya dikonversi bila memuat \perintah (mata uang "$5 dan
+  // $10" tak kena); delimiter \( \) / \[ \] selalu dikonversi (tak ambigu). Idempoten.
+  const _MATH_MAP = {
+    rightarrow: "→", to: "→", longrightarrow: "→", Rightarrow: "⇒", implies: "⇒",
+    leftarrow: "←", Leftarrow: "⇐", leftrightarrow: "↔", uparrow: "↑", downarrow: "↓",
+    times: "×", cdot: "·", div: "÷", pm: "±", mp: "∓", approx: "≈", sim: "~",
+    neq: "≠", ne: "≠", equiv: "≡", leq: "≤", le: "≤", geq: "≥", ge: "≥",
+    ldots: "…", dots: "…", cdots: "…", infty: "∞", therefore: "∴", because: "∵",
+    Delta: "Δ", delta: "δ", alpha: "α", beta: "β", gamma: "γ", lambda: "λ",
+    mu: "μ", pi: "π", sigma: "σ", Sigma: "Σ", sum: "Σ", theta: "θ", omega: "ω",
+    quad: " ", qquad: "  ", "": " ",
+  };
+  const _MATH_OPS = "×·÷±∓≈≠≡≤≥→⇒←⇐↔";   // simbol biner: beri spasi kiri-kanan biar kebaca
+  function _mathBody(body) {
+    let t = body;
+    t = t.replace(/\\(?:text|textrm|textbf|textit|mathrm|mathbf|mathit|operatorname)\s*\{([^{}]*)\}/g, "$1");
+    t = t.replace(/\\frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g, "$1/$2");
+    t = t.replace(/\\([A-Za-z]+|\s)/g, (m, w) => {
+      const rep = _MATH_MAP[w.trim()];
+      if (rep === undefined) return m;
+      return _MATH_OPS.includes(rep) ? ` ${rep} ` : rep;
+    });
+    t = t.replace(/[{}]/g, "");
+    return t.replace(/\s+/g, " ").trim();
+  }
+  function mathLite(src) {
+    if (!src || (src.indexOf("$") === -1 && src.indexOf("\\(") === -1 && src.indexOf("\\[") === -1)) return src;
+    return src
+      .replace(/\\\[([\s\S]+?)\\\]/g, (_m, b) => _mathBody(b))
+      .replace(/\\\((.+?)\\\)/g, (_m, b) => _mathBody(b))
+      .replace(/\$\$([\s\S]+?)\$\$/g, (m, b) => (/\\/.test(b) ? _mathBody(b) : m))
+      .replace(/\$([^$\n]+)\$/g, (m, b) => (/\\/.test(b) ? _mathBody(b) : m));
   }
 
   // Ratakan kolom tabel GFM jadi teks rapi (utk tombol Salin/clipboard): lebar tiap kolom =
@@ -616,7 +597,7 @@
     return out.join("\n");
   }
 
-  // ========== Notes — Block Clipboard ==========
+  // ========== Notes --- Block Clipboard ==========
   let _copiedBlock = null;
 
   function updatePasteBtn() {
@@ -624,7 +605,30 @@
     if (container) container.style.display = _copiedBlock ? "flex" : "none";
   }
 
-  // ========== Notes — Block Element ==========
+  function animateSwap(el1, el2, swapFn) {
+    const rect1 = el1.getBoundingClientRect();
+    const rect2 = el2.getBoundingClientRect();
+    swapFn();
+    const newRect1 = el1.getBoundingClientRect();
+    const newRect2 = el2.getBoundingClientRect();
+    const deltaY1 = rect1.top - newRect1.top;
+    const deltaY2 = rect2.top - newRect2.top;
+    el1.style.transform = `translateY(${deltaY1}px)`;
+    el2.style.transform = `translateY(${deltaY2}px)`;
+    el1.style.transition = "none";
+    el2.style.transition = "none";
+    void el1.offsetWidth;
+    el1.style.transition = "transform 0.3s ease-in-out";
+    el2.style.transition = "transform 0.3s ease-in-out";
+    el1.style.transform = "";
+    el2.style.transform = "";
+    setTimeout(() => {
+      el1.style.transition = "";
+      el2.style.transition = "";
+    }, 300);
+  }
+
+  // ========== Notes --- Block Element ==========
   function createNoteBlockEl(block, idx) {
     const wrapper = document.createElement("div");
     wrapper.className = "note-block";
@@ -637,31 +641,56 @@
     actions.className = "note-block-actions";
 
     const upBtn = document.createElement("button");
-    upBtn.className = "block-move-btn";
-    upBtn.textContent = "↑";
+    upBtn.className = "block-move-btn btn-move-up";
+    upBtn.innerHTML = `<i data-lucide="chevron-up"></i>`;
     upBtn.title = "Geser ke atas";
     upBtn.addEventListener("click", () => {
       const prev = wrapper.previousElementSibling;
-      if (prev) { noteBlocks.insertBefore(wrapper, prev); autoSave(); }
+      if (prev) {
+        animateSwap(wrapper, prev, () => {
+          noteBlocks.insertBefore(wrapper, prev);
+        });
+        autoSave();
+        setTimeout(() => {
+          wrapper.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          document.querySelectorAll('.highlight-green-pulse').forEach(el => el.classList.remove('highlight-green-pulse'));
+          void wrapper.offsetWidth;
+          wrapper.classList.add("highlight-green-pulse");
+        }, 300);
+      }
     });
 
     const downBtn = document.createElement("button");
-    downBtn.className = "block-move-btn";
-    downBtn.textContent = "↓";
+    downBtn.className = "block-move-btn btn-move-down";
+    downBtn.innerHTML = `<i data-lucide="chevron-down"></i>`;
     downBtn.title = "Geser ke bawah";
     downBtn.addEventListener("click", () => {
       const next = wrapper.nextElementSibling;
-      if (next) { noteBlocks.insertBefore(next, wrapper); autoSave(); }
+      if (next) {
+        animateSwap(wrapper, next, () => {
+          noteBlocks.insertBefore(next, wrapper);
+        });
+        autoSave();
+        setTimeout(() => {
+          wrapper.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          document.querySelectorAll('.highlight-green-pulse').forEach(el => el.classList.remove('highlight-green-pulse'));
+          void wrapper.offsetWidth;
+          wrapper.classList.add("highlight-green-pulse");
+        }, 300);
+      }
     });
 
     const delBtn = document.createElement("button");
     delBtn.className = "block-del-btn";
     delBtn.textContent = "✕";
-    delBtn.title = "Hapus blok";
+    delBtn.title = t("del_block");
     delBtn.addEventListener("click", async () => {
       if (!await dkConfirm(t("confirm_delete_block"), { danger: true })) return;
-      wrapper.remove();
-      autoSave();
+      wrapper.classList.add("swipe-out-anim");
+      setTimeout(() => {
+        wrapper.remove();
+        autoSave();
+      }, 500);
     });
 
     const copyBtn = document.createElement("button");
@@ -669,6 +698,9 @@
     copyBtn.title = "Salin blok";
     copyBtn.innerHTML = `<i data-lucide="copy"></i>`;
     copyBtn.addEventListener("click", () => {
+      document.querySelectorAll('.highlight-green-pulse').forEach(el => el.classList.remove('highlight-green-pulse'));
+      void wrapper.offsetWidth;
+      wrapper.classList.add("highlight-green-pulse");
       _copiedBlock = JSON.parse(JSON.stringify(block));
       updatePasteBtn();
 
@@ -679,7 +711,7 @@
         const d = block.data || {};
         const texts = d.texts || {};
         clipText += `${d.formatted_id || d.sutta_id || ""}${d.sutta_name ? " — " + d.sutta_name : ""} — ${d.ref_display || ""}\n`;
-        if (d.author && d.author !== "blurb") clipText += `Penerjemah: ${authorLongName(d.author, d.source)}\n`;
+        if (d.author && d.author !== "blurb") clipText += `${t("legend_author")}: ${authorLongName(d.author, d.source)}\n`;
         if (texts.id) clipText += `ID: ${texts.id}\n`;
         if (texts.en) clipText += `EN: ${texts.en}\n`;
         if (texts.pli) clipText += `PLI: ${texts.pli}\n`;
@@ -776,11 +808,37 @@
     return blocks;
   }
 
-  // ========== Notes — localStorage backend ==========
+  // ========== Notes --- localStorage backend ==========
   const LS_NOTES_KEY = "dk-notes-store";
 
+  let _notesMigrated = false;
+  // Migrasi 1x: catatan lama menyimpan id alias jangkar (mis. "nya6", tanpa ":") di blok.data.ref
+  // -> ref_display jadi "mn52:md12-nya6". Buang id tanpa ":" (alias, bukan ref sutta) lalu
+  // recompute ref_display. Aturan seragam (ref sutta selalu berprefiks ":"), idempoten: sekali
+  // bersih, real.length == ref.length -> no-op. Klik target tetap pakai ref[0] (tak berubah).
+  function _lsMigrateAliasRefs(store) {
+    let changed = false;
+    for (const note of Object.values(store)) {
+      for (const block of (note.blocks || [])) {
+        const d = block && block.data;
+        if (!d || !Array.isArray(d.ref)) continue;
+        const real = d.ref.filter(id => typeof id === "string" && id.includes(":"));
+        if (real.length && real.length !== d.ref.length) {
+          d.ref = real;
+          d.ref_display = compactRef(real);
+          changed = true;
+        }
+      }
+    }
+    if (changed) _lsSave(store);
+  }
+
   function _lsStore() {
-    try { return JSON.parse(localStorage.getItem(LS_NOTES_KEY)) || {}; }
+    try {
+      const store = JSON.parse(localStorage.getItem(LS_NOTES_KEY)) || {};
+      if (!_notesMigrated) { _notesMigrated = true; _lsMigrateAliasRefs(store); }
+      return store;
+    }
     catch { return {}; }
   }
   function _lsSave(store) { localStorage.setItem(LS_NOTES_KEY, JSON.stringify(store)); }
@@ -810,7 +868,7 @@
   }
   function lsNotesDelete(id) { const store = _lsStore(); delete store[id]; _lsSave(store); }
 
-  // ========== Notes — CRUD ==========
+  // ========== Notes --- CRUD ==========
   async function loadNotesList(openSaved = true) {
     try {
       const data = lsNotesGetAll();
@@ -843,7 +901,7 @@
 
       const titleEl = document.createElement("span");
       titleEl.className = "note-tab-title";
-      titleEl.textContent = n.title || "Untitled";
+      titleEl.textContent = n.title || t("note_untitled");
 
       const dateEl = document.createElement("span");
       dateEl.className = "note-tab-date";
@@ -888,6 +946,7 @@
       noteBlocks.appendChild(createNoteBlockEl(block, idx))
     );
     refreshIcons();
+    if (typeof updateBlockMoveButtons === "function") updateBlockMoveButtons();
   }
 
   function uniqueNewNoteTitle() {
@@ -905,7 +964,7 @@
       state.activeNoteId = note.id;
       state.activeNote = note;
       localStorage.setItem("dk-active-note", note.id);
-      await loadNotesList(false);  // don't call openNote — we already have state.activeNote
+      await loadNotesList(false);  // don't call openNote --- we already have state.activeNote
       renderNoteEditor();
       if (focusTitle) {
         const titleInput = $("#note-title-input");
@@ -917,7 +976,9 @@
   async function saveCurrentNote() {
     if (!state.activeNote) return;
     const titleInput = $("#note-title-input");
-    state.activeNote.title = (titleInput ? titleInput.value.trim() : "") || state.activeNote.title;
+    // Judul KOSONG itu sah (tampil sbg "Tanpa judul" via t()); dulu "" || lama -> judul
+    // lama balik sendiri padahal user sengaja ngosongin.
+    if (titleInput) state.activeNote.title = titleInput.value.trim();
     state.activeNote.blocks = collectBlocksFromDOM();
     try {
       const updated = lsNotesUpdate(state.activeNote.id, state.activeNote);
@@ -969,6 +1030,7 @@
     const noteBlocks = $("#note-blocks");
     noteBlocks.appendChild(createNoteBlockEl(block, state.activeNote.blocks.length - 1));
     refreshIcons();
+    if (typeof updateBlockMoveButtons === "function") updateBlockMoveButtons();
     const newEl = noteBlocks.lastElementChild.querySelector(".note-block-text");
     if (newEl) newEl.focus();
   }
@@ -990,15 +1052,15 @@
       noteBlocks.appendChild(createNoteBlockEl(block, state.activeNote.blocks.length - 1));
     }
 
-    // Buka panel notes kalau masih tertutup (mobile/tablet: panel-open class)
-    const notesPanel = $("#notes-panel");
-    if (notesPanel && !notesPanel.classList.contains("panel-open")) {
-      notesPanel.classList.add("panel-open");
-      const toggleBtn = $("#btn-panel-toggle");
-      if (toggleBtn) toggleBtn.classList.add("panel-btn-open");
-      const backdrop = $("#panel-backdrop");
-      if (backdrop) backdrop.classList.add("visible");
-    }
+    // Buka panel Catatan via jalur RESMI (DK.openNotes: sinkron tombol rail,
+    // backdrop, handle, eksklusivitas) --- jalur manual lama bikin state kacau.
+    // KECUALI panel AI Chat sedang terbuka: jangan buka (numpuk/nutup chat yang
+    // sedang dipakai); blok tetap tersimpan & toast tetap muncul.
+    const chatPanelOpen = (() => {
+      const cp = $("#chat-panel");
+      return cp && cp.classList.contains("panel-open");
+    })();
+    if (!chatPanelOpen && window.DK && DK.openNotes) DK.openNotes();
 
     refreshIcons();
     autoSave();
@@ -1008,9 +1070,25 @@
       setTimeout(() => (lastBlock.style.boxShadow = ""), 1200);
       lastBlock.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
-    const label = getLang() === "id" ? "Ditambahkan ke catatan" : "Added to note";
+    // Toast pakai NAMA catatan tujuan (lebih informatif drpd "catatan" generik).
+    const noteName = (state.activeNote && (state.activeNote.title || "").trim())
+      || t("note_untitled");
+    const label = getLang() === "id" ? `Ditambahkan ke "${noteName}"` : `Added to "${noteName}"`;
     showToast(label);
+    // Kedipkan tab Catatan (rail) sebagai feedback visual --- biar user sadar item
+    // masuk ke panel Catatan (apalagi kalau panelnya lagi ketutup/di belakang chat).
+    pulseNotesTab();
     return true;
+  }
+
+  // Kedip singkat tombol/tab Catatan di rail (dipakai tiap + Catatan berhasil).
+  function pulseNotesTab() {
+    const tab = document.getElementById("btn-panel-toggle");
+    if (!tab) return;
+    tab.classList.remove("rail-pulse");
+    void tab.offsetWidth;                 // reflow -> animasi bisa retrigger beruntun
+    tab.classList.add("rail-pulse");
+    setTimeout(() => tab.classList.remove("rail-pulse"), 3000);   // 1.5s x 2
   }
 
   function showNotePicker(block, anchorEl) {
@@ -1061,7 +1139,7 @@
       sorted.forEach(n => {
         const item = document.createElement("button");
         item.className = "dk-note-picker-item" + (n.id === state.activeNoteId ? " active" : "");
-        item.textContent = n.title || (isId ? "Tanpa judul" : "Untitled");
+        item.textContent = n.title || t("note_untitled");
         item.addEventListener("click", async () => {
           popup.remove();
           await openNote(n.id);
@@ -1118,7 +1196,27 @@
   }
 
   let saveTimeout = null;
+  function updateBlockMoveButtons() {
+    const blocks = document.querySelectorAll("#note-blocks .note-block");
+    if (!blocks.length) return;
+    blocks.forEach((block, index) => {
+      const upBtn = block.querySelector(".btn-move-up");
+      const downBtn = block.querySelector(".btn-move-down");
+      if (upBtn) {
+        upBtn.disabled = (index === 0);
+        upBtn.style.opacity = (index === 0) ? "0.3" : "1";
+        upBtn.style.cursor = (index === 0) ? "not-allowed" : "pointer";
+      }
+      if (downBtn) {
+        downBtn.disabled = (index === blocks.length - 1);
+        downBtn.style.opacity = (index === blocks.length - 1) ? "0.3" : "1";
+        downBtn.style.cursor = (index === blocks.length - 1) ? "not-allowed" : "pointer";
+      }
+    });
+  }
+
   function autoSave() {
+    updateBlockMoveButtons();
     clearTimeout(saveTimeout);
     saveTimeout = setTimeout(saveCurrentNote, 800);
   }
@@ -1163,8 +1261,8 @@
   // biar konsisten; blok jawaban AI dapat label sumber spt di layar.
   function noteBlockToPrintHtml(block) {
     if (block.type === "text" && block.source === "ai") {
-      // Print: tabel GFM -> <table> inline-style (dok cetak tanpa CSS situs); teks pakai <br>.
-      return `<div class="ai-block"><div class="block-label">✦ myDhamma AI</div><div class="text-block">${renderAiNoteHtml(block.content || "", block.refs || [], { br: true, print: true })}</div></div>`;
+      // Print: tabel/list/paragraf -> HTML inline-style (dok cetak tanpa CSS situs).
+      return `<div class="ai-block"><div class="block-label">✦ myDhamma AI</div><div class="text-block">${renderAiNoteHtml(block.content || "", block.refs || [], { print: true })}</div></div>`;
     } else if (block.type === "text") {
       return `<div class="text-block">${esc(block.content || "").replace(/\n/g, "<br>")}</div>`;
     } else if (block.type === "sutta") {
@@ -1233,25 +1331,35 @@
     if (win) win.addEventListener("load", () => { win.print(); URL.revokeObjectURL(url); });
   }
 
-  // ========== Resize ==========
+  // ========== Resize panel samping (Catatan/AI Chat --- SATU aturan lebar) ==========
+  // Kedua panel dock kanan & saling eksklusif -> berbagi SATU lebar (--side-panel-w,
+  // tersimpan di dk-side-width). Drag di panel mana pun mengubah lebar keduanya;
+  // offset tab toggle (nempel di kiri panel) ikut bergeser live.
+  // min 370: cukup utk disclaimer AI satu baris (font .72rem) --- jangan diturunkan
+  const SIDE_W = { varName: "--side-panel-w", store: "dk-side-width", min: 330, max: 560 };
   function setupResize() {
     const resizeHandle = $("#resize-handle");
     const searchPanel = $("#search-panel");
     const notesPanel = $("#notes-panel");
-    if (!resizeHandle) return;
+    const chatPanel = $("#chat-panel");
+    if (!resizeHandle || !searchPanel) return;
 
-    // Restore saved width (desktop only)
-    const savedWidth = localStorage.getItem("dk-notes-width");
-    if (savedWidth && window.innerWidth >= 769) {
-      const w = parseInt(savedWidth);
-      if (w >= 280 && w <= 600) {
-        notesPanel.style.flex = `0 0 ${w}px`;
+    // Restore lebar tersimpan (desktop only)
+    if (window.innerWidth >= 769) {
+      const w = parseInt(localStorage.getItem(SIDE_W.store) || "");
+      if (w >= SIDE_W.min && w <= SIDE_W.max) {
+        document.documentElement.style.setProperty(SIDE_W.varName, w + "px");
       }
     }
 
+    const anyPanelOpen = () =>
+      (chatPanel && chatPanel.classList.contains("panel-open")) ||
+      (notesPanel && notesPanel.classList.contains("panel-open"));
+
     let isResizing = false;
-    let lastNotesWidth = null;
+    let lastW = null;
     resizeHandle.addEventListener("mousedown", (e) => {
+      if (!anyPanelOpen()) return;
       isResizing = true;
       resizeHandle.classList.add("active");
       document.body.style.cursor = "col-resize";
@@ -1261,11 +1369,11 @@
     document.addEventListener("mousemove", (e) => {
       if (!isResizing) return;
       const mainRect = searchPanel.parentElement.getBoundingClientRect();
+      const newW = mainRect.right - e.clientX;          // panel dock kanan
       const newSearchWidth = e.clientX - mainRect.left;
-      const newNotesWidth = mainRect.right - e.clientX;
-      if (newSearchWidth > 350 && newNotesWidth > 280 && newNotesWidth < 600) {
-        notesPanel.style.flex = `0 0 ${newNotesWidth}px`;
-        lastNotesWidth = newNotesWidth;
+      if (newSearchWidth > 350 && newW >= SIDE_W.min && newW <= SIDE_W.max) {
+        document.documentElement.style.setProperty(SIDE_W.varName, newW + "px");
+        lastW = newW;
       }
     });
     document.addEventListener("mouseup", () => {
@@ -1274,9 +1382,9 @@
         resizeHandle.classList.remove("active");
         document.body.style.cursor = "";
         document.body.style.userSelect = "";
-        if (lastNotesWidth !== null) {
-          localStorage.setItem("dk-notes-width", String(Math.round(lastNotesWidth)));
-          lastNotesWidth = null;
+        if (lastW !== null) {
+          localStorage.setItem(SIDE_W.store, String(Math.round(lastW)));
+          lastW = null;
         }
       }
     });
@@ -1327,14 +1435,38 @@
     const isBlurb = frag.author === "blurb";
 
     const availLinks = sutta ? (sutta.available_links || {}) : {};
-    function renderMain(text) {
-      return isKeyword && query ? highlightKeywords(esc(text), query) : `<span class="main-text">${esc(text)}</span>`;
+    function renderMain(text, lang) {
+      const uiLang = getLang();
+      const isEnFallback = isBlurb && lang === "en" && uiLang !== "en";
+      const style = isEnFallback ? ` style="font-style: italic;"` : ``;
+      const body = isKeyword && query ? highlightKeywords(esc(text), query) : esc(text);
+      return `<span class="main-text"${style}>${body}</span>`;
     }
     const tgt = isBlurb ? ' target="_blank"' : "";
     const icon = isBlurb ? "book" : "book-open";
 
     const order = ["pli", "id", "en"];
-    const langs = [...order.filter(l => texts[l]), ...Object.keys(texts).filter(l => !order.includes(l) && texts[l])];
+    let langs = [...order.filter(l => texts[l]), ...Object.keys(texts).filter(l => !order.includes(l) && texts[l])];
+
+    // Blurb tanpa sinopsis (kartu judul-eksak di home): tak ada teks -> paksa 1 tag
+    // bahasa (UI) supaya kotak + tombol Buka tetap tampil, isinya placeholder miring.
+    if (isBlurb && frag.blurbNone) langs = [frag.blurbLang || "id"];
+
+    const transLangs = langs.filter(l => l !== "pli");
+    if (langs.includes("pli") && transLangs.length > 0) {
+      const mainTransLang = transLangs[0];
+      let mainText = "";
+      if (frag.parts && frag.parts.length > 0) {
+        mainText = frag.parts.map(p => p[mainTransLang] || "").join(" ");
+      } else {
+        mainText = texts[mainTransLang] || "";
+      }
+      const cleanText = mainText.replace(/<[^>]+>/g, "").replace(/[\s\.…pe…]+/ig, "");
+      if (cleanText.length === 0) {
+        langs = langs.filter(l => l !== "pli");
+      }
+    }
+
     for (const l of langs) {
       let baseLink = availLinks[l] || "";
       if (baseLink && frag.author && frag.author !== "blurb" && frag.db_source === l) {
@@ -1356,8 +1488,15 @@
         : `<span class="lang-tag ${l}"><i data-lucide="${icon}"></i> <span style="margin-left:2px;" data-i18n="${key}">${t(key)}</span></span>`;
       let line = `${tag} `;
       const MAX_CTX_LEN = 200;
-      if (preview && cb[l] && !(dedup && dedup.has(normCtx(cb[l])))) {
-        if (dedup) dedup.add(normCtx(cb[l]));
+      const cbRefs = (frag.context_before_refs && frag.context_before_refs[l]) || [];
+      const hasCbDedup = cbRefs.length > 0
+        ? cbRefs.every(r => dedup && dedup.has(`${l}::${r}`))
+        : (dedup && dedup.has(normCtx(cb[l])));
+      if (preview && cb[l] && !hasCbDedup) {
+        if (dedup) {
+          if (cbRefs.length > 0) cbRefs.forEach(r => dedup.add(`${l}::${r}`));
+          else dedup.add(normCtx(cb[l]));
+        }
         let html;
         if (cb[l].length > MAX_CTX_LEN) {
           let trunc = cb[l].substring(cb[l].length - MAX_CTX_LEN);
@@ -1365,21 +1504,36 @@
           if (spaceIdx !== -1 && spaceIdx < 20) trunc = trunc.substring(spaceIdx + 1);
           html = `...${esc(trunc)}`;
         } else {
-          const cbParts = frag.context_before_parts && frag.context_before_parts.length > 0 ? frag.context_before_parts : null;
-          html = cbParts ? renderPartsHtml(cbParts, l) : esc(cb[l]);
+          const cbParts = (l === "pli" || l === frag.db_source) && frag.context_before_parts && frag.context_before_parts.length > 0 ? frag.context_before_parts : null;
+          if (cbParts) {
+            html = renderPartsHtml(cbParts, l, { showVerseNum: true, headingAware: true });
+          } else {
+            html = esc(cb[l]);
+          }
         }
         line += `<span class="ctx">${html}</span> `;
       }
-      const useParts = frag.parts && frag.parts.length > 0;
+      const useParts = frag.parts && frag.parts.length > 0 && (l === "pli" || l === frag.db_source);
       if (useParts) {
-        const partsHtml = renderPartsHtml(frag.parts, l);
+        const partsHtml = renderPartsHtml(frag.parts, l, { showVerseNum: true, headingAware: true });
         const body = isKeyword && query ? highlightKeywordsInHtml(partsHtml, query) : partsHtml;
         line += `<span class="main-text">${body}</span>`;
+      } else if (isBlurb && frag.blurbNone) {
+        line += `<span class="main-text blurb-none">${esc(t("blurb_none"))}</span>`;
       } else {
-        line += renderMain(texts[l]);
+        const verseNum = firstRef.includes(":") ? firstRef.split(":").pop() : "";
+        const supHtml = verseNum ? `<sup class="verse-num">${verseNum}</sup>` : "";
+        line += supHtml + renderMain(texts[l], l);
       }
-      if (preview && ca[l] && !(dedup && dedup.has(normCtx(ca[l])))) {
-        if (dedup) dedup.add(normCtx(ca[l]));
+      const caRefs = (frag.context_after_refs && frag.context_after_refs[l]) || [];
+      const hasCaDedup = caRefs.length > 0
+        ? caRefs.every(r => dedup && dedup.has(`${l}::${r}`))
+        : (dedup && dedup.has(normCtx(ca[l])));
+      if (preview && ca[l] && !hasCaDedup) {
+        if (dedup) {
+          if (caRefs.length > 0) caRefs.forEach(r => dedup.add(`${l}::${r}`));
+          else dedup.add(normCtx(ca[l]));
+        }
         let html;
         if (ca[l].length > MAX_CTX_LEN) {
           let trunc = ca[l].substring(0, MAX_CTX_LEN);
@@ -1387,8 +1541,12 @@
           if (spaceIdx !== -1 && spaceIdx > trunc.length - 20) trunc = trunc.substring(0, spaceIdx);
           html = `${esc(trunc)}...`;
         } else {
-          const caParts = frag.context_after_parts && frag.context_after_parts.length > 0 ? frag.context_after_parts : null;
-          html = caParts ? renderPartsHtml(caParts, l) : esc(ca[l]);
+          const caParts = (l === "pli" || l === frag.db_source) && frag.context_after_parts && frag.context_after_parts.length > 0 ? frag.context_after_parts : null;
+          if (caParts) {
+            html = renderPartsHtml(caParts, l, { showVerseNum: true, headingAware: true });
+          } else {
+            html = esc(ca[l]);
+          }
         }
         line += ` <span class="ctx">${html}</span>`;
       }
@@ -1402,11 +1560,44 @@
     el.className = frag.author === "blurb" ? "fragment fragment-blurb" : "fragment";
     const targetId = (frag.ref && frag.ref[0]) || frag.ref_display || frag.id || "";
     if (targetId) el.dataset.segmentId = targetId;
+
+    let allRefs = [];
+    if (frag.context_before_refs) {
+      Object.values(frag.context_before_refs).forEach(arr => { if (arr) allRefs.push(...arr); });
+    }
+    if (frag.ref) allRefs.push(...frag.ref);
+    if (frag.context_after_refs) {
+      Object.values(frag.context_after_refs).forEach(arr => { if (arr) allRefs.push(...arr); });
+    }
+    // Hapus duplikat dan kosong
+    allRefs = [...new Set(allRefs)].filter(Boolean);
+    if (allRefs.length > 0) {
+      el.dataset.allSegmentIds = allRefs.join(",");
+    }
+
     const meta = document.createElement("div"); meta.className = "fragment-meta";
     const isKw = ctx && ctx.method && ctx.method.includes("keyword");
+
+    // Legend/ref: HANYA segmen inti (frag.ref), BUKAN termasuk context n-1/n+1.
+    // allRefs (incl. konteks) tetap di dataset buat navigasi, tapi BUKAN buat label.
+    const coreRefs = [...(frag.ref || [])];
+    let displayRefs = coreRefs;
+    if (coreRefs.length > 1) {
+      const first = coreRefs[0];
+      const last = coreRefs[coreRefs.length - 1];
+      const firstBase = first.split(":")[0];
+      const lastBase = last.split(":")[0];
+      if (firstBase === lastBase && first !== last) {
+        const firstSeg = first.split(":")[1] || "";
+        const lastSeg = last.split(":")[1] || "";
+        displayRefs = (firstSeg && lastSeg)
+          ? [`${firstBase}:${firstSeg}–${lastSeg}`]
+          : [`${first} – ${last}`];
+      }
+    }
     const cleanRefDisplay = frag.ref_display ? frag.ref_display.split(", ").map(formatRef).join(", ") : null;
-    const refDisplay = frag.author === "blurb" ? "sinopsis" : (cleanRefDisplay || frag.ref.map(formatRef).join(", "));
-    const refTitle = `${t("legend_segment")}: ${frag.ref.map(formatRef).join(", ")}`;
+    const refDisplay = frag.author === "blurb" ? t("legend_blurb") : (cleanRefDisplay || displayRefs.map(formatRef).join(", "));
+    const refTitle = frag.author === "blurb" ? t("legend_blurb") : `${t("legend_segment")}: ${coreRefs.map(formatRef).join(", ")}`;
 
     // Build the text lines first so the keyword badge can mirror what is
     // actually highlighted in the shown text.
@@ -1427,7 +1618,7 @@
     // Keyword count: pakai kw_count asli dari backend (jumlah kata-query distinct
     // yang hadir). Fallback hanya untuk fragmen sumber-semantik di mode hybrid
     // (tak punya data keyword) → hitung dari highlight yang benar-benar tampil.
-    // CATATAN: fallback skor-BM25-dibulatkan dibuang — itu BUKAN hitungan kata.
+    // CATATAN: fallback skor-BM25-dibulatkan dibuang --- itu BUKAN hitungan kata.
     let kwCount = null;
     if (hasKwData) kwCount = frag.kw_count;
     else if (isKw && kwHighlightCount > 0) kwCount = kwHighlightCount;
@@ -1468,7 +1659,96 @@
     const card = document.createElement("div"); card.className = "sutta-card";
     const header = document.createElement("div"); header.className = "sutta-card-header";
     const nameSpan = sutta.sutta_name ? ` <span class="sutta-card-name">${sutta.sutta_name}</span>` : "";
-    const frags = fragmentsOverride || sutta.fragments || [];
+    let rawFrags = fragmentsOverride || sutta.fragments || [];
+    // Ekspansi konteks n±1 jadi baris/kartu TETANGGA terpisah hanya utk UI chat
+    // (ctx.expandContext). Di hasil pencarian flag ini mati -> frag dibiarkan utuh
+    // shg buildFragTextLines render konteks INLINE (...n-1 HIT n+1...) sesuai checkbox "Konteks".
+    const expandCtx = !!(ctx && ctx.expandContext);
+    let frags = !expandCtx ? rawFrags : rawFrags.flatMap(frag => {
+      const result = [];
+      const db = frag.db_source;
+
+      if (frag.context_before && frag.context_before[db]) {
+        const text = frag.context_before[db];
+        const refs = (frag.context_before_refs && frag.context_before_refs[db]) || [];
+        if (text && refs.length > 0) {
+          const cbFrag = Object.assign({}, frag);
+          cbFrag.texts = {};
+          Object.keys(frag.context_before).forEach(k => {
+            if (frag.context_before[k]) cbFrag.texts[k] = frag.context_before[k];
+          });
+          cbFrag.ref = refs;
+          cbFrag.ref_display = refs[0];
+          cbFrag.context_before = null;
+          cbFrag.context_after = null;
+          cbFrag.context_before_refs = null;
+          cbFrag.context_after_refs = null;
+          cbFrag.parts = null;
+          cbFrag.hit_idx = (frag.hit_idx || 0) - 0.1;
+          cbFrag._ctx = true;                                // tetangga n-1 (konteks, bukan inti hit)
+          result.push(cbFrag);
+        }
+      }
+
+      const mainFrag = Object.assign({}, frag);
+      mainFrag.context_before = null;
+      mainFrag.context_after = null;
+      mainFrag.context_before_refs = null;
+      mainFrag.context_after_refs = null;
+      result.push(mainFrag);
+
+      if (frag.context_after && frag.context_after[db]) {
+        const text = frag.context_after[db];
+        const refs = (frag.context_after_refs && frag.context_after_refs[db]) || [];
+        if (text && refs.length > 0) {
+          const caFrag = Object.assign({}, frag);
+          caFrag.texts = {};
+          Object.keys(frag.context_after).forEach(k => {
+            if (frag.context_after[k]) caFrag.texts[k] = frag.context_after[k];
+          });
+          caFrag.ref = refs;
+          caFrag.ref_display = refs[0];
+          caFrag.context_before = null;
+          caFrag.context_after = null;
+          caFrag.context_before_refs = null;
+          caFrag.context_after_refs = null;
+          caFrag.parts = null;
+          caFrag.hit_idx = (frag.hit_idx || 0) + 0.1;
+          caFrag._ctx = true;                                // tetangga n+1 (konteks, bukan inti hit)
+          result.push(caFrag);
+        }
+      }
+
+      return result;
+    });
+
+    // Dedup segmen kembar dalam SATU kartu. Ekspansi n±1 (context_before/after) bikin segmen yg
+    // sama hadir sbg konteks satu fragmen DAN inti fragmen tetangga -> baris duplikat di kartu
+    // rujukan. Dedup per (penerjemah, ref): SENGAJA per-penerjemah krn md1 Anggara ≠ md1 Kurniawan
+    // (potongan/teks beda, jangan digabung). Versi INTI (hit) diutamakan atas versi konteks.
+    {
+      const _akey = f => `${f.db_source || ""}::${f.source || ""}::${f.author}`;
+      const _rsig = f => (f.ref && f.ref.length) ? f.ref.join(",") : (f.ref_display || "");
+      // Kartu chat mengirim ctx.citedSegs = segmen yg BENAR-BENAR dikutip di jawaban. Baris
+      // konteks n±1 yg TAK dikutip cuma ditambah paksa buat keterbacaan -> noise, dibuang.
+      // Home-search (tanpa jawaban) tak punya citedSegs -> konteks tetap tampil seperti biasa.
+      const citedSegs = ctx && ctx.citedSegs;
+      const _ctxCited = f => !citedSegs || (f.ref || []).some(r => citedSegs.has(String(r).replace(/\s+/g, "").toLowerCase()));
+      const mainKeys = new Set();
+      frags.forEach(f => { const r = _rsig(f); if (r && !f._ctx) mainKeys.add(_akey(f) + "|" + r); });
+      const seenSeg = new Set();
+      frags = frags.filter(f => {
+        if (f._ctx && !_ctxCited(f)) return false;        // konteks n±1 tak-dikutip -> jangan dipaksa tampil
+        const r = _rsig(f);
+        if (!r) return true;                              // tanpa ref (mis. blurb) -> biarkan
+        const k = _akey(f) + "|" + r;
+        if (f._ctx && mainKeys.has(k)) return false;      // konteks yg juga jadi inti -> pakai inti
+        if (seenSeg.has(k)) return false;                 // kembar persis -> buang
+        seenSeg.add(k);
+        return true;
+      });
+    }
+
     const isBlurbCard = frags.length > 0 && frags.every(f => f.author === "blurb");
     //const titleHref = isBlurbCard ? `/${toShortId(sutta.sutta_id)}` : "#";
     const titleHref = `/${toShortId(sutta.sutta_id)}`;
@@ -1498,13 +1778,20 @@
       </span>
       <span class="sutta-card-meta">${metaBadge}</span>`;
     card.appendChild(header);
-    // Dedup overlapping context within this card: collect every matched-segment
-    // text shown here, so a fragment's before/after context can be hidden when
-    // that exact text already appears as another fragment's result.
+    // Dedup overlapping CONTEXT within this card based on segment IDs.
+    // Pre-populate with all main segment refs to prevent context from overlapping
+    // with any main segments in the card.
     const dedupTexts = new Set();
     frags.forEach(f => {
-      const tx = f.texts || {};
-      Object.keys(tx).forEach(l => { const v = normCtx(tx[l]); if (v) dedupTexts.add(v); });
+      const refs = f.ref || [];
+      const order = ["pli", "id", "en"];
+      const texts = f.texts || {};
+      const langs = [...order.filter(l => texts[l]), ...Object.keys(texts).filter(l => !order.includes(l) && texts[l])];
+      langs.forEach(l => {
+        refs.forEach(r => {
+          dedupTexts.add(`${l}::${r}`);
+        });
+      });
     });
     const cardCtx = Object.assign({}, ctx, { dedupTexts });
 
@@ -1558,7 +1845,7 @@
         // klik ini vs total sisa, biar tak terbaca "loncat" (mis. 7 -> 4).
         const STEP = 3;
         const moreLabel = (remaining) =>
-          `Tampilkan ${Math.min(STEP, remaining)} lagi (${remaining} tersisa) <i data-lucide="chevron-down"></i>`;
+          `${t("show_more_frags", { n: Math.min(STEP, remaining), remaining })} <i data-lucide="chevron-down"></i>`;
         const toggleBtn = document.createElement("button");
         toggleBtn.className = "btn-show-more";
         toggleBtn.innerHTML = moreLabel(blockFrags.length - 3);
@@ -1567,22 +1854,22 @@
           for (let i = 0; i < STEP && i < hidden.length; i++) {
             const el = hidden[i];
             el.classList.remove("hidden-frag");
-            
+
             el.style.opacity = "0";
             el.style.transform = "translateY(-10px)";
             el.style.display = "block";
-            
+
             const h = el.scrollHeight;
             el.style.maxHeight = "0px";
             el.style.overflow = "hidden";
             el.style.transition = "max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease, transform 0.4s ease";
-            
+
             void el.offsetHeight;
 
             el.style.maxHeight = h + 80 + "px";
             el.style.opacity = "1";
             el.style.transform = "translateY(0)";
-            
+
             setTimeout(() => {
               el.style.maxHeight = "none";
               el.style.overflow = "";
@@ -1612,8 +1899,37 @@
     };
 
     if (isGroupedCard && hasAuthor) {
-      // One labelled block per translator (≥1 author). Author order follows
-      // first appearance; segment order within each author is preserved.
+      // Sort key: parse segment ref "base:N.N.N" → array of numbers for natural order.
+      // e.g. "mn10:2.3" → [2, 3]; "mn10:12.1" → [12, 1]. Blurbs/missing → [-1].
+      const _refKey = f => {
+        const r = (f.ref && f.ref[0]) || "";
+        const seg = r.includes(":") ? r.split(":").pop() : "";
+        if (!seg) return [-1];
+        const res = [];
+        seg.split(".").forEach(part => {
+          const digits = part.replace(/\D/g, "");
+          const v = parseInt(digits, 10);
+          if (isNaN(v)) {
+            res.push(0, 0);
+          } else {
+            const leadingZeros = digits.length - digits.replace(/^0+/, "").length;
+            res.push(-leadingZeros, v);
+          }
+        });
+        return res;
+      };
+      const _cmpRef = (a, b) => {
+        const ka = _refKey(a), kb = _refKey(b);
+        for (let i = 0; i < Math.max(ka.length, kb.length); i++) {
+          const va = ka[i] ?? -1, vb = kb[i] ?? -1;
+          if (va !== vb) return va - vb;
+        }
+        const ra = (a.ref && a.ref[0]) || "";
+        const rb = (b.ref && b.ref[0]) || "";
+        return ra.localeCompare(rb, undefined, { numeric: true, sensitivity: 'base' });
+      };
+      // One labelled block per translator (≥1 author). Segments sorted by ref
+      // (position in text) so they appear in reading order, not relevance order.
       const groupCtx = Object.assign({}, cardCtx, { hideAuthor: true });
       const byAuthor = new Map();
       frags.forEach(f => {
@@ -1623,7 +1939,7 @@
       });
       byAuthor.forEach((groupFrags, k) => {
         if (k === "__blurb__") groupFrags.forEach(f => appendFrag(card, f, groupCtx));
-        else appendAuthorBlock(groupFrags, groupCtx);
+        else { groupFrags.sort(_cmpRef); appendAuthorBlock(groupFrags, groupCtx); }
       });
     } else {
       frags.forEach(f => appendFrag(card, f, cardCtx));
@@ -1678,48 +1994,31 @@
     if (dlg.openLink) {
       dlg.openLink.addEventListener("click", function (e) {
         e.preventDefault();
-        const href = this.href;
-        if (!href) return;
+        // Href dihitung SAAT KLIK (bukan statis di load): highlight masih nyala -> ke segmen itu;
+        // udah di-dismiss (di-scroll lewat) -> JANGAN loncat ke segmen nyala lama, buka di posisi
+        // baca sekarang (segmen teratas yg keliatan); ga pernah nyala -> buka dari atas (spt dulu).
+        const _base = (this.href || "").split("#")[0];
+        if (!_base) return;
+        let _frag = "";
+        if (dlgState.activeTarget) _frag = "#" + dlgState.activeTarget.replace(/^dlg-/, "");
+        else { const _t = currentDlgTopSegment(); if (_t) _frag = "#~" + _t; }
+        const href = _base + _frag;
 
-        // Remove any existing popover
-        const existing = document.getElementById("dlg-open-popover");
-        if (existing) { existing.remove(); return; }
-
-        const pop = document.createElement("div");
-        pop.id = "dlg-open-popover";
-        pop.className = "dlg-open-popover";
-
-        const btnHere = document.createElement("button");
-        btnHere.className = "btn-ghost";
-        btnHere.innerHTML = `<i data-lucide="monitor"></i> <span data-i18n="btn_open_here">${t("btn_open_here")}</span>`;
-        btnHere.onclick = () => {
-          pop.remove();
-          dlg.el.close();
-          document.querySelectorAll(".panel-open").forEach(el => el.classList.remove("panel-open"));
-          document.querySelectorAll(".panel-btn-open").forEach(el => el.classList.remove("panel-btn-open"));
-          const bd = document.getElementById("panel-backdrop");
-          if (bd) bd.classList.remove("visible");
-          window.location.href = href;
-        };
-
-        const btnNew = document.createElement("button");
-        btnNew.className = "btn-ghost";
-        btnNew.innerHTML = `<i data-lucide="external-link"></i> <span data-i18n="btn_open_newtab">${t("btn_open_newtab")}</span>`;
-        btnNew.onclick = () => { pop.remove(); window.open(href, "_blank"); };
-
-        pop.appendChild(btnHere);
-        pop.appendChild(btnNew);
-        this.appendChild(pop);
-
-        const dismissPop = (ev) => {
-          if (!pop.contains(ev.target) && ev.target !== dlg.openLink) {
-            pop.remove();
-            document.removeEventListener("click", dismissPop, true);
+        // Pilihan "Buka di sini / Tab baru" pakai KOMPONEN MENU BERSAMA (.dk-open-menu)
+        // --- UI-nya jadi SAMA dgn menu tombol "Buka" blurb/judul kartu (konsistensi,
+        // 2026-07-11). Popover kustom .dlg-open-popover lama dihapus. showOpenMenu sudah
+        // menangani posisi (nempel anchor, append ke dialog yg kebuka), toggle-off saat
+        // anchor diklik lagi, dismiss klik-luar, dan Esc.
+        showOpenMenu(this, href, {
+          onHere: () => {
+            dlg.el.close();
+            document.querySelectorAll(".panel-open").forEach(el => el.classList.remove("panel-open"));
+            document.querySelectorAll(".panel-btn-open").forEach(el => el.classList.remove("panel-btn-open"));
+            const bd = document.getElementById("panel-backdrop");
+            if (bd) bd.classList.remove("visible");
+            window.location.href = href;
           }
-        };
-        setTimeout(() => document.addEventListener("click", dismissPop, true), 0);
-
-        if (window.lucide) window.lucide.createIcons({ root: pop });
+        });
       });
     }
 
@@ -1765,11 +2064,13 @@
     dlg.error.classList.add("hidden");
     dlg.content.classList.add("hidden");
     dlg.content.innerHTML = "";
-    dlg.el.showModal();
+    // showModal() lempar InvalidStateError kalau dialog sudah terbuka -> guard supaya
+    // navigasi prev/next bisa muat-ulang sutta di dialog yg sama tanpa nutup-buka.
+    if (!dlg.el.open) dlg.el.showModal();
     loadDialogSutta(hash);
   }
 
-  async function loadDialogSutta(hash) {
+  async function loadDialogSutta(hash, scrollPos) {
     document.body.classList.add("is-loading-dialog");
     dlg.loading.classList.remove("hidden");
     dlg.error.classList.add("hidden");
@@ -1785,9 +2086,16 @@
       dlgState.lang = dlgState.data.lang || dlgState.lang;
       dlgState.author = dlgState.data.author || "";
       dlgState.authorSource = dlgState.data.source || "";
-      if (!dlgState.data.segmented) dlgState.displayMode = "single";
+      // Mode tampilan SATU pintu: re-baca localStorage tiap load -> selalu sinkron dgn
+      // halaman reader (key sama: dk-display-mode) & antar-buka dialog. Dulu: dibaca
+      // sekali saat script load (basi habis set mode di halaman reader) + dimutasi
+      // permanen ke "single" utk sutta non-segmented (padahal Berdampingan html
+      // non-bilara didukung "apa adanya", dan renderSegments sendiri yg menonaktifkan
+      // sidebyside utk pli). Toggle in-dialog tetap nulis localStorage, jadi tak stomp.
+      dlgState.displayMode = localStorage.getItem("dk-display-mode") || "single";
       const nameHtml = dlgState.data.sutta_name ? `<div class="dlg-sutta-name">${dlgState.data.sutta_name}</div>` : "";
       dlg.title.innerHTML = `<div class="dlg-title-top"><i data-lucide="book-open"></i> <span class="dlg-formatted-id">${dlgState.data.formatted_id}</span></div>${nameHtml}`;
+      attachSuttaNameTooltip(dlg.title.querySelector(".dlg-sutta-name"));
       const _chatLink = document.getElementById("sutta-dialog-chat-link");
       if (_chatLink && dlgState.data.formatted_id)
         _chatLink.href = "/chat?tag=" + encodeURIComponent(dlgState.data.formatted_id);
@@ -1835,21 +2143,35 @@
       renderDialogLangToggle();
       renderDialogScLinks();
       renderDialogSegments(hash);
+      // Sutta baru tanpa target segmen (mis. navigasi prev/next) -> mulai dari atas; body
+      // scroller tak dibuat ulang jadi scrollTop lama nyangkut kalau tak direset.
+      if (!hash && scrollPos) {
+        // Bilara→bilara switch tanpa highlight aktif: scroll ke posisi yg sama, tanpa nyalain.
+        const _seg = document.getElementById("dlg-" + scrollPos);
+        const _body = document.querySelector("#sutta-dialog .sutta-dialog-body");
+        if (_seg && _body) {
+          const _top = _seg.getBoundingClientRect().top - _body.getBoundingClientRect().top + _body.scrollTop;
+          _body.scrollTo({ top: Math.max(0, _top - 16) });
+        }
+      } else if (!hash) {
+        const _body = document.querySelector("#sutta-dialog .sutta-dialog-body");
+        if (_body) _body.scrollTop = 0;
+      }
       document.body.classList.remove("is-loading-dialog");
       dlg.loading.classList.add("hidden");
       dlg.content.classList.remove("hidden");
     } catch (e) {
       document.body.classList.remove("is-loading-dialog");
       dlg.loading.classList.add("hidden");
-      dlg.errorMsg.textContent = e.message || "Sutta tidak ditemukan.";
+      dlg.errorMsg.textContent = e.message || t("sutta_not_found");
       dlg.error.classList.remove("hidden");
     }
   }
 
   // ── Shared sutta control builders (used by dialog AND sutta reader page) ──
   function buildDisplayToggle(container, lang, displayMode, onChange, segmented) {
-    // Dua tombol selalu tampil; di-disable kalau mode tak relevan (teks Pāḷi / non-segmented).
-    const dis = (lang === "pli" || segmented === false) ? " disabled" : "";
+    // Dua tombol selalu tampil; di-disable kalau mode tak relevan (teks Pāḷi).
+    const dis = (lang === "pli") ? " disabled" : "";
     container.innerHTML = `
       <button class="toggle-btn${displayMode === "single" ? " active" : ""}"${dis} data-mode="single" data-i18n-title="btn_single" title="${t("btn_single")}"><i data-lucide="align-justify"></i><span class="nav-full" style="margin-left:4px;" data-i18n="btn_single">${t("btn_single")}</span></button>
       <button class="toggle-btn${displayMode === "sidebyside" ? " active" : ""}"${dis} data-mode="sidebyside" data-i18n-title="btn_sidebyside" title="${t("btn_sidebyside")}"><i data-lucide="columns-2"></i><span class="nav-full" style="margin-left:4px;" data-i18n="btn_sidebyside">${t("btn_sidebyside")}</span></button>`;
@@ -1862,14 +2184,14 @@
   function buildScLinks(container, data) {
     if (!data || !data.sutta_id) { container.innerHTML = ""; return; }
     const scBase = `https://suttacentral.net/${esc(data.sutta_id)}`;
-    container.innerHTML = `<a href="${scBase}" target="_blank" class="sc-link-suttaplex" title="Buka di SuttaCentral"><i data-lucide="external-link"></i></a>`;
+    container.innerHTML = `<a href="${scBase}" target="_blank" class="sc-link-suttaplex" title="${t("open_in_sc")}"><i data-lucide="external-link"></i></a>`;
     if (window.lucide) window.lucide.createIcons({ root: container });
   }
 
   function renderDialogLangToggle() {
     const avail = (dlgState.data && dlgState.data.available_paths) || {};
     let html = `<select class="sutta-lang-dropdown">`;
-    ["pli", "id", "en"].forEach(l => {
+    orderLangs(Object.keys(avail)).forEach(l => {
       if (!avail[l]) return;
       (avail[l] || []).forEach(entry => {
         const uid = entry.uid;
@@ -1883,11 +2205,20 @@
 
     dlg.langToggle.querySelector("select").addEventListener("change", function () {
       const [lang, source, author] = this.value.split(":");
+      // Bawa highlight HANYA bilara->bilara (segmen mdX selaras antar-terjemahan bilara). Sumber
+      // html beda potongan walau label "mdX" sama -> JANGAN bawa. Cek authorSource SEKARANG (lama).
+      const isBilara2Bilara = dlgState.authorSource === "bilara" && source === "bilara";
+      const carry = (dlgState.activeTarget && isBilara2Bilara)
+        ? dlgState.activeTarget.replace(/^dlg-/, "") : "";
+      // Bilara→bilara tanpa highlight aktif: bawa posisi scroll biar ga loncat ke atas.
+      const scrollPos = (!carry && isBilara2Bilara) ? currentDlgTopSegment() : "";
       dlgState.lang = lang;
       dlgState.author = author || "";
       dlgState.authorSource = source || "";
-      if (lang !== "en") dlgState.displayMode = "single";
-      loadDialogSutta();
+      // (dulu: non-EN dipaksa "single" --- legacy dari era sidebyside cuma EN bilara;
+      // kini loadDialogSutta re-baca preferensi dari localStorage, pli di-guard di
+      // renderSegments, jadi tak perlu paksaan per-bahasa.)
+      loadDialogSutta(carry, scrollPos);
     });
     refreshDialogDisplayToggle();
   }
@@ -1898,6 +2229,11 @@
       localStorage.setItem("dk-display-mode", mode);
       refreshDialogDisplayToggle();
       renderDialogSegments();
+      if (typeof showToast === "function") {
+        showToast(mode === "sidebyside" ? t("toast_mode_sidebyside") : t("toast_mode_single"), 3000);
+      }
+      // Highlight masih aktif (belum di-scroll lewat) -> autoscroll balik ke segmennya.
+      if (dlgState.activeTarget) scrollToDialogSegment(dlgState.activeTarget);
       dlg.content.classList.remove("hidden");
     }, dlgState.data && dlgState.data.segmented);
   }
@@ -1927,32 +2263,99 @@
       if (window.lucide) window.lucide.createIcons({ root: notice });
     }
 
+    const isSplitMode = isSideBySide && !data.segmented;
+    const isInterleavedMode = isSideBySide && data.segmented;
+
     const container = document.createElement("div");
-    container.className = isSideBySide ? "sutta-segments side-by-side" : "sutta-segments";
+    let colPrimary = null;
+    let colSecondary = null;
+
+    if (isSplitMode) {
+      container.className = "sutta-segments side-by-side-split";
+      colPrimary = document.createElement("div");
+      colPrimary.className = "split-pane pane-primary";
+      colSecondary = document.createElement("div");
+      colSecondary.className = "split-pane pane-secondary";
+      container.appendChild(colPrimary);
+      container.appendChild(colSecondary);
+    } else {
+      container.className = isInterleavedMode ? "sutta-segments side-by-side" : "sutta-segments";
+    }
+    // Konten "nyata" = ada teks setelah strip tag HTML & whitespace (nbsp/zwsp termasuk).
+    const _plainTxt = s => String(s || "").replace(/<[^>]+>/g, "").replace(/[\u00A0\u200B]/g, " ").trim();
     data.segments.forEach(seg => {
+      // Segmen yg Pāli DAN terjemahannya sama-sama kosong di-skip SEPAKET satu kotak ---
+      // tanpa ini dia render kotak berisi cuma nomor segmen + "…" (jalur seg-untranslated
+      // menganggap terjemahan-kosong = untranslated, padahal Pāli-nya pun tak ada).
+      // Segmen untranslated yg MASIH punya Pāli tetap tampil (kontennya ada).
+      const parts = (seg.parts && seg.parts.length > 0) ? seg.parts : null;
+      const hasContent = parts
+        ? parts.some(p => _plainTxt(p.text) || _plainTxt(p.pli) || _plainTxt(p.en))
+        : !!(_plainTxt(seg.text) || _plainTxt(seg.pli) || _plainTxt(seg.en));
+      if (!hasContent) return;
       const segText = seg.text || seg.pli || seg.en || "";
-      if (!segText) return;
       const anchorId = seg.ids && seg.ids.length > 0 ? seg.ids[0] : "";
       const refSuffix = anchorId.includes(":") ? anchorId.split(":").pop() : anchorId;
       const isPreamble = refSuffix.startsWith("0.");
-      const segEl = document.createElement("div");
+      let segEl = document.createElement("div");
       segEl.className = "sutta-segment" +
         (isPreamble ? " sutta-preamble" : "") +
         (seg.heading >= 1 && !isPreamble ? ` sutta-heading-${seg.heading}` : "");
       if (anchorId) segEl.id = idPrefix + anchorId;
+      if (seg.ids && seg.ids.length > 1) {
+        for (let i = 1; i < seg.ids.length; i++) {
+          const hidA = document.createElement("a");
+          hidA.id = idPrefix + seg.ids[i];
+          hidA.className = "hidden-frag";
+          segEl.appendChild(hidA);
+        }
+      }
 
-      const parts = (seg.parts && seg.parts.length > 0) ? seg.parts : null;
       const secondaryKey = lang !== "pli" ? "pli" : "en";
-      const partsOpts = { headingAware: true, isHeading: seg.heading >= 1 };
+      const partsOpts = { headingAware: true, isHeading: seg.heading >= 1, pliFallback: true };
       const renderParts = (key) => renderPartsHtml(parts, key, partsOpts);
 
-      if (isSideBySide) {
+      if (isSplitMode) {
+        // Non-bilara: dua kolom INDEPENDEN (scroll sendiri) -> tiap kolom butuh elemen segmen
+        // sendiri (beda dr interleaved yg satu baris dua sub-kolom). id vs pli beda chunking ->
+        // TAK bisa dialign per-segmen -> Pāli tampil apa adanya. seg-ref + addBtn ditangani jalur
+        // bersama di bawah (via segEl=segEl1) -> JANGAN dobel di sini.
+        const segEl1 = document.createElement("div");
+        segEl1.className = segEl.className;
+        if (anchorId) segEl1.id = idPrefix + anchorId;
+        const textEl1 = document.createElement("div");
+        textEl1.className = "seg-col seg-primary";
+        const leftHtml = parts ? renderParts("text") : (seg.text || "");
+        textEl1.innerHTML = leftHtml;
+        segEl1.appendChild(textEl1);
+        if (!_plainTxt(leftHtml)) segEl1.style.display = "none";
+        colPrimary.appendChild(segEl1);
+
+        // Kolom Pāli: apa adanya, TANPA kelas sutta-heading-N (dulu bikin prosa yg ke-lump akibat
+        // alignment rasio ter-render sbg judul raksasa). Heading Pāli asli tetap tampil sbg
+        // seg-heading inline dari renderPartsHtml. Pāli bukan target scroll -> tanpa id anchor.
+        const segEl2 = document.createElement("div");
+        segEl2.className = "sutta-segment" + (isPreamble ? " sutta-preamble" : "");
+        const textEl2 = document.createElement("div");
+        textEl2.className = "seg-col seg-secondary";
+        let secondaryHtml = seg.pli_parts ? renderPartsHtml(seg.pli_parts, "pli", partsOpts)
+                                          : (parts ? renderParts(secondaryKey) : "");
+        if (!_plainTxt(secondaryHtml)) secondaryHtml = ((lang !== "pli" ? seg.pli : seg.en) || "");
+        textEl2.innerHTML = secondaryHtml;
+        segEl2.appendChild(textEl2);
+        if (!_plainTxt(secondaryHtml)) segEl2.style.display = "none";
+        colSecondary.appendChild(segEl2);
+
+        segEl = segEl1;   // seg-ref + addBtn (jalur bersama) nempel ke kolom terjemahan
+      } else if (isInterleavedMode) {
         const colLeft = document.createElement("div");
         colLeft.className = "seg-col seg-primary";
         colLeft.innerHTML = parts ? renderParts("text") : segText;
         const colRight = document.createElement("div");
         colRight.className = "seg-col seg-secondary";
-        colRight.innerHTML = parts ? renderParts(secondaryKey) : ((lang !== "pli" ? seg.pli : seg.en) || "");
+        let secondaryHtml = parts ? renderParts(secondaryKey) : "";
+        if (!secondaryHtml.replace(/<[^>]+>/g, '').trim()) secondaryHtml = ((lang !== "pli" ? seg.pli : seg.en) || "");
+        colRight.innerHTML = secondaryHtml;
         segEl.appendChild(colLeft);
         segEl.appendChild(colRight);
       } else {
@@ -1970,6 +2373,19 @@
         ref.style.textDecoration = "none";
         ref.textContent = compactRef(seg.ids);
         ref.title = seg.ids.join(", ");
+
+        if (opts.idPrefix === "dlg-") {
+          ref.addEventListener("click", () => {
+            const currentPath = window.location.pathname.replace(/\/$/, "");
+            const targetPath = path.replace(/\/$/, "");
+            // Close dialog if we are currently on the exact same sutta's page
+            if (currentPath === targetPath || currentPath.startsWith(targetPath + "/")) {
+              const suttaDialog = document.getElementById("sutta-dialog");
+              if (suttaDialog && suttaDialog.open) suttaDialog.close();
+            }
+          });
+        }
+
         segEl.appendChild(ref);
       }
 
@@ -1995,10 +2411,31 @@
         };
         showNotePicker(block, e.currentTarget);
       });
+      
       segEl.appendChild(addBtn);
-      container.appendChild(segEl);
+      
+      // Jika isSplitMode, segEl = segEl1, sudah di-append ke colPrimary.
+      // Jika tidak, kita append ke container.
+      if (!isSplitMode) {
+        container.appendChild(segEl);
+      }
     });
     targetEl.appendChild(container);
+
+    // Notice peyyāla-total (body kosong: SN 12.5-9 dst) -> link ke teks lengkap terdekat. Ditaruh
+    // di BAWAH konten (sebelum nav prev/next) biar tak numpuk di atas. Link .sutta-ref = wiki-preview.
+    if (data.elision_ref) {
+      const er = data.elision_ref;
+      const erAuthor = data.author && data.author !== "blurb" ? `/${encodeURIComponent(data.author)}` : "";
+      const erHref = `/${er.id}/${lang}${erAuthor}`;
+      const erText = esc(er.label) + (er.name ? " — " + esc(er.name) : "");
+      const link = `<a href="${erHref}" class="sutta-ref" data-lang="${lang}">${erText}</a>`;
+      const notice = document.createElement("div");
+      notice.className = "md-segment-notice elision-ref-notice";
+      notice.innerHTML = `<i data-lucide="corner-down-right"></i> <span>${t("elision_ref_notice", { ref: link })}</span>`;
+      targetEl.appendChild(notice);
+      if (window.lucide) window.lucide.createIcons({ root: notice });
+    }
 
     if (hash) {
       let target = targetEl.querySelector(`#${CSS.escape(idPrefix + hash)}`);
@@ -2007,7 +2444,8 @@
       }
       if (target) {
         target.classList.add("dlg-target");
-        setTimeout(() => target.scrollIntoView({ behavior: "smooth", block: "center" }), 80);
+        // block:"start" + scroll-margin-top (CSS) -> mendarat di ujung atas segmen, bukan tengah.
+        setTimeout(() => target.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
       }
     }
     refreshIcons();
@@ -2018,6 +2456,200 @@
     renderSegments(dlg.content, dlgState.data, dlgState.lang, dlgState.displayMode, { idPrefix: "dlg-", hash: targetHash });
     buildDialogToc();
     buildDialogSegList();
+    renderDialogNav();
+    // renderSegments nambah .dlg-target ke segmen hash -> pantau buat dismiss-on-scroll (paritas reader).
+    if (targetHash) {
+      const tgt = dlg.content.querySelector(".sutta-segment.dlg-target");
+      if (tgt) { dlgState.activeTarget = tgt.id; watchDlgTargetDismiss(tgt); }
+    }
+  }
+
+  // Navigasi sutta sebelum/sesudah di dalam dialog (paritas dgn halaman reader). Klik kiri
+  // muat-ulang sutta tetangga DI dialog yg sama; href tetap nunjuk halaman teks penuh biar
+  // klik-tengah/kanan tetap bisa buka tab baru. renderSegments meng-clear dlg.content tiap
+  // render, jadi nav ini sengaja dibangun ulang di sini (bukan di loadDialogSutta).
+  // ── Swipe kiri/kanan -> sutta prev/next (touch) ──────────────────────────────
+  // Geser horizontal di area baca: panah "ketarik" muncul di tepi, lepas melewati ambang ->
+  // navigasi dgn aksi PERSIS tombol prev/next (termasuk fallback suttaplex + toast ?na=).
+  // Sisi tanpa tetangga sama sekali -> panah redup, tak memicu apa pun. Sekali pasang per
+  // elemen (guard _dkSwipeNav). host = elemen tempat panah menempel (dialog / body=fixed).
+  function attachSwipeNav(scrollEl, host, getTargets, go) {
+    if (!scrollEl || !host || scrollEl._dkSwipeNav) return;
+    scrollEl._dkSwipeNav = true;
+    const mk = dir => {
+      const el = document.createElement("div");
+      el.className = "swipe-nav-arrow swipe-" + dir + (host === document.body ? " swipe-fixed" : "");
+      el.innerHTML = dir === "prev" ? "&#8249;" : "&#8250;";
+      host.appendChild(el);
+      return el;
+    };
+    const arrows = { prev: mk("prev"), next: mk("next") };
+    const TH = 80, MAXPULL = 110;
+    let active = false, horiz = false, x0 = 0, y0 = 0, dx = 0;
+    let startTarget = null;
+    const reset = () => {
+      active = false; horiz = false; dx = 0;
+      ["prev", "next"].forEach(k => {
+        arrows[k].classList.remove("show", "armed", "disabled");
+        arrows[k].style.transform = "";
+      });
+    };
+    scrollEl.addEventListener("touchstart", e => {
+      if (e.touches.length !== 1) return;
+      // Jangan blokir table, pre, side-by-side di sini agar kita bisa cek edge-nya di touchmove
+      if (e.target.closest && e.target.closest("input, textarea, .sp-nav, .swipe-nav-arrow")) return;
+      x0 = e.touches[0].clientX; y0 = e.touches[0].clientY;
+      startTarget = e.target;
+      active = true; horiz = false; dx = 0;
+    }, { passive: true });
+    scrollEl.addEventListener("touchmove", e => {
+      if (!active) return;
+      dx = e.touches[0].clientX - x0;
+      const dy = e.touches[0].clientY - y0;
+      if (!horiz) {
+        // Dominan vertikal = niat scroll biasa -> mundur diam-diam.
+        if (Math.abs(dy) > 14 && Math.abs(dy) > Math.abs(dx)) { active = false; return; }
+        if (Math.abs(dx) < 26) return;               // belum jelas horizontal
+        
+        // Pengecekan elemen berscroll horizontal (tabel, kode, side-by-side)
+        const hzContainer = startTarget && startTarget.closest ? startTarget.closest("table, pre, .side-by-side, .side-by-side-split") : null;
+        if (hzContainer && hzContainer.scrollWidth > hzContainer.clientWidth) {
+            const isSwipeRight = dx > 0;
+            if (isSwipeRight && hzContainer.scrollLeft > 2) {
+                active = false; return; // Masih bisa gulung konten ke kiri, jangan swipe sutta
+            }
+            if (!isSwipeRight && Math.ceil(hzContainer.scrollLeft + hzContainer.clientWidth) < hzContainer.scrollWidth - 2) {
+                active = false; return; // Masih bisa gulung konten ke kanan, jangan swipe sutta
+            }
+        }
+        
+        horiz = true;
+      }
+      const dir = dx > 0 ? "prev" : "next";
+      const other = dx > 0 ? "next" : "prev";
+      arrows[other].classList.remove("show", "armed");
+      const target = (getTargets() || {})[dir];
+      const pull = Math.min(Math.abs(dx), MAXPULL);
+      const ar = arrows[dir];
+      ar.classList.add("show");
+      ar.classList.toggle("disabled", !target);
+      ar.classList.toggle("armed", !!target && Math.abs(dx) >= TH);
+      // Geser dari balik tepi (offset 32px keluar) menuju posisi inset-nya; makin ditarik
+      // makin masuk, mentok pas di inset (offset 0) -> tak pernah bikin overflow.
+      const _off = Math.max(0, 32 - pull * 0.45);
+      ar.style.transform = `translateY(-50%) translateX(${(dir === "prev" ? -_off : _off)}px)`;
+    }, { passive: true });
+    const end = () => {
+      if (active && horiz && Math.abs(dx) >= TH) {
+        const dir = dx > 0 ? "prev" : "next";
+        const target = (getTargets() || {})[dir];
+        if (target) go(dir, target);
+      }
+      reset();
+    };
+    scrollEl.addEventListener("touchend", end, { passive: true });
+    scrollEl.addEventListener("touchcancel", reset, { passive: true });
+  }
+
+  // Pasang swipe di dialog viewer (sekali; target dibaca live dari dlgState tiap gesture).
+  function attachDialogSwipe() {
+    const body = document.querySelector("#sutta-dialog .sutta-dialog-body");
+    const host = document.getElementById("sutta-dialog");
+    attachSwipeNav(body, host,
+      () => ({ prev: dlgState.data && dlgState.data.prev_sutta, next: dlgState.data && dlgState.data.next_sutta }),
+      (_dir, entry) => {
+        if (entry.author) { openSuttaDialog(entry.id, entry.lang, entry.author); return; }
+        // Edisi tak tersedia -> suttaplex + toast (paritas tombol nav dialog).
+        const _cur = (dlgState.data && dlgState.data.author) || "";
+        window.location.href = `/${entry.id}?na=${encodeURIComponent(entry.lang + "_" + _cur)}`;
+      });
+  }
+
+  function renderDialogNav() {
+    const d = dlgState.data;
+    attachDialogSwipe();               // idempoten (guard _dkSwipeNav); target dibaca live
+    if (!d || (!d.prev_sutta && !d.next_sutta)) return;
+    const nav = document.createElement("div");
+    nav.className = "sp-nav sutta-sp-nav dlg-sp-nav";
+
+    const mkBtn = (entry, dir) => {
+      if (!entry) {
+        // Spacer biar tombol yg ada tetap di sisi yg benar (prev kiri / next kanan).
+        const sp = document.createElement("span");
+        sp.className = "sp-nav-spacer";
+        return sp;
+      }
+      const a = document.createElement("a");
+      a.className = "sp-nav-btn sp-nav-" + dir;
+      // Edisi (lang,author) tak ada di tetangga -> ke SUTTAPLEX + ?na= (toast "terjemahan X
+      // tak tersedia" di halaman tujuan) — SAMA dgn perilaku tombol nav halaman reader.
+      // Dulu dialog diam-diam ganti author default (membingungkan).
+      const _curAuthor = (dlgState.data && dlgState.data.author) || "";
+      const href = entry.author
+        ? `/${entry.id}/${entry.lang}/${entry.author}`
+        : `/${entry.id}?na=${encodeURIComponent(entry.lang + "_" + _curAuthor)}`;
+      a.href = href;
+      a.title = entry.label + (entry.name ? " — " + entry.name : "");
+      const chev = dir === "prev" ? "chevron-left" : "chevron-right";
+      const label =
+        `<span class="sp-nav-label"><span class="sp-nav-id">${esc(entry.label)}</span>` +
+        (entry.name ? `<span class="sp-nav-name">${esc(entry.name)}</span>` : "") + `</span>`;
+      a.innerHTML = dir === "prev"
+        ? `<i data-lucide="${chev}"></i>${label}`
+        : `${label}<i data-lucide="${chev}"></i>`;
+      a.addEventListener("click", (e) => {
+        // Hormati klik-tengah / modifier (buka tab baru); selain itu muat di dialog.
+        // Tanpa author (edisi tak tersedia): BIARKAN default -> navigasi suttaplex + toast.
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;
+        if (!entry.author) return;
+        e.preventDefault();
+        openSuttaDialog(entry.id, entry.lang, entry.author);
+      });
+      return a;
+    };
+
+    nav.appendChild(mkBtn(d.prev_sutta, "prev"));
+    nav.appendChild(mkBtn(d.next_sutta, "next"));
+    dlg.content.appendChild(nav);
+    if (window.lucide) window.lucide.createIcons({ root: nav });
+  }
+
+  let _dlgTargetObs = null, _dlgTargetSeen = false;
+
+  // Hapus highlight dialog ("nyala") + lupakan target. Dipakai saat user nge-scroll LEWAT segmen
+  // highlight di dalam .sutta-dialog-body (= gamau liat lagi). Dialog tak pakai URL hash.
+  function clearDlgTarget() {
+    document.querySelectorAll("#sutta-dialog .sutta-segment.dlg-target").forEach(el => el.classList.remove("dlg-target"));
+    dlgState.activeTarget = null;
+    if (_dlgTargetObs) { _dlgTargetObs.disconnect(); _dlgTargetObs = null; }
+  }
+
+  // Pantau target dialog: udah pernah keliatan lalu di-scroll keluar -> dismiss. root = scroller dialog.
+  function watchDlgTargetDismiss(el) {
+    if (_dlgTargetObs) { _dlgTargetObs.disconnect(); _dlgTargetObs = null; }
+    if (!el || !("IntersectionObserver" in window)) return;
+    _dlgTargetSeen = false;
+    const root = document.querySelector("#sutta-dialog .sutta-dialog-body") || null;
+    _dlgTargetObs = new IntersectionObserver(entries => {
+      const e = entries[entries.length - 1];
+      if (!e) return;
+      if (e.isIntersecting) _dlgTargetSeen = true;
+      else if (_dlgTargetSeen) clearDlgTarget();
+    }, { root, threshold: 0 });
+    _dlgTargetObs.observe(el);
+  }
+
+  // Segmen TERATAS yang lagi keliatan di scroller dialog -> buat "buka di reader di posisi sama"
+  // pas highlight udah di-dismiss (biar ga loncat balik ke segmen nyala lama).
+  function currentDlgTopSegment() {
+    const body = document.querySelector("#sutta-dialog .sutta-dialog-body");
+    if (!body) return "";
+    const top = body.getBoundingClientRect().top;
+    for (const seg of body.querySelectorAll(".sutta-segment[id]")) {
+      const r = seg.getBoundingClientRect();
+      if (r.bottom > top + 8) return seg.id.replace(/^dlg-/, "");
+    }
+    return "";
   }
 
   function scrollToDialogSegment(anchorId) {
@@ -2028,14 +2660,100 @@
     const target = document.getElementById(anchorId);
     if (target) {
       target.classList.add("dlg-target");
+      dlgState.activeTarget = anchorId;
+      watchDlgTargetDismiss(target);
       if (dialogBody) {
-        const targetPos = target.offsetTop - dialogBody.offsetTop;
-        dialogBody.scrollTo({ top: targetPos - 20, behavior: "smooth" });
+        // getBoundingClientRect delta + scrollTop = posisi target relatif isi scroller.
+        // Tahan thd offsetParent bersarang (offsetTop lama bisa salah parent -> scroll ngaco).
+        // -16px = gap kecil biar segmen nempel di ujung ATAS viewport, bukan tengah.
+        const top = dialogBody.scrollTop + target.getBoundingClientRect().top - dialogBody.getBoundingClientRect().top;
+        dialogBody.scrollTo({ top: Math.max(0, top - 16), behavior: "smooth" });
       } else {
-        target.scrollIntoView({ behavior: "smooth", block: "center" });
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     }
   }
+
+  // ── Link "§N" (a.para-ref / a.sutta-ref dari reader.py) — perilaku per-konteks ─────────
+  // reader.py memancarkan href NETRAL: "#chunkid" (segmen intra-doc) & "/{sibling}" (sutta grup).
+  // Satu delegasi klik = satu sumber; cabang per LOKASI klik:
+  //  • KARTU (.sutta-card: hasil pencarian / rujukan chat) -> inert (jangan navigasi/scroll).
+  //  • DIALOG viewer (dlg.el terbuka & memuat anchor) -> IN-PLACE: segmen dipindai lewat
+  //    scrollToDialogSegment("dlg-"+cid) (id di dialog ber-prefix "dlg-"); sibling GANTI isi
+  //    dialog yg SAMA via openSuttaDialog (bukan buka page / duplikat dialog).
+  //  • HALAMAN reader / lainnya -> biarkan default: "#chunkid" jalan via hashchange
+  //    (handleHashChange -> scrollToSegment), "/{sibling}" navigasi halaman penuh.
+  // Klik ref (desktop & mobile) = buka wiki preview/tooltip DULU, bukan langsung buka teks —
+  // mayoritas cuma mau ngintip; buka beneran lewat link "Buka bagian ini" di tooltip, yang
+  // pakai .bypass utk menembus intersepsi ini. State di window._dkRefPreview KARENA blok
+  // tooltip hidup di IIFE KEDUA file ini — variabel lokal IIFE ini tak terlihat dari sana
+  // (dulu bikin ReferenceError diam-diam: hover mati & intercept tak pernah aktif).
+  // stopImmediatePropagation: cegah listener document lain (sutta.js) ikut scroll.
+  window._dkRefPreview = { show: null, bypass: false };
+
+  document.addEventListener("click", function (e) {
+    const a = e.target && e.target.closest && e.target.closest("a.para-ref, a.sutta-ref");
+    if (!a) return;
+    const _rp = window._dkRefPreview;
+    if (!_rp.bypass && _rp.show) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      _rp.show(a, true);
+      return;
+    }
+    const isPara = a.classList.contains("para-ref");
+    const inSeg = a.closest(".sutta-segment");                 // konten reader asli (page/dialog)
+    const inDlg = dlg.el && dlg.el.open && dlg.el.contains(a);
+
+    // (1) HALAMAN reader (.sutta-segment, BUKAN dialog) -> biarkan DEFAULT: "#chunkid" jalan via
+    //     hashchange (scrollToSegment), "/{id}/{lang}" navigasi halaman penuh. Tak diintervensi.
+    if (inSeg && !inDlg) return;
+
+    // Sisanya ditangani sendiri; capture + stopPropagation supaya handler lain (mis. klik kartu
+    // yang membuka sutta) TAK ikut jalan -> tak dobel-aksi.
+
+    // Hancurkan wiki tooltip bila ada yang terbuka agar tidak nyangkut (karena stopPropagation
+    // mencegah listener klik biasa jalan).
+    document.querySelectorAll(".ref-tooltip:not(.hidden)").forEach(el => {
+      el.classList.add("hidden");
+      el.style.transform = "translateY(4px)";
+    });
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (inSeg && inDlg) {
+      // (2) DALAM dialog viewer -> IN-PLACE (jangan buka dialog baru / duplikat).
+      if (isPara) {
+        const cid = (a.getAttribute("href") || "").replace(/^#/, "");
+        if (cid) scrollToDialogSegment("dlg-" + cid);          // id segmen dialog ber-prefix "dlg-"
+      } else {
+        const href = a.getAttribute("href") || "";
+        const hashIdx = href.indexOf("#");
+        const path = hashIdx >= 0 ? href.substring(0, hashIdx) : href;
+        const hash = hashIdx >= 0 ? href.substring(hashIdx + 1) : "";
+        const s = path.replace(/^\//, "").split("/");   // [id, lang, author?]
+        if (s[0]) openSuttaDialog(s[0], s[1] || dlgState.lang, s[2] || "", hash);
+      }
+      return;
+    }
+
+    // (3) DI LUAR viewer (kartu hasil pencarian / rujukan chat / blok catatan / fragment lain)
+    //     -> BUKA sutta-viewer dialog di segmen/sutta itu. data-lang (dari reader.py) memastikan
+    //     dialog kebuka di terjemahan yg SAMA -> nomor segmen md cocok. author dari path bila ada.
+    if (isPara) {
+      const cid = (a.getAttribute("href") || "").replace(/^#/, "");   // "mn21:md7"
+      const sid = cid.split(":")[0];
+      if (sid) openSuttaDialog(sid, a.dataset.lang || getLang(), "", cid);
+    } else {
+      const href = a.getAttribute("href") || "";
+      const hashIdx = href.indexOf("#");
+      const path = hashIdx >= 0 ? href.substring(0, hashIdx) : href;
+      const hash = hashIdx >= 0 ? href.substring(hashIdx + 1) : "";
+      const s = path.replace(/^\//, "").split("/");  // [id, lang, author?]
+      if (s[0]) openSuttaDialog(s[0], s[1] || a.dataset.lang || getLang(), s[2] || "", hash);
+    }
+  }, true);
 
   function buildDialogToc() {
     const fab = document.getElementById("dlg-toc-fab");
@@ -2084,7 +2802,10 @@
     const list = document.getElementById("dlg-seg-list");
     if (!fab || !list || !dlgState.data) return;
 
-    const segs = dlgState.data.segments.filter(s => s.ids && s.ids.length && s.text);
+    // Segmen tanpa terjemahan tapi ADA Pāli tetap masuk daftar (mirror buildSegList
+    // sutta.js --- daftar harus mencerminkan apa yg tampil di dialog).
+    const segs = dlgState.data.segments.filter(s =>
+      s.ids && s.ids.length && (String(s.text || "").trim() || String(s.pli || "").trim()));
     list.innerHTML = "";
     if (segs.length === 0) { fab.classList.add("hidden"); return; }
 
@@ -2118,15 +2839,16 @@
 
     segs.forEach(seg => {
       const anchorId = "dlg-" + seg.ids[0];
+      // Fallback Pāli mirror buildSegList sutta.js: HANYA header, body tetap kosong.
       if (seg.heading >= 1 && seg.heading <= 5) {
-        addItem("§", seg.text, anchorId, "heading");
+        addItem("§", seg.text || seg.pli, anchorId, "heading");
         return;
       }
       const parts = seg.parts || [];
       const leadParts = parts.filter(p => isHeadingPart(p) || isSpeakerPart(p));
       leadParts.forEach(p =>
         isHeadingPart(p)
-          ? addItem("§", p.text, anchorId, "heading")
+          ? addItem("§", p.text || p.pli, anchorId, "heading")
           : addItem("»", p.text, anchorId, "speaker")
       );
       const contentText = leadParts.length
@@ -2266,7 +2988,7 @@
     });
   }
 
-  // Topik/kueri rekomendasi — SATU sumber, dipakai home (chip rekomendasi) & chat
+  // Topik/kueri rekomendasi --- SATU sumber, dipakai home (chip rekomendasi) & chat
   // (empty-state contoh prompting). common.js ke-load di semua halaman.
   const RECOMMENDED_QUERIES = {
     id: [
@@ -2307,17 +3029,104 @@
     ],
   };
 
+  // Label kategori model (Konfig Mesin & dropdown mode lanjut) DILOKALKAN di FE ---
+  // backend (/api/models) kirim label Inggris statis ("Refinement N (expN)") sbg data,
+  // jadi tak pernah lewat dict i18n. Kunci lokalisasi = cat.key; label backend = fallback.
+  function catLabel(cat) {
+    if (!cat) return "";
+    const m = /^exp(\d+)$/.exec(cat.key || "");
+    if (m) return t("cat_refinement", { n: m[1] });
+    if (cat.key === "base") return t("cat_base");
+    if (cat.key === "gpl") return t("cat_gpl");
+    return cat.label || cat.key || "";
+  }
+
+  // Tooltip klik utk nama sutta yg ke-clamp (.dlg-sutta-name, line-clamp:2 di header
+  // dialog/reader) -> munculin nama penuh. Reuse .cite-tooltip (position:fixed, udah
+  // ada style-nya, sebelumnya nganggur). Dipakai di sini (dialog) & sutta.js (reader)
+  // via DK.attachSuttaNameTooltip.
+  function showSuttaNameTooltip(anchorEl, text) {
+    let tip = document.getElementById("dlg-sutta-name-tip");
+    if (!tip) {
+      tip = document.createElement("div");
+      tip.id = "dlg-sutta-name-tip";
+      document.body.appendChild(tip);
+    }
+    tip.textContent = text;
+    tip.style.display = "block";
+    const rect = anchorEl.getBoundingClientRect();
+    const below = window.innerHeight - rect.bottom > 90;
+    tip.className = `cite-tooltip ${below ? "cite-tooltip-bottom" : "cite-tooltip-top"}`;
+    tip.style.left = `${Math.max(12, Math.min(rect.left, window.innerWidth - 340 - 12))}px`;
+    if (below) { tip.style.top = `${rect.bottom + 10}px`; tip.style.bottom = ""; }
+    else { tip.style.bottom = `${window.innerHeight - rect.top + 10}px`; tip.style.top = ""; }
+    requestAnimationFrame(() => { tip.style.opacity = "1"; });
+    const hide = (ev) => {
+      if (ev && ev.type === "click" && (tip.contains(ev.target) || anchorEl.contains(ev.target))) return;
+      tip.style.opacity = "0";
+      setTimeout(() => { tip.style.display = "none"; }, 200);
+      document.removeEventListener("click", hide, true);
+      window.removeEventListener("scroll", hide, true);
+    };
+    setTimeout(() => {
+      document.addEventListener("click", hide, true);
+      window.addEventListener("scroll", hide, true);
+    }, 0);
+  }
+
+  function attachSuttaNameTooltip(el) {
+    if (!el || el._nameTipBound) return;
+    el._nameTipBound = true;
+    el.addEventListener("click", (e) => {
+      if (el.scrollHeight <= el.clientHeight + 1) return; // ga ke-clamp -> nama udah full, no-op
+      e.stopPropagation();
+      showSuttaNameTooltip(el, el.textContent);
+    });
+  }
+
+  function formatSuttaId(fullId) {
+    if (!fullId) return "";
+    let sid = fullId.toLowerCase().replace(/^pli-tv-/, "");
+    const match = sid.match(/^([a-z\-]+)(\d.*)?$/);
+    if (!match) return fullId;
+
+    let prefix = match[1];
+    let number = match[2] || "";
+
+    let formattedPrefix;
+    if (["mn", "dn", "sn", "an"].includes(prefix)) {
+      formattedPrefix = prefix.toUpperCase();
+    } else {
+      const parts = prefix.split("-");
+      if (parts.length === 1) {
+        formattedPrefix = prefix.charAt(0).toUpperCase() + prefix.slice(1);
+      } else if (prefix.startsWith("bu-vb") || prefix.startsWith("bi-vb")) {
+        formattedPrefix = parts[0].charAt(0).toUpperCase() + parts[0].slice(1) + "-" + parts.slice(1).join("-");
+      } else {
+        formattedPrefix = parts.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join("-");
+      }
+    }
+
+    if (number) return `${formattedPrefix} ${number}`;
+    return formattedPrefix;
+  }
+
   // ========== Public API ==========
   window.DK = {
-    state, esc, buildMiniTexts, addBlockToNote, showNotePicker, updateAllLinksInDOM, copyNote, downloadNotePdf, t, getLang,
-    highlightKeywords, buildFragTextLines, createFragmentEl, createSuttaCardEl, renderSuttaCardsTo, openSuttaDialog,
-    compactRef, showToast, renderSegments, buildDisplayToggle, buildScLinks, langName, authorLongName,
-    alert: dkAlert, confirm: dkConfirm, prompt: dkPrompt, RECOMMENDED_QUERIES, mdAlignTables,
+    state, esc, buildMiniTexts, addBlockToNote, showNotePicker, updateAllLinksInDOM, copyNote, downloadNotePdf, t, getLang, applyCommonI18n,
+    highlightKeywords, buildFragTextLines, createFragmentEl, createSuttaCardEl, renderSuttaCardsTo, openSuttaDialog, formatSuttaId,
+    compactRef, showToast, renderSegments, buildDisplayToggle, buildScLinks, langName, authorLongName, catLabel, orderLangs, langRank,
+    alert: dkAlert, confirm: dkConfirm, prompt: dkPrompt, RECOMMENDED_QUERIES, mdAlignTables, mathLite, attachSwipeNav, attachSuttaNameTooltip,
+    // Kunci fuzzy nama sutta: buang diakritik + spasi, lowercase, lipat huruf-kembar-berurutan
+    // (Cakk->Cak) -> toleran typo konsonan-ganda Pāḷi. SATU sumber: kotak pencarian home DAN
+    // @mention chat pakai ini (makeFuzzyStr + build o.fuzzy delegasi ke sini). Cocokkan via
+    // fuzzyKey(nama).includes(fuzzyKey(query)).
+    fuzzyKey: (str) => (str || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().replace(/\s+/g, "").toLowerCase().replace(/(.)\1+/g, "$1"),
   };
 
   // ========== Reader display settings (Segmen) ==========
   // Centangan opsional di dialog "Atur" (base.html), berlaku global.
-  // Pemisah bait (‖) selalu tampil — bukan opsi, lihat .verse-sep di CSS.
+  // Pemisah bait (‖) selalu tampil --- bukan opsi, lihat .verse-sep di CSS.
   function initSegRef() {
     const segVal = localStorage.getItem("dk-show-segref") !== "0";
     document.documentElement.classList.toggle("show-seg-ref", segVal);
@@ -2351,7 +3160,7 @@
     const btnClose = document.getElementById("btn-close-goto");
     const inpCol = document.getElementById("goto-collection");
     const inpNum = document.getElementById("goto-number");
-    const inpTitle = document.getElementById("goto-title");
+    const searchInput = document.getElementById("search-input");
     const preview = document.getElementById("goto-preview");
     const btnGo = document.getElementById("btn-goto-go");
     if (!gotoDlg || !btnOpen) return;
@@ -2360,6 +3169,7 @@
     let loaded = false;
     let browseData = null;
     let suttaNames = null;
+    let unavailableSuttas = null;
     let lastColUid = "";    // resolved collection uid for number suggestions
     let validNumsMap = new Map(); // maps '22' -> 'mn22' (full leaf id)
     let validTitlesMap = new Map(); // maps 'Alagaddūpamasutta' -> 'mn22'
@@ -2379,8 +3189,8 @@
 
     const dlTitle = document.createElement("datalist");
     dlTitle.id = "goto-title-suggestions";
-    gotoDlg.appendChild(dlTitle);
-    if (inpTitle) inpTitle.setAttribute("list", "goto-title-suggestions");
+    document.body.appendChild(dlTitle);
+    if (searchInput) searchInput.setAttribute("list", "goto-title-suggestions");
 
     // Walk browse tree and collect all leaf sutta IDs
     function collectLeafIds(node) {
@@ -2393,7 +3203,7 @@
       return ids;
     }
 
-    // Walk pohon mahal (~8rb leaf) — cache sekali; browseData tidak berubah selama sesi.
+    // Walk pohon mahal (~8rb leaf) --- cache sekali; browseData tidak berubah selama sesi.
     function getLeafIds() {
       if (!leafIdsCache) leafIdsCache = browseData ? collectLeafIds(browseData) : [];
       return leafIdsCache;
@@ -2437,6 +3247,7 @@
 
       const allIds = getLeafIds();
       allIds.forEach(id => {
+        if (unavailableSuttas && unavailableSuttas.has(id)) return;
         const n = extractNumber(id, prefix);
         if (n && !validNumsMap.has(n)) {
           validNumsMap.set(n, id);
@@ -2451,36 +3262,41 @@
       return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     }
 
+    const customSuggestions = document.getElementById("custom-title-suggestions");
+    let titleOptions = [];
+
     function populateTitleSuggestions() {
-      // Build SEKALI saja (lazy): ~8rb <option> mahal; pohon & nama tak berubah selama sesi.
+      // Build SEKALI saja (lazy)
       if (titlesBuilt) return;
       if (!browseData || !suttaNames) return;
-      dlTitle.innerHTML = "";
+
+      const dlTitle = document.getElementById("goto-title-suggestions");
+      if (dlTitle) dlTitle.innerHTML = ""; // bersihkan jika ada sisa
       validTitlesMap.clear();
+      titleOptions = [];
 
       const allIds = getLeafIds();
-      const frag = document.createDocumentFragment();
       allIds.forEach(id => {
+        if (unavailableSuttas && unavailableSuttas.has(id)) return;
         if (suttaNames[id]) {
           const title = suttaNames[id];
           const normalized = removeDiacritics(title).toLowerCase();
 
-          if (!validTitlesMap.has(normalized)) {
-            validTitlesMap.set(normalized, id);
-            // Also map the exact lowercase version in case it differs
-            validTitlesMap.set(title.toLowerCase(), id);
+          titleOptions.push({
+            title: title,
+            id: id,
+            // Kunci fuzzy (Cakk -> Cak) via DK.fuzzyKey -- SATU sumber dgn @mention chat.
+            fuzzy: window.DK.fuzzyKey(title)
+          });
 
-            const opt = document.createElement("option");
-            opt.value = title;
-            // Provide the ASCII string as textContent so the native datalist filters it
-            if (normalized !== title.toLowerCase()) {
-              opt.textContent = normalized;
-            }
-            frag.appendChild(opt);
-          }
+          if (!validTitlesMap.has(normalized)) validTitlesMap.set(normalized, []);
+          validTitlesMap.get(normalized).push(id);
+
+          const rawLower = title.toLowerCase();
+          if (!validTitlesMap.has(rawLower)) validTitlesMap.set(rawLower, []);
+          if (!validTitlesMap.get(rawLower).includes(id)) validTitlesMap.get(rawLower).push(id);
         }
       });
-      dlTitle.appendChild(frag);   // satu kali append (bukan 8rb reflow)
       titlesBuilt = true;
     }
 
@@ -2500,6 +3316,14 @@
       } catch (_) { /* ignore */ }
     }
 
+    async function ensureUnavailable() {
+      if (unavailableSuttas) return;
+      try {
+        const res = await fetch("/api/browse-unavailable");
+        if (res.ok) unavailableSuttas = new Set(((await res.json()) || {}).unavailable || []);
+      } catch (_) { /* ignore */ }
+    }
+
     async function ensureCollections() {
       if (loaded) return;
       try {
@@ -2510,10 +3334,6 @@
     }
 
     function buildId() {
-      if (inpTitle && inpTitle.value.trim()) {
-        const normTitle = removeDiacritics(inpTitle.value.trim()).toLowerCase();
-        if (validTitlesMap.has(normTitle)) return validTitlesMap.get(normTitle);
-      }
       if (inpCol && inpNum) {
         const col = resolveCollection(inpCol.value);
         const num = inpNum.value.trim();
@@ -2537,33 +3357,13 @@
       btnGo.style.opacity = "0.5";
       btnGo.style.cursor = "not-allowed";
 
-      const titleVal = inpTitle ? inpTitle.value.trim() : "";
-
-      // If title input is active and filled
-      if (titleVal) {
-        const normTitle = removeDiacritics(titleVal).toLowerCase();
-        if (validTitlesMap.has(normTitle)) {
-          const fullId = validTitlesMap.get(normTitle);
-          const { displayCol, displayNum } = extractDisplayPrefixAndNum(fullId);
-          preview.innerHTML = `<span style="color: var(--accent); font-weight: bold;">&rarr; ${esc(displayCol)} ${esc(displayNum)}</span> &mdash; ${esc(suttaNames[fullId] || titleVal)}`;
-          btnGo.disabled = false;
-          btnGo.style.opacity = "1";
-          btnGo.style.cursor = "pointer";
-        } else {
-          const label = getLang() === "en" ? "Title not found" : "Judul tidak ditemukan";
-          preview.innerHTML = `<span style="color: var(--accent); font-weight: bold;">&rarr;</span> <span style="color: #ef4444;">${label}</span>`;
-        }
-        return;
-      }
-
-      // Otherwise fall back to Collection + Number logic
       if (!inpCol || !inpNum) return;
       const col = resolveCollection(inpCol.value);
       const num = inpNum.value.trim();
 
       if (!col) {
         if (inpCol.value.trim()) {
-          preview.innerHTML = `<span style="color: #ef4444;">Koleksi tidak valid</span>`;
+          preview.innerHTML = `<span style="color: #ef4444;">${t("invalid_collection")}</span>`;
         } else {
           preview.textContent = "";
         }
@@ -2601,7 +3401,6 @@
     btnOpen.addEventListener("click", async () => {
       if (inpCol) inpCol.value = "";
       if (inpNum) inpNum.value = "";
-      if (inpTitle) inpTitle.value = "";
       if (preview) preview.innerHTML = "";
       if (btnGo) {
         btnGo.disabled = true;
@@ -2609,7 +3408,7 @@
         btnGo.style.cursor = "not-allowed";
       }
 
-      // Tampilkan dialog DULU (instan) — jangan tunggu fetch. Data diisi di latar belakang.
+      // Tampilkan dialog DULU (instan) --- jangan tunggu fetch. Data diisi di latar belakang.
       gotoDlg.showModal();
       refreshIcons();
       setTimeout(() => {
@@ -2620,12 +3419,10 @@
       }, 50);
 
       // Lalu muat data & isi saran di latar belakang (fetch paralel; di-cache utk buka berikutnya).
-      await Promise.all([ensureCollections(), ensureBrowseData(), ensureSuttaNames()]);
+      await Promise.all([ensureCollections(), ensureBrowseData(), ensureSuttaNames(), ensureUnavailable()]);
       if (!gotoDlg.open) return;   // user keburu nutup -> jangan kerja sia-sia
       populateCollectionSuggestions();   // ringan (~20 koleksi)
-      // Saran ANGKA sengaja TIDAK dibangun di sini — lazy, baru jalan setelah user
-      // memilih koleksi (DN/MN/AN/...) lewat listener input inpCol -> populateNumberSuggestions().
-      // Saran JUDUL juga lazy (saat fokus field judul). Dua-duanya mahal kalau eager.
+      // Saran JUDUL dipindah ke search-input utama.
       updatePreview();
     });
 
@@ -2643,7 +3440,6 @@
 
     if (inpCol) {
       inpCol.addEventListener("input", () => {
-        if (inpTitle) inpTitle.value = ""; // clear title
         populateNumberSuggestions();
         updatePreview();
       });
@@ -2657,27 +3453,153 @@
       });
     }
     if (inpNum) {
-      inpNum.addEventListener("input", () => {
-        if (inpTitle) inpTitle.value = ""; // clear title
-        updatePreview();
-      });
+      inpNum.addEventListener("input", updatePreview);
       inpNum.addEventListener("keydown", e => {
         if (e.key === "Enter") { e.preventDefault(); doGoto(); }
       });
     }
-    if (inpTitle) {
-      // Lazy: bangun datalist judul (~8rb opsi) saat user pertama fokus ke field ini,
-      // bukan saat dialog dibuka. Banyak user pakai Koleksi+Nomor, tak perlu bayar ongkos ini.
-      inpTitle.addEventListener("focus", populateTitleSuggestions);
-      inpTitle.addEventListener("input", () => {
-        populateTitleSuggestions();    // guard titlesBuilt -> murah setelah build pertama
-        if (inpCol) inpCol.value = ""; // clear col
-        if (inpNum) inpNum.value = ""; // clear num
-        updatePreview();
+    if (searchInput) {
+      let titleEnsureBusy = false;
+      async function ensureTitleSuggestions() {
+        if (titlesBuilt || titleEnsureBusy) return;
+        titleEnsureBusy = true;
+        try {
+          await Promise.all([ensureCollections(), ensureBrowseData(), ensureSuttaNames(), ensureUnavailable()]);
+          populateTitleSuggestions();
+        } finally {
+          titleEnsureBusy = false;
+        }
+      }
+      function makeFuzzyStr(str) {
+        return window.DK.fuzzyKey(str);   // SATU sumber (lihat DK.fuzzyKey); dipakai @mention chat juga.
+      }
+
+
+
+      let acSelectedIndex = -1;
+
+      function updateAcSelection(items) {
+        items.forEach((item, index) => {
+          if (index === acSelectedIndex) {
+            item.classList.add("selected");
+            item.scrollIntoView({ block: "nearest" });
+          } else {
+            item.classList.remove("selected");
+          }
+        });
+      }
+
+      searchInput.addEventListener("keydown", (e) => {
+        if (!customSuggestions || customSuggestions.classList.contains("hidden")) return;
+        const items = customSuggestions.querySelectorAll("li");
+        if (items.length === 0) return;
+
+        if (e.key === "ArrowDown") {
+          e.preventDefault();
+          acSelectedIndex = (acSelectedIndex + 1) % items.length;
+          updateAcSelection(items);
+        } else if (e.key === "ArrowUp") {
+          e.preventDefault();
+          acSelectedIndex = (acSelectedIndex - 1 + items.length) % items.length;
+          updateAcSelection(items);
+        } else if (e.key === "Enter") {
+          if (acSelectedIndex >= 0 && acSelectedIndex < items.length) {
+            e.preventDefault();
+            items[acSelectedIndex].dispatchEvent(new MouseEvent("mousedown"));
+          }
+        } else if (e.key === "Escape") {
+          customSuggestions.classList.add("hidden");
+          acSelectedIndex = -1;
+        }
       });
-      inpTitle.addEventListener("keydown", e => {
-        if (e.key === "Enter") { e.preventDefault(); doGoto(); }
+
+      function updateCustomAutocomplete() {
+        acSelectedIndex = -1;
+        if (!customSuggestions) return;
+
+        // Cek apakah input benar-benar sedang difokuskan oleh user.
+        // Jika event "input" dipicu via JS (misal saat klik history chip), jangan munculkan popup.
+        if (document.activeElement !== searchInput) {
+          customSuggestions.classList.add("hidden");
+          return;
+        }
+
+        const val = searchInput.value.trim();
+        if (val.length < 2) {
+          customSuggestions.classList.add("hidden");
+          return;
+        }
+        const fuzzyQuery = makeFuzzyStr(val);
+        const matches = titleOptions.filter(o => o.fuzzy.includes(fuzzyQuery));
+
+        // Group matches by exact title to avoid duplicates taking up space
+        const grouped = {};
+        const orderedTitles = [];
+        matches.forEach(m => {
+          if (!grouped[m.title]) {
+            grouped[m.title] = [];
+            orderedTitles.push(m.title);
+          }
+          grouped[m.title].push(m.id);
+        });
+
+        // Limit to 10 unique titles
+        const topTitles = orderedTitles.slice(0, 10);
+
+        if (topTitles.length === 0) {
+          customSuggestions.classList.add("hidden");
+          return;
+        }
+
+        customSuggestions.innerHTML = "";
+        topTitles.forEach(title => {
+          const ids = grouped[title];
+          const formattedIds = ids.map(id => formatSuttaId(id)).join("; ");
+          const li = document.createElement("li");
+          li.innerHTML = `<span class="ac-title">${esc(title)}</span><span class="ac-id">${esc(formattedIds)}</span>`;
+          li.addEventListener("mousedown", (e) => {
+            e.preventDefault(); // cegah input blur
+            searchInput.value = title;
+            // Paksa lepas fokus biar keyboard nutup & autocomplete batal jalan lagi
+            searchInput.blur();
+
+            // Trigger update tombol AI
+            searchInput.dispatchEvent(new Event("input", { bubbles: true }));
+            // ---------------------
+            customSuggestions.classList.add("hidden");
+            const btnSearch = document.getElementById("btn-search");
+            if (btnSearch) btnSearch.click(); // langsung cari!
+          });
+          customSuggestions.appendChild(li);
+        });
+        customSuggestions.classList.remove("hidden");
+      }
+
+      searchInput.addEventListener("focus", async () => {
+        await ensureTitleSuggestions();
+        updateCustomAutocomplete();
       });
+      searchInput.addEventListener("input", async () => {
+        await ensureTitleSuggestions();
+        updateCustomAutocomplete();
+      });
+      searchInput.addEventListener("blur", () => {
+        if (customSuggestions) customSuggestions.classList.add("hidden");
+      });
+
+      window.DK = window.DK || {};
+      window.DK.getSuttaIdByExactTitle = async function (title) {
+        const matches = await window.DK.getSuttaIdsByExactTitle(title);
+        return matches.length > 0 ? matches[0] : null;
+      };
+
+      window.DK.getSuttaIdsByExactTitle = async function (title) {
+        if (!title) return [];
+        await ensureTitleSuggestions();
+        const norm = removeDiacritics(title.trim()).toLowerCase();
+        const ids = validTitlesMap.get(norm) || validTitlesMap.get(title.trim().toLowerCase()) || [];
+        return ids.map(id => ({ id, title: suttaNames[id] }));
+      };
     }
     if (btnGo) btnGo.addEventListener("click", doGoto);
   }
@@ -2824,7 +3746,7 @@
 
       const titleBtn = document.createElement("button");
       titleBtn.className = "nm-title-btn";
-      titleBtn.textContent = n.title || "Untitled";
+      titleBtn.textContent = n.title || t("note_untitled");
       titleBtn.title = n.title || "";
       titleBtn.addEventListener("click", () => {
         openNote(n.id);
@@ -3046,12 +3968,17 @@
       pop.remove();
       document.removeEventListener("click", dismiss, true);
       document.removeEventListener("keydown", onEsc, true);
+      document.removeEventListener("scroll", onScroll, true);
     }
     const dismiss = (ev) => { if (!pop.contains(ev.target)) cleanup(); };
     const onEsc = (ev) => { if (ev.key === "Escape") cleanup(); };
+    // Menu position:fixed --- kalau halaman/kontainer di-scroll, anchor jalan tapi menu
+    // diam ("terbang"). Tutup saat scroll DI LUAR menu; scroll di dalam menu dibiarkan.
+    const onScroll = (ev) => { if (!pop.contains(ev.target)) cleanup(); };
     setTimeout(() => {
       document.addEventListener("click", dismiss, true);
       document.addEventListener("keydown", onEsc, true);
+      document.addEventListener("scroll", onScroll, true);
     }, 0);
 
     if (window.lucide) window.lucide.createIcons({ root: pop });
@@ -3090,12 +4017,17 @@
       pop.remove();
       document.removeEventListener("click", dismiss, true);
       document.removeEventListener("keydown", onEsc, true);
+      document.removeEventListener("scroll", onScroll, true);
     }
     const dismiss = (ev) => { if (!pop.contains(ev.target)) cleanup(); };
     const onEsc = (ev) => { if (ev.key === "Escape") cleanup(); };
+    // Sama spt showOpenMenu: fixed-menu "terbang" saat scroll -> tutup (scroll di
+    // dalam menu dibiarkan --- daftar terjemahan bisa panjang & scrollable).
+    const onScroll = (ev) => { if (!pop.contains(ev.target)) cleanup(); };
     setTimeout(() => {
       document.addEventListener("click", dismiss, true);
       document.addEventListener("keydown", onEsc, true);
+      document.addEventListener("scroll", onScroll, true);
     }, 0);
 
     if (window.lucide) window.lucide.createIcons({ root: pop });
@@ -3104,7 +4036,7 @@
       const res = await fetch(`/api/sutta-translations/${encodeURIComponent(suttaId)}`);
       if (!res.ok) throw new Error("Failed to fetch translations");
       const data = await res.json();
-      
+
       if (data.is_collection || !data.translations || data.translations.length === 0) {
         cleanup();
         showOpenMenu(anchorEl, fallbackHref);
@@ -3112,7 +4044,7 @@
       }
 
       pop.innerHTML = "";
-      
+
       const head = document.createElement("div");
       head.style.padding = "6px 12px 4px";
       head.style.fontSize = "0.75rem";
@@ -3125,6 +4057,12 @@
       head.textContent = getLang() === "en" ? "Select Translation:" : "Pilih Terjemahan:";
       pop.appendChild(head);
 
+      // Pali dulu, lalu bahasa web terpilih, lalu EN, lalu sisanya. Dalam satu
+      // bahasa: yg sudah bilara (segmented) didahulukan (API urut by author, bukan
+      // source). Sort stabil -> sisanya tetap seperti urutan API.
+      const _bilaraFirst = e => (e.source === "bilara" ? 0 : 1);
+      data.translations.sort((a, b) =>
+        (langRank(a.lang) - langRank(b.lang)) || (_bilaraFirst(a) - _bilaraFirst(b)));
       data.translations.forEach(tr => {
         const b = document.createElement("button");
         b.type = "button";
@@ -3135,7 +4073,7 @@
         b.style.gap = "12px";
         b.style.padding = "10px 16px";
         b.style.width = "100%";
-        
+
         const langSpan = document.createElement("span");
         langSpan.className = `lang-tag ${tr.lang}`;
         langSpan.style.margin = "0";
@@ -3143,17 +4081,17 @@
         langSpan.style.padding = "3px 8px";
         langSpan.style.flexShrink = "0";
         langSpan.textContent = tr.lang.toUpperCase();
-        
+
         const textSpan = document.createElement("span");
         textSpan.style.fontSize = "0.9rem";
         textSpan.style.fontWeight = "500";
         textSpan.style.flex = "1";
         textSpan.style.textAlign = "left";
         textSpan.textContent = tr.author_name || tr.author || tr.lang;
-        
+
         b.appendChild(langSpan);
         b.appendChild(textSpan);
-        
+
         b.addEventListener("click", (ev) => {
           ev.preventDefault();
           ev.stopPropagation();
@@ -3174,16 +4112,34 @@
   document.addEventListener("DOMContentLoaded", () => {
     initTheme();
 
+    // Mendarat dari nav prev/next yg edisinya tak tersedia (?na={lang}_{author}, dipasang
+    // _nav reader & nav dialog): kasih TOAST penjelasan kenapa nyasar ke suttaplex, lalu
+    // bersihkan URL. Nama author dari peta global (fallback uid).
+    try {
+      const _naParams = new URLSearchParams(window.location.search);
+      const _na = _naParams.get("na");
+      if (_na && _na.includes("_")) {
+        const _naAuthor = _na.slice(_na.indexOf("_") + 1);
+        const _authName = (window.DK_BILARA_AUTHOR_NAMES && window.DK_BILARA_AUTHOR_NAMES[_naAuthor])
+          || (window.DK_EDITION_AUTHOR_NAMES && window.DK_EDITION_AUTHOR_NAMES[_naAuthor]) || _naAuthor;
+        const _naSid = formatSuttaId((window.location.pathname.split("/").filter(Boolean)[0] || ""));
+        setTimeout(() => showToast(t("nav_na_toast", { sid: _naSid, author: _authName }), 4200), 350);
+        _naParams.delete("na");
+        const _q = _naParams.toString();
+        history.replaceState(null, "", window.location.pathname + (_q ? "?" + _q : "") + window.location.hash);
+      }
+    } catch (_e) { /* toast nav non-kritis */ }
+
     // Blurb "Buka" links open a translation chooser instead of navigating directly.
     document.addEventListener("click", (e) => {
       const link = e.target.closest && e.target.closest("a.dk-open-menu-link");
       if (!link) return;
       e.preventDefault();
       e.stopPropagation();
-      
+
       const suttaId = link.getAttribute("data-sutta-id");
       const firstRef = link.getAttribute("data-first-ref");
-      
+
       if (suttaId) {
         showTranslationMenu(link, suttaId, firstRef, link.href);
       } else {
@@ -3200,10 +4156,32 @@
     applyCommonI18n();
     loadNotesList();
 
-    const langBtn = document.getElementById("btn-lang-toggle");
-    if (langBtn) {
-      langBtn.addEventListener("click", () => {
-        const next = getLang() === "id" ? "en" : "id";
+    // Dropdown bahasa KUSTOM --- item dibangun otomatis dari Object.keys(DK_I18N),
+    // jadi nambah bahasa UI = tambah sub-dict di i18n.js; file ini & HTML aman.
+    const langDd = document.getElementById("lang-select");
+    if (langDd) {
+      const ddBtn = langDd.querySelector("#lang-dd-btn");
+      const ddMenu = langDd.querySelector("#lang-dd-menu");
+
+      // Bangun item sekali dari dict ---
+      // Label native: baca key `lang_name_<code>` dari sub-dict bahasa itu sendiri
+      // (misal DK_I18N.id.lang_name_id = "Indonesia"), jadi nama tampil native.
+      const langs = Object.keys(i18n);
+      if (ddMenu) {
+        ddMenu.innerHTML = "";
+        langs.forEach(code => {
+          const nativeName = (i18n[code] && i18n[code]["lang_name_" + code]) || code;
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "lang-dd-item";
+          btn.setAttribute("role", "option");
+          btn.dataset.lang = code;
+          btn.innerHTML = `<span class="lang-dd-code">${code.toUpperCase()}</span> ${nativeName}`;
+          ddMenu.appendChild(btn);
+        });
+      }
+
+      const setLang = (next) => {
         localStorage.setItem("dk-lang", next);
         window.dispatchEvent(new CustomEvent("dk-lang-change", { detail: { lang: next } }));
         applyCommonI18n();
@@ -3211,34 +4189,232 @@
         refreshMetaDates();
         const nmDlg = document.getElementById("notes-manager-dialog");
         if (nmDlg && !nmDlg.classList.contains("hidden")) renderNotesManager();
+      };
+      if (ddBtn) ddBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const open = langDd.classList.toggle("open");
+        ddBtn.setAttribute("aria-expanded", open ? "true" : "false");
       });
+      document.addEventListener("click", (e) => {
+        if (!langDd.contains(e.target)) {
+          langDd.classList.remove("open");
+          if (ddBtn) ddBtn.setAttribute("aria-expanded", "false");
+        }
+      });
+      langDd.querySelectorAll(".lang-dd-item").forEach(it =>
+        it.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setLang(it.dataset.lang);
+          setTimeout(() => {
+            langDd.classList.remove("open");
+            if (ddBtn) ddBtn.setAttribute("aria-expanded", "false");
+          }, 150);
+        }));
+      applyCommonI18n(); // sinkronkan label & item aktif saat init
     }
 
-    // ── Panel toggle (mobile only) ──
+    // ── Panel toggles: Catatan + AI Chat --- dua-duanya dock KANAN & SALING EKSKLUSIF
+    // (buka satu = tutup yang lain, semua lebar layar). Tab numpuk vertikal di tepi
+    // kanan; tab panel yang terbuka "nempel" di tepi kiri panelnya (offset via CSS
+    // var lebar panel --- ikut bergeser saat panel di-resize). Backdrop = mobile saja.
     const panelToggleBtn = $("#btn-panel-toggle");
     const panelBackdrop = $("#panel-backdrop");
+    const notesPanelEl = $("#notes-panel");
+    const chatToggleBtn = $("#btn-chat-toggle");
+    const chatPanelEl = $("#chat-panel");
+    const resizeHandleEl = $("#resize-handle");
+
+    const anyPanelOpenNow = () =>
+      (notesPanelEl && notesPanelEl.classList.contains("panel-open")) ||
+      (chatPanelEl && chatPanelEl.classList.contains("panel-open"));
+
+    const syncBackdrop = () => {
+      if (!panelBackdrop) return;
+      const notesOpen = notesPanelEl && notesPanelEl.classList.contains("panel-open");
+      const chatOpen = chatPanelEl && chatPanelEl.classList.contains("panel-open");
+      const needsBackdrop = (notesOpen || chatOpen) && window.innerWidth <= 900;
+      panelBackdrop.classList.toggle("visible", needsBackdrop);
+    };
+    // Handle resize hanya relevan utk panel IN-FLOW (notes >900px; chat >900px ---
+    // di bawah itu mereka drawer overlay, lebar fixed).
+    const syncHandle = () => {
+      if (!resizeHandleEl) return;
+      const notesOpen = notesPanelEl && notesPanelEl.classList.contains("panel-open");
+      const chatOpen = chatPanelEl && chatPanelEl.classList.contains("panel-open");
+      const on = (notesOpen || chatOpen) && window.innerWidth > 900;
+      resizeHandleEl.classList.toggle("rh-off", !on);
+    };
+    const setPanelState = (panelName) => {
+      if (window.innerWidth > 900) return;
+      if (!panelName) {
+        if (history.state && history.state.dkPanel) {
+          try { history.back(); } catch (e) { console.warn("history.back failed", e); }
+        }
+      } else {
+        if (!history.state || !history.state.dkPanel) {
+          try {
+            history.pushState({ ...(history.state || {}), dkPanel: panelName }, "");
+          } catch (e) { console.warn("history.pushState failed", e); }
+        } else if (history.state.dkPanel !== panelName) {
+          try {
+            history.replaceState({ ...(history.state || {}), dkPanel: panelName }, "");
+          } catch (e) { console.warn("history.replaceState failed", e); }
+        }
+      }
+    };
+
+    const closeNotesPanel = (persist, skipHistory) => {
+      if (!notesPanelEl) return;
+      if (!notesPanelEl.classList.contains("panel-open")) return;
+      if (skipHistory !== true) setPanelState(null);
+      notesPanelEl.classList.remove("panel-open");
+      if (panelToggleBtn) {
+        panelToggleBtn.classList.remove("panel-btn-open");
+        panelToggleBtn.title = t("show_panel");
+      }
+      if (persist) { try { localStorage.setItem("dk-notes-open", "0"); } catch (_e) { } }
+      syncBackdrop(); syncHandle();
+    };
+    const openNotesPanel = (skipHistory) => {
+      if (!notesPanelEl) return;
+      closeChatPanel(true, true);                            // eksklusif
+      if (skipHistory !== true) setPanelState("notes");
+      notesPanelEl.classList.add("panel-open");
+      if (panelToggleBtn) {
+        panelToggleBtn.classList.add("panel-btn-open");
+        panelToggleBtn.title = t("hide_panel");
+      }
+      try { localStorage.setItem("dk-notes-open", "1"); } catch (_e) { }
+      syncBackdrop(); syncHandle();
+    };
+    const closeChatPanel = (persist, skipHistory) => {
+      if (!chatPanelEl) return;
+      if (!chatPanelEl.classList.contains("panel-open")) return;
+      if (skipHistory !== true) setPanelState(null);
+      chatPanelEl.classList.remove("panel-open");
+      chatPanelEl.classList.remove("fullscreen");       // keluar fullscreen saat ditutup
+      if (chatToggleBtn) {
+        chatToggleBtn.classList.remove("panel-btn-open");
+        chatToggleBtn.classList.remove("nudge-highlight");
+        chatToggleBtn.title = t("show_chat");
+      }
+      const nudge = document.querySelector(".header-chat-nudge");
+      if (nudge) nudge.classList.remove("show");
+      if (persist) { try { localStorage.setItem("dk-chat-open", "0"); } catch (_e) { } }
+      syncBackdrop(); syncHandle();
+    };
+    const openChatPanel = (prefill, skipHistory) => {
+      if (!chatPanelEl) return;
+      mountChat(prefill);
+      closeNotesPanel(true, true);                           // eksklusif
+      if (skipHistory !== true) setPanelState("chat");
+      chatPanelEl.classList.add("panel-open");
+      if (chatToggleBtn) {
+        chatToggleBtn.classList.add("panel-btn-open");
+        chatToggleBtn.title = t("hide_chat");
+      }
+      try { localStorage.setItem("dk-chat-open", "1"); } catch (_e) { }
+      syncBackdrop(); syncHandle();
+    };
+    window.addEventListener("resize", () => { syncBackdrop(); syncHandle(); });
+    window.addEventListener("popstate", (e) => {
+      const state = e.state || {};
+      const notesOpen = notesPanelEl && notesPanelEl.classList.contains("panel-open");
+      const chatOpen = chatPanelEl && chatPanelEl.classList.contains("panel-open");
+      if (state.dkPanel === "notes") {
+        if (!notesOpen) openNotesPanel(true);
+      } else if (state.dkPanel === "chat") {
+        if (!chatOpen) openChatPanel(null, true);
+      } else {
+        if (notesOpen) closeNotesPanel(true, true);
+        if (chatOpen) closeChatPanel(true, true);
+      }
+    });
+
     if (panelToggleBtn) {
-      const panel = $("#notes-panel");
-      if (panel) {
-        const closePanel = () => {
-          panel.classList.remove("panel-open");
-          panelToggleBtn.classList.remove("panel-btn-open");
-          if (panelBackdrop) panelBackdrop.classList.remove("visible");
-          panelToggleBtn.title = "Tampilkan panel";
-        };
-        const openPanel = () => {
-          panel.classList.add("panel-open");
-          panelToggleBtn.classList.add("panel-btn-open");
-          if (panelBackdrop) panelBackdrop.classList.add("visible");
-          panelToggleBtn.title = "Sembunyikan panel";
-        };
+      if (notesPanelEl) {
         panelToggleBtn.addEventListener("click", () => {
-          panel.classList.contains("panel-open") ? closePanel() : openPanel();
+          notesPanelEl.classList.contains("panel-open") ? closeNotesPanel(true) : openNotesPanel();
         });
-        if (panelBackdrop) panelBackdrop.addEventListener("click", closePanel);
       } else {
         panelToggleBtn.style.display = "none";
       }
+    }
+    if (chatToggleBtn) {
+      if (chatPanelEl) {
+        chatToggleBtn.title = t("show_chat");
+        chatToggleBtn.addEventListener("click", () => {
+          if (chatPanelEl.classList.contains("panel-open")) {
+            closeChatPanel(true);
+          } else {
+            let prefill = null;
+            const hasNudge = chatToggleBtn.classList.contains("nudge-highlight");
+            const searchInput = document.getElementById("search-input");
+            // Kalau lewat CTA nudge (hasNudge), selalu prefill. Kalau cuma buka sidebar, biarkan kosong.
+            if (searchInput && searchInput.value.trim() && hasNudge) {
+              prefill = { q: searchInput.value.trim() };
+            }
+            if (hasNudge) {
+              chatToggleBtn.classList.remove("nudge-highlight");
+              const nudge = document.querySelector(".header-chat-nudge");
+              if (nudge) nudge.classList.remove("show");
+            }
+            openChatPanel(prefill);
+          }
+        });
+      } else {
+        chatToggleBtn.style.display = "none";
+      }
+    }
+    if (panelBackdrop) panelBackdrop.addEventListener("click", () => { closeNotesPanel(true); closeChatPanel(true); });
+
+    // API publik: buka panel chat (+prefill q/tag) --- dipakai tombol "Tanya AI" di
+    // hasil pencarian, dialog sutta, header halaman sutta, dan param ?chat=1.
+    DK.openChat = (o) => openChatPanel(o || null);
+    // API publik: buka panel Catatan via jalur resmi (dipakai addBlockToNote dll).
+    DK.openNotes = () => openNotesPanel();
+    // API publik: tutup kedua panel dock (chat + Catatan) via jalur resmi (history/backdrop
+    // ikut sinkron). Dipakai sutta.js saat klik ref di layout sempit: scroll in-page ke
+    // segmen tak berguna kalau targetnya ketutupan drawer.
+    DK.closeSidePanels = () => { closeNotesPanel(true); closeChatPanel(true); };
+
+    // Semua tombol "Tanya AI" (dulu link ke /chat) -> buka PANEL chat, tanpa pindah
+    // halaman: header sutta/suttaplex (?tag=), CTA hasil pencarian (?q=), link di
+    // dialog sutta. href lama dibiarkan sebagai fallback no-JS (redirect /chat).
+    document.addEventListener("click", (e) => {
+      const el = e.target.closest("#header-chat-ai, #sutta-dialog-chat-link, .btn-chat-ai-q, [data-chat-tag], [data-chat-q]");
+      if (!el) return;
+      e.preventDefault();
+      let tag = el.getAttribute("data-chat-tag") || null;
+      let q = el.getAttribute("data-chat-q") || null;
+      if (!q && !tag) {
+        try {
+          const u = new URL(el.getAttribute("href") || "", window.location.origin);
+          q = u.searchParams.get("q");
+          tag = u.searchParams.get("tag");
+        } catch (_err) { }
+      }
+      const dlg = document.getElementById("sutta-dialog");
+      if (dlg && dlg.open) dlg.close();   // tutup dialog biar panel chat terlihat
+      openChatPanel({ q, tag });
+    }, true);
+
+    // Param ?chat=1 (redirect dari /chat lama) --- nilai q/tag DISTASH & URL dibersihkan
+    // sinkron di parse-time (lihat _pendingChatOpen di atas) supaya index.js tak salah
+    // baca ?q= sebagai kueri pencarian.
+    if (_pendingChatOpen) {
+      openChatPanel(_pendingChatOpen);
+    } else if (localStorage.getItem("dk-chat-open") === "1" && window.innerWidth > 1200) {
+      // Inget state terakhir lintas refresh/halaman. Di layar sempit (panel =
+      // drawer overlay yang NUTUPIN konten) jangan auto-buka --- ganggu.
+      openChatPanel();
+    } else if (notesPanelEl && window.innerWidth > 900 && localStorage.getItem("dk-notes-open") !== "0") {
+      // Desktop: Catatan default TERBUKA (kompatibel perilaku lama "selalu tampil"),
+      // kecuali user terakhir menutupnya.
+      openNotesPanel();
+    } else {
+      syncHandle();   // tak ada panel terbuka -> handle resize disembunyikan
     }
 
     const themeBtn = $("#btn-theme-toggle");
@@ -3269,9 +4445,10 @@
         const panel = $("#notes-panel");
         const isFs = panel.classList.toggle("fullscreen");
         btnFullscreenNotes.classList.toggle("active", isFs);
-        btnFullscreenNotes.title = isFs ? "Perkecil" : "Layar Penuh";
-        // btnFullscreenNotes.querySelector(".icon-expand").style.display = isFs ? "none" : "";
-        //btnFullscreenNotes.querySelector(".icon-collapse").style.display = isFs ? "" : "none";
+        btnFullscreenNotes.title = isFs ? t("title_fs_exit") : t("title_fullscreen");
+        // Swap icon maximize<->minimize --- paritas tombol fullscreen panel AI Chat.
+        btnFullscreenNotes.innerHTML = `<i data-lucide="${isFs ? "minimize" : "maximize"}" class="icon-expand"></i>`;
+        if (window.lucide) window.lucide.createIcons({ root: btnFullscreenNotes });
       });
     }
     if (btnNmClose) btnNmClose.addEventListener("click", () => notesMgrDlg.close());
@@ -3295,6 +4472,13 @@
         noteBlocks.appendChild(createNoteBlockEl(state.activeNote.blocks[state.activeNote.blocks.length - 1], state.activeNote.blocks.length - 1));
         refreshIcons();
         autoSave();
+        const newEl = noteBlocks.lastElementChild;
+        if (newEl) {
+          newEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          document.querySelectorAll('.highlight-green-pulse').forEach(el => el.classList.remove('highlight-green-pulse'));
+          void newEl.offsetWidth;
+          newEl.classList.add("highlight-green-pulse");
+        }
       });
     }
 
@@ -3310,7 +4494,614 @@
     if (noteTitleInput) noteTitleInput.addEventListener("blur", autoSave);
     if (noteTitleInput) noteTitleInput.addEventListener("input", () => {
       const activeTab = document.querySelector(`.note-tab.active .note-tab-title`);
-      if (activeTab) activeTab.textContent = noteTitleInput.value || "Untitled";
+      if (activeTab) activeTab.textContent = noteTitleInput.value || (window.DK && DK.t ? DK.t("note_untitled") : "Untitled");
     });
   });
+})();
+
+/* ================================================================
+ *  Ensemble Config Manager (shared / fallback for non-index pages)
+ *  Provides engine config dialog on Chat and other pages via
+ *  the header button #btn-engine-config.
+ *  On index.html, index.js binds its own richer version to
+ *  #btn-ensemble-config; index.js also calls DK.openEnsembleManager
+ *  from there, so this code stays compatible.
+ * ================================================================ */
+(function () {
+  const $ = (s) => document.querySelector(s);
+  const t = (k) => (window.DK && DK.t) ? DK.t(k) : k;
+  const PREFS_KEY = "dk-ensemble-config";
+  const RERANK_KEY = "dk-ensemble-rerank";
+  const VALID_DB = ["id", "en", "pli"];
+  const LANG_COVERAGE = { indo: ["id"], en: ["en", "pli"], multi: ["id", "en", "pli"] };
+
+  let _categories = null;
+  let _modelLangs = {};
+  let _checkedModels = { id: [], en: [], pli: [] };
+  let _activeTab = "id";
+  let _rerank = true;
+  let _initialized = false;
+
+  function resolveModelLang(v) {
+    return _modelLangs[v] ||
+      (Object.entries(_modelLangs).find(([k]) => v.endsWith("/" + k)) || [])[1] || "";
+  }
+  function isModelValidFor(v, target) {
+    const lm = resolveModelLang(v);
+    const cov = LANG_COVERAGE[lm];
+    if (!cov) return true;
+    return cov.includes(target);
+  }
+
+  function loadPrefs() {
+    try {
+      const raw = localStorage.getItem(PREFS_KEY);
+      if (raw) _checkedModels = JSON.parse(raw);
+    } catch (e) { /* ignore */ }
+
+    ["id", "en", "pli"].forEach(k => {
+      if (!_checkedModels[k] || _checkedModels[k].length === 0) {
+        _checkedModels[k] = ["intfloat/multilingual-e5-base"];
+      }
+    });
+
+    _rerank = localStorage.getItem(RERANK_KEY) !== "false";
+  }
+  function savePrefs() {
+    localStorage.setItem(PREFS_KEY, JSON.stringify(_checkedModels));
+    localStorage.setItem(RERANK_KEY, String(_rerank));
+  }
+
+  function saveCurrentTabChecks() {
+    const cbs = document.querySelectorAll("#ensemble-checkboxes input[type=checkbox][data-corpus]");
+    const list = [];
+    cbs.forEach(cb => { if (cb.checked) list.push(cb.value); });
+    if (list.length === 0) {
+      list.push("intfloat/multilingual-e5-base");
+      if (window.DK && DK.showToast) {
+        DK.showToast(DK.getLang() === "en" ? "Cannot be empty, default model selected" : "Tidak boleh kosong, model utama otomatis dipilih");
+      }
+    }
+    _checkedModels[_activeTab] = list;
+  }
+
+  function renderCheckboxes() {
+    const box = $("#ensemble-checkboxes");
+    if (!box) return;
+    box.innerHTML = "";
+
+    if (!_categories || _categories.length === 0) {
+      box.innerHTML = `<div style="color:var(--text-muted); font-size:0.85rem;">${t("err_no_semantic_models")}</div>`;
+      return;
+    }
+    const target = _activeTab;
+    const corpusLabels = { id: "ID", en: "EN", pli: "PLI" };
+
+    function fadeRerender() {
+      box.style.transition = "opacity 0.12s ease";
+      box.style.opacity = "0";
+      setTimeout(() => {
+        renderCheckboxes();
+        requestAnimationFrame(() => { box.style.opacity = "1"; });
+      }, 120);
+    }
+
+    // Tab bar
+    const tabBar = document.createElement("div");
+    tabBar.style.cssText = "display:flex; border-bottom:2px solid var(--border); margin-bottom:10px; gap:0;";
+    ["id", "en", "pli"].forEach(corpus => {
+      const isActive = corpus === target;
+      const count = (_checkedModels[corpus] || []).length;
+      const btn = document.createElement("button");
+      btn.innerHTML = `${corpusLabels[corpus]}${count ? ` <span style="font-size:0.7rem; opacity:0.7;">(${count})</span>` : ""}`;
+      btn.style.cssText = `flex:1; padding:8px 0; border:none; cursor:pointer; font-weight:600; font-size:0.9rem; transition:all 0.15s; background:transparent; border-bottom:2px solid ${isActive ? "var(--primary)" : "transparent"}; margin-bottom:-2px; color:${isActive ? "var(--primary)" : "var(--text-muted)"};`;
+      btn.addEventListener("click", () => {
+        if (_activeTab === corpus) return;
+        saveCurrentTabChecks();
+        _activeTab = corpus;
+        fadeRerender();
+      });
+      tabBar.appendChild(btn);
+    });
+    box.appendChild(tabBar);
+
+    // Model checkboxes
+    const checkedList = _checkedModels[target] || [];
+    _categories.forEach(cat => {
+      const validModels = cat.models.filter(m => m.value !== "keyword");
+      if (validModels.length === 0) return;
+
+      const groupDiv = document.createElement("div");
+      groupDiv.style.marginBottom = "12px";
+
+      const header = document.createElement("div");
+      header.style.cssText = "font-weight:600; font-size:0.9rem; color:var(--text-secondary); margin-bottom:6px; border-bottom:1px solid var(--border); padding-bottom:4px;";
+      header.textContent = DK.catLabel(cat);
+      groupDiv.appendChild(header);
+
+      validModels.forEach(m => {
+        const isChecked = checkedList.includes(m.value) ? "checked" : "";
+        const lm = resolveModelLang(m.value);
+        const langLabels = { "multi": "MULTI", "en": "EN", "indo": "ID" };
+        const langColors = { "multi": "var(--accent)", "en": "#5b9bd5", "indo": "#e8a838" };
+        const badge = lm ? `<span style="margin-left:auto; font-size:0.7rem; font-weight:700; padding:1px 6px; border-radius:4px; background:${langColors[lm] || "var(--border)"}; color:#0f0f14; white-space:nowrap;">${langLabels[lm] || lm}</span>` : "";
+        const incompat = !isModelValidFor(m.value, target);
+        const warn = incompat ? `<i data-lucide="alert-triangle" style="width:14px; height:14px; color:var(--accent); flex:none;"></i>` : "";
+        const itemDiv = document.createElement("div");
+        itemDiv.style.cssText = `background:var(--surface-hover); padding:6px 10px; border-radius:6px; margin-bottom:4px; opacity:${incompat ? "0.55" : "1"};`;
+        itemDiv.innerHTML = `
+          <label style="display:flex; align-items:center; cursor:pointer; gap:8px; font-size:0.85rem; width:100%;">
+            <input type="checkbox" data-corpus="${target}" value="${m.value}" ${isChecked}>
+            ${warn}<span style="word-break:break-all;">${m.display}</span>${badge}
+          </label>`;
+        groupDiv.appendChild(itemDiv);
+      });
+      box.appendChild(groupDiv);
+    });
+    // Re-render lucide icons for newly added elements
+    if (window.lucide && lucide.createIcons) lucide.createIcons();
+  }
+
+  async function openManager() {
+    const dialog = $("#ensemble-manager");
+    if (!dialog) return;
+    if (dialog.showModal) dialog.showModal();
+    else dialog.classList.remove("hidden");
+
+    const box = $("#ensemble-checkboxes");
+    if (box) box.innerHTML = `<div style="text-align:center; padding:10px;"><div class="spinner" style="margin:auto;"></div></div>`;
+
+    try {
+      const [langRes, catRes] = await Promise.all([
+        fetch("/api/model-langs"),
+        fetch("/api/models")
+      ]);
+      _modelLangs = langRes.ok ? await langRes.json() : {};
+      const catData = catRes.ok ? await catRes.json() : {};
+      _categories = catData.categories || [];
+
+      loadPrefs();
+      const chk = $("#chk-enable-rerank");
+      if (chk) chk.checked = _rerank;
+      _activeTab = "id";
+      renderCheckboxes();
+    } catch (e) {
+      if (box) box.innerHTML = `<div style="color:var(--danger);">${t("err_load_config")}</div>`;
+    }
+  }
+
+  function saveManager() {
+    saveCurrentTabChecks();
+    const chk = $("#chk-enable-rerank");
+    if (chk) _rerank = chk.checked;
+    savePrefs();
+    // Also POST to server so it persists server-side
+    fetch("/api/config", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(_checkedModels)
+    }).catch(() => { });
+    const dialog = $("#ensemble-manager");
+    if (dialog) { if (dialog.close) dialog.close(); else dialog.classList.add("hidden"); }
+    if (window.DK && DK.showToast) DK.showToast(DK.getLang() === "en" ? "Configuration saved" : "Konfigurasi tersimpan");
+  }
+
+  // Expose for index.js to call if it wants
+  window.DK = window.DK || {};
+  DK.openEnsembleManager = openManager;
+
+  document.addEventListener("DOMContentLoaded", () => {
+    // Header button (available on all pages)
+    const btnEngine = $("#btn-engine-config");
+    if (btnEngine) {
+      btnEngine.addEventListener("click", () => {
+        // If index.js has already bound its own handler, let it handle.
+        // We detect this by checking if the page-specific btn exists.
+        const indexBtn = $("#btn-ensemble-config");
+        if (indexBtn) {
+          indexBtn.click();
+        } else {
+          openManager();
+        }
+      });
+    }
+
+    // Close / Save / Reset (works on all pages since dialog is in base.html)
+    const btnClose = $("#btn-close-ensemble");
+    if (btnClose) {
+      btnClose.addEventListener("click", () => {
+        const dialog = $("#ensemble-manager");
+        if (dialog) { if (dialog.close) dialog.close(); else dialog.classList.add("hidden"); }
+      });
+    }
+    // Close on click outside (backdrop)
+    const emDialog = $("#ensemble-manager");
+    if (emDialog) {
+      emDialog.addEventListener("click", (e) => {
+        if (e.target === emDialog) emDialog.close();
+      });
+    }
+    const btnSave = $("#btn-save-ensemble");
+    if (btnSave && !document.getElementById("btn-ensemble-config")) {
+      // Only bind our save if index.js hasn't bound its own
+      btnSave.addEventListener("click", saveManager);
+    }
+    const btnReset = $("#btn-reset-ensemble");
+    if (btnReset && !document.getElementById("btn-ensemble-config")) {
+      btnReset.addEventListener("click", async () => {
+        if (window.DK && DK.confirm) {
+          if (!await DK.confirm(t("confirm_reset_ensemble"))) return;
+        }
+        localStorage.removeItem(PREFS_KEY);
+        try {
+          const def = await fetch("/api/config").then(r => r.json());
+          _checkedModels = { id: def.id || [], en: def.en || [], pli: def.pli || [] };
+        } catch (e) {
+          _checkedModels = { id: [], en: [], pli: [] };
+        }
+
+        ["id", "en", "pli"].forEach(k => {
+          if (!_checkedModels[k] || _checkedModels[k].length === 0) {
+            _checkedModels[k] = ["intfloat/multilingual-e5-base"];
+          }
+        });
+
+        savePrefs();
+        renderCheckboxes();
+        if (window.DK && DK.showToast) DK.showToast(DK.getLang() === "en" ? "Reset to defaults" : "Kembali ke setelan awal");
+      });
+    }
+
+    // ── Hover Preview (Wiki-style) ──
+    const refTooltip = document.createElement("div");
+    refTooltip.className = "ref-tooltip hidden";
+    document.body.appendChild(refTooltip);
+    let tooltipTimeout;
+    let tooltipHideTimeout;
+    let tooltipAbort;
+
+    refTooltip.addEventListener("mouseenter", () => {
+      clearTimeout(tooltipHideTimeout);
+    });
+
+    // Link "Buka bagian ini" (title row) -> buka teks persis spt klik ref sumbernya: context-aware
+    // (dalam-dialog in-place / kartu -> dialog / halaman reader -> navigasi). _refPrev.bypass
+    // menembus intersepsi klik-preview di handler klik ref (kalau tidak, malah re-preview).
+    // State preview dibagi lintas-IIFE via window._dkRefPreview (dibuat IIFE pertama; intercept
+    // klik ref ada di sana). Jangan pakai variabel lokal IIFE itu langsung — tak terlihat dari sini.
+    const _refPrev = window._dkRefPreview || (window._dkRefPreview = { show: null, bypass: false });
+    const _isTouch = () => !!(window.matchMedia && window.matchMedia("(hover: none)").matches);
+
+    refTooltip.addEventListener("click", (e) => {
+      const open = e.target && e.target.closest && e.target.closest(".tooltip-open");
+      if (!open) return;
+      e.preventDefault();
+      const src = refTooltip._srcRef;
+      refTooltip.classList.add("hidden");
+      refTooltip.style.transform = "translateY(4px)";
+      if (src) { _refPrev.bypass = true; try { src.click(); } finally { _refPrev.bypass = false; } }
+    });
+
+    // Ada seleksi teks aktif DI DALAM tooltip? -> jangan tutup (biar isinya bisa di-blok & copy).
+    const _selInTooltip = () => {
+      const sel = window.getSelection && window.getSelection();
+      if (!sel || sel.isCollapsed || sel.rangeCount === 0) return false;
+      return refTooltip.contains(sel.anchorNode) || refTooltip.contains(sel.focusNode);
+    };
+
+    refTooltip.addEventListener("mouseleave", () => {
+      // Delay + cek seleksi: drag-select yang sedikit keluar tepi tak langsung membunuh tooltip,
+      // dan selama teksnya masih ke-blok, tooltip tetap hidup supaya bisa di-copy.
+      clearTimeout(tooltipHideTimeout);
+      tooltipHideTimeout = setTimeout(() => {
+        if (_selInTooltip()) return;
+        refTooltip.classList.add("hidden");
+        refTooltip.style.transform = "translateY(4px)";
+      }, 250);
+    });
+
+    document.addEventListener("click", (e) => {
+      // Klik di dalam tooltip / saat ada seleksi teks tooltip -> jangan tutup.
+      if (refTooltip.contains(e.target) || _selInTooltip()) return;
+      if (!refTooltip.classList.contains("hidden")) {
+        refTooltip.classList.add("hidden");
+        refTooltip.style.transform = "translateY(4px)";
+      }
+    });
+
+    function showRefTooltip(a, immediate) {
+      clearTimeout(tooltipTimeout);
+      clearTimeout(tooltipHideTimeout);
+      refTooltip._srcRef = a;   // dipakai link "Buka bagian ini" utk buka teks persis spt klik ref
+
+      const dlg = a.closest("dialog");
+      if (dlg && refTooltip.parentElement !== dlg) {
+        dlg.appendChild(refTooltip);
+      } else if (!dlg && refTooltip.parentElement !== document.body) {
+        document.body.appendChild(refTooltip);
+      }
+
+      const rect = a.getBoundingClientRect();
+
+      tooltipTimeout = setTimeout(async () => {
+        refTooltip.innerHTML = '<i data-lucide="loader-2" class="spin" style="width:14px;height:14px;vertical-align:-2px"></i> <span style="font-size:0.8rem;color:var(--text-muted)">Memuat...</span>';
+        if (window.lucide) window.lucide.createIcons({ root: refTooltip });
+
+        // Initial positioning below the link
+        let tx = Math.max(10, rect.left + rect.width / 2 - 175);
+        tx = Math.min(tx, window.innerWidth - 360);
+        refTooltip.style.left = tx + "px";
+        refTooltip.style.top = (rect.bottom + 8) + "px";
+        refTooltip.style.transform = "translateY(4px)";
+        refTooltip.classList.remove("hidden");
+
+        // requestAnimationFrame agar transisi jalan
+        requestAnimationFrame(() => {
+          refTooltip.style.transform = "translateY(0)";
+        });
+
+        if (tooltipAbort) tooltipAbort.abort();
+        tooltipAbort = new AbortController();
+
+        const href = a.getAttribute("href") || "";
+        const isPara = a.classList.contains("para-ref");
+        const lang = a.dataset.lang || window.DK?.getLang?.() || "id";
+
+        try {
+          let textToShow = "";
+          let titleToShow = "";
+          let htmlReady = false;   // true = textToShow sudah HTML jadi (marker ruas), jangan di-strip
+
+          // Rentang ¶ ("§md15-16" di label chip, hasil resolve_para_span) -> pratinjau
+          // GABUNGAN seluruh segmen span, bukan cuma segmen awal href. Daftar cid diturunkan
+          // dari label (sumber tunggal yg sama dgn relabel reader); md bernomor urut.
+          const _spanCids = (cid) => {
+            const mm = (a.textContent || "").match(/§\s*md(\d+)\s*-\s*(\d+)/);
+            if (!mm || !cid) return [cid];
+            const s0 = parseInt(mm[1], 10), e0 = parseInt(mm[2], 10);
+            if (!cid.endsWith(":md" + s0) || !(e0 > s0) || e0 - s0 > 12) return [cid];
+            const base = cid.split(":")[0];
+            const out = [];
+            for (let k = s0; k <= e0; k++) out.push(base + ":md" + k);
+            return out;
+          };
+          const _spanTitle = cids => cids.length > 1
+            ? cids[0] + "-" + cids[cids.length - 1].split(":").pop().replace(/^md/, "")
+            : cids[0];
+          const _cloneClean = el => {
+            const clone = el.cloneNode(true);
+            clone.querySelectorAll(".seg-tool-btn, .seg-action-btn, .segment-actions, .seg-actions, .btn-add-note, .note-action, .suttaplex-blurb-actions, .seg-add-btn, .seg-ref").forEach(x => x.remove());
+            return clone.innerHTML;
+          };
+          const _localSpanItems = cids => cids
+            .map(c => {
+              const el = document.getElementById(c) || document.getElementById("dlg-" + c);
+              return el ? { seg: c.split(":").pop(), text: _cloneClean(el) } : null;
+            }).filter(Boolean);
+          const _apiSpanItems = (segments, cids) => cids
+            .map(c => {
+              const s = (segments || []).find(sg => sg.ids && sg.ids.includes(c));
+              return s ? { seg: c.split(":").pop(), text: s.text } : null;
+            }).filter(Boolean);
+          // Susun preview multi-segmen: penanda batas antar-ruas WAJIB ada — superscript ref
+          // ala bible ("md15") bila setting kode-rujukan-ruas (show-seg-ref) nyala, kalau
+          // dimatikan user -> garis pemisah ‖ (paritas gaya reader). Segmen tunggal polos.
+          const _plainTxt = s => String(s || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+          const _escTT = (window.DK && DK.esc) ? DK.esc
+            : (s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"));
+          const _composeSpan = items => {
+            const showRef = document.documentElement.classList.contains("show-seg-ref");
+            return items.map((it, i) => {
+              const body = _escTT(_plainTxt(it.text));
+              if (items.length === 1) return body;
+              const marker = showRef
+                ? `<sup class="tt-seg-ref">${_escTT(it.seg)}</sup>`
+                : (i > 0 ? `<span class="tt-seg-sep">‖</span> ` : "");
+              return marker + body;
+            }).join(" ");
+          };
+
+          if (isPara) {
+            const cid = href.replace(/^#/, "");
+            const sid = cid.split(":")[0];
+            const cids = _spanCids(cid);
+            const localItems = _localSpanItems(cids);
+            if (localItems.length) {
+              textToShow = _composeSpan(localItems);
+              htmlReady = true;
+              titleToShow = _spanTitle(cids);
+            } else if (sid) {
+              const res = await fetch(`/api/sutta/${sid}/${lang}`, { signal: tooltipAbort.signal });
+              if (res.ok) {
+                const data = await res.json();
+                const items = _apiSpanItems(data.segments, cids);
+                if (items.length) { textToShow = _composeSpan(items); htmlReady = true; }
+                titleToShow = _spanTitle(cids);
+              }
+            }
+          } else {
+            // sutta-ref (lintas-sutta / sibling). href = "/{id}/{lang}/{author}#{cid}".
+            // Kalau ADA hash (mis. #mn51:md34) -> pratinjau SEGMEN yg dituju (bukan segmen
+            // pertama/blurb), pakai author dari path supaya nomor md cocok. Tanpa hash (target
+            // tak ter-resolve, mis. bare "/mn51/en") -> jatuh ke blurb / segmen pertama.
+            const hashIdx = href.indexOf("#");
+            const path = hashIdx >= 0 ? href.substring(0, hashIdx) : href;
+            const cid = hashIdx >= 0 ? href.substring(hashIdx + 1) : "";   // "mn51:md34"
+            const parts = path.replace(/^\//, "").split("/");              // [id, lang, author?]
+            const sid = parts[0];
+            const tlang = parts[1] || lang;
+            const tauthor = parts[2] || "";
+            // Segmen sudah ter-render lokal (page/dialog)? pakai langsung. Span range ikut.
+            const cids = cid ? _spanCids(cid) : [];
+            const localItems = cid ? _localSpanItems(cids) : [];
+            if (localItems.length) {
+              textToShow = _composeSpan(localItems);
+              htmlReady = true;
+              titleToShow = _spanTitle(cids);
+            } else if (sid) {
+              const url = tauthor
+                ? `/api/sutta/${sid}/${tlang}/${encodeURIComponent(tauthor)}`
+                : `/api/sutta/${sid}/${tlang}`;
+              const res = await fetch(url, { signal: tooltipAbort.signal });
+              if (res.ok) {
+                const data = await res.json();
+                const baseTitle = data.sutta_name ? `${data.formatted_id || sid.toUpperCase()} — ${data.sutta_name}` : (data.formatted_id || sid.toUpperCase());
+                if (cid && data.segments) {
+                  const items = _apiSpanItems(data.segments, cids);
+                  if (items.length) { textToShow = _composeSpan(items); htmlReady = true; titleToShow = _spanTitle(cids); }
+                }
+                if (!textToShow) {   // tanpa hash / segmen tak ketemu -> blurb / segmen pertama
+                  titleToShow = baseTitle;
+                  if (data.blurb) textToShow = data.blurb;
+                  else if (data.segments && data.segments.length > 0) {
+                    const firstSeg = data.segments.find(s => s.text && (!s.heading || s.heading === 0) && !s.ids.some(id => id.startsWith("0.")));
+                    if (firstSeg) textToShow = firstSeg.text;
+                  }
+                }
+              }
+            }
+          }
+
+          // Title row: judul kiri + link "Buka bagian ini" di ujung kanan (buka teks persis spt klik
+          // ref: context-aware dialog/non-dialog, via refTooltip._srcRef.click()).
+          const _href = (a.getAttribute("href") || "").replace(/"/g, "&quot;");
+          const _titleRow = `<div class="tooltip-title"><span class="tooltip-title-text">${titleToShow}</span><a class="tooltip-open" href="${_href}">${t("tooltip_open_section")}</a></div>`;
+          if (textToShow) {
+            const contentHtml = htmlReady
+              ? textToShow   // sudah HTML jadi (marker ruas per-segmen), jangan di-strip
+              : String(textToShow).replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+            refTooltip.innerHTML = `${_titleRow}<div class="tooltip-content">${contentHtml}</div>`;
+          } else {
+            refTooltip.innerHTML = `${_titleRow}<div class="tooltip-content" style="color:var(--text-muted)"><i>Tidak ada pratinjau teks tersedia.</i></div>`;
+          }
+
+          // Setelah konten termuat, pastikan letaknya tidak keluar dari batas layar
+          const ttRect = refTooltip.getBoundingClientRect();
+          let topPos = rect.bottom + 8; // Default: di bawah link
+          let leftPos = Math.max(10, rect.left + rect.width / 2 - (ttRect.width / 2));
+          leftPos = Math.min(leftPos, window.innerWidth - ttRect.width - 10);
+
+          if (topPos + ttRect.height > window.innerHeight) {
+            if (rect.top - ttRect.height - 8 > 8) {
+              // Kalau di bawah nabrak, tapi di atas cukup, taruh di atas
+              topPos = rect.top - ttRect.height - 8;
+            } else {
+              // Kalau di atas dan di bawah sama-sama sempit, geser ke samping!
+              // Sejajarkan vertikal dengan link, pastikan aman di dalam layar
+              topPos = rect.top + (rect.height / 2) - (ttRect.height / 2);
+              topPos = Math.max(8, Math.min(topPos, window.innerHeight - ttRect.height - 8));
+
+              // Coba taruh di kanan dulu, kalau nggak muat coba di kiri
+              if (window.innerWidth - rect.right > ttRect.width + 8) {
+                leftPos = rect.right + 8;
+              } else if (rect.left > ttRect.width + 8) {
+                leftPos = rect.left - ttRect.width - 8;
+              } else {
+                // Sempit banget (layar HP), mentok aja di pinggir (terpaksa nabrak dikit)
+                leftPos = Math.max(8, window.innerWidth - ttRect.width - 8);
+              }
+            }
+          }
+          // Jaga-jaga kalau tooltipnya super raksasa, jangan sampai tembus atas
+          topPos = Math.max(8, topPos);
+          refTooltip.style.top = topPos + "px";
+          refTooltip.style.left = leftPos + "px";
+        } catch (e) {
+          if (e.name !== "AbortError") {
+            refTooltip.innerHTML = '<span style="color:red">Gagal memuat pratinjau.</span>';
+          }
+        }
+      }, immediate ? 0 : 300);
+    }
+    _refPrev.show = showRefTooltip;
+
+    // Hover (desktop): tampilkan tooltip. Touch (mobile) diabaikan di sini — dipicu lewat tap
+    // (handler klik ref di atas) supaya event hover sintetis browser tak bikin tooltip kedip.
+    document.addEventListener("mouseover", (e) => {
+      if (_isTouch()) return;
+      const a = e.target && e.target.closest && e.target.closest("a.para-ref, a.sutta-ref");
+      if (a) showRefTooltip(a);
+    });
+
+    document.addEventListener("mouseout", (e) => {
+      if (_isTouch()) return;
+      const a = e.target && e.target.closest && e.target.closest("a.para-ref, a.sutta-ref");
+      if (!a) return;
+      clearTimeout(tooltipTimeout);
+      if (tooltipAbort) { tooltipAbort.abort(); tooltipAbort = null; }
+
+      tooltipHideTimeout = setTimeout(() => {
+        refTooltip.classList.add("hidden");
+        refTooltip.style.transform = "translateY(4px)";
+      }, 250);
+    });
+
+    document.addEventListener("click", (e) => {
+      const a = e.target && e.target.closest && e.target.closest("a.para-ref, a.sutta-ref");
+      if (a) {
+        return;
+      }
+      // Klik di dalam tooltip / saat menyeleksi teksnya -> biarkan (bisa select & copy).
+      if (refTooltip.contains(e.target) || _selInTooltip()) return;
+      clearTimeout(tooltipTimeout);
+      if (tooltipAbort) { tooltipAbort.abort(); tooltipAbort = null; }
+      refTooltip.classList.add("hidden");
+    }, true);
+  });
+})();
+
+/* ==========================================================================
+   Skeleton transisi navigasi (suttaplex & reader).
+   Klik link menuju halaman KONTEN (full-page nav) -> tampilkan overlay skeleton
+   (#nav-skeleton) selama browser nunggu halaman baru; overlay ke-buang otomatis
+   pas halaman baru render (fresh doc tanpa class) atau saat restore bfcache.
+   Progressive enhancement murni: TAK ada preventDefault -> nav standar tetap jalan,
+   JS mati pun aman. Bukan SPA (tanpa fetch/routing). ====================== */
+(function () {
+  // First-segment path yg BUKAN halaman konten (suttaplex/reader) -> jgn tampilkan.
+  const NON_CONTENT = new Set(["", "browse", "chat", "tentang", "res", "api", "static", "bu", "bi"]);
+
+  function isContentPath(pathname) {
+    const seg = pathname.split("/").filter(Boolean);
+    // HANYA suttaplex (1 segmen, mis. /mn10). Reader (/mn10/id[/author], 2+ segmen)
+    // JANGAN: dia punya skeleton sendiri (#sutta-loading) -> kalau overlay ini ikut
+    // nyala jadinya dobel skeleton ("skeleton suttaplex" sekejap lalu ganti skeleton
+    // reader = kedip aneh). Bentuk overlay ini pun bentuk suttaplex.
+    if (seg.length !== 1) return false;
+    return !NON_CONTENT.has(seg[0].toLowerCase());
+  }
+
+  let _navTimer = null;
+  function showNavSkeleton() {
+    document.body.classList.add("is-navigating");
+    // Jaring pengaman: kalau nav ke-batal/gantung, buang overlay biar ga nyangkut.
+    clearTimeout(_navTimer);
+    _navTimer = setTimeout(() => document.body.classList.remove("is-navigating"), 10000);
+  }
+  function hideNavSkeleton() {
+    clearTimeout(_navTimer);
+    document.body.classList.remove("is-navigating");
+  }
+
+  // BUBBLE phase + cek defaultPrevented: kalau handler lain (mis. buka dialog/chooser)
+  // udah preventDefault, kita nurut & ga munculin skeleton (klik itu bukan nav).
+  document.addEventListener("click", (e) => {
+    if (e.defaultPrevented) return;
+    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const a = e.target && e.target.closest && e.target.closest("a[href]");
+    if (!a) return;
+    if (a.target === "_blank" || a.hasAttribute("download")) return;
+    const rawHref = a.getAttribute("href") || "";
+    if (rawHref.startsWith("#") || /^[a-z]+:/i.test(rawHref) && !/^https?:/i.test(rawHref)) return; // #hash, mailto:, javascript:, tel:
+    let url;
+    try { url = new URL(a.href, location.href); } catch (_) { return; }
+    if (url.origin !== location.origin) return;                       // eksternal
+    if (url.pathname === location.pathname && url.search === location.search) return; // halaman sama (paling hash doang)
+    if (!isContentPath(url.pathname)) return;
+    showNavSkeleton();
+  });
+
+  // Restore bfcache (tombol Back/Forward): halaman lama muncul lagi -> pastikan
+  // overlay ga ke-restore ikut kebuka.
+  window.addEventListener("pageshow", hideNavSkeleton);
 })();

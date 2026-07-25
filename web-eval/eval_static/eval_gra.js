@@ -8,6 +8,15 @@
 (function () {
   "use strict";
 
+  // ╔══════════════════════════════════════════════════════════════════════╗
+  // ║  SAKLAR KUNCI EVALUASI  —  cukup ganti true/false di baris ini saja. ║
+  // ║    true  = tombol "Mulai Asesmen" TERKUNCI + info "SUDAH BERAKHIR".  ║
+  // ║    false = evaluasi jalan normal (buka kembali).                     ║
+  // ║  UI tetap utuh; yg dikunci hanya aksi mulai/lanjut menilai.          ║
+  // ╚══════════════════════════════════════════════════════════════════════╝
+  const EVAL_LOCKED = true;
+  const EVAL_LOCKED_MSG = "SUDAH BERAKHIR PER 24 JUNI 2026";
+
   // Crossing logic: model lang_mode -> valid corpora untuk asesmen pakar.
   // PLI dikecualikan dari asesmen pakar — dinilai via evaluasi intrinsik saja.
   const CORPUS_MAP = {
@@ -60,7 +69,7 @@
       lbl_grade: "Nilai",
       no_results_eval: "Tidak ada hasil ditemukan.",
       done_title: "Asesmen Selesai!",
-      done_body: "Terima kasih atas partisipasi Anda. Data penilaian telah tersimpan. Sampai jumpa di Evaluasi 2.",
+      done_body: "Terima kasih atas partisipasi Anda. Data penilaian telah tersimpan.",
       done_lbl_expert: "Pakar",
       done_lbl_type: "Tipe",
       done_lbl_steps: "langkah",
@@ -419,6 +428,16 @@
   function updateStartInfo() {
     const info = $("#eval-start-info");
     const startBtn = $("#btn-eval-start");
+    if (EVAL_LOCKED) {
+      if (startBtn) {
+        startBtn.disabled = true;
+        startBtn.classList.add("btn-locked");
+        startBtn.innerHTML = '<i data-lucide="lock"></i> Mulai Asesmen';
+        refreshIcons();
+      }
+      if (info) info.textContent = EVAL_LOCKED_MSG;
+      return;
+    }
     if (!info) return;
     if (state.totalSteps > 0 && state.selectedCorpus) {
       const corpusLabel = state.selectedCorpus.toUpperCase();
@@ -490,6 +509,7 @@
 
     if (startBtn) {
       startBtn.addEventListener("click", () => {
+        if (EVAL_LOCKED) return;   // saklar kunci: tombol Mulai mati
         if (!state.expert) { focusExpertPicker(); return; }
         if (!state.selectedCorpus) { DK.alert(t("alert_corpus")); return; }
         if (!state.steps.length) return;
@@ -528,6 +548,7 @@
 
   // ========== Start evaluation ==========
   async function startEval() {
+    if (EVAL_LOCKED) { updateStartInfo(); return; }   // saklar kunci: cegah mulai/auto-resume
     state.phase = "grading";
     $("#eval-intro").classList.add("hidden");
     $("#eval-grading").classList.remove("hidden");
@@ -803,13 +824,31 @@
       }
     });
 
-    // Debt mode STRICT: Hanya jika sedang Review Mode
-    const isDebtMode = state.isReviewMode && preGradedCount > 0 && preGradedCount < passages.length;
+    // Debt mode: sembunyiin pasase yg SUDAH dinilai tiap masuk kueri yg cuma terisi sebagian
+    // (mode isi-lubang) — bukan cuma pas Review Mode. Pakar ga perlu scroll lewatin yg udah
+    // dinilai; cukup yg kosong yg nongol. First-pass (preGraded=0) -> semua tampil spt biasa.
+    const isDebtMode = preGradedCount > 0 && preGradedCount < passages.length;
 
     if (isDebtMode) {
       const banner = document.createElement("div");
       banner.className = "eval-debt-banner";
       banner.innerHTML = `<i data-lucide="info"></i> <span>Menyembunyikan ${preGradedCount} pasase yang sudah dinilai sebelumnya.</span>`;
+      const toggleBtn = document.createElement("button");
+      toggleBtn.type = "button";
+      toggleBtn.className = "btn-secondary eval-show-hidden-btn";
+      toggleBtn.style.marginLeft = "auto";
+      toggleBtn.textContent = "Tampilkan pasase yang disembunyikan";
+      let shown = false;
+      toggleBtn.addEventListener("click", () => {
+        shown = !shown;
+        container.querySelectorAll('.sutta-card[data-graded-hidden="1"]').forEach((c) =>
+          c.classList.toggle("eval-hidden-graded", !shown)
+        );
+        toggleBtn.textContent = shown
+          ? "Sembunyikan pasase yang disembunyikan"
+          : "Tampilkan pasase yang disembunyikan";
+      });
+      banner.appendChild(toggleBtn);
       container.appendChild(banner);
     }
 
@@ -825,9 +864,6 @@
         state.grades[sKey][displayIdx] = savedForStep[passageRef];
       }
 
-      if (isDebtMode && isGraded) {
-        fragEl.classList.add("eval-hidden-graded");
-      }
 
       // Grade row
       const gradeRow = document.createElement("div");
@@ -902,6 +938,12 @@
 
       const card = document.createElement("div");
       card.className = "sutta-card";
+      // Sembunyiin SATU unit penuh (kartu + kotak nilai + sources), bukan cuma teks pasase —
+      // dulu class nempel di fragEl doang jadi kotak penilaian nyangkut melayang.
+      if (isDebtMode && isGraded) {
+        card.classList.add("eval-hidden-graded");
+        card.dataset.gradedHidden = "1";   // ditandai biar tombol "Tampilkan yg disembunyikan" bisa toggle
+      }
       const header = document.createElement("div");
       header.className = "sutta-card-header";
       const nameSpan = sutta.sutta_name ? ` <span class="sutta-card-name">${DK.esc(sutta.sutta_name)}</span>` : "";
@@ -958,10 +1000,9 @@
     const nextBtns = $$(".btn-eval-next");
     const infos = $$(".eval-nav-info");
 
-    const isDemo = (state.expert || "").toLowerCase().includes("demo");
     const topNav = $("#eval-nav-top");
     if (topNav) {
-      topNav.style.display = isDemo ? "" : "none";
+      topNav.style.display = "";   // tombol next/prev atas tampil utk SEMUA pakar (dulu demo-only)
     }
 
     prevBtns.forEach(btn => btn.disabled = state.stepIndex === 0);
@@ -1045,7 +1086,12 @@
         showDone();
       }
     } else {
-      goToStep(state.stepIndex + 1);
+      // Lompat ke kueri belum-selesai berikutnya (skip yg sudah komplit). Pas fase isi-lubang
+      // pakar ga perlu klik Next berkali-kali lewatin kueri penuh. Saat first-pass semua step
+      // masih incomplete -> findFirstIncompleteStep(i+1) == i+1 == perilaku lama (sekuensial).
+      const nextInc = findFirstIncompleteStep(state.stepIndex + 1);
+      if (nextInc === -1) showDone();
+      else goToStep(nextInc);
     }
   }
 

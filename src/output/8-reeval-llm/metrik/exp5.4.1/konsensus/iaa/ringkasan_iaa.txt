@@ -1,0 +1,7 @@
+=== IAA antar LLM judge (Cohen kappa quadratic) ===
+Judge: Claude_Opus_4.8, Gemini_3.1_Pro
+Rata-rata kappa: 0.6432
+
+Interpretasi: <0.2 buruk, 0.2-0.4 cukup, 0.4-0.6 sedang, 0.6-0.8 baik, >0.8 sangat baik.
+
+  Claude_Opus_4.8 vs Gemini_3.1_Pro: kappa=0.6432, setuju=0.4872, n=702

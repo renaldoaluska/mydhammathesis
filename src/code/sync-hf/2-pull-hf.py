@@ -50,9 +50,12 @@ def pull_models():
         folder = name[len(_PREFIX):]                            # gpl-<model>
         if not folder.startswith("gpl"):                        # base model: pakai 6-get-base-models
             continue
-        local = config.MODELS_DIR / folder
+        if any(x in folder for x in ["exp1", "exp2", "exp3", "exp4", "exp5", "exp6"]):
+            local = config.OUTPUT_DIR / "7-retraining" / "models" / folder
+        else:
+            local = config.MODELS_DIR / folder
         local.mkdir(parents=True, exist_ok=True)
-        print(f"  > {folder} ...", end=" ", flush=True)
+        print(f"  > {folder} -> {local} ...", end=" ", flush=True)
         snapshot_download(repo_id=repo, repo_type="model", local_dir=str(local))
         print("done.")
         found += 1

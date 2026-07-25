@@ -7,24 +7,24 @@
 <span class="header-subtitle">Pembaca Teks</span>
 {% endblock %}
 
-{# Tombol Tanya AI di header auto-tag sutta yg sedang dibuka (fungsionalitas in-body lama). #}
-{% block header_action %}
-<a href="/chat?tag={{ sutta_id }}" id="header-chat-ai" class="btn-chat-ai" title="Tanya AI">
-    <i data-lucide="sparkles"></i> <span data-i18n="btn_chat_ai">Tanya AI</span>
-</a>
-{% endblock %}
+
 
 {% block main_panel %}
+<div class="reader-sticky-wrap" id="reader-sticky-wrap">
+<div class="reader-nav-collapsible" id="reader-nav-collapsible">
 <div class="breadcrumbs-outer" id="sutta-breadcrumbs-outer" style="display:none">
     <nav id="sutta-breadcrumbs" class="suttaplex-breadcrumbs" aria-label="Breadcrumb"></nav>
 </div>
 <div class="sutta-dialog-header" id="reader-header">
     <div class="sutta-header-top">
-        <a href="/{{ sutta_id }}" class="sp-back-btn" title="Kembali ke {{ sutta_id|upper }}">
+        <a href="/{{ sutta_id }}" class="sp-back-btn" data-i18n-title="title_back" title="Kembali ke {{ sutta_id|upper }}">
             <i data-lucide="arrow-left"></i>
         </a>
         <h2 id="reader-subtitle"></h2>
         <div class="sutta-dialog-actions" style="margin-left:auto;">
+            <button id="sutta-page-chat-btn" class="sutta-dialog-open-btn btn-chat-ai" data-chat-tag="{{ sutta_id }}" data-i18n-title="btn_chat_ai" title="Tanya AI" style="margin-right: 8px;">
+                <i data-lucide="sparkles"></i><span class="sutta-dialog-open-label" data-i18n="btn_chat_ai">Tanya AI</span>
+            </button>
             <button id="reader-page-settings-btn" class="sutta-dialog-open-btn" data-i18n-title="rs_title"
                 title="Setelan">
                 <i data-lucide="settings-2"></i><span class="sutta-dialog-open-label"
@@ -33,6 +33,7 @@
         </div>
     </div>
 </div>
+</div>
 <div class="reader-controls-sticky" id="reader-controls-sticky">
     <div class="sutta-dialog-controls">
         <div class="reader-controls-row">
@@ -40,6 +41,7 @@
         </div>
         <div class="sutta-dialog-display-toggle" id="reader-display-toggle"></div>
     </div>
+</div>
 </div>
 {% if prev_sutta or next_sutta %}
 <div class="sp-nav sutta-sp-nav">
@@ -66,7 +68,7 @@
 </div>
 {% endif %}
 <div id="sutta-content">
-    <div id="sutta-loading" style="padding: 24px; max-width: 800px; margin: 0 auto; width: 100%; pointer-events: none;">
+    <div id="sutta-loading" style="padding: 8px 12px 24px; width: 100%; pointer-events: none;">
         <!-- Title Skeleton -->
         <div style="animation: skeleton-pulse 1.5s infinite ease-in-out; margin-bottom: 32px;">
             <div
@@ -156,7 +158,7 @@
     <div id="toc-fab" class="toc-fab hidden" data-i18n-title="toc_title" title="Daftar Isi">
         <i data-lucide="list"></i>
     </div>
-    <button id="notes-fab" class="toc-fab notes-fab-desktop" title="Sembunyikan catatan">
+    <button id="notes-fab" class="toc-fab notes-fab-desktop" data-i18n-title="hide_notes" title="Sembunyikan catatan">
         <i data-lucide="panel-right-close" id="notes-fab-icon"></i>
     </button>
 </div>

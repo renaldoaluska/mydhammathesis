@@ -19,39 +19,106 @@ Referensi/Sitasi:
 Wang, K., Thakur, N., Reimers, N., & Gurevych, I. (2022). GPL: Generative Pseudo Labeling for Unsupervised Domain Adaptation of Dense Retrieval. NAACL.
 
 =============================================================================
-BAGIAN 2: MODEL KOMPONEN mGPL (Berdasarkan Paper Asli)
+BAGIAN 2: MODEL KOMPONEN mGPL (Substitusi Multilingual atas Komponen Paper)
 =============================================================================
-Pemilihan model di bawah ini mengikuti "Golden Standard" dari paper mGPL:
-- Query Generator: doc2query/msmarco-14langs-mt5-base-v1 (~580M) 
-  (Model mT5 multibahasa untuk menghasilkan pertanyaan generatif yang natural).
+CATATAN JUJUR: tidak ada "paper mGPL" terpisah. Paper GPL asli (Wang et al.
+2022) memakai komponen English-only; korpus kami en+id sehingga tiap komponen
+WAJIB diganti counterpart multilingual-nya. Pemetaan + landasan:
+- Query Generator: doc2query/msmarco-14langs-mt5-base-v1 (~580M)
+  (pengganti DocT5Query T5-EN paper; keluarga doc2query yang sama, dilatih
+   pada mMARCO 14 bahasa termasuk Indonesia).
 - Cross-Encoder  : cross-encoder/mmarco-mMiniLMv2-L12-H384-v1 (~118M)
-  (Model mMARCO untuk memberikan skor pseudo-label/MarginMSE dengan efisien).
+  (pengganti ms-marco-MiniLM-L-6-v2 EN paper; counterpart mMARCO resmi).
 - Retriever (Neg): intfloat/multilingual-e5-base
-  (Digunakan untuk mencari teks pengecoh atau 'Hard Negatives').
+  (pengganti DUA retriever EN paper: msmarco-distilbert-base-v3 +
+   msmarco-MiniLM-L-6-v3. Landasan 2->1 retriever: keduanya EN-only, tak ada
+   pasangan mMARCO setara; false-negative tetap ditangani margin CE + safeguard
+   tambahan. Rincian: catatan_perbedaan.txt B.5).
+Daftar lengkap deviasi vs paper + landasan tiap poin: catatan_perbedaan.txt
+(bagian B); yang konform persis: bagian D.
 
 =============================================================================
 BAGIAN 3: PARAMETER PEMBUATAN DATA SINTETIS
 =============================================================================
 - Target Bahasa  : Inggris (en) dan Indonesia (id). (Pali murni tidak di-GPL).
-- Jumlah Query   : 3 query per passage/chunk.
+- Jumlah Query   : 3 query per passage/chunk (TARGET config).
+  REALISASI: 563.073 kueri / 189.367 pasase = 2,97 rata-rata (sebagian pasase
+  sisa <3 kueri setelah filter). 189.367 x 3 = 568.101 != 563.073 → NORMAL.
+  LANDASAN: persis Method paper ("three queries") DAN persis rumus paper
+  qavg=ceil(250K/|C|) floor 3 untuk korpus kami |C|=189.367 pasase.
+  AWAS: "generate 4 queries" di PDF Sec. 4.1 = footnote nempel (fn.4 = script
+  BeIR), bukan jumlah kueri (catatan_query_gen.txt).
+- Ukuran Korpus  : PENUH 189.367 pasase, TANPA downsample.
+  CATATAN JUJUR: ini DEVIASI dari paper (3 x 189.367 = 568.101 > 250.000 →
+  aturan paper mestinya downsample ke ~83.333). Landasan: aturan downsample =
+  normalisasi budget generate antar-dataset BEIR, bukan syarat metodologis;
+  Table 2 paper: jenuh di >=50K pasase. Rincian: catatan_perbedaan.txt B.9.
 - Hard Negatives : 1 negatif per query (diambil acak dari Top-50 hasil pencarian, melewati Top-1 untuk hindari false negative).
+  LANDASAN: Top-50 sama dgn paper; paper pakai 2 retriever EN -> kami 1
+  retriever multilingual (catatan_perbedaan.txt B.5); 1 negatif tetap per
+  query ekuivalen skema sampling paper pada budget <1 epoch (B.7).
 
 =============================================================================
 BAGIAN 4: PARAMETER FINE-TUNING (MARGIN-MSE LOSS)
 =============================================================================
 - Training Steps : 10.000 langkah
-- Max Seq Length : 384 token (berdasarkan P99 panjang teks sutta, hemat memori)
+  LANDASAN: keterbatasan WAKTU komputasi (BUKAN VRAM — lihat koreksi di bawah).
+  Paper 140k steps, saturasi ~100K (Fig. 2). 10k x 32 = 320K contoh < 563K
+  triple → < 1 epoch. LIMITASI yang DIAKUI (hasil bukan ceiling GPL) —
+  rincian: catatan_perbedaan.txt B.6.
+
+  ⚠ KOREKSI ATRIBUSI (2026-07-16): versi lama menulis "10k = batas compute
+  RTX A2000 12GB" → SALAH SASARAN. VRAM membatasi BATCH, bukan JUMLAH LANGKAH.
+  Batch 32 kami MUAT penuh (train_meta.json: grad_accum=1, fallback tak kepicu)
+  → 140k langkah BISA jalan di 12GB, hanya butuh waktu lama.
+  ANGKA NYATA (duration_sec di train_meta.json):
+    e5  : 10k = 3,11 jam → 140k = 43,5 jam (1,8 hari)
+    gte : 10k = 3,96 jam → 140k = 55,5 jam (2,3 hari)
+    dua model @140k = 99 jam = 4,1 hari nonstop
+    exp0+exp2+exp3 semua @140k = ~12 hari nonstop
+  Tulis "keterbatasan waktu komputasi", JANGAN "kapasitas memori GPU" —
+  penguji bisa membantah bahwa 12GB memang cukup untuk 140k langkah.
+- Max Seq Length : 384 token (paper: 350; 384 = P99 panjang token chunk
+  korpus kami ~375 -> ~99% pasase utuh; landasan data korpus, bukan paper)
 - Optimizer      : adamw_8bit (dipadukan dengan presisi bf16 dan tf32, sangat efisien untuk VRAM 12GB di RTX A2000)
 - Learning Rate  : 1e-5
 - Warmup Ratio   : 0.1
+  CATATAN: paper TIDAK menspesifikasi optimizer/lr/warmup -> tiga nilai di
+  atas keputusan sendiri, bukan deviasi dari klaim paper (mustahil menyimpang
+  dari nilai yang tak pernah disebut).
+
+  ⚠ KOREKSI ATRIBUSI (2026-07-16): versi lama catatan ini menulis ketiganya
+  "keputusan utk VRAM 12GB" -> SALAH utk 2 dari 3. Atribusi yang benar:
+    - adamw_8bit : BENAR karena VRAM (status optimizer 8-bit ~4x lebih hemat
+                   memori daripada AdamW presisi penuh).
+    - lr 1e-5    : BUKAN karena VRAM (learning rate nol pengaruh ke memori).
+                   Alasan sesungguhnya: nilai konservatif utk fine-tuning model
+                   terlatih, agar tak bergeser jauh dari representasi base.
+    - warmup 0.1 : BUKAN karena VRAM. Praktik standar stabilisasi awal training.
+  Jangan tulis "learning rate disesuaikan kapasitas GPU" di skripsi — penguji
+  akan menagih hubungannya, dan hubungan itu tidak ada.
+
+  KEJUJURAN PENGARUH: ketiga nilai ini MEMANG memengaruhi hasil pelatihan
+  (lr terutama). Klaim yang sah BUKAN "tidak berpengaruh", melainkan
+  "TERKONTROL": verifikasi train_meta.json 8 model (exp0 e5/gte, exp1-3 e5/gte)
+  -> lr=1e-05, warmup=0.1, wd=0.01, optim=adamw_8bit IDENTIK di semua; hanya
+  `steps` yang berbeda (exp1=5k, sisanya 10k) dan itu variabel yang disengaja.
+  -> Tidak mencemari perbandingan INTERNAL (base vs exp0 vs exp1-4).
+  -> Konsekuensi diakui: angka absolut kami tak bisa disandingkan langsung
+     dengan angka BEIR paper (domain/bahasa/korpus beda total).
 - Weight Decay   : 0.01
 - Random Seed    : 42
 
 =============================================================================
 BAGIAN 5: SISTEM PENCEGAH OOM (AUTO-RETRY BATCHING)
 =============================================================================
-Karena keterbatasan VRAM 12 GB, sistem menerapkan strategi auto-fallback ukuran batch yang diimbangi dengan Gradient Accumulation agar proses matematika tidak berubah:
-- Opsi 1: Batch 32 (Accumulation 1) -> Target Utama
+Karena keterbatasan VRAM 12 GB, sistem menerapkan strategi auto-fallback ukuran batch yang diimbangi dengan Gradient Accumulation agar proses matematika tidak berubah.
+
+FAKTA RUN ASLI (train_meta.json, verifikasi 2026-07-15): fallback TIDAK PERNAH
+kepicu. Kedua model (e5 & gte) latih di batch_size=32, grad_accum=1, eff_batch=32
+→ PERSIS batch 32 paper. Daftar di bawah = mekanisme cadangan, bukan yang terjadi.
+
+- Opsi 1: Batch 32 (Accumulation 1) -> Target Utama [<- INI yang terpakai]
 - Opsi 2: Batch 16 (Accumulation 2) -> Jika OOM turun ke sini
 - Opsi 3: Batch 8  (Accumulation 4) -> Jika OOM turun ke sini
 - Opsi 4: Batch 4  (Accumulation 8) -> Jika OOM turun ke sini

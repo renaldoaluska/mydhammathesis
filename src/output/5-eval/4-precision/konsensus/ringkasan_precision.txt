@@ -1,0 +1,9 @@
+=== P@5 + MRR@5 (relevan grade>=2) [KONSENSUS] ===
+Pakar: Aryanto_Firnadi__M_A___B_Dh__, Dr__Amita_Wardhani__S_Pd_B___M_Pd_, Dr__Hastho_Bramantyo__S_Fil___M_A_, Dr__Suranto__S_Ag___M_A_
+
+   1. P@5=0.4467 MRR=0.6083 (tanpa heading)  gte-multilingual-base (B,ID)
+   2. P@5=0.4467 MRR=0.6556 (tanpa heading)  multilingual-e5-base (B,ID)
+   3. P@5=0.3667 MRR=0.5153 (tanpa heading)  gpl-gte-multilingual-base (GPL,ID)
+   4. P@5=0.3200 MRR=0.5694 (tanpa heading)  gpl-multilingual-e5-base (GPL,ID)
+   5. P@5=0.3103 MRR=0.5086 (tanpa heading)  bge-m3 (B,ID)
+   6. P@5=0.2467 MRR=0.4678 (tanpa heading)  BM25 (B,ID)

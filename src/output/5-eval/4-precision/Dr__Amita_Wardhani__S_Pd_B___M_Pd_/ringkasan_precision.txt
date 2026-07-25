@@ -1,0 +1,9 @@
+=== P@5 + MRR@5 (relevan grade>=2) [Dr. Amita Wardhani, S.Pd.B., M.Pd.] ===
+Pakar: Dr__Amita_Wardhani__S_Pd_B___M_Pd_
+
+   1. P@5=0.6000 MRR=0.7300 (tanpa heading)  multilingual-e5-base (B,ID)
+   2. P@5=0.5533 MRR=0.6644 (tanpa heading)  gpl-gte-multilingual-base (GPL,ID)
+   3. P@5=0.5533 MRR=0.8083 (tanpa heading)  gte-multilingual-base (B,ID)
+   4. P@5=0.5133 MRR=0.7150 (tanpa heading)  gpl-multilingual-e5-base (GPL,ID)
+   5. P@5=0.4276 MRR=0.5575 (tanpa heading)  bge-m3 (B,ID)
+   6. P@5=0.4200 MRR=0.7050 (tanpa heading)  BM25 (B,ID)

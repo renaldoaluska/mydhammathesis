@@ -1,0 +1,101 @@
+================================================================================
+RANGKUMAN ANALISIS — EKSPERIMEN exp1 (ABLASI HYPERPARAM, GPL 5000 steps)
+================================================================================
+Tanggal eval   : 2026-07-01   (REVISI BESAR: baseline diperbaiki ke 30 KUERI PENUH)
+Hipotesis exp1 : GPL (10000 steps) sedikit OVER-adapt -> "sentuhan lebih ringan"
+                 (5000 steps dari base) diharapkan mempertahankan retrieval base
+                 sambil menahan sebagian gain intrinsik.
+Instrumen      : LLM-as-judge KONSENSUS Claude Opus 4.8 + Gemini 3.1 Pro,
+                 rubrik TREC 0-3, 30 kueri pakar HELD-OUT (korpus ID). Proxy
+                 tervalidasi thd pakar. Grade base/GPL/exp1 dari judge yg SAMA
+                 -> apple-to-apple antar-versi.
+Sumber angka   : output/8-reeval-llm/metrik/exp1/konsensus/*_per_query.csv +
+                 signifikansi.txt (dihitung ulang & diverifikasi).
+
+!!! KOREKSI CAKUPAN (BEDA DARI DRAF SEBELUMNYA) -------------------------------
+  Draf lama membatasi banding ke 22 kueri krn baseline "seolah" cuma 22. Itu
+  KELIRU: penyebabnya artefak perakitan (anotasi-llm CSV basi mentok Q22),
+  padahal grade LLM round-1 SUDAH mencakup Q1-30 utk semua model. Setelah
+  anotasi-llm di-assemble ulang dari grades asli, baseline kini 30 kueri penuh.
+  -> SEMUA banding di bawah kini 30-vs-30 PAIRED (adil, apple-to-apple).
+  -> bge-m3 = 29 kueri (1 kueri tak ada retrieval, sama spt eval pakar).
+  -> 12 pasase divergen (retrieval vs cache) belum ter-grade; dampak dapat
+     diabaikan (12 dari 614 pasase unik).
+--------------------------------------------------------------------------------
+
+0. VALIDITAS INSTRUMEN (IAA antar-judge)
+--------------------------------------------------------------------------------
+  Cohen kappa (quadratic) Claude vs Gemini = 0.6440
+  -> "baik" (0.6-0.8). Konsensus dipakai sbg dasar (robust thd gaya judge).
+
+1. nDCG@5 — 30 kueri (paired, konsensus)
+--------------------------------------------------------------------------------
+  Peringkat penuh:
+    1. 0.7199  multilingual-e5-base (B)
+    2. 0.6796  gte-multilingual-base (B)
+    3. 0.6456  bge-m3 (B)
+    4. 0.6177  gpl-gte-multilingual-base (GPL)
+    5. 0.6104  gpl-multilingual-e5-base (exp1)
+    6. 0.6004  BM25 (B)
+    7. 0.5927  gpl-gte-multilingual-base (exp1)
+    8. 0.5888  gpl-multilingual-e5-base (GPL)
+  Per keluarga:
+    e5 : base 0.7199 > exp1 0.6104 > GPL 0.5888
+    gte: base 0.6796 > GPL  0.6177 > exp1 0.5927   <- exp1 TERBAWAH
+  -> base murni terbaik utk dua keluarga. exp1 TIDAK mengungguli base.
+
+2. P@5 — 30 kueri (paired)
+--------------------------------------------------------------------------------
+    e5 : base 0.6667 > exp1 0.5067 > GPL 0.4800
+    gte: base 0.6000 > GPL  0.5400 > exp1 0.5000   <- exp1 TERBAWAH
+  -> base terbaik; exp1 di bawah base utk dua keluarga.
+
+3. UJI SIGNIFIKANSI — exp1 vs base (B), Wilcoxon paired per-kueri
+--------------------------------------------------------------------------------
+  nDCG@5 : gte n=30 d=-0.0869 p=0.0752 (ns, mepet)
+           e5  n=30 d=-0.1095 p=0.0118 **SIGNIFIKAN LEBIH BURUK**
+           GABUNGAN 22/37 menang/kalah, sign-test p=0.0674 (ns, mepet)
+  P@5    : gte n=30 d=-0.1000 p=0.0659 (ns, mepet)
+           e5  n=30 d=-0.1600 p=0.0033 **SIGNIFIKAN LEBIH BURUK**
+           GABUNGAN 12/29 menang/kalah, sign-test p=0.0115 **SIGNIFIKAN**
+  Spear. : gte n=23 d=+0.1193 p=0.5399 (ns) ; e5 n=23 d=+0.0085 p=0.8838 (ns)
+  -> exp1 REGRESI signifikan dari base pada e5 (nDCG & P@5) dan pada P@5 gabungan.
+     Tidak ada satu pun kemenangan signifikan exp1 atas base.
+     (Catatan: pada 22 kueri hanya e5 P@5 yg signifikan; dgn 30 kueri penuh
+      bukti regresi MENGUAT, bukan melemah.)
+
+4. UJI SIGNIFIKANSI — exp1 vs GPL, Wilcoxon paired per-kueri
+--------------------------------------------------------------------------------
+  nDCG@5 : gte n=30 d=-0.0250 p=0.0479 (SIGNIFIKAN, condong GPL) ; e5 n=30 d=+0.0217 p=0.4386 (ns)
+  P@5    : gte n=30 d=-0.0400 p=0.0433 (SIGNIFIKAN, condong GPL) ; e5 n=30 d=+0.0267 p=1.0000 (ns)
+  Spear. : gte n=24 d=+0.0337 p=0.9058 (ns) ; e5 n=22 d=+0.0419 p=0.6012 (ns)
+  -> Arah MIXED: gte SIGNIFIKAN condong GPL (nDCG p=0.048 & P@5 p=0.043 pro-GPL),
+     e5 sedikit condong exp1 tapi tak signifikan. NET: exp1 TIDAK mengalahkan GPL;
+     utk gte malah signifikan di bawah GPL.
+
+================================================================================
+KESIMPULAN
+================================================================================
+1. exp1 GAGAL memberi peningkatan. Pada 30 kueri penuh, exp1:
+   - SIGNIFIKAN LEBIH BURUK dari base di e5 (nDCG p=0.0118, P@5 p=0.0033) dan
+     di P@5 gabungan (p=0.0115),
+   - tidak berbeda signifikan dari base di gte & di Spearman (gte nDCG/P@5 mepet,
+     p=0.075/0.066 -> arah negatif kuat),
+   - TIDAK mengalahkan GPL; utk gte malah SIGNIFIKAN di bawah GPL
+     (nDCG p=0.048, P@5 p=0.043).
+2. base murni (tanpa GPL) tetap terbaik di nDCG@5 & P@5 utk dua keluarga.
+   Menurunkan langkah GPL (10000->5000) tidak memulihkan retrieval base, juga
+   tidak mengalahkan GPL penuh.
+3. Hipotesis "over-adapt karena terlalu banyak langkah" TIDAK terdukung; exp1
+   (langkah lebih sedikit) tetap merosot dari base, bahkan signifikan pd e5.
+4. Rekomendasi: jangan adopsi exp1. Ungkit yang menjanjikan ada di KUALITAS DATA
+   (exp2: hard-negative bersih) & GENERASI KUERI (exp3), bukan jumlah langkah.
+
+KETERBATASAN
+  - Peningkatan diukur via PROXY LLM-judge (kappa=0.640 antar-judge), bukan
+    pakar langsung.
+  - n=30 (nDCG/P@5); Spearman n=22-24 (kueri dgn variansi cukup) -> daya uji
+    sedang; p>0.05 = "tak terbukti beda", bukan bukti "setara" mutlak.
+  - 12 pasase divergen belum ter-grade + bge-m3 29 kueri: dampak minor.
+  - Korpus ID saja. Gaya judge Gemini sangat polar; konsensus meredam.
+================================================================================

@@ -1,0 +1,9 @@
+=== Spearman rho (cosine vs grade) [KONSENSUS] ===
+Pakar: Aryanto_Firnadi__M_A___B_Dh__, Dr__Amita_Wardhani__S_Pd_B___M_Pd_, Dr__Hastho_Bramantyo__S_Fil___M_A_, Dr__Suranto__S_Ag___M_A_
+
+   1. rho=0.6321 (tanpa heading)  multilingual-e5-base (B,ID)
+   2. rho=0.4353 (tanpa heading)  gpl-multilingual-e5-base (GPL,ID)
+   3. rho=0.4313 (tanpa heading)  gte-multilingual-base (B,ID)
+   4. rho=0.4068 (tanpa heading)  gpl-gte-multilingual-base (GPL,ID)
+   5. rho=0.3726 (tanpa heading)  BM25 (B,ID)
+   6. rho=0.0645 (tanpa heading)  bge-m3 (B,ID)

@@ -1,0 +1,18 @@
+=== UJI SIGNIFIKANSI exp2 vs exp3 (lawan banding sah: 1 variabel TEACHER) ===
+Sumber: konsensus per-query metrik/exp2 (baris Versi=exp2) digabung metrik/exp3.
+Wilcoxon signed-rank + sign test, konvensi identik 5-signifikansi.py.
+
+=== nDCG@5 (exp3 vs exp2) ===
+  gte-multilingual-base      n=30 | exp2̄=0.5969 exp3̄=0.6397 Δ̄=+0.0429 | menang/kalah/seri=15/12/3 | Wilcoxon p=0.2588 | sign-test p=0.7011
+  multilingual-e5-base       n=30 | exp2̄=0.6242 exp3̄=0.6499 Δ̄=+0.0257 | menang/kalah/seri=18/11/1 | Wilcoxon p=0.4958 | sign-test p=0.2649
+  GABUNGAN                          | menang/kalah=33/23 (41% minus) | sign-test p=0.2288
+
+=== P@5 (exp3 vs exp2) ===
+  gte-multilingual-base      n=30 | exp2̄=0.5000 exp3̄=0.5600 Δ̄=+0.0600 | menang/kalah/seri=11/5/14 | Wilcoxon p=0.1013 | sign-test p=0.2101
+  multilingual-e5-base       n=30 | exp2̄=0.5400 exp3̄=0.6200 Δ̄=+0.0800 | menang/kalah/seri=14/7/9 | Wilcoxon p=0.2220 | sign-test p=0.1892
+  GABUNGAN                          | menang/kalah=25/12 (32% minus) | sign-test p=0.0470
+
+=== Spearman (exp3 vs exp2) ===
+  gte-multilingual-base      n=26 | exp2̄=0.1555 exp3̄=0.1540 Δ̄=-0.0014 | menang/kalah/seri=13/11/2 | Wilcoxon p=0.9544 | sign-test p=0.8388
+  multilingual-e5-base       n=27 | exp2̄=0.2808 exp3̄=0.2017 Δ̄=-0.0791 | menang/kalah/seri=13/12/2 | Wilcoxon p=0.6766 | sign-test p=1.0000
+  GABUNGAN                          | menang/kalah=26/23 (47% minus) | sign-test p=0.7754

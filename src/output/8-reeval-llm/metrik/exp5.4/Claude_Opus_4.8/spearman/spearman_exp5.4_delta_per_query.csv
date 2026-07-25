@@ -1,0 +1,45 @@
+﻿Korpus,Family,query_id,kueri,B,GPL,exp5.4,Δ(exp5.4-B)
+ID,gte-multilingual-base,20,penggambaran terhadap keagungan buddha,0.3689,0.1118,-1.0,-1.3689
+ID,gte-multilingual-base,21,jenis jenis manusia,0.4472,0.7071,-0.7071,-1.1543
+ID,multilingual-e5-base,26,bersatu di kehidupan selanjutnya,0.3536,,-0.7071,-1.0607
+ID,multilingual-e5-base,20,penggambaran terhadap keagungan buddha,0.3162,-0.2887,-0.7255,-1.0417
+ID,gte-multilingual-base,7,penjelasan tentang perhatian murni,0.2887,0.9487,-0.7071,-0.9958
+ID,gte-multilingual-base,11,siapa yang layak disebut sebagai brahmana,0.6325,0.4472,0.0,-0.6325
+ID,multilingual-e5-base,16,harta yang paling bernilai,-0.2108,0.7071,-0.7071,-0.4963
+ID,multilingual-e5-base,1,cara mengatasi kemarahan,0.7255,0.1539,0.3162,-0.4093
+ID,multilingual-e5-base,17,kewajiban seorang umat awam,0.3536,0.0527,0.0,-0.3536
+ID,gte-multilingual-base,22,cara mengikis kotoran batin,0.866,0.4472,0.527,-0.339
+ID,multilingual-e5-base,23,penjelasan tentang pandangan terang,0.6708,-0.2294,0.4472,-0.2236
+ID,gte-multilingual-base,28,berbagai jenis perbuatan baik,0.8944,-0.7071,0.7071,-0.1873
+ID,gte-multilingual-base,30,apa itu proliferasi mental,0.866,0.2887,0.7071,-0.1589
+ID,gte-multilingual-base,15,apa kualitas yang harus dimiliki oleh seorang penceramah,0.527,0.7255,0.3953,-0.1317
+ID,gte-multilingual-base,1,cara mengatasi kemarahan,0.5774,,0.4472,-0.1302
+ID,gte-multilingual-base,17,kewajiban seorang umat awam,-0.2236,0.3078,-0.3536,-0.13
+ID,gte-multilingual-base,14,apa makna kekosongan,0.7071,,0.5923,-0.1148
+ID,multilingual-e5-base,7,penjelasan tentang perhatian murni,0.1054,0.7071,0.0,-0.1054
+ID,multilingual-e5-base,25,perasaan malu dan takut,0.4472,0.3536,0.3536,-0.0936
+ID,multilingual-e5-base,14,apa makna kekosongan,-0.7071,,-0.7454,-0.0383
+ID,multilingual-e5-base,15,apa kualitas yang harus dimiliki oleh seorang penceramah,0.7071,0.4617,0.7071,0.0
+ID,gte-multilingual-base,6,apa itu kemurahan hati,0.7071,0.8944,0.7071,0.0
+ID,multilingual-e5-base,4,mengapa harus membalas budi orangtua,0.3536,0.3536,0.3536,0.0
+ID,multilingual-e5-base,5,perumpamaan perumpamaan,0.866,0.9487,0.9682,0.1022
+ID,multilingual-e5-base,12,kewajiban seorang bhikkhu,0.7906,0.5774,0.9487,0.1581
+ID,gte-multilingual-base,9,jenis jenis kotoran batin,0.0,0.0513,0.2108,0.2108
+ID,multilingual-e5-base,6,apa itu kemurahan hati,0.527,-0.1026,0.7826,0.2556
+ID,gte-multilingual-base,2,cara mengatasi ngantuk,0.3627,,0.6708,0.3081
+ID,multilingual-e5-base,13,berbagai jenis pemberian,0.3536,0.6156,0.7071,0.3535
+ID,gte-multilingual-base,10,kriteria kesucian,-0.6156,-0.7906,-0.2236,0.392
+ID,multilingual-e5-base,8,manfaat pelaksaan sila,0.1622,0.527,0.7071,0.5449
+ID,gte-multilingual-base,25,perasaan malu dan takut,-0.2635,-0.866,0.2887,0.5522
+ID,multilingual-e5-base,9,jenis jenis kotoran batin,0.0,-0.2052,0.5643,0.5643
+ID,gte-multilingual-base,16,harta yang paling bernilai,0.2887,0.3536,0.866,0.5773
+ID,gte-multilingual-base,12,kewajiban seorang bhikkhu,0.0,0.9487,0.5774,0.5774
+ID,gte-multilingual-base,24,apa yang terjadi pada saat pencapaian pencerahan,0.3627,0.7379,0.9682,0.6055
+ID,gte-multilingual-base,23,penjelasan tentang pandangan terang,0.1081,-0.9177,0.7906,0.6825
+ID,gte-multilingual-base,27,jenis jenis karma buruk,0.0,0.0513,0.7454,0.7454
+ID,gte-multilingual-base,8,manfaat pelaksaan sila,-0.866,0.6882,-0.0513,0.8147
+ID,multilingual-e5-base,30,apa itu proliferasi mental,0.0,0.3536,0.866,0.866
+ID,multilingual-e5-base,10,kriteria kesucian,-0.3689,-0.866,0.5798,0.9487
+ID,gte-multilingual-base,3,apa penyebab penderitaan,-0.7071,0.7071,0.7071,1.4142
+ID,multilingual-e5-base,3,apa penyebab penderitaan,-0.7071,,0.7071,1.4142
+ID,gte-multilingual-base,26,bersatu di kehidupan selanjutnya,-0.527,0.7255,0.8885,1.4155

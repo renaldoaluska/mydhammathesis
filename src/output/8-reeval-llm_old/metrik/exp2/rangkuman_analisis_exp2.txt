@@ -1,0 +1,96 @@
+================================================================================
+RANGKUMAN ANALISIS — EKSPERIMEN exp2 (HARD-NEGATIVE BERSIH)
+================================================================================
+Tanggal eval   : 2026-07-01
+Hipotesis exp2 : Hard-negative lebih bersih (filter margin / de-dup near-duplicate
+                 pericope) diharapkan MEMPERBAIKI margin latih -> retrieval lebih
+                 baik. Dari rangkuman 5-eval §8c, exp2 dinilai "ROI tertinggi".
+Instrumen      : LLM-as-judge KONSENSUS Claude Opus 4.8 + Gemini 3.1 Pro,
+                 rubrik TREC 0-3, 30 kueri pakar HELD-OUT (korpus ID). Grade
+                 base/GPL/exp2 dari judge yg SAMA -> apple-to-apple antar-versi.
+                 Baseline 30 kueri penuh (di-assemble dari grades round-1 6-eval-llm).
+Sumber angka   : output/8-reeval-llm/metrik/exp2/konsensus/*_per_query.csv +
+                 signifikansi.txt (dihitung ulang & diverifikasi).
+
+!!! HASIL RINGKAS: hipotesis TIDAK terdukung. exp2 = konfigurasi neural TERBURUK,
+    SIGNIFIKAN lebih buruk dari base (nDCG & P@5) DAN dari GPL (utk gte).
+
+0. VALIDITAS INSTRUMEN (IAA antar-judge)
+--------------------------------------------------------------------------------
+  Cohen kappa (quadratic) Claude vs Gemini = 0.6363  -> "baik" (0.6-0.8).
+  Konsensus dipakai sbg dasar (robust thd gaya judge; Gemini lebih polar).
+
+1. nDCG@5 — 30 kueri (paired, konsensus)
+--------------------------------------------------------------------------------
+  Peringkat penuh:
+    1. 0.7328  multilingual-e5-base (B)
+    2. 0.6944  gte-multilingual-base (B)
+    3. 0.6739  gpl-gte-multilingual-base (GPL)
+    4. 0.6616  bge-m3 (B)
+    5. 0.6184  gpl-multilingual-e5-base (GPL)
+    6. 0.6154  BM25 (B)
+    7. 0.6091  gpl-multilingual-e5-base (exp2)
+    8. 0.5918  gpl-gte-multilingual-base (exp2)   <- TERBAWAH dari SEMUA sistem
+  Per keluarga:
+    e5 : base 0.7328 > GPL 0.6184 > exp2 0.6091
+    gte: base 0.6944 > GPL 0.6739 > exp2 0.5918
+  -> exp2 TERBURUK di kedua keluarga; di bawah base DAN GPL. Hard-neg "bersih"
+     TIDAK memulihkan/menaikkan retrieval; malah menurunkannya di bawah GPL biasa.
+
+2. P@5 — 30 kueri (paired)
+--------------------------------------------------------------------------------
+    e5 : base 0.7000 > GPL 0.5133 = exp2 0.5133
+    gte: base 0.6400 > GPL 0.6000 > exp2 0.5000   <- exp2 TERBAWAH
+  -> base jauh terbaik; exp2 di bawah base utk dua keluarga.
+
+3. UJI SIGNIFIKANSI — exp2 vs base (B), Wilcoxon paired per-kueri (n=30)
+--------------------------------------------------------------------------------
+  nDCG@5 : gte d=-0.1026 p=0.0577 (ns, mepet)
+           e5  d=-0.1237 p=0.0314 **SIGNIFIKAN LEBIH BURUK**
+           GABUNGAN 20/39 menang/kalah, sign-test p=0.0183 **SIGNIFIKAN**
+  P@5    : gte d=-0.1400 p=0.0780 (ns, mepet)
+           e5  d=-0.1867 p=0.0078 **SIGNIFIKAN LEBIH BURUK**
+           GABUNGAN 12/29 menang/kalah, sign-test p=0.0115 **SIGNIFIKAN**
+  Spear. : gte d=+0.1281 p=0.3458 (ns, ARAH POSITIF) ; e5 d=+0.0205 p=0.9032 (ns)
+  -> exp2 REGRESI signifikan dari base di nDCG (e5+gabungan) & P@5 (e5+gabungan).
+     CATATAN MENARIK: Spearman (korelasi cosine vs grade) arah POSITIF (exp2 > base,
+     gte +0.13) meski tak signifikan -> hard-neg memperbaiki monotonisitas cosine-
+     relevansi SEDIKIT, tapi merusak urutan top-k (nDCG/P@5). Sinyal ini konsisten
+     dgn paradoks intrinsik-vs-ekstrinsik di rangkuman 5-eval §6.
+
+4. UJI SIGNIFIKANSI — exp2 vs GPL, Wilcoxon paired per-kueri (n=30)
+--------------------------------------------------------------------------------
+  nDCG@5 : gte d=-0.0821 p=0.0011 **SIGNIFIKAN, GPL >> exp2** ; e5 d=-0.0094 p=0.7317 (ns)
+  P@5    : gte d=-0.1000 p=0.0079 **SIGNIFIKAN, GPL >> exp2** (sign p=0.0018) ; e5 d=-0.0000 p=0.8377 (ns)
+  Spear. : gte d=+0.1159 p=0.2696 (ns) ; e5 d=-0.0309 p=0.9702 (ns)
+  -> Utk gte, exp2 bahkan SIGNIFIKAN LEBIH BURUK dari GPL penuh (nDCG p=0.001,
+     P@5 p=0.008). Utk e5, exp2 ~setara GPL. NET: hard-neg "bersih" MERUGIKAN,
+     terutama gte.
+
+================================================================================
+KESIMPULAN
+================================================================================
+1. exp2 GAGAL PALING DALAM. Pada 30 kueri penuh, exp2:
+   - SIGNIFIKAN LEBIH BURUK dari base: nDCG (e5 p=0.031, gabungan p=0.018) &
+     P@5 (e5 p=0.008, gabungan p=0.012).
+   - SIGNIFIKAN LEBIH BURUK dari GPL utk gte (nDCG p=0.001, P@5 p=0.008);
+     ~setara GPL utk e5.
+   - Satu-satunya arah positif = Spearman (tak signifikan).
+2. Hipotesis "hard-negative bersih -> ROI tertinggi" (5-eval §8c) TIDAK terdukung
+   pada eksekusi ini. Resep hard-neg yang dipakai justru MEMPERPARAH retrieval.
+   Kemungkinan: filter margin/de-dup yang dipakai membuang negatif INFORMATIF
+   (bukan cuma false-negative), atau menggeser distribusi latih menjauh dari base.
+3. Konsisten temuan lintas-eksperimen: base murni terbaik; GPL ~setara/di bawah
+   base; exp1 (langkah lebih sedikit) tak menolong; exp2 (hard-neg bersih) paling
+   buruk. -> Pengungkit BUKAN di jumlah langkah (exp1) maupun resep hard-neg saat
+   ini (exp2).
+4. Rekomendasi: jangan adopsi exp2. Bila lanjut, audit implementasi hard-neg (apa
+   yang di-filter, ambang margin) SEBELUM iterasi; dan pertimbangkan pengungkit
+   GENERATOR KUERI (exp3, LLM query-gen) yang menyasar mismatch train/eval langsung.
+
+KETERBATASAN
+  - Proxy LLM-judge (kappa=0.636 antar-judge), bukan pakar langsung.
+  - n=30 (nDCG/P@5); Spearman n=21-26 -> daya uji sedang.
+  - Korpus ID saja. Diagnosis "kenapa exp2 buruk" (poin 2) = hipotesis, perlu audit
+    kode hard-neg (src/code/4-training/2-hard-neg.py) utk konfirmasi.
+================================================================================

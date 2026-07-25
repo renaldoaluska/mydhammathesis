@@ -10,14 +10,34 @@ MODEL
 PARAMETER RISET (dipertahankan, bukan karangan)
   - 3 kueri per pasase  = GPL default (Wang et al. 2022; config.GPL_QUERIES_PER_PASSAGE).
     OUTPUT akhir TETAP 3/pasase -> tidak menyimpang dari GPL.
+    VERIFIKASI (2026-07-04, PDF NAACL resmi aclanthology 2022.naacl-main.168):
+     * Method section: "we generate for each passage three queries".
+     * Rumus paper: qavg = ceil(250K/|C|), floor 3. Korpus kami |C| = 189.367
+       pasase -> ceil(250K/189K) = 2 -> kena floor -> 3. PERSIS rumus paper.
+     * JEBAKAN PDF: di bagian eksperimen terbaca "generate 4 queries" (arXiv)
+       / "generate 7 queries" (PDF ACL). Angka itu MARKER FOOTNOTE yang nempel
+       saat copy/ekstraksi teks (footnote "script from BeIR"; numbering arXiv
+       vs ACL geser 3 — cek "Sentence-Transformers^5" vs "^8"). BUKAN jumlah
+       kueri. Jangan "koreksi" 3 -> 4 gara-gara ini.
+     * Paper men-downsample korpus bila 3x|C| > 250K (kami: 568K kueri).
+       Itu normalisasi budget generate antar-dataset BEIR (fair comparison),
+       bukan syarat metodologis; Table 2 paper: >=50K pasase sudah saturasi
+       -> korpus penuh 189K dgn 3 QPP sah.
   - Bahasa latih: en + id (config.GPL_TRAIN_LANGS). Generasi monolingual:
     passage id -> kueri id, passage en -> kueri en. Transfer cross-lingual (mis. kueri
     id -> pasase en Abhidhamma) DARI base model (e5/gte), BUKAN di-GPL eksplisit.
 
 DECODING (kenapa nucleus sampling)
-  - DULU: do_sample top_k=10 -> sering kueri garbled/halusinasi.
-  - SEKARANG: nucleus (top_p=0.92) + repetition_penalty=1.2 + no_repeat_ngram_size=2.
-    Lebih koheren tapi tetap beragam (sampling = standar doc2query/GPL untuk diversitas).
+  - PAPER GPL (Sec. 4.1): nucleus sampling temperature=1.0, k=25, p=0.95.
+  - DULU (kode lama KAMI, dari contoh model card doc2query — BUKAN paper):
+    do_sample top_k=10 -> sering kueri garbled/halusinasi.
+  - SEKARANG: nucleus (top_p=0.92, top_k=0) + repetition_penalty=1.2 +
+    no_repeat_ngram_size=2; temperature tak di-set = default 1.0 (SAMA dgn
+    paper; Fig. 3 paper: performa puncak di T=1.0).
+  - LANDASAN deviasi p/k + rep-penalty: noise mT5 multibahasa (tak dialami
+    DocT5Query T5-EN paper); paper Sec. 6.3 nunjukin GPL robust thd kualitas
+    kueri -> detail parameter sampling bukan faktor sensitif. Nucleus:
+    Holtzman et al. (arXiv:1904.09751). Rincian: catatan_perbedaan.txt B.1.
   - TIDAK pakai diverse/group beam search: di transformers versi ini sudah dipindah ke
     repo remote -> butuh trust_remote_code -> dihindari.
 

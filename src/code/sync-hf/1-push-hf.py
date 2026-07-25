@@ -30,22 +30,33 @@ def ensure_login():
 
 
 def collect_models():
-    d = config.MODELS_DIR
-    if not d.exists():
-        return []
-    return [(s, s.name) for s in sorted(d.iterdir())
-            if s.is_dir() and (s / "config.json").exists() and not s.name.startswith(".")]
+    dirs = [
+        config.MODELS_DIR,
+        config.OUTPUT_DIR / "7-retraining" / "models"
+    ]
+    models = []
+    seen = set()
+    for d in dirs:
+        if not d.exists():
+            continue
+        for s in sorted(d.iterdir()):
+            if s.is_dir() and (s / "config.json").exists() and not s.name.startswith(".") and s.name not in seen:
+                seen.add(s.name)
+                models.append((s, s.name))
+    return models
 
 
-def push_models(dry):
+def push_models(dry, force=False):
     models = collect_models()
     print(f"=== MODEL ({len(models)} ditemukan) ===")
     api = HfApi()
     for path, name in models:
         repo = config.hf_repo_id(name)
         on = config.is_on_hub(name)
-        print(f"  {'[HF ok] skip' if on else '[push]'}  {name} -> {repo}")
-        if not dry and not on:
+        should_push = force or not on
+        status_label = '[push (force)]' if (force and on) else ('[HF ok] skip' if on else '[push]')
+        print(f"  {status_label}  {name} -> {repo}")
+        if not dry and should_push:
             api.create_repo(repo_id=repo, repo_type="model", private=config.HF_PRIVATE, exist_ok=True)
             api.upload_folder(folder_path=str(path), repo_id=repo, repo_type="model")
             print(f"    done: https://huggingface.co/{repo}")
@@ -87,16 +98,17 @@ def main():
     ap.add_argument("--e", action="store_true", help="embeddings")
     ap.add_argument("--c", action="store_true", help="search cache")
     ap.add_argument("--a", action="store_true", help="semua")
+    ap.add_argument("--force", "-f", action="store_true", help="paksa upload ulang meskipun sudah di HF")
     a = ap.parse_args()
 
     dry = not (a.m or a.e or a.c or a.a)
     if dry:
-        print("[DRY-RUN] tambah --a/--m/--e/--c untuk benar-benar upload.\n")
+        print("[DRY-RUN] tambah --a/--m/--e/--c untuk benar-benar upload (opsional --force).\n")
     else:
         ensure_login()
 
     if a.m or a.a or dry:
-        push_models(dry)
+        push_models(dry, force=a.force)
     if a.e or a.a or dry:
         push_dataset_dir(config.EMBEDDINGS_DIR, "embeddings", "EMBEDDINGS", dry)
     if a.c or a.a or dry:

@@ -1,0 +1,25 @@
+=== RE-EVAL INTRINSIK — gap cosine intra/inter-sutta (korpus EN) ===
+
+Pasangan: intra=200, inter=200  (dari 6238 sutta >=2 chunk)
+
+  [multilingual-e5-base (base)] ...
+  [gte-multilingual-base (base)] ...
+  [config.load_st_model] buffer RoPE gte di-materialize ulang (Alibaba-NLP/gte-multilingual-base; kompat transformers v5)
+  [bge-m3 (base)] ...
+  [gte-multilingual-base (gpl)] ...
+  [config.load_st_model] buffer RoPE gte di-materialize ulang (/home/paps21/palisemantic5026221144/mydhamma/src/output/4-training/models/gpl-gte-multilingual-base; kompat transformers v5)
+  [multilingual-e5-base (gpl)] ...
+  [exp6-gte (retrain)] ...
+  [config.load_st_model] buffer RoPE gte di-materialize ulang (/home/paps21/palisemantic5026221144/mydhamma/src/output/7-retraining/models/gpl-exp6-gte; kompat transformers v5)
+
+Mean cosine (Gap = Intra - Inter; makin besar makin baik):
+Tipe                           Inter   Intra     Gap
+Model                                               
+gte-multilingual-base (gpl)   0.0707  0.2810  0.2103
+multilingual-e5-base (gpl)    0.0372  0.2405  0.2033
+exp6-gte (retrain)            0.0256  0.2241  0.1985
+bge-m3 (base)                 0.4449  0.5873  0.1424
+gte-multilingual-base (base)  0.5485  0.6684  0.1199
+multilingual-e5-base (base)   0.7872  0.8381  0.0509
+
+[INFO] /home/paps21/palisemantic5026221144/mydhamma/src/output/8-reeval-llm/6-reintrinsic-exp6

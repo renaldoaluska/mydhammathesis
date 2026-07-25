@@ -1,0 +1,29 @@
+RANGKUMAN — RE-EVAL INTRINSIK MODE exp6 (Ablasi Jumlah Langkah Penuh)
+Run: 2026-07-20, `python src/code/8-reeval-llm/6-reintrinsic.py exp6`
+Grounded ke: ringkasan_reintrinsic.txt (folder ini), 8-reeval-llm/6-reintrinsic/
+(tabel gabungan P1-4), 7-retraining/9-kurva-loss/3-kurva_loss_ablasi-steps.png.
+
+1. VALIDITAS KOMPARASI
+   Pasangan uji identik (seed GPL_SEED=42, 200 intra + 200 inter, korpus EN).
+   Baris base & exp0 run ini REPRODUKSI IDENTIK 4 desimal dgn 5-eval/2-intrinsic
+   dan 6-reintrinsic gabungan -> semua angka lintas-run apple-to-apple.
+
+2. HASIL exp6 (gte, 140.000 langkah, resep exp0)
+   Gap = 0,1985 (Intra 0,2241 | Inter 0,0256)
+
+3. LINTASAN GAP INTRINSIK vs JUMLAH LANGKAH (backbone gte)
+   base (0)      : 0,1199
+   exp1 (5k)     : 0,2094   [tabel gabungan 6-reintrinsic]
+   exp0 (10k)    : 0,2103
+   exp6 (140k)   : 0,1985
+   -> Ketajaman intrinsik JENUH sejak ~5k langkah; anggaran penuh 140k TIDAK
+      menambah separabilitas (selisih -0,0118 vs 10k), meski loss pelatihan
+      terus turun ~0,033 -> ~0,008 (lihat 3-kurva_loss_ablasi-steps.png).
+   -> Konsisten dgn temuan utama: menambah langkah = menambah WAKTU, bukan
+      kualitas; loss latihan yang menurun bukan proksi kualitas retrieval.
+
+4. PEMAKAIAN NASKAH
+   Bab 4 subbab 4.2.3.1 (Evaluasi Intrinsik, Ablasi Jumlah Langkah Penuh).
+   Branding naskah = "Ablasi Jumlah Langkah Penuh", bukan "exp6".
+   exp6 SENGAJA di-run terpisah dari tabel gabungan P1-4 (6-reintrinsic/)
+   mengikuti struktur naskah 4.2.2 vs 4.2.3.

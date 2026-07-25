@@ -1,0 +1,9 @@
+=== P@5 + MRR@5 (relevan grade>=2) [Dr. Suranto, S.Ag., M.A.] ===
+Pakar: Dr__Suranto__S_Ag___M_A_
+
+   1. P@5=0.6733 MRR=0.7861 (tanpa heading)  gte-multilingual-base (B,ID)
+   2. P@5=0.6667 MRR=0.8511 (tanpa heading)  gpl-gte-multilingual-base (GPL,ID)
+   3. P@5=0.6600 MRR=0.8167 (tanpa heading)  multilingual-e5-base (B,ID)
+   4. P@5=0.6414 MRR=0.8057 (tanpa heading)  bge-m3 (B,ID)
+   5. P@5=0.6000 MRR=0.8067 (tanpa heading)  gpl-multilingual-e5-base (GPL,ID)
+   6. P@5=0.5333 MRR=0.7217 (tanpa heading)  BM25 (B,ID)

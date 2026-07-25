@@ -1,11 +1,16 @@
 ================================================================================
-CATATAN PERBEDAAN: Kode 1-query-gen.py vs Paper GPL Asli
-(perubahan karena kompatibilitas transformers 5.8.0, bukan perubahan metode)
+CATATAN PERBEDAAN: Pipeline GPL (4-training) vs Paper GPL Asli
+(bagian A = kompatibilitas transformers 5.8.0; bagian B = deviasi substansial
++ LANDASAN tiap poin; bagian D = yang justru konform persis)
+Angka/kutipan paper diverifikasi 2026-07-04 dari PDF NAACL resmi
+(aclanthology.org/2022.naacl-main.168).
 ================================================================================
 
 KONTEKS
 -------
-Paper GPL asli: arXiv:2112.07577 (Wang et al., 2021)
+Paper GPL asli: Wang dkk. (2022), NAACL 2022 (aclanthology.org/2022.naacl-main.168);
+pracetak arXiv:2112.07577v3 (25 Apr 2022).
+SITASI RESMI = 2022 (bukan 2021 — versi lama catatan ini salah tulis tahun).
 Kode ini mengikuti framework GPL, tapi ada adaptasi teknis karena library
 versi baru (transformers 5.8.0) tidak backward-compatible.
 
@@ -33,51 +38,75 @@ A. PERUBAHAN TEKNIS (TIDAK MENGUBAH HASIL SECARA SUBSTANSIAL)
    DAMPAK PADA HASIL: Tidak ada. Kualitas, kecepatan komputasi, dan
    mekanisme sampling kembali persis seperti versi riset asli.
 
-2. HF_HUB_TRUST_REMOTE_CODE: DIHAPUS
+2. HF_HUB_TRUST_REMOTE_CODE: DIHAPUS — HANYA DI 1-query-gen.py
    ─────────────────────────────────────
-   KODE AWAL (sebelum fix):
-     os.environ["HF_HUB_TRUST_REMOTE_CODE"] = "1"
-     → mengizinkan download & eksekusi kode arbitrary dari HF Hub.
+   AWAS (koreksi 2026-07-15): versi lama catatan ini berbunyi "Tidak di-set"
+   TANPA menyebut ruang lingkup → menyesatkan. Faktanya (cek: grep -rn
+   HF_HUB_TRUST_REMOTE_CODE src/code/4-training/*.py):
+     - 1-query-gen.py      : TIDAK di-set  (sengaja; lihat di bawah)
+     - 2-hard-neg.py       : di-set "1"
+     - 3-pseudo-label.py   : di-set "1"
+     - 4-train-marginmse.py: di-set "1"
+     - 5-embed.py          : di-set "1"
+   Keempat skrip terakhir MASIH BUTUH remote code (gte/Alibaba pakai
+   arsitektur custom) → jangan dihapus di sana.
 
-   KODE SEKARANG:
-     Tidak di-set. Tidak diperlukan karena generate() tidak lagi memicu
-     Group Beam Search yang butuh remote code.
+   KHUSUS 1-query-gen.py:
+     KODE AWAL : os.environ["HF_HUB_TRUST_REMOTE_CODE"] = "1"
+     KODE KINI : tidak di-set. Tidak diperlukan karena generate() tidak lagi
+                 memicu Group Beam Search yang butuh remote code (lihat A.1).
 
-   DAMPAK: Lebih aman. Tidak ada perubahan pada output.
+   DAMPAK: Lebih aman di query-gen. Tidak ada perubahan pada output.
 
 3. PROGRESS BAR: DITAMBAHKAN (tqdm)
    ─────────────────────────────────────
    Paper GPL tidak menspesifikasikan logging/progress. Penambahan tqdm
    murni untuk monitoring — zero dampak pada output.
-4. BATCH SIZE: 32 → 8 (Pencegahan Out-Of-Memory)
+4. BATCH QUERY-GEN: 32 → 8 (Pencegahan Out-Of-Memory)
    ─────────────────────────────────────
-   KODE AWAL: BATCH = 32
-   KODE SEKARANG: BATCH = 8
+   ⚠ RUANG LINGKUP (klarifikasi 2026-07-15): ini `BATCH` di 1-query-gen.py
+   (batch INFERENCE saat generate kueri). BUKAN batch TRAINING.
+   JANGAN TERTUKAR: config.GPL_BATCH_SIZE = 32 (batch training MarginMSE)
+   TIDAK berubah dan memang SAMA dengan paper (train_meta.json memverifikasi
+   batch_size=32, grad_accum=1 pada run asli).
 
-   ALASAN: Penggunaan `num_return_sequences=6` dalam sekali panggil
-   menyebabkan ukuran batch efektif berlipat ganda menjadi BATCH * 6.
-   Pada BATCH=32, batch efektif menjadi 192 urutan teks, yang melebihi
-   kapasitas VRAM GPU RTX A2000 12GB (menyebabkan CUDA Out of Memory).
-   Dengan menurunkan BATCH ke 8, batch efektif menjadi 48, yang pas
-   dan aman untuk memori GPU tanpa mengorbankan kecepatan.
+   KODE AWAL: BATCH = 32   (1-query-gen.py)
+   KODE KINI : BATCH = 8   (1-query-gen.py:27)
 
-   DAMPAK PADA HASIL: Tidak ada. Ukuran batch pada saat inference 
-   (text generation) murni batasan hardware dan tidak mengubah output
-   matematis sedikit pun.
+   ALASAN: n_gen = GPL_QUERIES_PER_PASSAGE * 2 = 6 (over-generate untuk
+   menutup filter). num_return_sequences=6 dalam sekali panggil membuat
+   batch efektif = BATCH * 6. Pada BATCH=32 → 192 urutan, melebihi VRAM
+   RTX A2000 12GB (CUDA OOM). BATCH=8 → 48 urutan, pas dan aman.
+
+   DAMPAK PADA HASIL: Tidak ada. Batch saat inference murni batasan
+   hardware dan tidak mengubah output matematis sedikit pun.
 
 ================================================================================
-B. PERUBAHAN YANG SUDAH ADA SEBELUMNYA (BUKAN DARI FIX INI)
-   (didokumentasikan di CHECKLIST.txt bagian B)
+B. DEVIASI SUBSTANSIAL vs PAPER + LANDASAN
+   (#1-4 juga tercatat di CHECKLIST.txt; #5-8 dilengkapi 2026-07-04;
+    #9 dipindah dari bagian D 2026-07-15 — dulu salah diklasifikasi konform)
 ================================================================================
 
-Ini BUKAN perubahan dari fix transformers, tapi sudah ada di kode sebelum
-fix ini diterapkan. Dicatat di sini untuk kelengkapan:
+Ini BUKAN perubahan dari fix transformers — semuanya sudah ada di kode;
+di sini dicatat LANDASAN tiap deviasi terhadap paper:
 
-1. SAMPLING: top_k=10 → nucleus (top_p=0.92, top_k=0)
-   Paper GPL asli: top_k=10 (sering garbled/halusinasi pada mT5 multilingual).
-   Kode ini: nucleus sampling — lebih koheren, distribusi kueri lebih beragam.
-   Referensi: Holtzman et al., "The Curious Case of Neural Text Degeneration"
-   (arXiv:1904.09751).
+1. SAMPLING: top_k=10 (KODE LAMA) → nucleus (top_p=0.92, top_k=0)
+   KOREKSI ATRIBUSI (2026-07-04): versi lama catatan ini menulis "Paper GPL
+   asli: top_k=10" — SALAH. top_k=10 berasal dari contoh pemakaian di model
+   card doc2query (kode lama kami), BUKAN dari paper GPL.
+   PAPER GPL (Sec. 4.1): nucleus sampling temperature=1.0, k=25, p=0.95.
+   KODE INI: nucleus top_p=0.92, top_k=0, repetition_penalty=1.2,
+   no_repeat_ngram_size=2; temperature TIDAK di-set = default 1.0
+   (SAMA dgn paper; Fig. 3 paper: performa puncak di T=1.0).
+   LANDASAN deviasi (p 0.92 vs 0.95, k 0 vs 25, + rep-penalty):
+   - mT5 multibahasa (vocab 100+ bahasa) memproduksi noise (skrip asing,
+     repetisi) yang tak dialami DocT5Query T5-EN paper; parameter lebih
+     ketat + filter (lihat B.2) menekan noise ini.
+   - Paper GPL sendiri (Sec. 6.3, Fig. 3) menunjukkan GPL robust terhadap
+     kualitas kueri — pseudo-label CE menetralkan kueri buruk — sehingga
+     detail parameter sampling bukan faktor sensitif.
+   - Nucleus sampling: Holtzman et al., "The Curious Case of Neural Text
+     Degeneration" (arXiv:1904.09751).
 
 2. FILTER KUERI: ditambahkan
    Paper GPL tidak menyebut filter eksplisit. Kode ini menambahkan:
@@ -90,12 +119,126 @@ fix ini diterapkan. Dicatat di sini untuk kelengkapan:
 3. MARGIN SCALING (di 3-pseudo-label.py)
    Paper GPL: margin CE mentah langsung dipakai.
    Kode ini: margin diskala agar std ≈ GPL_MARGIN_TARGET_STD (0.25).
-   Alasan: bi-encoder ST menormalisasi embedding → selisih cosine ≤ 2,
-   margin CE mentah (std~5, max~21) mustahil dicapai → loss tidak konvergen.
+   LANDASAN (akar masalah): student paper = DistilBERT mean-pooling
+   DOT-PRODUCT (Sec. 4.1: "mean pooling and dot-product similarity by
+   default") → skor tak terbatas, bisa meniru margin CE mentah. Student
+   kami (e5/gte/bge) = cosine ternormalisasi → selisih skor terbatas ≤ 2,
+   margin CE mentah (std~5, max~21) mustahil dicapai → MarginMSE tidak
+   konvergen tanpa penskalaan target.
 
 4. SCOPE CANON-WIDE (di config)
-   Paper GPL: domain-specific saja.
-   Kode ini: Vinaya + Sutta (semua kanon, bukan Sutta saja).
+   PAPER GPL: enam domain BEIR TERPISAH, tiap domain diadaptasi sendiri.
+   KODE INI: config.GPL_SUTTA_ONLY = False → CANON-WIDE = Vinaya + Sutta +
+   ABHIDHAMMA (SEMUA pitaka dalam satu adaptasi).
+   AWAS (koreksi 2026-07-15): versi lama catatan ini menulis "Vinaya + Sutta"
+   → ABHIDHAMMA TERLEWAT, padahal ikut dilatih. Rujukan kode:
+   config.is_sutta() menyaring Vinaya (prefix pli-tv/pli-vi) DAN Abhidhamma
+   (_ABHIDHAMMA = {ds,vb,dt,pp,kv,ya,patthana}); saat GPL_SUTTA_ONLY=False
+   filter itu TIDAK dipakai sehingga ketiga pitaka masuk.
+
+5. HARD-NEGATIVE MINING: 2 retriever EN → 1 retriever multilingual
+   PAPER (Sec. 4.1): 2 dense retriever MS MARCO (msmarco-distilbert-base-v3
+   + msmarco-MiniLM-L-6-v3), masing-masing retrieve 50 negatif.
+   KODE INI: 1 retriever multilingual (intfloat/multilingual-e5-base),
+   top-50 (config.GPL_NEG_TOP_K — SAMA dgn paper).
+   LANDASAN:
+   - Kedua retriever paper English-only → tak bisa mining di korpus id.
+     Tidak tersedia sepasang dense retriever mMARCO multilingual setara →
+     substitusi minimal: 1 retriever multilingual.
+   - Fungsi 2 retriever di paper = diversitas sumber negatif. Risiko false
+     negative TETAP ditangani mekanisme inti GPL: margin pseudo-label CE
+     (paper Sec. 7 — CE memberi label halus pada negatif yang sebenarnya
+     relevan). Ditambah safeguard kami yang TIDAK ada di paper: skip top-1,
+     buang terjemahan-alternatif segmen sama, pool negatif per-bahasa
+     (2-hard-neg.py — cegah false-negative terjemahan en<->id).
+
+6. TRAINING STEPS: 140k → 10k
+   PAPER (Sec. 4.1): 140k steps batch 32. Sec. 6.1/Fig. 2: performa mulai
+   saturasi ~100K steps (eval tiap 10K); 100k steps ≈ 9,6 jam di V100
+   (DistilBERT 66M).
+   KODE INI: 10k steps batch 32 (config.GPL_STEPS).
+
+   ⚠ KOREKSI ATRIBUSI (2026-07-16): versi lama menulis "LANDASAN: batas
+   compute (RTX A2000 12GB)" → MENYESATKAN. VRAM TIDAK membatasi jumlah
+   langkah sama sekali; VRAM membatasi BATCH SIZE, dan batch 32 kami MUAT
+   (train_meta.json: grad_accum=1, fallback tak pernah kepicu). 140k langkah
+   SANGAT BISA jalan di 12GB — hanya lama.
+   LANDASAN YANG BENAR: keterbatasan WAKTU komputasi.
+     Durasi nyata (train_meta.json duration_sec):
+       e5  : 10k = 3,11 jam (1,118 dtk/langkah) → 140k = 43,5 jam (1,8 hari)
+       gte : 10k = 3,96 jam (1,426 dtk/langkah) → 140k = 55,5 jam (2,3 hari)
+       dua model @140k = 99 jam = 4,1 HARI nonstop
+       exp0+exp2+exp3 semua @140k (6 run) = ~12 HARI nonstop
+     (GPU juga dipakai bersama proyek lain — lihat reference_ollama_gpu_topology.)
+   SANITY vs paper: paper 100k=9,6 jam di V100/DistilBERT-66M; model kami
+   278M/305M (4,2-4,6x lebih besar) di A2000 (jauh lebih lambat dari V100)
+   → 100k kami = 31-40 jam ≈ 3-4x lebih lambat. KONSISTEN, angka masuk akal.
+
+   KONSEKUENSI (diakui, bukan disembunyikan): 10k x 32 = 320K contoh < 563K
+   triple → training < 1 epoch; 10k ada di bagian awal kurva Fig. 2 (belum
+   saturasi) → hasil GPL kami BUKAN ceiling GPL. Sensitivitas arah steps
+   diuji terpisah di 7-retraining (exp1 = 5k).
+   ⚠ ARAH TEMUAN exp1 (penting, jangan salah cerita): 5k JUSTRU LEBIH BURUK
+   dari 10k (gte .5927 vs .6735, SIG p=.048) → hipotesis "over-adaptation"
+   DITOLAK; kurva masih MENANJAK saat kami berhenti. Artinya kemungkinan
+   140k menutup selisih ke base TIDAK BISA dikesampingkan (khususnya gte,
+   selisihnya cuma .02) → wajib jadi saran penelitian lanjutan, jangan
+   diklaim "GPL tidak cocok untuk domain ini".
+
+   Catatan lr/optimizer/warmup: paper TIDAK menspesifikasi ketiganya →
+   keputusan sendiri, bukan deviasi dari klaim paper. TAPI atribusi "utk
+   VRAM 12GB" hanya benar untuk adamw_8bit; lr & warmup TIDAK ada hubungannya
+   dengan memori (lihat koreksi di konfigurasi_gpl.txt Bagian 4).
+
+7. NEGATIF PER KUERI: sampling-ulang per contoh → 1 negatif tetap
+   PAPER: tiap training example men-sample uniform 1 negatif (+1 positif)
+   dari pool hasil mining.
+   KODE INI: 1 negatif di-sample SEKALI di muka (triples.jsonl; seed 42).
+   LANDASAN: dengan budget 10k steps (320K contoh < 563K triple = <1 epoch)
+   tiap kueri dilihat maksimal 1x → resampling per-epoch tidak pernah
+   terjadi → kedua skema EKUIVALEN pada budget ini.
+
+8. MAX_SEQ: 350 → 384
+   PAPER: max sequence length 350 (utk korpus BEIR).
+   KODE INI: 384 = menutup P99 panjang token chunk korpus kami (374;
+   sumber: output/3-praproses/3-panjang.txt) → ~99% pasase utuh. Landasan
+   data korpus sendiri, bukan angka paper.
+   (config.GPL_MAX_SEQ=384; train_meta.json: max_seq_length=384. Kalau ada
+   dokumen/tabel menulis 385 → TYPO, yang benar 384.)
+   ⚠ KOREKSI (2026-07-17): versi lama menulis "~375; lihat 2-eksplor" — DUA-
+   DUANYA SALAH. (a) Angka terukur = 374 EKSAK, identik di ketiga model
+   (e5/gte/bge-m3 pakai P99 yg sama: 374); "~375" itu bulat-bulatan yang
+   tak pernah terukur. (b) Sumbernya 3-praproses/3-panjang.txt ("PANJANG
+   TOKEN CHUNK FINAL"), BUKAN 2-eksplor — yg di 2-eksplor itu panjang
+   KARAKTER (p99: JSON=335, HTML=1223), beda satuan. Jangan diulang.
+
+9. UKURAN KORPUS: downsample paper (→83,3K) vs korpus PENUH 189.367
+   ─────────────────────────────────────
+   ⚠ KOREKSI KLASIFIKASI (2026-07-15): poin ini DULU ada di bagian D
+   ("konform persis, bukan deviasi") → SALAH TEMPAT. Sekarang dipindah ke
+   sini karena faktual kami MEMANG tidak menjalankan aturan paper.
+
+   PAPER (Sec. 4.1, hlm. 5): "we first set qavg >= 3 and uniformly
+   down-sample the corpus if 3 x |C| > 250K; then we calculate
+   qavg = ceil(250K/|C|)". Contoh paper: Robust04 528,2K → di-downsample
+   ke 83,3K (BUKAN 50K — lihat jebakan di bawah).
+   KODE INI: korpus PENUH 189.367 pasase, TANPA downsample.
+   HITUNGAN: 3 x 189.367 = 568.101 > 250.000 → menurut aturan paper korpus
+   kami MESTINYA di-downsample ke ~83.333. Kami tidak melakukannya.
+   → Status jujur: DEVIASI (berdasar), bukan konform.
+
+   LANDASAN (tetap kuat, tidak berubah):
+   - Aturan downsample = normalisasi ANGGARAN generate antar-dataset BEIR
+     (supaya qavg x |C| = 250K seragam), bukan syarat metodologis.
+   - Table 2 paper: performa GPL sudah JENUH pada korpus >= 50K pasase;
+     189K jauh di atas titik jenuh → korpus penuh tidak merugikan.
+   - KONSEKUENSI: total kueri kami 563.073 (~2,25x anggaran 250K paper)
+     = lebih banyak data sintetis, bukan lebih sedikit.
+
+   ⚠ JEBAKAN ANGKA 50K: "50K" di paper (hlm. 4-5 & Table 2) adalah TEMUAN
+   ANALISIS titik jenuh (Sec. 6.2), BUKAN target downsample. Target
+   downsample sesungguhnya = yang bikin 3 x |C| = 250K (Robust04 → 83,3K).
+   Jangan tulis "paper memakai 50.000 pasase untuk korpus besar" — salah.
 
 ================================================================================
 C. KESIMPULAN
@@ -107,6 +250,43 @@ Perubahan dari fix transformers 5.8.0 (#1-3 bagian A) adalah MURNI TEKNIS:
 - Bisa dibuktikan: jalankan kedua versi dengan seed yang sama di
   transformers < 5.0, bandingkan distribusi kueri — hasilnya konvergen.
 
-Perubahan substansial (bagian B) sudah ada SEBELUM fix ini dan sudah
-didokumentasikan di CHECKLIST.txt. Semua perubahan tersebut MEMPERBAIKI
-pipeline GPL, bukan memperlemahnya.
+Deviasi substansial (bagian B) sudah ada di kode sejak awal; tiap poin
+punya landasan eksplisit di atas. B.1/B.2/B.3/B.5 = adaptasi yang
+diperlukan setting multilingual/cosine (memperbaiki, bukan memperlemah);
+B.6 = limitasi compute yang DIAKUI (hasil bukan ceiling GPL);
+B.7/B.8/B.9 = netral (ekuivalen / berbasis data korpus / data lebih banyak).
+
+DUKUNGAN PAPER ATAS DEVIASI KAMI (verifikasi PDF 2026-07-15) — dipakai di
+bab 3 sebagai justifikasi, jangan dilupakan:
+- B.5 (2→1 retriever): Appendix B paper sendiri menyimpulkan GPL punya
+  "minimum reliance on choices of the retrievers for hard-negative mining".
+- B.3 (skala margin): paper Eq.(1) menyatakan "the dot-product is usually
+  used due to the infinite range of the cross-encoder scores" → student
+  cosine kami memang WAJIB diskalakan; ini konsekuensi pilihan student,
+  bukan tambalan.
+- B.1 (sampling): Fig. 3 paper — GPL masih unggul ~3 poin atas zero-shot
+  bahkan pada temperature 10.0 (kueri nyaris tak nyambung) → parameter
+  sampling bukan faktor sensitif.
+- B.9 (tanpa downsample): Table 2 paper — jenuh di >=50K pasase.
+- Miner dense: Appendix A Table 6 — GPL w/ dense (51.5) > BM25 (47.8).
+
+================================================================================
+D. YANG KONFORM PERSIS DENGAN PAPER (bukan deviasi)
+================================================================================
+- QPP = 3 kueri/pasase (TARGET config): persis Method paper ("we generate
+  for each passage three queries", Sec. 3) DAN persis rumus qavg=ceil(250K/|C|)
+  floor 3 untuk |C|=189.367. AWAS jebakan PDF: "generate 4 queries" di
+  Sec. 4.1 = marker FOOTNOTE nempel (fn.4 = "We use the script from BeIR"),
+  bukan jumlah kueri (rincian: catatan_query_gen.txt).
+  REALISASI (verifikasi artefak 2026-07-15): 563.073 kueri / 189.367 pasase
+  = 2,97 rata-rata, karena sebagian pasase menyisakan <3 kueri setelah filter
+  (B.2). Jangan bingung kalau 189.367 x 3 = 568.101 != 563.073 — selisih
+  5.028 itu hasil penyaringan, bukan bug.
+- Loss MarginMSE (Hofstätter et al. 2020), batch 32, seed tunggal.
+- Hard-neg top-K = 50; 1 negatif per contoh latih.
+- Temperature sampling = 1.0 (titik optimal Fig. 3 paper).
+- Komponen = counterpart multilingual RESMI komponen paper:
+  DocT5Query -> doc2query/msmarco-14langs-mt5-base-v1 (keluarga sama, mMARCO);
+  ms-marco-MiniLM-L-6-v2 -> cross-encoder/mmarco-mMiniLMv2-L12-H384-v1.
+  (Korpus penuh tanpa downsample DIPINDAH ke B.9 — itu deviasi berdasar,
+   bukan konform. Jangan dikembalikan ke sini.)

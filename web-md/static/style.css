@@ -40,6 +40,11 @@
 :root {
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-serif: 'Noto Serif', Georgia, serif;
+  /* Lebar panel samping kanan — SATU aturan utk Catatan & AI Chat (panel +
+     offset tab toggle-nya). Di-resize via handle, tersimpan di dk-side-width. */
+  --side-panel-w: 330px;
+  /* Lebar side-rail (menu ribbon kanan, desktop) */
+  --rail-w: 46px;
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
@@ -50,6 +55,74 @@
   --transition: .25s cubic-bezier(.4, 0, .2, 1);
   --header-h: 56px;
   --banner-h: 28px;
+
+  /* Pitaka Colors */
+  --pitaka-sutta: #42A5F5;
+  --pitaka-sutta-rgb: 66, 165, 245;
+  --pitaka-vinaya: #EF5350;
+  --pitaka-vinaya-rgb: 239, 83, 80;
+  --pitaka-abhidhamma: #66BB6A;
+  --pitaka-abhidhamma-rgb: 102, 187, 106;
+
+  /* ── Palet warna: SATU PINTU ─────────────────────────────────────
+     Warna konstan lintas-tema didefinisikan di sini; warna yang ikut
+     tema di blok [data-theme] di bawah. Tint transparan diturunkan via
+     color-mix(in srgb, var(--x) N%, transparent) — jangan tulis rgba
+     literal baru di body CSS. */
+
+  /* Netral konstan */
+  --white: #fff;
+  --ink: #0f0f14;
+  /* teks gelap di atas aksen/tombol vivid (sengaja TIDAK ikut tema) */
+  --overlay: rgba(0, 0, 0, .5);
+  /* scrim overlay/backdrop */
+  --overlay-strong: rgba(0, 0, 0, .55);
+
+  /* Status & aksen konstan */
+  --gold: #e8a838;
+  /* emas aksen dark; juga glow konstan (btn-primary, dlg-seg-glow) */
+  --gold-star: #ffd700;
+  /* pulse prefill input chat */
+  --warn: #f59e0b;
+  /* ikon warn dialog + pulse highlight kuning */
+  --flash-ok: #10b981;
+  /* pulse highlight hijau */
+  --danger-vivid: #e5484d;
+  /* error chat + item menu danger */
+
+  /* Skala ungu AI — satu-satunya tempat hex ungu ditulis.
+     Angka = urutan terang→gelap (gaya Tailwind). */
+  --purple-100: #e6ccff;
+  --purple-150: #d4aeff;
+  --purple-200: #caa9ff;
+  --purple-250: #c89bff;
+  --purple-300: #b388ff;
+  --purple-400: #a855f7;
+  --purple-450: #a255ff;
+  --purple-500: #9b4dff;
+  --purple-600: #9333ea;
+  --purple-650: #8a2be2;
+  --purple-700: #7c3aed;
+  --purple-800: #6d28d9;
+  --purple-900: #7b1fa2;
+
+  /* Badge kategori model (.cat-badge) — konstan lintas-tema */
+  --cat-base-bg: #546e7a;
+  --cat-base-fg: #e0f0ff;
+  --cat-gpl-bg: #1f9d63;
+  --cat-gpl-fg: #e6fff1;
+  --cat-contrastive-bg: #00897b;
+  --cat-contrastive-pli-bg: #00695c;
+  --cat-contrastive-fg: #e0fff8;
+  --cat-tsdae-bg: #5e35b1;
+  --cat-tsdae-pli-bg: #4527a0;
+  --cat-tsdae-fg: #ede0ff;
+  --cat-ct-bg: #c62828;
+  --cat-ct-pli-bg: #b71c1c;
+  --cat-ct-fg: #ffe0e0;
+
+  /* Gradien AI — stop warna ikut tema via --ai-g1..g3 (didefinisikan per tema) */
+  --ai-gradient: linear-gradient(135deg, var(--ai-g1), var(--ai-g2), var(--ai-g3));
 }
 
 /* --- DARK THEME (default) --- */
@@ -66,59 +139,69 @@
   --text-primary: #e8e6f0;
   --text-secondary: #9a97b0;
   --text-muted: #5e5b72;
-  --accent: #e8a838;
+  --accent: var(--gold);
   --accent-hover: #f0bc5a;
-  --accent-subtle: rgba(232, 168, 56, .12);
+  --accent-subtle: color-mix(in srgb, var(--accent) 12%, transparent);
+  /* Label rail (identitas human): gold di-mute ke arah --ink biar tak "galak" di dark. */
+  --rail-label-bg: color-mix(in srgb, var(--accent) 85%, var(--ink));
   --border: rgba(255, 255, 255, .06);
   --border-strong: rgba(255, 255, 255, .12);
   --danger: #e85454;
   --success: #4ade80;
   --link: #64b5f6;
-  --link-hover: #f0bc5a;
+  --link-hover: var(--accent-hover);
   --tag-id: #4fc3f7;
   --tag-en: #81c784;
   --tag-pli: #ffb74d;
-  --tag-text: #0f0f14;
+  --tag-text: var(--ink);
   --scrollbar-thumb: #333;
   --scrollbar-track: transparent;
-  --ai-color: #d4aeff;
-  --ai-color-hover: #e6ccff;
-  --ai-gradient: linear-gradient(135deg, #c89bff, #a255ff, #7c3aed);
+  --ai-color: var(--purple-150);
+  --ai-color-hover: var(--purple-100);
+  --ai-g1: var(--purple-250);
+  --ai-g2: var(--purple-450);
+  --ai-g3: var(--purple-700);
+  --ai-greet: var(--purple-400);
   color-scheme: dark;
 }
 
 /* --- LIGHT THEME --- */
 [data-theme="light"] {
   --bg-primary: #f5f3f0;
-  --bg-secondary: #ffffff;
+  --bg-secondary: var(--white);
   --bg-tertiary: #eae7e2;
   --bg-glass: rgba(255, 255, 255, .78);
   --bg-glass-border: rgba(0, 0, 0, .08);
-  --bg-card: #ffffff;
+  --bg-card: var(--white);
   --bg-card-hover: #f9f7f4;
-  --bg-input: #ffffff;
+  --bg-input: var(--white);
   --chat-scrim: #e7e2da;
   --text-primary: #1a1818;
   --text-secondary: #5a5555;
   --text-muted: #9a9494;
   --accent: #c47d15;
   --accent-hover: #a86a0e;
-  --accent-subtle: rgba(196, 125, 21, .1);
+  --accent-subtle: color-mix(in srgb, var(--accent) 10%, transparent);
+  /* Brown light sudah adem -> label rail pakai --accent apa adanya. */
+  --rail-label-bg: var(--accent);
   --border: rgba(0, 0, 0, .08);
   --border-strong: rgba(0, 0, 0, .14);
   --danger: #d32f2f;
   --success: #2e7d32;
   --link: #1565c0;
-  --link-hover: #c47d15;
+  --link-hover: var(--accent);
   --tag-id: #0277bd;
   --tag-en: #2e7d32;
   --tag-pli: #e65100;
-  --tag-text: #ffffff;
+  --tag-text: var(--white);
   --scrollbar-thumb: #ccc;
   --scrollbar-track: transparent;
-  --ai-color: #8a2be2;
-  --ai-color-hover: #7b1fa2;
-  --ai-gradient: linear-gradient(135deg, #a855f7, #7c3aed, #6d28d9);
+  --ai-color: var(--purple-650);
+  --ai-color-hover: var(--purple-900);
+  --ai-g1: var(--purple-400);
+  --ai-g2: var(--purple-700);
+  --ai-g3: var(--purple-800);
+  --ai-greet: var(--purple-600);
   color-scheme: light;
 }
 
@@ -177,12 +260,11 @@ a:hover {
 
 /* --- Research banner --- */
 #research-banner {
-  display: none !important;
   position: sticky;
   top: 0;
   z-index: 10;
   background: #c0392b;
-  color: #fff;
+  color: var(--white);
   text-align: center;
   font-size: .72rem;
   font-weight: 600;
@@ -205,6 +287,15 @@ a:hover {
   z-index: 100;
 }
 
+/* Dropdown bahasa KEBUKA: angkat seluruh header di atas chrome panel. #app-header =
+   stacking context (z-100), jadi z-index .lang-dd-menu (300) TAK BISA menembus keluar
+   --- kalah sama .chat-header-bar (z-100, DOM belakangan) & tombol fullscreen-nya.
+   Dinaikkan HANYA saat open supaya backdrop/drawer mobile (z-139/140) tetap menang
+   atas header dalam keadaan normal. */
+#app-header:has(.lang-dd.open) {
+  z-index: 1300;
+}
+
 /* desktop: wrapper transparan, children langsung jadi flex item #app-header */
 .header-top {
   display: contents;
@@ -217,9 +308,9 @@ a:hover {
 }
 
 #app-title {
-  font-size: clamp(.7rem, 3.5vw, 1rem);
-  font-weight: 700;
-  letter-spacing: -.01em;
+  font-size: clamp(1.1rem, 4vw, 1.35rem);
+  font-weight: 800;
+  letter-spacing: -.02em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -237,9 +328,20 @@ a:hover {
   padding-top: 1.5px;
 }
 
+/* Wordmark myDhamma: "my" medium (selangkah di bawah), "Dhamma" ikut berat tebal
+   kontainer (#app-title 800, .chat-empty-greet-1 700, CTA 600). Dipakai di header,
+   sapaan chat kosong, & CTA search — tebel tapi tetap kalah dari "Dhamma". */
+.brand-my {
+  font-weight: 500;
+}
+
 .header-subtitle {
   font-size: .8rem;
   color: var(--text-muted);
+  /* Kompensasi optik SAMA dgn judul (#app-title a judul padding-top:1.5px, nurunin
+     teks brand biar sejajar ikon) --- tanpa ini subtitle keliatan 1.5px lebih tinggi
+     dari teks "myDhamma" walau sama-sama flex center. */
+  padding-top: 1.5px;
 }
 
 
@@ -255,56 +357,11 @@ a:hover {
 }
 
 /* Language pill toggle */
-.lang-pill {
-  position: relative;
-  display: flex;
-  align-items: center;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-strong);
-  border-radius: 20px;
-  padding: 2px;
-  cursor: pointer;
-  user-select: none;
-  height: 30px;
-  transition: border-color var(--transition);
-}
 
-.lang-pill:hover {
-  border-color: var(--accent);
-}
 
-.lang-pill-opt {
-  position: relative;
-  z-index: 2;
-  padding: 2px 10px;
-  font-size: .72rem;
-  font-weight: 700;
-  letter-spacing: .04em;
-  color: var(--text-muted);
-  transition: color var(--transition);
-  line-height: 1;
-}
 
-.lang-pill-opt.active {
-  color: #0f0f14;
-}
 
-.lang-pill-slider {
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: calc(50% - 2px);
-  height: calc(100% - 4px);
-  background: var(--accent);
-  border-radius: 18px;
-  transition: transform var(--transition);
-  z-index: 1;
-}
 
-.lang-pill[data-active="en"] .lang-pill-slider,
-.lang-pill[data-active="dk"] .lang-pill-slider {
-  transform: translateX(100%);
-}
 
 /* Theme pill toggle (matches lang-pill) */
 .theme-pill {
@@ -357,6 +414,35 @@ a:hover {
   transform: translateX(100%);
 }
 
+/* --- Engine Config Button (header) --- */
+.engine-config-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-strong);
+  border-radius: 20px;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  user-select: none;
+  transition: border-color var(--transition), background var(--transition);
+  color: var(--text-muted);
+}
+
+.engine-config-pill i,
+.engine-config-pill svg {
+  width: 15px;
+  height: 15px;
+  transition: transform 0.3s ease, color 0.15s;
+}
+
+.engine-config-pill:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 /* --- Icon & Ghost Buttons --- */
 .icon-btn {
   width: 36px;
@@ -383,7 +469,7 @@ a:hover {
 }
 
 #ensemble-manager::backdrop {
-  background: rgba(0, 0, 0, .5);
+  background: var(--overlay);
   backdrop-filter: blur(3px);
 }
 
@@ -605,6 +691,8 @@ a:hover {
   overflow: hidden;
 }
 
+/* Urutan visual = urutan DOM: konten | resize | Catatan | AI Chat (semua panel
+   di KANAN; Catatan & Chat saling eksklusif, toggle via tab tepi kanan). */
 #search-panel {
   flex: 1 1 60%;
   min-width: min(380px, 100vw);
@@ -623,20 +711,33 @@ a:hover {
   flex-shrink: 0;
 }
 
+/* Handle disembunyikan bila tak ada panel in-flow yang terbuka (JS toggle .rh-off) */
+#resize-handle.rh-off {
+  display: none !important;
+}
+
 #resize-handle:hover,
 #resize-handle.active {
   background: var(--accent);
 }
 
 #notes-panel {
-  flex: 0 0 var(--notes-panel-w, 320px);
-  min-width: 280px;
-  max-width: 600px;
+  flex: 0 0 var(--side-panel-w);
+  min-width: 330px;
+  max-width: 560px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   border-left: 1px solid var(--border);
   transition: all 0.3s ease;
+}
+
+/* Desktop: Catatan kini toggleable (tab tepi kanan) — sembunyi bila tak dibuka.
+   (Mobile pakai mekanisme drawer transform, bukan display.) */
+@media (min-width: 769px) {
+  #notes-panel:not(.panel-open) {
+    display: none;
+  }
 }
 
 /* Notes panel collapsed (sutta viewer toggle) — desktop only */
@@ -657,6 +758,7 @@ a:hover {
   left: 0;
   width: 100vw;
   height: 100vh;
+  height: 100dvh;
   max-width: none;
   z-index: 9999;
   background: var(--bg-primary);
@@ -732,7 +834,7 @@ a:hover {
 
 .toggle-btn.active {
   background: var(--accent);
-  color: #0f0f14;
+  color: var(--ink);
   font-weight: 600;
 }
 
@@ -872,43 +974,43 @@ a:hover {
 }
 
 .cat-badge.base {
-  background: #546e7a;
-  color: #e0f0ff;
+  background: var(--cat-base-bg);
+  color: var(--cat-base-fg);
 }
 
 .cat-badge.gpl {
-  background: #1f9d63;
-  color: #e6fff1;
+  background: var(--cat-gpl-bg);
+  color: var(--cat-gpl-fg);
 }
 
 .cat-badge.contrastive {
-  background: #00897b;
-  color: #e0fff8;
+  background: var(--cat-contrastive-bg);
+  color: var(--cat-contrastive-fg);
 }
 
 .cat-badge.contrastive-pli {
-  background: #00695c;
-  color: #e0fff8;
+  background: var(--cat-contrastive-pli-bg);
+  color: var(--cat-contrastive-fg);
 }
 
 .cat-badge.tsdae {
-  background: #5e35b1;
-  color: #ede0ff;
+  background: var(--cat-tsdae-bg);
+  color: var(--cat-tsdae-fg);
 }
 
 .cat-badge.tsdae-pli {
-  background: #4527a0;
-  color: #ede0ff;
+  background: var(--cat-tsdae-pli-bg);
+  color: var(--cat-tsdae-fg);
 }
 
 .cat-badge.contrast-tsdae {
-  background: #c62828;
-  color: #ffe0e0;
+  background: var(--cat-ct-bg);
+  color: var(--cat-ct-fg);
 }
 
 .cat-badge.contrast-tsdae-pli {
-  background: #b71c1c;
-  color: #ffe0e0;
+  background: var(--cat-ct-pli-bg);
+  color: var(--cat-ct-fg);
 }
 
 /* Dark mode: force readable select dropdowns */
@@ -920,8 +1022,8 @@ a:hover {
 
 [data-theme="dark"] .cat-select option,
 [data-theme="dark"] .model-select option {
-  background-color: #22222e;
-  color: #e8e6f0;
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
 }
 
 /* Search Bar — pill shape, sticky on scroll */
@@ -942,7 +1044,8 @@ a:hover {
   border-radius: 999px;
   background: var(--bg-input);
   transition: border-color var(--transition), box-shadow var(--transition);
-  overflow: hidden;
+  position: relative;
+  /* overflow: hidden removed so custom-autocomplete is not clipped */
 }
 
 .search-bar-inner:focus-within {
@@ -1001,7 +1104,61 @@ a:hover {
   outline: none;
 }
 
+.search-bar-inner input[type="text"]::-webkit-calendar-picker-indicator {
+  display: none !important;
+}
+
 .search-bar-inner input[type="text"]::placeholder {
+  color: var(--text-muted);
+}
+
+.custom-autocomplete {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  max-height: 250px;
+  overflow-y: auto;
+  z-index: 100;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.custom-autocomplete.hidden {
+  display: none !important;
+}
+
+.custom-autocomplete li {
+  padding: 10px 16px;
+  cursor: pointer;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.custom-autocomplete li:last-child {
+  border-bottom: none;
+}
+
+.custom-autocomplete li:hover,
+.custom-autocomplete li.selected {
+  background: var(--bg-tertiary);
+}
+
+.custom-autocomplete li .ac-title {
+  font-weight: 500;
+}
+
+.custom-autocomplete li .ac-id {
+  font-size: 0.8rem;
   color: var(--text-muted);
 }
 
@@ -1022,11 +1179,38 @@ a:hover {
   color: var(--text-primary);
 }
 
+.search-bar-inner .btn-chat-ai {
+  height: 36px;
+  padding: 0 10px 0 16px;
+  border-radius: 999px 0 0 999px;
+  border: none;
+  font-size: 0.85rem;
+}
+
+.search-bar-inner .btn-chat-ai.hidden {
+  display: none !important;
+}
+
+.search-bar-inner .btn-chat-ai svg {
+  width: 14px;
+  height: 14px;
+}
+
 .search-bar-inner .btn-primary {
   height: 36px;
   padding: 0 18px;
   border-radius: 0 999px 999px 0;
   font-size: .85rem;
+}
+
+@media (max-width: 768px) {
+  .search-bar-inner .btn-primary {
+    padding: 0 12px;
+  }
+
+  .search-bar-inner .btn-chat-ai {
+    padding: 0 10px 0 12px;
+  }
 }
 
 .btn-primary {
@@ -1035,7 +1219,7 @@ a:hover {
   border: none;
   border-radius: var(--radius-sm);
   background: var(--accent);
-  color: #0f0f14;
+  color: var(--ink);
   font-weight: 600;
   cursor: pointer;
   font-size: .82rem;
@@ -1051,9 +1235,9 @@ a:hover {
 
 .btn-primary:hover {
   background: var(--accent-hover);
-  color: #0f0f14;
+  color: var(--ink);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(232, 168, 56, .3);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--gold) 30%, transparent);
 }
 
 .btn-primary:active {
@@ -1217,7 +1401,7 @@ a:hover {
 }
 
 #tab-search {
-  padding-bottom: 40px;
+  padding-bottom: 20px;
 }
 
 #search-controls {
@@ -1259,6 +1443,77 @@ a:hover {
   font-size: .88rem;
   line-height: 1.6;
   max-width: 400px;
+}
+
+.empty-state-hint {
+  font-size: .82rem !important;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+.empty-state-hint strong {
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.empty-state-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.btn-edit-options,
+.btn-retry {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 16px;
+  border-radius: 6px;
+  font-size: .85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.btn-edit-options {
+  border: 1px solid var(--border-strong);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.btn-edit-options:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn-edit-options svg,
+.btn-edit-options i,
+.btn-retry svg,
+.btn-retry i {
+  width: 14px;
+  height: 14px;
+}
+
+/* Flash saat panel Opsi Pencarian dibuka dari empty-state (perhatian sekilas) */
+@keyframes options-flash-kf {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+
+  30% {
+    box-shadow: 0 0 0 3px var(--accent-subtle);
+    border-color: var(--accent);
+  }
+}
+
+#search-options-details.options-flash {
+  animation: options-flash-kf 1.5s ease;
+  border-radius: var(--radius-sm);
 }
 
 #btn-empty-new-note {
@@ -1327,11 +1582,35 @@ a:hover {
 
 #results-container.dual-mode {
   flex-direction: row;
+  align-items: flex-start;
+  /* kolom top-align, tak saling stretch tinggi -> desktop rapi */
 }
 
 .results-column {
   flex: 1;
   min-width: 0;
+}
+
+/* Layar sempit: kolom TETAP kiri-kanan (bukan ditumpuk), tapi kontainer scroll horizontal.
+   Kolom tak boleh menciut < ~82% lebar biar tetap kebaca; intip kolom sebelah = sinyal scroll.
+   (#pagination ada di LUAR container -> prev/next tetap kejangkau normal.) */
+@media (max-width: 640px) {
+  #results-container.dual-mode {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+  }
+
+  #results-container.dual-mode .results-column {
+    flex: 1 0 82%;
+    scroll-snap-align: start;
+  }
+
+  /* sticky header bikin aneh di dalam scroller horizontal -> matikan di mobile dual-mode. */
+  #results-container.dual-mode .results-column-header {
+    position: static;
+  }
 }
 
 .results-column-header {
@@ -1340,13 +1619,14 @@ a:hover {
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: .05em;
-  padding: 4px 0;
+  padding: 6px 0 4px 0;
   margin: 0 0 4px 0;
   border-bottom: 1px solid var(--border);
   position: sticky;
   /* Nempel tepat di bawah #search-bar (juga sticky, z-index 10). Offset dihitung di
-     index.js dari tinggi search-bar aktual; fallback 50px kalau JS belum jalan. */
-  top: var(--results-sticky-top, 50px);
+     index.js dari tinggi search-bar aktual; fallback 50px kalau JS belum jalan.
+     Kurangi 2px supaya background overlap sedikit → tutup celah sub-pixel. */
+  top: calc(var(--results-sticky-top, 50px) - 2px);
   background: var(--bg-primary);
   z-index: 5;
 }
@@ -1373,7 +1653,7 @@ a:hover {
 
 #pagination .btn-page:hover:not(:disabled) {
   background: var(--accent);
-  color: #fff;
+  color: var(--white);
 }
 
 #pagination .btn-page:disabled {
@@ -1506,8 +1786,15 @@ a:hover {
   border-left-color: var(--text-muted);
 }
 
-.fragment-blurb .main-text {
+/* Sinopsis blurb TIDAK lagi miring blanket. Miring cuma sinyal "ini fallback
+   bahasa Inggris di UI non-Inggris" — di-set inline oleh JS (renderMain,
+   isEnFallback). Sinopsis dlm bahasa UI = tegak biasa. */
+
+/* Placeholder saat sutta tak punya sinopsis (kartu judul-eksak home) — tetap
+   miring + redup biar kebaca sbg placeholder (bukan sinopsis asli). */
+.fragment-blurb .main-text.blurb-none {
   font-style: italic;
+  color: var(--text-muted);
 }
 
 .fragment-meta {
@@ -1515,13 +1802,15 @@ a:hover {
   align-items: center;
   flex-wrap: wrap;
   gap: 4px 12px;
-  margin-top: -12px;
+  margin-top: -10px;
   margin-left: -12px;
   margin-right: -12px;
   margin-bottom: 10px;
-  padding: 8px 12px;
-  background-color: var(--bg-hover, rgba(0,0,0,0.02));
-  border-bottom: 1px solid var(--border-color);
+  /* padding-right diperlebar: sisakan ruang utk .btn-add-note yg absolute di kanan-atas
+     fragmen, biar meta (ref/penerjemah/skor) gak ketabrak tombol "+ Catatan". */
+  padding: 8px 84px 8px 12px;
+  background-color: rgba(0, 0, 0, 0.02);
+  border-bottom: 1px solid var(--border);
   border-radius: 8px 8px 0 0;
   font-size: .75rem;
   color: var(--text-muted);
@@ -1531,9 +1820,8 @@ a:hover {
   display: inline-flex;
   align-items: center;
   margin-left: auto;
-  margin-right: 80px;
-  background-color: var(--bg-card, #fff);
-  border: 1px solid var(--border-color);
+  background-color: var(--bg-card);
+  border: 1px solid var(--border);
   padding: 2px 8px;
   border-radius: 12px;
   font-size: 11px;
@@ -1553,7 +1841,7 @@ a:hover {
 .frag-backlinks-badge a {
   cursor: pointer;
   margin-left: 4px;
-  color: var(--accent, #f97316);
+  color: var(--accent);
   font-weight: bold;
   text-decoration: underline;
 }
@@ -1565,7 +1853,16 @@ a:hover {
 .fragment-ref,
 .fragment-author {
   font-weight: 700;
-  color: var(--text-muted)
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.fragment-ref svg,
+.fragment-author svg {
+  width: 13px;
+  height: 13px;
 }
 
 
@@ -1595,6 +1892,18 @@ a:hover {
   text-decoration: none;
   cursor: pointer;
   transition: all var(--transition);
+  /* Tombol AKSI "Buka" ikut grand color (accent amber), BUKAN warna kode-bahasa
+     biru/ijo (--tag-id/--tag-en) --- itu jatah BADGE bahasa murni (span.lang-tag).
+     Border tipis selalu tampak: penanda "ini tombol", membedakan dari badge lunak;
+     hover menguat ke accent penuh. Selector lebih spesifik dari .lang-tag.id/.en. */
+  background: var(--accent-subtle);
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+.fragment-texts a.lang-tag:hover,
+.mini-texts a.lang-tag:hover {
+  border-color: var(--accent);
 }
 
 .fragment-texts a.lang-tag:hover,
@@ -1672,9 +1981,7 @@ a:hover {
 .btn-add-note {
   position: absolute;
   top: 8px;
-  /* bottom: 8px; */
   right: 8px;
-  /* background: var(--bg-secondary); */
   background: none;
   /* border: 1px solid var(--border); */
   border: 1px solid var(--text-muted);
@@ -1730,20 +2037,14 @@ a:hover {
 }
 
 .btn-retry {
-  margin-top: 12px;
-  padding: 6px 18px;
   background: var(--accent-subtle);
   color: var(--accent);
   border: 1px solid var(--accent);
-  border-radius: 6px;
-  font-size: .85rem;
-  cursor: pointer;
-  transition: all var(--transition);
 }
 
 .btn-retry:hover {
   background: var(--accent);
-  color: #0f0f14;
+  color: var(--bg-primary);
 }
 
 /* --- Note Picker Popover --- */
@@ -1798,7 +2099,7 @@ a:hover {
 .dk-note-picker-close:hover {
   background: var(--danger);
   /* Menggunakan warna merah bawaan temamu */
-  color: #fff;
+  color: var(--white);
 }
 
 .dk-note-picker-item {
@@ -1923,13 +2224,13 @@ a:hover {
 
 .note-tab.active {
   background: var(--accent);
-  color: #0f0f14;
+  color: var(--ink);
   border-color: var(--accent);
   font-weight: 600;
 }
 
 .note-tab.active .note-tab-date {
-  color: rgba(15, 15, 20, .65);
+  color: color-mix(in srgb, var(--ink) 65%, transparent);
 }
 
 /* Note Editor */
@@ -2060,7 +2361,7 @@ a:hover {
 
 .note-block-actions .block-del-btn:hover {
   background: var(--danger);
-  color: #fff;
+  color: var(--white);
 }
 
 /* Text block in notes */
@@ -2108,9 +2409,34 @@ a:hover {
   border-left: 3px solid var(--ai-color);
 }
 
-/* Blok jawaban AI di Catatan: read-only, rujukan jadi link "Buka" */
+/* Blok jawaban AI di Catatan: read-only, rujukan jadi link "Buka". Konten dirender jadi blok
+   HTML (renderAiNoteHtml -> <p>/<ul>/<ol>/<table>), jadi white-space normal (bukan pre-wrap);
+   pemisahan baris/paragraf diurus elemen blok, list nested & paragraf penutup ikut tertata. */
 .note-block-ai-text {
-  white-space: pre-wrap;
+  white-space: normal;
+}
+
+.note-block-ai-text p {
+  margin: 0 0 .6em;
+}
+
+.note-block-ai-text p:last-child {
+  margin-bottom: 0;
+}
+
+.note-block-ai-text ul,
+.note-block-ai-text ol {
+  margin: .4em 0 .7em;
+  padding-left: 1.4em;
+}
+
+.note-block-ai-text li {
+  margin: .15em 0;
+}
+
+.note-block-ai-text li:last-child>ul:last-child,
+.note-block-ai-text li:last-child>ol:last-child {
+  margin-bottom: 0;
 }
 
 .note-cite {
@@ -2127,13 +2453,13 @@ a:hover {
 /* Tombol Kirim berubah jadi Stop saat bot menjawab (item 7) */
 .chat-send.chat-stop.btn-primary {
   background: var(--ai-gradient);
-  color: #ffffff;
+  color: var(--white);
   border: none;
 }
 
 .chat-send.chat-stop.btn-primary:hover {
   background: var(--ai-gradient);
-  color: #ffffff;
+  color: var(--white);
   opacity: 0.8;
   transform: none;
 }
@@ -2147,7 +2473,7 @@ a:hover {
 /* ── Item 20: empty-state chat (roda Dhamma berputar + sapaan animasi) ── */
 .chat-empty-state {
   flex: 1;
-  min-height: 0;
+  min-height: min-content;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2167,32 +2493,16 @@ a:hover {
 }
 
 .chat-empty-wheel {
-  width: 58px;
-  height: 58px;
+  width: 42px;
+  height: 42px;
   opacity: 0.92;
   transform-origin: 50% 50%;
   /* Roda muter; gradient ungu statik (tanpa shine putih gerak) -> rotasi aman, tak "tumbling". */
   animation: chat-wheel-spin 9s linear infinite;
-  filter: drop-shadow(0 0 6px rgba(162, 85, 255, 0.38));
+  filter: drop-shadow(0 0 6px rgba(249, 115, 22, 0.38));
 }
 
-/* Light: glow roda senada teks sapaan versi light */
-[data-theme="light"] .chat-empty-wheel {
-  filter: drop-shadow(0 0 5px rgba(124, 58, 237, 0.28));
-}
 
-/* Gradient roda theme-aware (samain badge): light pakai ungu lebih pekat biar tak pucat. */
-[data-theme="light"] #chatWheelGrad stop:nth-of-type(1) {
-  stop-color: #a855f7;
-}
-
-[data-theme="light"] #chatWheelGrad stop:nth-of-type(2) {
-  stop-color: #7c3aed;
-}
-
-[data-theme="light"] #chatWheelGrad stop:nth-of-type(3) {
-  stop-color: #6d28d9;
-}
 
 @keyframes chat-wheel-spin {
   to {
@@ -2211,23 +2521,18 @@ a:hover {
 .chat-empty-greet-1 {
   font-size: 1.3rem;
   font-weight: 700;
-  background: linear-gradient(90deg, #a255ff, #ffffff, #B388FF, #a255ff);
+  background: linear-gradient(90deg, var(--text-primary), var(--text-primary), var(--ai-greet), var(--text-primary), var(--text-primary));
   background-size: 200% auto;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: chat-greet-in 0.6s ease both, text-shine 3s linear infinite;
-  filter: drop-shadow(0 0 8px rgba(162, 85, 255, 0.4));
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--ai-g2) 20%, transparent));
 }
 
-/* Light: #ffffff (highlight shine) di gradient lenyap ke bg terang -> ganti jadi ungu terang
-   biar sapaan tetap terbaca, shine tetap jalan. */
+/* Light: kilau ungu lebih halus (warna gradient ikut --ai-greet per tema). */
 [data-theme="light"] .chat-empty-greet-1 {
-  background: linear-gradient(90deg, #7c3aed, #c084fc, #9333ea, #7c3aed);
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-  filter: drop-shadow(0 0 6px rgba(124, 58, 237, 0.3));
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--ai-g2) 15%, transparent));
 }
 
 @keyframes text-shine {
@@ -2260,6 +2565,31 @@ a:hover {
   opacity: 1;
 }
 
+.chat-ai-text {
+  background: linear-gradient(90deg, var(--ai-g1), var(--ai-g2), var(--ai-g3));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--ai-g2) 35%, transparent));
+  color: var(--ai-g2);
+  /* "AI" = label/deskriptor: berat senada "my" (medium, ga rebutan tebal dgn
+     "Dhamma"). Emphasis-nya udah dibawa gradient+glow. */
+  font-weight: 500;
+}
+
+/* Light: kilau lebih halus (gradient & warna ikut --ai-g* per tema). */
+[data-theme="light"] .chat-ai-text {
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--ai-g2) 28%, transparent));
+}
+
+/* "AI" superscript HANYA di sapaan new-chat (di CTA search font-nya kecil,
+   superscript jadi kekecilan). vertical-align:super + ukuran ~0.6em. */
+.chat-empty-greet-1 .chat-ai-text {
+  font-size: 0.6em;
+  vertical-align: super;
+  font-weight: 600;
+}
+
 /* "Bercak cahaya"/spotlight: glow ungu mengisi SELURUH panel chat (empty page) di belakang
    konten. Hilang saat ada percakapan (.show-brand). Light mode di-override lebih halus. */
 .chat-widget-area::after {
@@ -2269,8 +2599,8 @@ a:hover {
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(90% 60% at 50% 60%, rgba(162, 85, 255, 0.20), transparent 78%),
-    radial-gradient(60% 52% at 18% 72%, rgba(124, 58, 237, 0.13), transparent 82%),
+    radial-gradient(90% 60% at 50% 60%, color-mix(in srgb, var(--ai-g2) 20%, transparent), transparent 78%),
+    radial-gradient(60% 52% at 18% 72%, color-mix(in srgb, var(--ai-g3) 13%, transparent), transparent 82%),
     radial-gradient(60% 52% at 82% 72%, var(--accent-subtle), transparent 82%);
   opacity: 1;
   transition: opacity 0.4s ease;
@@ -2289,9 +2619,9 @@ a:hover {
 
 [data-theme="light"] .chat-widget-area::after {
   background:
-    radial-gradient(90% 60% at 50% 60%, rgba(124, 58, 237, 0.12), transparent 78%),
-    radial-gradient(60% 52% at 18% 72%, rgba(147, 51, 234, 0.09), transparent 82%),
-    radial-gradient(60% 52% at 82% 72%, rgba(196, 125, 21, 0.07), transparent 82%);
+    radial-gradient(90% 60% at 50% 60%, color-mix(in srgb, var(--ai-g2) 12%, transparent), transparent 78%),
+    radial-gradient(60% 52% at 18% 72%, color-mix(in srgb, var(--ai-greet) 9%, transparent), transparent 82%),
+    radial-gradient(60% 52% at 82% 72%, color-mix(in srgb, var(--accent) 7%, transparent), transparent 82%);
 }
 
 @keyframes chat-area-glow {
@@ -2310,67 +2640,14 @@ a:hover {
   }
 }
 
-/* Badge "myDhamma AI" di pojok KIRI-ATAS area chat (lawan tombol setting di kanan). Di dalam
-   .chat-widget-area (relative) -> otomatis di kanan sidebar histori, tak menembusnya. Gradient
-   teks di <span> dalam (gradient+background-clip:text harus terpisah dari latar). */
-.chat-brand-badge {
-  position: absolute;
-  top: 18px;
-  left: 18px;
-  z-index: 90;
-  pointer-events: none;
-  opacity: 0;
-  transform: translateY(-4px);
-  transition: opacity 0.3s ease, transform 0.3s ease;
-}
-
-.chat-brand-badge span {
-  font-size: 0.92rem;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  background: linear-gradient(90deg, #c89bff, #a255ff, #7c3aed);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 6px rgba(162, 85, 255, 0.35));
-}
-
-/* Light: ungu pucat (#c89bff) di awal jadi nyaris putih di bg terang -> pakai ungu lebih
-   pekat biar huruf awal ("my") tetap terbaca sbg ungu. */
-[data-theme="light"] .chat-brand-badge span {
-  background: linear-gradient(90deg, #a855f7, #7c3aed, #6d28d9);
-  -webkit-background-clip: text;
-  background-clip: text;
-  filter: drop-shadow(0 0 5px rgba(124, 58, 237, 0.28));
-}
-
-.chat-widget-area.show-brand .chat-brand-badge {
-  opacity: 1;
-  transform: none;
-}
-
-/* Mobile: badge di TENGAH-atas, sejajar-vertikal dgn tombol floating (pusat tombol ~31px:
-   header padding 12 + setengah tinggi tombol 38/2). translate -50% Y -> center sejati. */
-@media (max-width: 768px) {
-  .chat-brand-badge {
-    top: 31px;
-    left: 50%;
-    transform: translate(-50%, calc(-50% - 4px));
-  }
-
-  .chat-widget-area.show-brand .chat-brand-badge {
-    transform: translate(-50%, -50%);
-  }
-
-  .chat-brand-badge span {
-    font-size: 1rem;
-  }
-}
+/* Badge judul di atas area chat DIHAPUS (2026-07-11): dulu brand "myDhamma AI", sempat
+   jadi nama room, akhirnya diputuskan tanpa judul sama sekali. Class .show-brand tetap
+   dipakai utk scrim ::before/::after di atas (hanya tampak saat ada percakapan). */
 
 .chat-empty-greet-2 {
   font-size: 1rem;
   font-weight: 500;
-  color: var(--text-secondary, var(--text-primary));
+  color: var(--text-secondary);
   min-height: 1.4em;
   /* cegah layout-shift saat teks diketik */
 }
@@ -2386,14 +2663,14 @@ a:hover {
   position: absolute;
   top: -5px;
   right: -7px;
-  color: var(--accent);
-  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 70%, transparent));
+  color: var(--purple-400);
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--purple-700) 50%, transparent));
   animation: chat-sparkle-twinkle 1.9s ease-in-out infinite;
 }
 
 .chat-empty-sparkle svg {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
 }
 
 @keyframes chat-sparkle-twinkle {
@@ -2416,7 +2693,7 @@ a:hover {
   height: 1.05em;
   margin-left: 2px;
   vertical-align: -2px;
-  background: linear-gradient(180deg, #c89bff, #7c3aed);
+  background: linear-gradient(180deg, var(--purple-250), var(--purple-700));
   animation: chat-caret-blink 0.8s step-end infinite;
 }
 
@@ -2440,7 +2717,7 @@ a:hover {
   height: 1.05em;
   margin-left: 2px;
   vertical-align: -2px;
-  background: linear-gradient(180deg, #c89bff, #7c3aed);
+  background: linear-gradient(180deg, var(--purple-250), var(--purple-700));
   border-radius: 1px;
   animation: chat-caret-blink 0.8s step-end infinite;
 }
@@ -2564,6 +2841,10 @@ a:hover {
   font-weight: 400;
   font-size: 0.78rem;
   color: var(--text-muted);
+  max-width: 120px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Entrance staggered tiap chip (mention + topik) saat first load — pop kecil naik+fade.
@@ -2647,13 +2928,13 @@ a:hover {
   }
 
   .chat-empty-wheel {
-    width: 44px;
-    height: 44px;
+    width: 32px;
+    height: 32px;
   }
 
   .chat-empty-sparkle svg {
-    width: 16px;
-    height: 16px;
+    width: 12px;
+    height: 12px;
   }
 
   .chat-empty-greet-1 {
@@ -2788,9 +3069,107 @@ a:hover {
    RESPONSIVE
    ================================================================ */
 
-/* panel toggle: hidden on desktop */
-.panel-toggle-btn {
-  display: none;
+/* ── SIDE RAIL (ribbon ala Office/VS Code) ──────────────────────────
+   DESKTOP: strip menu vertikal PERMANEN di tepi kanan #app-main (in-flow,
+   tak bisa hilang). Item numpuk atas-bawah: Catatan (netral) + AI Chat
+   (ungu). Klik item = buka panelnya (eksklusif); klik item aktif = tutup
+   panel, rail tetap. MOBILE: grup tab ngambang (lihat media ≤768). */
+#side-rail {
+  position: relative;
+  flex: 0 0 var(--rail-w, 46px);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  padding: 12px 0;
+  background: var(--bg-secondary);
+  border-left: 1px solid var(--border);
+  z-index: 141;
+  user-select: none;
+}
+
+.rail-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  padding: 12px 0;
+  margin: 0 5px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-weight: 600;
+  transition: background var(--transition), color var(--transition);
+}
+
+.rail-btn-icon {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+.rail-btn-label {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+  font-size: .68rem;
+  font-weight: 600;
+  letter-spacing: .06em;
+  line-height: 1;
+}
+
+/* Hover Catatan: tint accent (coklat) — paritas pola hover tab AI (tint ungu) */
+.rail-btn:hover,
+.rail-btn:active {
+  background: var(--accent-subtle);
+  color: var(--accent);
+}
+
+.rail-btn.panel-btn-open {
+  background: var(--accent-subtle);
+  color: var(--accent);
+}
+
+/* Kedip tab Catatan saat + Catatan berhasil — pakai pola ring box-shadow yg SAMA
+   dgn .attention-pulse (border glow accent), biar konsisten dgn kedip lain. */
+.rail-btn.rail-pulse:not(.panel-btn-open) {
+  animation: attention-pulse 1.5s cubic-bezier(0.4, 0, 0.2, 1) 2;
+  border-color: var(--accent) !important;
+}
+
+/* Varian AI: identitas ungu (--ai-color, theme-aware) */
+.rail-btn-ai:hover,
+.rail-btn-ai:active {
+  color: var(--ai-color);
+  background: color-mix(in srgb, var(--ai-color) 10%, transparent);
+}
+
+.rail-btn-ai.panel-btn-open {
+  background: color-mix(in srgb, var(--ai-color) 16%, transparent);
+  color: var(--ai-color);
+}
+
+.rail-btn-ai.nudge-highlight {
+  animation: attention-pulse-ai 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  border-color: var(--ai-color) !important;
+  color: var(--ai-color);
+  background: color-mix(in srgb, var(--ai-color) 16%, transparent);
+}
+
+@keyframes attention-pulse-ai {
+  0% {
+    box-shadow: 0 0 0 0 var(--ai-color);
+  }
+
+  70% {
+    box-shadow: 0 0 0 8px transparent;
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
 }
 
 /* --- Tablet (≤ 768px) --- */
@@ -2905,16 +3284,8 @@ a:hover {
     display: none;
   }
 
-  .lang-pill,
-  .theme-pill {
-    height: 26px;
-  }
-
-  .lang-pill-opt,
-  .theme-pill-opt {
-    padding: 2px 7px;
-    font-size: .65rem;
-  }
+  /* Theme switcher & dropdown bahasa: ukuran SAMA dgn desktop (30px, setara)
+     — dulu dikompakkan beda-beda, jadi kelihatan tak seragam. */
 
   /* ── Header row 2: nav tabs ───────────────────────────── */
   #main-nav {
@@ -2957,20 +3328,25 @@ a:hover {
     padding: 8px 12px 0;
   }
 
-  /* ── Right panels: drawer dari kanan ─────────────────── */
+  /* ── Drawer NEMPEL KIRI, slide DARI KIRI (buka ke kanan); gap alami di kanan
+     tempat tombol rail ngambang. Tombol tetap di pojok kanan. ── */
   #notes-panel {
     position: fixed;
     top: 0;
-    right: 0;
+    left: 0;
+    /* nempel pojok kiri */
+    right: auto;
     bottom: 0;
-    width: 88vw;
-    max-width: 360px;
+    width: calc(100vw - 34px);
+    max-width: 440px;
+    min-width: 0;
     height: 100dvh;
     z-index: 140;
     background: var(--bg-primary);
-    border-left: 1px solid var(--border-strong);
+    border-right: 1px solid var(--border-strong);
+    border-left: none;
     border-top: none;
-    transform: translateX(100%);
+    transform: translateX(-100%);
     transition: transform .3s cubic-bezier(.4, 0, .2, 1);
     display: flex;
     flex-direction: column;
@@ -2993,7 +3369,7 @@ a:hover {
     width: 100%;
     height: 100%;
     z-index: 139;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: var(--overlay);
     -webkit-backdrop-filter: blur(2px);
     backdrop-filter: blur(2px);
   }
@@ -3002,80 +3378,7 @@ a:hover {
     display: block;
   }
 
-  /* ── Panel toggle (tab di kanan layar) ────────────────── */
-  .panel-toggle-btn {
-    display: flex;
-    flex-direction: column;
-    position: fixed;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 150;
-    width: 26px;
-    height: auto;
-    padding: 10px 0;
-    gap: 6px;
-    /* 80% berarti 80% solid, 20% tembus pandang. Sesuaikan persentasenya! */
-    background: color-mix(in srgb, var(--bg-secondary) 30%, transparent);
-    backdrop-filter: blur(0.8px);
-    -webkit-backdrop-filter: blur(0.8px);
-    /* Untuk Safari */
-    /* ----------------------- */
-    border: 1px solid var(--border-strong);
-    border-right: none;
-    border-radius: 8px 0 0 8px;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: var(--text-muted);
-    font-size: .6rem;
-    font-weight: 700;
-    box-shadow: -3px 0 10px rgba(0, 0, 0, .15);
-    transition: right .3s cubic-bezier(.4, 0, .2, 1), background var(--transition), color var(--transition);
-    user-select: none;
-  }
-
-  .panel-toggle-icon,
-  .panel-toggle-chevron {
-    width: 13px;
-    height: 13px;
-    flex-shrink: 0;
-  }
-
-  .panel-toggle-label {
-    writing-mode: vertical-rl;
-    text-orientation: mixed;
-    transform: rotate(180deg);
-    font-size: .72rem;
-    font-weight: 600;
-    letter-spacing: .06em;
-    line-height: 1;
-  }
-
-  .panel-btn-open .panel-toggle-chevron {
-    transform: rotate(180deg);
-  }
-
-  .panel-toggle-btn.panel-btn-open {
-    right: min(88vw, 360px);
-    background: var(--accent);
-    color: #0f0f14;
-    border-color: var(--accent);
-    box-shadow: -4px 0 14px rgba(0, 0, 0, .35);
-  }
-
-  .panel-toggle-btn:hover,
-  .panel-toggle-btn:active {
-    background: var(--accent-subtle);
-    color: var(--accent);
-  }
-
-  .panel-toggle-btn.panel-btn-open:hover,
-  .panel-toggle-btn.panel-btn-open:active {
-    background: var(--accent);
-    color: #0f0f14;
-    opacity: .85;
-  }
+  /* (Tab toggle lama dihapus — kini side-rail; gaya mobile-nya di akhir file) */
 
   /* ── Sutta dialog: full screen ────────────────────────── */
   #sutta-dialog {
@@ -3176,6 +3479,11 @@ a:hover {
   .reader-controls-sticky {
     top: -8px;
     padding: 8px 14px;
+  }
+
+  /* Wrapper sticky halaman baca ikut top mobile (-8px); kontrol di dalamnya statik. */
+  .reader-sticky-wrap {
+    top: -8px;
   }
 
   /* Sutta reader mobile: satu baris — dropdown isi sisa, tombol toggle (ikon) di kanan */
@@ -3344,10 +3652,38 @@ a:hover {
   border-radius: var(--radius-sm);
   transition: background var(--transition), padding var(--transition);
   line-height: 1.7;
+  /* Scroll-to-segment (block:"start") mendarat di UJUNG ATAS segmen + gap kecil,
+     bukan di tengah. Default ini utk dialog (scroller .sutta-dialog-body, tanpa bar
+     sticky internal). Halaman baca dioverride di #search-scroll (ada bar kontrol sticky). */
+  scroll-margin-top: 16px;
+}
+
+/* Halaman baca: bar kontrol (.reader-controls-sticky) nempel di atas #search-scroll,
+   jadi target harus turun di bawahnya biar gak ketutupan. */
+#search-scroll .sutta-segment {
+  scroll-margin-top: 140px;
 }
 
 html.show-seg-ref .sutta-segment {
   padding-top: 24px;
+}
+
+/* Link elipsis "§N" (di-rewrite reader.py -> "§mn21:md7" intra / "§sn55.44" sibling). SELALU
+   pranala aktif: di konten reader asli (.sutta-segment) klik loncat segmen / ganti sutta in-place;
+   di LUAR reader (kartu hasil pencarian, rujukan chat, blok catatan) klik BUKA sutta-viewer dialog
+   (ditangani delegasi klik di common.js). Gaya seragam di semua konteks. */
+a.para-ref,
+a.sutta-ref {
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: none;
+  border-bottom: 1px dotted var(--accent);
+  white-space: nowrap;
+}
+
+a.para-ref:hover,
+a.sutta-ref:hover {
+  border-bottom-style: solid;
 }
 
 .sutta-segment:hover {
@@ -3372,12 +3708,14 @@ html.show-seg-ref .sutta-segment {
 .verse-num {
   /* font-size: .68em; */
   font-size: .70em;
-  color: var(--text-muted, var(--text-secondary, #888));
+  color: var(--text-muted);
   margin-right: 2px;
   vertical-align: super;
   line-height: 0;
   /* font-weight: 100; */
   font-weight: 700;
+  /* Nomor segmen = angka; jangan ikut miring saat berada di kolom Pāli (.seg-secondary italic). */
+  font-style: normal;
   user-select: none;
   display: none;
 }
@@ -3564,13 +3902,48 @@ html.show-seg-ref .verse-sep {
   /* margin-top: .3em; */
 }
 
+/* KARTU hasil pencarian/chat (fragment excerpt): tipografi heading TIDAK dieksekusi
+   penuh --- h1 sutta lebih besar dari judul kartu = hierarki kartu rusak; konteksnya
+   excerpt, bukan dokumen. Netralkan ke skala body + semibold sbg penanda "judul section".
+   Nomor segmen & isi teks tak disentuh; tipografi penuh tetap hidup di viewer.
+   Spesifisitas 3-class menang atas .seg-heading-N di atas. */
+.fragment .main-text .seg-heading {
+  font-size: inherit;
+  font-weight: 600;
+  font-style: normal;
+  color: var(--text-primary);
+  border-bottom: none;
+  padding-bottom: 0;
+  margin: 0 0 .15em;
+  line-height: inherit;
+}
+
 /* Side-by-side */
+.sutta-segments.side-by-side {
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+}
+
 .sutta-segments.side-by-side .sutta-segment {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
   align-items: start;
 }
+
+.sutta-segments.side-by-side-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+}
+
+.seg-col, .split-pane {
+  scroll-snap-align: start; /* Fix bug auto-scroll ke tengah gara-gara center */
+}
+
+
 
 .seg-col {
   font-family: var(--font-sans);
@@ -3645,7 +4018,7 @@ html.show-seg-ref .sutta-segment:hover .seg-ref {
 .seg-add-btn:hover {
   opacity: 1;
   background: var(--accent);
-  color: #0f0f14;
+  color: var(--ink);
   border-color: var(--accent);
 }
 
@@ -3688,7 +4061,7 @@ html.show-seg-ref .sutta-segment:hover .seg-ref {
 
 .nav-tab.active {
   background: var(--accent);
-  color: #0f0f14;
+  color: var(--ink);
 }
 
 .nav-tab:hover:not(.active) {
@@ -3887,6 +4260,19 @@ html.show-seg-ref .sutta-segment:hover .seg-ref {
   color: var(--accent);
 }
 
+/* Leaf tanpa teks (link 404) -> di-disable: mute + non-klik, tanpa hover-highlight. */
+.browse-sutta-link.unavailable {
+  color: var(--text-muted);
+  font-weight: 400;
+  cursor: not-allowed;
+  opacity: .6;
+}
+
+.browse-sutta-link.unavailable:hover {
+  background: transparent;
+  color: var(--text-muted);
+}
+
 .browse-sutta-id {
   font-family: "JetBrains Mono", "Fira Code", monospace;
   font-size: .82rem;
@@ -3934,6 +4320,7 @@ html.show-seg-ref .sutta-segment:hover .seg-ref {
   color: var(--tag-en);
   background: rgba(129, 199, 132, .12);
 }
+
 
 .lang-badge.badge-pli {
   color: var(--tag-pli);
@@ -4053,7 +4440,7 @@ html.show-seg-ref .sutta-segment:hover .seg-ref {
   border-radius: 50%;
   object-fit: cover;
   border: 1px solid var(--border);
-  background: white;
+  background: var(--white);
 }
 
 .footer-logo-wrap:hover .footer-logo,
@@ -4231,6 +4618,95 @@ html.show-seg-ref .sutta-segment:hover .seg-ref {
   font-family: inherit;
 }
 
+/* Chevron gulir riwayat di ujung kanan section-divider (order:1 = setelah garis,
+   pola sama dgn .section-divider-action "Lompat ke Teks"). Tampil hanya saat chips
+   overflow; disabled di ujung kiri/kanan (initHistoryScrollControls index.js). */
+.history-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  order: 1;
+  flex-shrink: 0;
+}
+
+.history-nav-btn {
+  padding: 1px 4px;
+}
+
+.history-nav-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.history-nav-btn:disabled {
+  opacity: .35;
+  cursor: default;
+}
+
+/* Dialog Konfig Mesin: flex column + max-height supaya footer (reranker + Reset/Simpan)
+   SELALU keliatan --- dulu tanpa max-height dialog meluber ke bawah viewport di layar
+   pendek & footernya tak terjangkau. Pakai [open] (BUKAN display inline di template):
+   display inline bakal ngalahkan display:none bawaan <dialog> saat tertutup. */
+#ensemble-manager[open] {
+  display: flex;
+  flex-direction: column;
+  max-height: min(85vh, 100dvh - 32px);
+}
+
+/* Tombol acak-ulang rekomendasi kueri (divider "atau langsung cari"). */
+#btn-refresh-recs svg {
+  width: 13px;
+  height: 13px;
+}
+
+#btn-refresh-recs.spinning svg {
+  animation: recs-spin-once .6s cubic-bezier(.34, 1.4, .64, 1);
+}
+
+/* Spin springy: overshoot dikit (380°) lalu settle di 360° --- lebih hidup drpd putaran linear. */
+@keyframes recs-spin-once {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  80% {
+    transform: rotate(380deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Chip rekomendasi & riwayat pop-in berurutan (stagger delay di-set inline oleh
+   renderRecommendedQueries / renderCombinedHistory) --- refresh kerasa "ganti isi",
+   bukan kedip. Chip riwayat pakai keyframe & timing yg sama biar seragam. */
+.recommended-queries .query-chip.chip-in,
+#recent-sutta-container .chip-in {
+  animation: rec-chip-pop .32s cubic-bezier(.22, 1, .36, 1) backwards;
+}
+
+@keyframes rec-chip-pop {
+  from {
+    opacity: 0;
+    transform: translateY(5px) scale(.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  #btn-refresh-recs.spinning svg,
+  .recommended-queries .query-chip.chip-in,
+  #recent-sutta-container .chip-in {
+    animation: none;
+  }
+}
+
 .history-chip svg {
   width: 13px;
   height: 13px;
@@ -4311,13 +4787,13 @@ html.show-seg-ref .sutta-segment:hover .seg-ref {
 }
 
 .ai-chat-hist-chip:hover {
-  background: rgba(162, 85, 255, 0.1);
-  border-color: #a255ff;
-  color: #a255ff;
+  background: color-mix(in srgb, var(--purple-450) 10%, transparent);
+  border-color: var(--purple-450);
+  color: var(--purple-450);
 }
 
 .ai-chat-hist-chip:hover svg {
-  color: #a255ff !important;
+  color: var(--purple-450) !important;
 }
 
 /* ================================================================
@@ -4346,7 +4822,7 @@ html.show-seg-ref .sutta-segment:hover .seg-ref {
 }
 
 #sutta-dialog::backdrop {
-  background: rgba(0, 0, 0, .55);
+  background: var(--overlay-strong);
   backdrop-filter: blur(4px);
 }
 
@@ -4364,7 +4840,7 @@ html.show-seg-ref .sutta-segment:hover .seg-ref {
 }
 
 .reader-settings-dialog::backdrop {
-  background: rgba(0, 0, 0, .55);
+  background: var(--overlay-strong);
   backdrop-filter: blur(4px);
 }
 
@@ -4648,9 +5124,49 @@ html.show-seg-ref .rs-ex-sup {
   margin: 0;
 }
 
+/* ── Halaman baca: breadcrumbs + header + kontrol jadi SATU unit sticky. Bagian nav
+   (breadcrumbs + header) auto-hide saat scroll TURUN & muncul lagi saat scroll NAIK
+   (biar tombol back gampang dijangkau tanpa balik ke pucuk); kontrol (dropdown +
+   toggle) SELALU tampil. Wrapper yg nge-bleed ke tepi -> anak2 di-nolin margin/sticky. */
+.reader-sticky-wrap {
+  position: sticky;
+  top: -10px;
+  z-index: 12;
+  margin: -10px -20px 0;
+  background: var(--bg-secondary);
+}
+
+.reader-sticky-wrap .breadcrumbs-outer {
+  margin: 0;
+  width: 100%;
+}
+
+.reader-sticky-wrap #reader-header {
+  position: static;
+  margin: 0;
+}
+
+.reader-sticky-wrap .reader-controls-sticky {
+  position: static;
+  top: auto;
+  margin: 0;
+}
+
+.reader-nav-collapsible {
+  overflow: hidden;
+  opacity: 1;
+  max-height: 200px;
+  transition: max-height .28s ease, opacity .2s ease;
+}
+
+body.reader-nav-hidden .reader-nav-collapsible {
+  max-height: 0;
+  opacity: 0;
+}
+
 .sutta-header-top {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
   min-width: 0;
 }
@@ -4660,6 +5176,10 @@ html.show-seg-ref .rs-ex-sup {
   flex: 1;
 }
 
+/* Baris icon+ID (.dlg-title-top) selalu berdiri sendiri, nama sutta (.dlg-sutta-name)
+   pisah di baris bawahnya -> tombol2 header (close/Tanya AI/Setelan) yg sejajar/overlay
+   di baris atas jadi TAK PERNAH ketabrak nama sutta sepanjang apapun (nama cuma bisa
+   melebar ke bawah, bukan ke kanan). Uniform di dialog & reader (non-dialog), no media-query. */
 .sutta-dialog-header h2 {
   margin: 0;
   font-size: 1.15rem;
@@ -4667,6 +5187,7 @@ html.show-seg-ref .rs-ex-sup {
   color: var(--text-primary);
   padding-right: 44px;
   display: flex;
+  flex-direction: row;
   align-items: center;
   gap: 8px;
 }
@@ -4685,6 +5206,16 @@ html.show-seg-ref .rs-ex-sup {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Dialog: tombol aksi (Tanya AI/Setelan/Halaman Teks/close) itu position:absolute di
+   pojok atas & tingginya 32px — lebih tinggi dari 1 baris ID. Samain tinggi baris ID
+   (.dlg-title-top) ke 32px biar nama sutta di baris bawahnya MULAI di bawah deretan
+   tombol, ga ketabrak (baris ID sendiri pendek, ga pernah nyampe tombol). Reader
+   (#reader-subtitle) tombolnya flex-flow (kepisah) -> ga butuh ini. */
+#sutta-dialog-title .dlg-title-top {
+  min-height: 32px;
 }
 
 .sutta-dialog-header h2 svg {
@@ -4698,12 +5229,32 @@ html.show-seg-ref .rs-ex-sup {
   color: var(--accent);
 }
 
+/* Nama panjang: wrap maks 2 baris lalu ellipsis (senada .mobile-ref-popup-title).
+   Klik saat ke-clamp -> tooltip nama penuh, lihat attachSuttaNameTooltip (common.js). */
 .dlg-sutta-name {
   font-weight: 400;
   font-style: italic;
   opacity: 0.75;
   font-size: 0.95rem;
-  line-height: 1.2;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  cursor: pointer;
+  /* Nama Pāḷi kadang 1 kata panjang tanpa spasi (mis. "Saññojanasaññojanasampayuttaduka")
+     -> tanpa ini kata ga bisa wrap & meluber keluar kotak (nabrak tombol di layar sempit).
+     break-word bikin dia patah dalam kotak lalu ke-clamp 2 baris + ellipsis. */
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+@media (min-width: 769px) {
+  .dlg-sutta-name {
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+  }
 }
 
 .sutta-dialog-controls {
@@ -4756,7 +5307,7 @@ html.show-seg-ref .rs-ex-sup {
 
 .sutta-dialog-lang-toggle .toggle-btn.active {
   background: var(--accent);
-  color: #0f0f14;
+  color: var(--ink);
   border-color: var(--accent);
   font-weight: 600;
 }
@@ -4838,7 +5389,7 @@ html.show-seg-ref .rs-ex-sup {
 
 .sutta-dialog-close:hover {
   background: var(--danger);
-  color: #fff;
+  color: var(--white);
   border-color: var(--danger);
 }
 
@@ -5001,7 +5552,7 @@ html.show-seg-ref .rs-ex-sup {
   inset: 0;
   border-radius: inherit;
   padding: 1px;
-  background: linear-gradient(100deg, #9b4dff, #caa9ff, #b388ff, #9b4dff);
+  background: linear-gradient(100deg, var(--purple-500), var(--purple-200), var(--purple-300), var(--purple-500));
   background-size: 220% 100%;
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
@@ -5042,30 +5593,59 @@ html.show-seg-ref .rs-ex-sup {
   max-width: 240px;
   padding: 8px 12px;
   border-radius: var(--radius-sm);
-  background: linear-gradient(100deg, #9b4dff, #7b1fa2);
-  color: #fff;
+  background: linear-gradient(100deg, var(--purple-500), var(--purple-900));
+  color: var(--white);
   font-size: 0.82rem;
   font-weight: 600;
   line-height: 1.3;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
   opacity: 0;
   transform: translateY(-6px);
-  pointer-events: none;
+  pointer-events: auto;
   transition: opacity 0.25s ease, transform 0.25s ease;
   animation: tooltip-pulse 1.5s infinite;
 }
 
+.nudge-close {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid color-mix(in srgb, var(--white) 20%, transparent);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s, transform 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+}
+
+.nudge-close:hover {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.8);
+  transform: scale(1.1);
+}
+
 @keyframes tooltip-pulse {
   0% {
-    box-shadow: 0 0 4px rgba(155, 77, 255, 0.5), 0 8px 24px rgba(0, 0, 0, 0.28);
+    box-shadow: 0 0 4px color-mix(in srgb, var(--purple-500) 50%, transparent), 0 8px 24px rgba(0, 0, 0, 0.28);
   }
 
   50% {
-    box-shadow: 0 0 14px rgba(155, 77, 255, 0.9), 0 8px 24px rgba(0, 0, 0, 0.28);
+    box-shadow: 0 0 14px color-mix(in srgb, var(--purple-500) 90%, transparent), 0 8px 24px rgba(0, 0, 0, 0.28);
   }
 
   100% {
-    box-shadow: 0 0 4px rgba(155, 77, 255, 0.5), 0 8px 24px rgba(0, 0, 0, 0.28);
+    box-shadow: 0 0 4px color-mix(in srgb, var(--purple-500) 50%, transparent), 0 8px 24px rgba(0, 0, 0, 0.28);
   }
 }
 
@@ -5078,17 +5658,35 @@ html.show-seg-ref .rs-ex-sup {
   content: "";
   position: absolute;
   top: -5px;
-  right: 16px;
+  left: var(--arrow-left, 16px);
   width: 10px;
   height: 10px;
-  background: #9b4dff;
+  background: var(--purple-500);
   transform: rotate(45deg);
+}
+
+/* Varian panah KANAN — nudge kini nunjuk tab AI di rail tepi kanan */
+.header-chat-nudge.arrow-right::before {
+  top: 50%;
+  left: auto;
+  right: -5px;
+  margin-top: -5px;
+  background: var(--purple-900);
+}
+
+/* Varian panah BAWAH — nunjuk ke kotak input chat jika sidebar sedang terbuka */
+.header-chat-nudge.arrow-down::before {
+  top: auto;
+  bottom: -5px;
+  left: 50%;
+  margin-left: -5px;
+  background: var(--purple-900);
 }
 
 /* Home divider "Chat myDhamma AI": SAMA modelnya dgn "Lompat ke Teks"
    (section-divider-action), beda HANYA warna (teks gradien ungu) + animasi kilau. */
 #btn-chat-ai.section-divider-action {
-  background: linear-gradient(100deg, #9b4dff, #caa9ff, #b388ff, #9b4dff);
+  background: linear-gradient(100deg, var(--purple-500), var(--purple-200), var(--purple-300), var(--purple-500));
   background-size: 220% 100%;
   -webkit-background-clip: text;
   background-clip: text;
@@ -5097,12 +5695,12 @@ html.show-seg-ref .rs-ex-sup {
 }
 
 #btn-chat-ai.section-divider-action svg {
-  color: #a255ff;
+  color: var(--purple-450);
   /* ikon solid (svg tak terpengaruh background-clip:text) */
 }
 
 #btn-chat-ai.section-divider-action:hover {
-  background: linear-gradient(100deg, #b388ff, #caa9ff, #9b4dff, #b388ff);
+  background: linear-gradient(100deg, var(--purple-300), var(--purple-200), var(--purple-500), var(--purple-300));
   background-size: 220% 100%;
   -webkit-background-clip: text;
   background-clip: text;
@@ -5118,48 +5716,9 @@ html.show-seg-ref .rs-ex-sup {
   }
 }
 
-.dlg-open-popover {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  z-index: 200;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  display: flex;
-  flex-direction: column;
-  min-width: 160px;
-  overflow: hidden;
-}
-
-.dlg-open-popover .btn-ghost {
-  border-radius: 0;
-  border: none;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg-secondary);
-  justify-content: flex-start;
-  gap: 8px;
-  padding: 9px 14px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  width: 100%;
-  margin-top: 0;
-  color: var(--text-primary);
-  display: flex;
-  align-items: center;
-}
-
-.dlg-open-popover .btn-ghost:last-child {
-  border-bottom: none;
-}
-
-.dlg-open-popover .btn-ghost:hover {
-  background: var(--accent-subtle);
-  color: var(--accent);
-}
-
-
+/* .dlg-open-popover DIHAPUS (2026-07-11): pilihan "Buka di sini / Tab baru" tombol
+   Halaman Teks kini pakai komponen menu bersama .dk-open-menu (showOpenMenu) ---
+   UI konsisten dgn menu "Buka" blurb/judul kartu. */
 
 .sutta-dialog-body {
   flex: 1;
@@ -5240,11 +5799,11 @@ html.show-seg-ref .rs-ex-sup {
 
 @keyframes dlg-seg-glow {
   0% {
-    box-shadow: 0 0 0 4px rgba(232, 168, 56, .4);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--gold) 40%, transparent);
   }
 
   60% {
-    box-shadow: 0 0 0 8px rgba(232, 168, 56, .15);
+    box-shadow: 0 0 0 8px color-mix(in srgb, var(--gold) 15%, transparent);
   }
 
   100% {
@@ -5277,7 +5836,7 @@ html.show-seg-ref .rs-ex-sup {
 }
 
 #notes-manager::backdrop {
-  background: rgba(0, 0, 0, .5);
+  background: var(--overlay);
   backdrop-filter: blur(3px);
 }
 
@@ -5315,9 +5874,9 @@ html.show-seg-ref .rs-ex-sup {
 }
 
 .nm-close-btn:hover {
-  background: var(--danger, #e05);
-  border-color: var(--danger, #e05);
-  color: #fff;
+  background: var(--danger);
+  border-color: var(--danger);
+  color: var(--white);
 }
 
 .nm-toolbar {
@@ -5363,8 +5922,8 @@ html.show-seg-ref .rs-ex-sup {
 }
 
 .nm-bulk-btn.danger:not(:disabled):hover {
-  border-color: var(--danger, #e05);
-  color: var(--danger, #e05);
+  border-color: var(--danger);
+  color: var(--danger);
   background: rgba(238, 0, 85, .08);
 }
 
@@ -5496,7 +6055,7 @@ html.show-seg-ref .rs-ex-sup {
 }
 
 .nm-action-btn.danger:hover {
-  color: var(--danger, #e05);
+  color: var(--danger);
 }
 
 .btn-sm {
@@ -5611,7 +6170,8 @@ html.show-seg-ref .rs-ex-sup {
 
 .tentang-toc-fab {
   position: fixed;
-  top: calc(var(--banner-h, 28px) + var(--header-h) + 12px);
+  /* top: calc(var(--banner-h, 28px) + var(--header-h) + 12px); */
+  top: calc(var(--banner-h, 28px) + var(--header-h));
   left: 16px;
   z-index: 200;
   padding: 6px 14px;
@@ -5706,12 +6266,24 @@ html.show-seg-ref .rs-ex-sup {
   /* 100% dari parent + kompensasi negative margin */
 }
 
+/* Suttaplex: breadcrumbs nempel di atas saat scroll (samain halaman baca). Outer =
+   anak langsung #search-scroll; top:-10px nutup padding-top scroller (10px) biar flush.
+   Di-scope ke .breadcrumbs-sticky supaya reader (outer di dalam .reader-sticky-wrap yg
+   sudah sticky sendiri) tak kena dobel. */
+.breadcrumbs-outer.breadcrumbs-sticky {
+  position: sticky;
+  top: -10px;
+  z-index: 12;
+  background: var(--bg-secondary);
+}
+
 .suttaplex-breadcrumbs {
   display: flex;
   align-items: center;
   flex-wrap: nowrap;
   gap: 4px;
-  padding: 8px 20px 10px 20px;
+  /* simetris atas-bawah (dulu 8px/10px -> keliatan berat ke bawah); total tetap 18px */
+  padding: 9px 20px;
   font-size: .78rem;
   border-bottom: 1px solid var(--border);
   background: var(--bg-secondary);
@@ -6022,6 +6594,19 @@ html.show-seg-ref .rs-ex-sup {
   border-top: 1px solid var(--border);
 }
 
+/* Nav prev/next di dalam dialog viewer: ikut max-width segmen, garis pemisah di atas,
+   padding samping 0 (body dialog sudah padding 24px). */
+.sp-nav.dlg-sp-nav {
+  max-width: 900px;
+  margin: 24px auto 0;
+  padding: 16px 0 0;
+  border-top: 1px solid var(--border);
+}
+
+.sp-nav-spacer {
+  flex: 0 0 auto;
+}
+
 .sp-nav {
   display: flex;
   justify-content: space-between;
@@ -6124,8 +6709,9 @@ html.show-seg-ref .rs-ex-sup {
   transform: translate(-50%, -50%) scale(1);
 }
 
-#dk-dialog::backdrop {
-  background: rgba(0, 0, 0, .55);
+#dk-dialog::backdrop,
+#goto-dialog::backdrop {
+  background: var(--overlay-strong);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
 }
@@ -6149,13 +6735,13 @@ html.show-seg-ref .rs-ex-sup {
 }
 
 .dk-dlg-icon.info {
-  background: var(--accent-subtle, rgba(212, 175, 55, .15));
-  color: var(--accent, #d4af37);
+  background: var(--accent-subtle);
+  color: var(--accent);
 }
 
 .dk-dlg-icon.warn {
-  background: rgba(245, 158, 11, .15);
-  color: #f59e0b;
+  background: color-mix(in srgb, var(--warn) 15%, transparent);
+  color: var(--warn);
 }
 
 .dk-dlg-msg {
@@ -6219,7 +6805,7 @@ html.show-seg-ref .rs-ex-sup {
 
 .dk-dlg-btn.primary {
   background: var(--primary, var(--accent));
-  color: #0f0f14;
+  color: var(--ink);
   border-color: transparent;
 }
 
@@ -6228,8 +6814,8 @@ html.show-seg-ref .rs-ex-sup {
 }
 
 .dk-dlg-btn.danger {
-  background: var(--danger, #e05);
-  color: #fff;
+  background: var(--danger);
+  color: var(--white);
   border-color: transparent;
 }
 
@@ -6254,7 +6840,7 @@ html.show-seg-ref .rs-ex-sup {
   height: 44px;
   border-radius: 50%;
   background: var(--accent);
-  color: #fff;
+  color: var(--white);
   border: none;
   cursor: pointer;
   display: flex;
@@ -6556,6 +7142,17 @@ html.show-seg-ref .rs-ex-sup {
   flex: 0 0 auto;
 }
 
+/* KHUSUS kartu di UI CHAT (panel sempit) + popup rujukan: meta jadi BARIS SENDIRI di
+   paling atas header, rata tengah --- meta di kanan judul bikin header mepet & wrap
+   jelek. order:-1 naik ke atas (header sudah flex-wrap), flex-basis 100% = satu baris
+   penuh. Kartu hasil pencarian home TIDAK kena (tetap rata kanan inline). */
+.chat-citations-list .sutta-card-meta,
+.mobile-ref-popup .sutta-card-meta {
+  order: -1;
+  flex: 1 0 100%;
+  justify-content: center;
+}
+
 /* Nama kitab/koleksi (mis. Aṅguttaranikāya) di kanan badge piṭaka — chip netral
    berpasangan dgn badge piṭaka (dimensi sama), warna kalem biar badge piṭaka
    yg berwarna tetap dominan. Tidak uppercase: ini nama Pāli (Title-case asli). */
@@ -6574,38 +7171,86 @@ html.show-seg-ref .rs-ex-sup {
   border: 1px solid var(--border);
 }
 
-.sutta-pitaka-badge.sutta,
-.browse-nikaya:nth-child(1)>.browse-nikaya-header {
-  background-color: rgba(52, 152, 219, 0.15);
-  color: #2980b9;
-  border: 1px solid rgba(52, 152, 219, 0.3);
+.sutta-pitaka-badge.sutta {
+  background-color: rgba(var(--pitaka-sutta-rgb), 0.15);
+  color: var(--pitaka-sutta);
+  border: 1px solid rgba(var(--pitaka-sutta-rgb), 0.3);
 }
 
-.sutta-pitaka-badge.vinaya,
-.browse-nikaya:nth-child(2)>.browse-nikaya-header {
-  background-color: rgba(231, 76, 60, 0.15);
-  color: #c0392b;
-  border: 1px solid rgba(231, 76, 60, 0.3);
+.sutta-pitaka-badge.vinaya {
+  background-color: rgba(var(--pitaka-vinaya-rgb), 0.15);
+  color: var(--pitaka-vinaya);
+  border: 1px solid rgba(var(--pitaka-vinaya-rgb), 0.3);
 }
 
-.sutta-pitaka-badge.abhidhamma,
-.browse-nikaya:nth-child(3)>.browse-nikaya-header {
-  background-color: rgba(39, 174, 96, 0.15);
-  color: #1e8449;
-  border: 1px solid rgba(39, 174, 96, 0.3);
+.sutta-pitaka-badge.abhidhamma {
+  background-color: rgba(var(--pitaka-abhidhamma-rgb), 0.15);
+  color: var(--pitaka-abhidhamma);
+  border: 1px solid rgba(var(--pitaka-abhidhamma-rgb), 0.4);
 }
 
-[data-theme="dark"] .sutta-pitaka-badge.sutta {
-  color: #5dade2;
+/* Premium Styling for Top-Level Pitaka Headers - Matching Suttaplex/Card Theme */
+#browse-tree>.browse-nikaya:nth-child(1)>.browse-nikaya-header,
+#browse-loading>.browse-nikaya:nth-child(1)>.browse-nikaya-header {
+  background: var(--bg-card);
+  color: var(--pitaka-sutta);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--pitaka-sutta);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-size: .95rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition);
 }
 
-[data-theme="dark"] .sutta-pitaka-badge.vinaya {
-  color: #e74c3c;
+#browse-tree>.browse-nikaya:nth-child(2)>.browse-nikaya-header,
+#browse-loading>.browse-nikaya:nth-child(2)>.browse-nikaya-header {
+  background: var(--bg-card);
+  color: var(--pitaka-vinaya);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--pitaka-vinaya);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-size: .95rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition);
 }
 
-[data-theme="dark"] .sutta-pitaka-badge.abhidhamma {
-  color: #58d68d;
+#browse-tree>.browse-nikaya:nth-child(3)>.browse-nikaya-header,
+#browse-loading>.browse-nikaya:nth-child(3)>.browse-nikaya-header {
+  background: var(--bg-card);
+  color: var(--pitaka-abhidhamma);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--pitaka-abhidhamma);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-size: .95rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition);
 }
+
+/* Hover effects for the top level cards */
+#browse-tree>.browse-nikaya:nth-child(1)>.browse-nikaya-header:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-md);
+}
+
+#browse-tree>.browse-nikaya:nth-child(2)>.browse-nikaya-header:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-md);
+}
+
+#browse-tree>.browse-nikaya:nth-child(3)>.browse-nikaya-header:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-md);
+}
+
 
 /* Responsive display utilities */
 .show-mobile {
@@ -6632,7 +7277,12 @@ html.show-seg-ref .rs-ex-sup {
 .sutta-author-group-label {
   display: inline-flex;
   align-items: center;
+  /* Nama penerjemah bisa panjang ("Shwe Zan Aung, C.A.F. Rhys Davids") -> boleh turun
+     baris, jangan digencet sebaris (mepet/overflow di kartu sempit). */
+  flex-wrap: wrap;
+  line-height: 1.35;
   gap: 5px;
+  row-gap: 2px;
   margin-bottom: 4px;
   padding: 2px 8px;
   border-radius: var(--radius-sm, 6px);
@@ -6653,27 +7303,27 @@ html.show-seg-ref .rs-ex-sup {
 /* ===== Search result: sutta-card outline tinted by piṭaka ===== */
 /* Colors mirror the .sutta-pitaka-badge palette (sutta=blue, vinaya=red, abhidhamma=green). */
 .sutta-card.pitaka-sutta {
-  border-color: rgba(52, 152, 219, 0.5);
+  border-color: rgba(var(--pitaka-sutta-rgb), 0.5);
 }
 
 .sutta-card.pitaka-vinaya {
-  border-color: rgba(231, 76, 60, 0.5);
+  border-color: rgba(var(--pitaka-vinaya-rgb), 0.5);
 }
 
 .sutta-card.pitaka-abhidhamma {
-  border-color: rgba(39, 174, 96, 0.5);
+  border-color: rgba(var(--pitaka-abhidhamma-rgb), 0.5);
 }
 
 .sutta-card.pitaka-sutta:hover {
-  border-color: rgba(52, 152, 219, 0.85);
+  border-color: rgba(var(--pitaka-sutta-rgb), 0.85);
 }
 
 .sutta-card.pitaka-vinaya:hover {
-  border-color: rgba(231, 76, 60, 0.85);
+  border-color: rgba(var(--pitaka-vinaya-rgb), 0.85);
 }
 
 .sutta-card.pitaka-abhidhamma:hover {
-  border-color: rgba(39, 174, 96, 0.85);
+  border-color: rgba(var(--pitaka-abhidhamma-rgb), 0.85);
 }
 
 /* ========== Toast notification (showToast di common.js) ==========
@@ -6685,10 +7335,10 @@ html.show-seg-ref .rs-ex-sup {
   bottom: 24px;
   left: 50%;
   transform: translateX(-50%) translateY(16px);
-  /* Seragam dgn header ref viewer mobile (tint --ai-color) biar tak nyaru dgn bg. */
-  background: color-mix(in srgb, var(--ai-color) 12%, var(--bg-primary));
-  color: var(--ai-color);
-  border: 1px solid color-mix(in srgb, var(--ai-color) 35%, var(--border-color));
+  /* Tint ACCENT (coklat/oranye soft) — ungu (--ai-color) dikhususkan identitas AI. */
+  background: color-mix(in srgb, var(--accent) 12%, var(--bg-primary));
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
   border-radius: var(--radius-md);
   padding: 10px 18px;
   font-size: .82rem;
@@ -6721,7 +7371,8 @@ html.show-seg-ref .rs-ex-sup {
   opacity: 0.8;
 }
 
-.md-segment-notice i {
+.md-segment-notice i,
+.md-segment-notice svg {
   width: 16px;
   height: 16px;
   flex-shrink: 0;
@@ -6730,22 +7381,87 @@ html.show-seg-ref .rs-ex-sup {
   opacity: 0.8;
 }
 
-/* Skeleton Loading for Sutta Reader & Dialog Controls */
-body.is-loading-sutta #reader-subtitle,
-body.is-loading-dialog #sutta-dialog-title {
-  color: transparent !important;
-  background: var(--border-strong);
-  border-radius: var(--radius-sm);
-  animation: skeleton-pulse 1.5s infinite ease-in-out;
-  min-height: 28px;
-  width: 60%;
-  max-width: 400px;
-  display: inline-block;
+/* Notice peyyāla sekarang di BAWAH konten -> butuh jarak atas (md-segment-notice cuma
+   punya margin-bottom, cocok saat di atas). */
+.elision-ref-notice {
+  margin-top: 24px;
 }
 
-body.is-loading-sutta #reader-subtitle *,
-body.is-loading-dialog #sutta-dialog-title * {
-  opacity: 0 !important;
+/* Link exemplar di notice peyyāla: .sutta-ref default absolute (badge) -> paksa inline di sini,
+   tetap dpt wiki-preview (handler pantau a.sutta-ref apa pun posisinya). */
+.elision-ref-notice .sutta-ref {
+  position: static;
+  display: inline;
+  font-size: inherit;
+  color: var(--accent);
+  font-weight: 600;
+  white-space: normal;
+}
+
+/* Skeleton Loading for Sutta Reader & Dialog Controls.
+   Judul asli = 2 baris (baris ID pendek + baris nama panjang) -> skeleton juga 2 bar
+   bertumpuk biar SHAPE-nya match (dulu 1 bar doang -> konten "loncat" pas kelar muat). */
+body.is-loading-sutta #reader-subtitle,
+body.is-loading-dialog #sutta-dialog-title {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  justify-content: flex-start;
+  /* top-align (judul asli juga top-align) */
+  padding-top: 8px;
+  font-size: 0;
+  /* collapse text-node placeholder (dialog isi "id" mentah saat loading) */
+}
+
+/* Tinggi skeleton = tinggi judul ASLI (diukur) biar pas loaded ga "goyang"/loncat.
+   Dialog lbh tinggi (53) krn .dlg-title-top min-height:32; reader natural (48). */
+body.is-loading-dialog #sutta-dialog-title {
+  min-height: 53px;
+}
+
+body.is-loading-sutta #reader-subtitle {
+  min-height: 48px;
+}
+
+/* Sembunyikan isi asli (icon + teks id) -> tinggal 2 bar skeleton (::before/::after) */
+body.is-loading-sutta #reader-subtitle>*,
+body.is-loading-dialog #sutta-dialog-title>* {
+  display: none !important;
+}
+
+body.is-loading-sutta #reader-subtitle::before,
+body.is-loading-sutta #reader-subtitle::after,
+body.is-loading-dialog #sutta-dialog-title::before,
+body.is-loading-dialog #sutta-dialog-title::after {
+  content: "";
+  display: block;
+  border-radius: var(--radius-sm);
+  background: var(--border-strong);
+  animation: skeleton-pulse 1.5s infinite ease-in-out;
+}
+
+/* bar 1 (ID) sedikit lbh tebal drpd bar 2 (nama), mirip beda ukuran teks aslinya */
+body.is-loading-sutta #reader-subtitle::before,
+body.is-loading-dialog #sutta-dialog-title::before {
+  height: 16px;
+}
+
+body.is-loading-sutta #reader-subtitle::after,
+body.is-loading-dialog #sutta-dialog-title::after {
+  height: 13px;
+}
+
+/* baris 1 = ID (pendek) */
+body.is-loading-sutta #reader-subtitle::before,
+body.is-loading-dialog #sutta-dialog-title::before {
+  width: 110px;
+}
+
+/* baris 2 = nama (lebih panjang) */
+body.is-loading-sutta #reader-subtitle::after,
+body.is-loading-dialog #sutta-dialog-title::after {
+  width: 62%;
+  max-width: 320px;
 }
 
 body.is-loading-sutta #reader-controls-sticky,
@@ -6756,10 +7472,194 @@ body.is-loading-dialog .sutta-dialog-controls {
   min-height: 36px;
 }
 
-body.page-chat #app-header {
-  display: none !important;
+/* Skeleton body-teks (paragraf bar) — dipakai loading dialog sutta biar seragam sama
+   halaman reader (dulu dialog cuma spinner "Memuat teks…"). Sumber-tunggal via class,
+   lebar per-baris di-inline biar ritme baris natural (ga semua sama panjang). */
+.sutta-skeleton {
+  padding: 8px 12px 24px;
+  width: 100%;
+  /* Mirror kolom baca dialog (#sutta-dialog .sutta-segments: max-width 900 center) —
+     tanpa ini di desktop lebar skeleton mepet pinggir, konten aslinya di tengah. */
+  max-width: 900px;
+  margin: 0 auto;
+  pointer-events: none;
 }
 
+.sutta-skeleton .sk-para {
+  animation: skeleton-pulse 1.5s infinite ease-in-out;
+  margin-bottom: 24px;
+}
+
+.sutta-skeleton .sk-para:nth-child(2) {
+  animation-delay: .15s;
+}
+
+.sutta-skeleton .sk-para:nth-child(3) {
+  animation-delay: .3s;
+}
+
+.sutta-skeleton .sk-line {
+  height: 16px;
+  border-radius: var(--radius-sm);
+  background: var(--border-strong);
+  margin-bottom: 8px;
+}
+
+.sutta-skeleton .sk-para .sk-line:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Overlay skeleton transisi navigasi (suttaplex/reader) ────────────────────
+   Nutup #search-panel selama nunggu halaman baru ke-load. Default disembunyiin;
+   muncul saat body.is-navigating (di-set common.js pas klik link konten). */
+#nav-skeleton {
+  display: none;
+}
+
+body.is-navigating #nav-skeleton {
+  display: block;
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  /* background WAJIB solid & TANPA animasi opacity -> kalau di-pulse, bg ikut nge-fade
+     & konten asli nembus = "berbayang". Pulse cuma di bar-bar (di bawah). */
+  background: var(--bg-primary);
+  padding: 0;
+  overflow: hidden;
+  pointer-events: all;
+}
+
+/* Semua bar pulse (sinkron: durasi & timing sama) — bukan container-nya. */
+#nav-skeleton .nav-sk-crumb,
+#nav-skeleton .nav-sk-back,
+#nav-skeleton .nav-sk-bar,
+#nav-skeleton .nav-sk-chip,
+#nav-skeleton .nav-sk-pill {
+  background: var(--border-strong);
+  border-radius: var(--radius-sm);
+  animation: skeleton-pulse 1.5s infinite ease-in-out;
+}
+
+#nav-skeleton .nav-sk-pill {
+  height: 28px;
+}
+
+#nav-skeleton .nav-sk-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* Mirror #search-scroll padding (10px 20px 0) & .suttaplex-wrap (20px 24px) supaya
+   inset skeleton = inset konten asli. */
+#nav-skeleton .nav-sk-scroll {
+  padding: 10px 20px 0;
+}
+
+#nav-skeleton .nav-sk-wrap {
+  display: flex;
+  flex-direction: column;
+  padding: 20px 24px;
+  gap: 14px;
+}
+
+/* Bar breadcrumb full-width: mirror .suttaplex-breadcrumbs (bg-secondary + border-bottom,
+   padding 9px 20px) -> kelihatan seperti bar breadcrumb, bukan kotak melayang. */
+#nav-skeleton .nav-sk-crumbbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 20px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  box-sizing: border-box;
+}
+
+#nav-skeleton .nav-sk-crumb {
+  height: 12px;
+}
+
+/* Pemisah "›" (statis, tak pulse) — kecil & samar biar baca sbg breadcrumb */
+#nav-skeleton .nav-sk-sep {
+  width: 5px;
+  height: 9px;
+  border-radius: 1px;
+  background: var(--text-muted);
+  opacity: .35;
+  flex-shrink: 0;
+}
+
+#nav-skeleton .nav-sk-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+#nav-skeleton .nav-sk-idrow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+#nav-skeleton .nav-sk-back {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+#nav-skeleton .nav-sk-blurb {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 32px;
+}
+
+#nav-skeleton .nav-sk-langs {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#nav-skeleton .nav-sk-srcrow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+#nav-skeleton .nav-sk-srcgroup {
+  display: flex;
+  flex-direction: column;
+}
+
+#nav-skeleton .nav-sk-label {
+  height: 12px;
+  margin-bottom: 10px;
+}
+
+#nav-skeleton .nav-sk-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+#nav-skeleton .nav-sk-chip {
+  width: 120px;
+  height: 40px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  #nav-skeleton .nav-sk-crumb,
+  #nav-skeleton .nav-sk-back,
+  #nav-skeleton .nav-sk-bar,
+  #nav-skeleton .nav-sk-chip {
+    animation: none;
+  }
+}
+
+/* (body.page-chat DIHAPUS — chat bukan lagi dedicated page; kini panel #chat-panel) */
 .chat-header-bar {
   display: flex;
   position: absolute;
@@ -6805,6 +7705,7 @@ body.page-chat #app-header {
   color: var(--accent);
   transform: translateY(-1px);
 }
+
 
 /* Tombol "new" (icon) nyala aktif pas lagi di room kosong/baru — selaras dgn
    .chat-new-btn.active di sidebar. */
@@ -6860,7 +7761,7 @@ body.is-loading-sutta #sutta-breadcrumbs-outer {
   display: block !important;
   opacity: 0.3;
   animation: skeleton-pulse 1.5s infinite ease-in-out;
-  min-height: 30px;
+  min-height: 38px;
   background: var(--border-strong);
   pointer-events: none;
 }
@@ -6874,17 +7775,6 @@ body.is-loading-sutta #sutta-breadcrumbs {
    Pakai variabel & kartu hasil yang sama dgn pencarian.
    ============================================================ */
 /* Halaman /chat: panel jadi tinggi-penuh, log gulir internal, input pin bawah. */
-body.page-chat #search-scroll {
-  overflow: hidden;
-  /* Item 14: area chat menempel flush — buang padding atas/kiri/kanan/bawah */
-  padding: 0;
-}
-
-body.page-chat #app-footer {
-  display: none;
-}
-
-
 .chat-root,
 .chat-widget {
   display: flex;
@@ -6904,6 +7794,216 @@ body.page-chat #app-footer {
   padding: 80px 2px 16px;
 }
 
+/* ── Scroll-rail navigasi chat (ala Grok) ──────────────────────────────
+   Titik transparan tepi kanan area chat, 1 per pertanyaan user (dibangun chat.js).
+   Muncul saat kursor dekat tepi kanan / lagi scroll (class .visible dari JS), fade
+   saat idle. Container pointer-events:none biar tak blokir konten; hanya dot yg
+   klikable saat rail tampak. Hover titik -> label preview. */
+.chat-scroll-rail {
+  position: absolute;
+  top: 50%;
+  /* 12px: geser dari scrollbar .chat-log (6px) biar hit-area dot tak intercept drag-scroll */
+  right: 12px;
+  transform: translateY(-50%);
+  z-index: 85;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 9px;
+  max-height: 62%;
+  padding: 4px 3px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .22s ease;
+}
+
+.chat-scroll-rail.visible {
+  opacity: 1;
+}
+
+.chat-scroll-rail.visible .chat-rail-dot {
+  pointer-events: auto;
+}
+
+.chat-rail-dot {
+  position: relative;
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ai-color) 50%, transparent);
+  cursor: pointer;
+  pointer-events: none;
+  transition: transform .15s ease, background .15s ease, box-shadow .15s ease;
+}
+
+/* Hit-area diperbesar (target ~17px) tanpa mengubah ukuran visual titik. inset -5px
+   supaya sisi kanan hit-area (7px dot @right:12px) tetap clear dari scrollbar 6px. */
+.chat-rail-dot::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+}
+
+/* Hover-scale titik HANYA di device ber-pointer sejati. Di TOUCH, tap memicu :hover
+   yg "nyangkut" (ga ada mouseleave) -> titik tetap gede+nyala sampai tap di tempat lain.
+   Guard @media (hover: hover) -> di HP titik tak membesar saat di-tap. */
+@media (hover: hover) {
+  .chat-rail-dot:hover {
+    background: var(--ai-color);
+    transform: scale(1.35);
+  }
+}
+
+.chat-rail-dot.active {
+  background: var(--ai-color);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ai-color) 22%, transparent);
+}
+
+.chat-rail-label {
+  position: absolute;
+  right: calc(100% + 9px);
+  top: 50%;
+  transform: translateY(-50%);
+  max-width: 240px;
+  padding: 4px 9px;
+  border-radius: 7px;
+  /* Identitas HUMAN (senada bubble .chat-msg-user): label = teks user yg dikirim, jadi
+     coklat/emas + teks --ink. Buletannya yg ungu = jawaban AI. Var --rail-label-bg
+     di-mute per-tema (dark: gold ditarik ke --ink biar tak galak; light: apa adanya). */
+  background: var(--rail-label-bg);
+  color: var(--ink);
+  border: none;
+  box-shadow: var(--shadow-md);
+  font-size: .72rem;
+  font-weight: 500;
+  line-height: 1.3;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s ease;
+}
+
+/* Teks di span dalam: ellipsis di sini supaya overflow tak ngeklip ekor panah luar. */
+.chat-rail-label-text {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Ekor panah nunjuk KANAN (ke titik ungu; label ada di kiri titik). Dua lapis
+   garis+isi, teknik senada .cite-tooltip biar nyatu sama border label. */
+.chat-rail-label::before,
+.chat-rail-label::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  transform: translateY(-50%);
+  border: solid transparent;
+}
+
+.chat-rail-label::before {
+  /* garis (border) — kini senada isi (label flat, tanpa border). */
+  border-width: 6px;
+  border-left-color: var(--rail-label-bg);
+}
+
+.chat-rail-label::after {
+  /* isi (fill) mengikuti bg label (--rail-label-bg, identitas human). */
+  border-width: 5px;
+  border-left-color: var(--rail-label-bg);
+}
+
+/* Label muncul via .peek (JS: auto saat ganti part waktu scroll) — jalan di semua device.
+   Hover cuma di device ber-pointer sejati (@media hover) supaya di TOUCH `:hover` tak
+   "nyangkut" nyala terus abis di-tap (touch ga punya mouseleave). */
+.chat-rail-dot.peek .chat-rail-label {
+  opacity: 1;
+}
+
+@media (hover: hover) {
+  .chat-rail-dot:hover .chat-rail-label {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .chat-scroll-rail,
+  .chat-rail-dot,
+  .chat-rail-label {
+    transition: none;
+  }
+
+  .chat-rail-dot:hover {
+    transform: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .chat-scroll-rail {
+    right: 8px;
+    gap: 11px;
+  }
+}
+
+/* ── Tombol "balik ke bawah" (FAB) ─────────────────────────────────────────
+   Bulat semi-transparan (frosted) di tengah-bawah area chat, tepat di atas input.
+   Posisi `bottom` di-set chat.js; muncul via .visible saat scroll naik jauh. */
+.chat-to-bottom {
+  position: absolute;
+  left: 50%;
+  z-index: 84;
+  /* di bawah scroll-rail (85) */
+  transform: translateX(-50%) translateY(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--border-strong);
+  background: color-mix(in srgb, var(--bg-card) 76%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: var(--text-secondary);
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s ease, transform .2s ease, background .15s ease, color .15s ease;
+}
+
+.chat-to-bottom.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
+.chat-to-bottom:hover {
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+.chat-to-bottom svg {
+  width: 18px;
+  height: 18px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-to-bottom {
+    transition: opacity .2s ease;
+  }
+
+  .chat-to-bottom.visible {
+    transform: translateX(-50%);
+  }
+}
+
 .chat-msg {
   line-height: 1.6;
   max-width: 100%;
@@ -6912,7 +8012,7 @@ body.page-chat #app-footer {
 .chat-msg-user {
   align-self: flex-end;
   background: var(--accent);
-  color: #0f0f14;
+  color: var(--ink);
   padding: 10px 14px;
   border-radius: 14px 14px 4px 14px;
   max-width: 80%;
@@ -6946,9 +8046,9 @@ body.page-chat #app-footer {
   padding: 1.5px;
   background: conic-gradient(from var(--gen-angle, 0deg),
       transparent 0%,
-      #c89bff 10%,
-      #a255ff 25%,
-      #7c3aed 40%,
+      var(--ai-g1) 10%,
+      var(--ai-g2) 25%,
+      var(--ai-g3) 40%,
       transparent 50%,
       transparent 100%);
   -webkit-mask:
@@ -6972,8 +8072,8 @@ body.page-chat #app-footer {
   inset: -3px;
   border-radius: inherit;
   background: transparent;
-  box-shadow: 0 0 12px 2px rgba(162, 85, 255, 0.18),
-    0 0 4px 1px rgba(124, 58, 237, 0.12);
+  box-shadow: 0 0 12px 2px color-mix(in srgb, var(--ai-g2) 18%, transparent),
+    0 0 4px 1px color-mix(in srgb, var(--ai-g3) 12%, transparent);
   pointer-events: none;
   z-index: -1;
   animation: gen-glow-pulse 2s ease-in-out infinite alternate;
@@ -7002,28 +8102,30 @@ body.page-chat #app-footer {
   }
 }
 
-/* Light theme: turunkan intensitas glow */
+/* Light theme: turunkan intensitas glow. Background WAJIB dideklarasi ulang di sini
+   (walau nilainya sama dgn base via --ai-g*): specificity-nya harus tetap menang atas
+   rule statik prefers-reduced-motion di bawah, persis perilaku lama. */
 [data-theme="light"] .chat-msg-bot.is-generating::before {
   opacity: 0.7;
   background: conic-gradient(from var(--gen-angle, 0deg),
       transparent 0%,
-      #a855f7 10%,
-      #7c3aed 25%,
-      #6d28d9 40%,
+      var(--ai-g1) 10%,
+      var(--ai-g2) 25%,
+      var(--ai-g3) 40%,
       transparent 50%,
       transparent 100%);
 }
 
 [data-theme="light"] .chat-msg-bot.is-generating::after {
-  box-shadow: 0 0 10px 2px rgba(124, 58, 237, 0.14),
-    0 0 3px 1px rgba(109, 40, 217, 0.10);
+  box-shadow: 0 0 10px 2px color-mix(in srgb, var(--ai-g2) 14%, transparent),
+    0 0 3px 1px color-mix(in srgb, var(--ai-g3) 10%, transparent);
 }
 
 /* Reduced motion: glow statik (tanpa rotasi), masih indah tapi diam */
 @media (prefers-reduced-motion: reduce) {
   .chat-msg-bot.is-generating::before {
     animation: none;
-    background: linear-gradient(135deg, #c89bff, #a255ff, #7c3aed) border-box;
+    background: linear-gradient(135deg, var(--purple-250), var(--purple-450), var(--purple-700)) border-box;
     opacity: 0.5;
   }
 
@@ -7077,7 +8179,7 @@ body.page-chat #app-footer {
 }
 
 .chat-error {
-  color: #e5484d;
+  color: var(--danger-vivid);
 }
 
 .chat-citations {
@@ -7106,9 +8208,11 @@ body.page-chat #app-footer {
   overflow: hidden;
   transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
 .chat-citations-list.collapsed-cites {
   max-height: 100px;
 }
+
 .cites-fade-overlay {
   position: absolute;
   bottom: 0;
@@ -7121,10 +8225,12 @@ body.page-chat #app-footer {
   opacity: 1;
   transition: opacity 0.3s ease-in-out;
 }
+
 .chat-citations-list:not(.collapsed-cites) .cites-fade-overlay {
   opacity: 0;
   pointer-events: none;
 }
+
 .btn-expand-cites {
   display: flex;
   align-items: center;
@@ -7143,6 +8249,7 @@ body.page-chat #app-footer {
   z-index: 2;
   transition: opacity var(--transition);
 }
+
 .btn-expand-cites:hover {
   opacity: 0.8;
 }
@@ -7222,6 +8329,73 @@ body.page-chat #app-footer {
 /* Di dalam bubble bot, pastikan margin bawah konsisten */
 .chat-msg-bot .btn-broad-search {
   margin-bottom: 8px;
+}
+
+/* Disambiguasi istilah Pāḷi: chip "maksud Anda?" — istilah kanonik + konteks sutta. */
+.chat-disambig-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.chat-disambig-chip {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-strong);
+  padding: 8px 14px;
+  border-radius: 14px;
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--transition);
+}
+
+.chat-disambig-chip:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent);
+}
+
+.chat-disambig-chip .disambig-term {
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-style: italic;
+  color: var(--text-primary);
+}
+
+.chat-disambig-chip:hover .disambig-term {
+  color: var(--accent);
+}
+
+.chat-disambig-chip .disambig-ctx {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.chat-disambig-chip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Escape hatch "bukan ini semua": dibedakan dari kandidat (dashed + muted + non-italic)
+   supaya kebaca sbg AKSI keluar, bukan istilah Pāḷi tambahan. */
+.chat-disambig-none {
+  background: transparent;
+  border-style: dashed;
+  align-self: center;
+}
+
+.chat-disambig-none .disambig-term {
+  font-style: normal;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.chat-disambig-none:hover .disambig-term {
+  color: var(--accent);
 }
 
 /* Poin 4: picker terjemahan @mention (dirender sbg chat bubble). */
@@ -7448,7 +8622,7 @@ body.page-chat #app-footer {
 
 .chat-send.btn-primary {
   background: var(--accent);
-  color: #0f0f14;
+  color: var(--ink);
   border: none;
   box-shadow: none;
   backdrop-filter: none;
@@ -7458,7 +8632,7 @@ body.page-chat #app-footer {
 
 .chat-send.btn-primary:hover {
   background: var(--accent-hover);
-  color: #0f0f14;
+  color: var(--ink);
   opacity: 1;
   transform: none;
   box-shadow: none;
@@ -7485,17 +8659,17 @@ body.page-chat #app-footer {
 
 @keyframes prefill-pulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7);
-    border-color: #ffd700 !important;
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--gold-star) 70%, transparent);
+    border-color: var(--gold-star) !important;
   }
 
   70% {
-    box-shadow: 0 0 0 10px rgba(255, 215, 0, 0);
-    border-color: #ffd700 !important;
+    box-shadow: 0 0 0 10px transparent;
+    border-color: var(--gold-star) !important;
   }
 
   100% {
-    box-shadow: 0 0 0 0 rgba(255, 215, 0, 0);
+    box-shadow: 0 0 0 0 transparent;
   }
 }
 
@@ -7508,7 +8682,7 @@ body.page-chat #app-footer {
   text-align: center;
   font-size: .72rem;
   color: var(--text-muted);
-  padding: 0 2px 8px;
+  padding: 0 2px 16px;
 }
 
 /* Jawaban: paragraf & list rapi (di-render mini-markdown oleh chat.js). */
@@ -7522,11 +8696,11 @@ body.page-chat #app-footer {
 
 /* BLOCKQUOTE UNTUK KUTIPAN SUTTA DI JAWABAN AI */
 .chat-answer blockquote {
-  border-left: 3px solid var(--ai-color, #7c3aed);
+  border-left: 3px solid var(--ai-color);
   /* Garis ungu di kiri */
   margin: 0.75em 0;
   padding: 0.5em 1em;
-  background: var(--bg-hover, rgba(124, 58, 237, 0.05));
+  background: color-mix(in srgb, var(--purple-700) 5%, transparent);
   /* Latar belakang transparan */
   font-style: italic;
   border-radius: 0 6px 6px 0;
@@ -7556,7 +8730,7 @@ body.page-chat #app-footer {
 .chat-answer table.chat-table td,
 .note-block-ai-text table.chat-table th,
 .note-block-ai-text table.chat-table td {
-  border: 1px solid var(--border, rgba(124, 58, 237, 0.2));
+  border: 1px solid var(--border);
   padding: 0.45em 0.7em;
   text-align: left;
   vertical-align: top;
@@ -7566,13 +8740,13 @@ body.page-chat #app-footer {
 
 .chat-answer table.chat-table th,
 .note-block-ai-text table.chat-table th {
-  background: var(--bg-hover, rgba(124, 58, 237, 0.07));
+  background: color-mix(in srgb, var(--purple-700) 7%, transparent);
   font-weight: 700;
 }
 
 .chat-answer table.chat-table tr:nth-child(even) td,
 .note-block-ai-text table.chat-table tr:nth-child(even) td {
-  background: var(--bg-hover, rgba(124, 58, 237, 0.03));
+  background: color-mix(in srgb, var(--purple-700) 3%, transparent);
 }
 
 .chat-answer h1,
@@ -7659,22 +8833,81 @@ body.page-chat #app-footer {
   font-weight: 700;
   vertical-align: super;
   line-height: 1;
-  color: var(--purple, #a855f7);
+  color: var(--purple-400);
   cursor: pointer;
   white-space: nowrap;
   text-decoration: none;
   text-underline-offset: 2px;
   transition: color 0.15s ease;
-  /* Long-press (mobile) buat munculin tooltip — jangan ke-select teks / muncul callout. */
+  /* Ref = bagian teks jawaban -> HARUS bisa di-select/copy di SEMUA device (user sering
+     kopas manual — keputusan 2026-07-14). Konsekuensi sadar: long-press tooltip sitasi
+     mobile dicabut di chat.js (rebutan gesture dgn seleksi native). */
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* Panah swipe prev/next (touch, reader & dialog): "ketarik" dari tepi saat geser
+   horizontal; .armed = melewati ambang (lepas = navigasi); .disabled = tak ada tetangga.
+   Warna satu-pintu: var tema saja. */
+.swipe-nav-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 46px;
+  height: 46px;
+  /* default none (bukan cuma opacity): posisinya DI DALAM tepi (inset), kalau resting
+     dibiarkan render dia tak bikin ruang scroll horizontal di dialog. */
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .25);
+  color: var(--accent);
+  font-size: 30px;
+  line-height: 1;
+  z-index: 400;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .12s ease, background .12s ease;
   user-select: none;
   -webkit-user-select: none;
-  -webkit-touch-callout: none;
+}
+
+.swipe-nav-arrow.swipe-prev { left: 8px; }
+.swipe-nav-arrow.swipe-next { right: 8px; }
+.swipe-nav-arrow.swipe-fixed { position: fixed; }
+
+.swipe-nav-arrow.show {
+  display: flex;
+  opacity: .95;
+}
+
+.swipe-nav-arrow.disabled {
+  opacity: .35;
+  color: var(--text-muted);
+}
+
+.swipe-nav-arrow.armed {
+  background: var(--accent);
+  color: var(--white);
+}
+
+/* Kopas jawaban/kartu harus BERSIH: label tombol aksi ("Buka", "+ Catatan") jangan ikut
+   ke-seleksi. (Ref inline [X:mdN] sebaliknya selectable di semua device — lihat
+   .chat-inline-cite di atas.) */
+.lang-tag,
+.btn-add-note,
+.seg-add-btn {
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .chat-inline-cite:hover {
   background: transparent;
   border: none;
-  color: var(--ai-color-hover, #7b1fa2);
+  color: var(--ai-color-hover);
   text-decoration: underline;
 }
 
@@ -7689,6 +8922,7 @@ body.page-chat #app-footer {
     background-color: color-mix(in srgb, var(--ai-color) 12%, transparent);
     box-shadow: 0 0 0 4px color-mix(in srgb, var(--ai-color) 12%, transparent);
   }
+
   100% {
     background-color: transparent;
     box-shadow: 0 0 0 0 transparent;
@@ -7748,25 +8982,23 @@ details.chat-steps-spoiler[open] summary .spoiler-arrow {
 
 /* Spinner (loader-circle) saat sedang proses — ungu terang + glow berputar */
 .chat-thinking-step.step-loading .step-icon svg {
-  color: #a255ff !important;
-  filter: drop-shadow(0 0 4px rgba(162, 85, 255, 0.5));
+  color: var(--ai-g2) !important;
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--ai-g2) 50%, transparent));
 }
 
 /* Ceklis (check) saat step selesai — ungu lebih pekat + glow halus */
 .chat-thinking-step.step-done .step-icon svg {
-  color: #a255ff !important;
-  filter: drop-shadow(0 0 3px rgba(162, 85, 255, 0.35));
+  color: var(--ai-g2) !important;
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--ai-g2) 35%, transparent));
 }
 
 /* Light theme: pakai ungu lebih pekat biar terbaca di bg terang */
 [data-theme="light"] .chat-thinking-step.step-loading .step-icon svg {
-  color: #7c3aed !important;
-  filter: drop-shadow(0 0 3px rgba(124, 58, 237, 0.35));
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--ai-g2) 35%, transparent));
 }
 
 [data-theme="light"] .chat-thinking-step.step-done .step-icon svg {
-  color: #7c3aed !important;
-  filter: drop-shadow(0 0 2px rgba(124, 58, 237, 0.25));
+  filter: drop-shadow(0 0 2px color-mix(in srgb, var(--ai-g2) 25%, transparent));
 }
 
 .lucide-spin {
@@ -7787,6 +9019,31 @@ details.chat-steps-spoiler[open] summary .spoiler-arrow {
   border: 0;
   border-top: 1px dashed var(--border);
   margin: 15px 0;
+}
+
+/* `kode inline` & blok ``` dari jawaban model (jarang; safety net mdLite). Warna ikut
+   satu-pintu: turunan var via color-mix, tak ada hex baru. */
+.chat-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.88em;
+  background: color-mix(in srgb, var(--text-muted) 12%, transparent);
+  border-radius: 4px;
+  padding: 0 4px;
+}
+
+.chat-pre {
+  background: color-mix(in srgb, var(--text-muted) 8%, transparent);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin: 8px 0;
+  overflow-x: auto;
+}
+
+.chat-pre code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.85em;
+  white-space: pre;
 }
 
 .chat-think {
@@ -8087,7 +9344,7 @@ details.chat-steps-spoiler[open] summary .spoiler-arrow {
 }
 
 .chat-session-menu-item.danger:hover {
-  background: rgba(229, 72, 77, 0.12);
+  background: color-mix(in srgb, var(--danger-vivid) 12%, transparent);
 }
 
 /* ── Mobile Header ── */
@@ -8111,11 +9368,6 @@ details.chat-steps-spoiler[open] summary .spoiler-arrow {
     overflow: hidden;
     gap: 0;
     margin-bottom: 0;
-  }
-
-  /* Item 14: chat mobile mentok semua sisi — tanpa padding kiri-kanan */
-  body.page-chat #search-scroll {
-    padding: 0;
   }
 
   /* Header chat mobile: bar transparan melayang di atas; cuma tombol bulet yg keliatan */
@@ -8190,7 +9442,7 @@ details.chat-steps-spoiler[open] summary .spoiler-arrow {
     left: -320px;
     width: 280px;
     height: 100%;
-    z-index: 100;
+    z-index: 120;
     transition: left 0.3s ease;
     margin: 0;
     border: none;
@@ -8239,8 +9491,8 @@ details.chat-steps-spoiler[open] summary .spoiler-arrow {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 99;
+    background: var(--overlay);
+    z-index: 110;
     opacity: 0;
     transition: opacity 0.3s ease;
     border-radius: 0;
@@ -8328,8 +9580,8 @@ details.chat-steps-spoiler[open] summary .spoiler-arrow {
 }
 
 .chat-msg-user .chat-mention-chip {
-  background: rgba(255, 255, 255, 0.22);
-  color: #fff;
+  background: color-mix(in srgb, var(--white) 22%, transparent);
+  color: var(--white);
 }
 
 /* Mention non-aktif (sutta tak ada di korpus): abu + dicoret */
@@ -8340,20 +9592,96 @@ details.chat-steps-spoiler[open] summary .spoiler-arrow {
 }
 
 .chat-msg-user .chat-mention-chip-inactive {
-  background: rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.6);
+  background: color-mix(in srgb, var(--white) 12%, transparent);
+  color: color-mix(in srgb, var(--white) 60%, transparent);
   text-decoration: line-through;
 }
 
 @keyframes highlightPulse {
-  0% { outline: 2px solid transparent; outline-offset: 0px; background-color: transparent; }
-  50% { outline: 2px solid #f59e0b; outline-offset: 4px; background-color: rgba(245, 158, 11, 0.25); border-radius: 4px; }
-  100% { outline: 2px solid transparent; outline-offset: 4px; background-color: transparent; }
+  0% {
+    outline: 2px solid transparent;
+    outline-offset: 0px;
+    background-color: transparent;
+  }
+
+  50% {
+    outline: 2px solid var(--warn);
+    outline-offset: 4px;
+    background-color: color-mix(in srgb, var(--warn) 25%, transparent);
+    border-radius: 4px;
+  }
+
+  100% {
+    outline: 2px solid transparent;
+    outline-offset: 4px;
+    background-color: transparent;
+  }
 }
 
 .highlight-pulse {
   animation: highlightPulse 0.6s ease-in-out 3;
-  display: inline-block; /* ensures outline works well without breaking lines strangely */
+  display: inline-block;
+  /* ensures outline works well without breaking lines strangely */
+}
+
+@keyframes highlightGreenPulse {
+  0% {
+    outline: 2px solid transparent;
+    outline-offset: 0px;
+    background-color: transparent;
+  }
+
+  50% {
+    outline: 2px solid var(--flash-ok);
+    outline-offset: 4px;
+    background-color: color-mix(in srgb, var(--flash-ok) 25%, transparent);
+    border-radius: 4px;
+  }
+
+  100% {
+    outline: 2px solid transparent;
+    outline-offset: 4px;
+    background-color: transparent;
+  }
+}
+
+.highlight-green-pulse {
+  animation: highlightGreenPulse 0.8s ease-in-out 1;
+}
+
+@keyframes swipeOut {
+  0% {
+    transform: translateX(0);
+    opacity: 1;
+    max-height: 1000px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+  }
+
+  50% {
+    transform: translateX(100%);
+    opacity: 0;
+    max-height: 1000px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+  }
+
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-bottom: 0;
+    border: none;
+  }
+}
+
+.swipe-out-anim {
+  animation: swipeOut 0.5s ease-out forwards;
+  overflow: hidden;
 }
 
 .cite-tooltip {
@@ -8364,7 +9692,7 @@ details.chat-steps-spoiler[open] summary .spoiler-arrow {
   background: var(--bg-primary);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
   font-size: .8rem;
   line-height: 1.5;
   color: var(--text-primary);
@@ -8374,7 +9702,8 @@ details.chat-steps-spoiler[open] summary .spoiler-arrow {
   transition: opacity 0.2s ease;
 }
 
-.cite-tooltip::before, .cite-tooltip::after {
+.cite-tooltip::before,
+.cite-tooltip::after {
   content: "";
   position: absolute;
   left: var(--cite-arrow-left, 50%);
@@ -8382,13 +9711,19 @@ details.chat-steps-spoiler[open] summary .spoiler-arrow {
   border-style: solid;
 }
 
-.cite-tooltip::before { border-width: 7px; }
-.cite-tooltip::after { border-width: 6px; }
+.cite-tooltip::before {
+  border-width: 7px;
+}
+
+.cite-tooltip::after {
+  border-width: 6px;
+}
 
 .cite-tooltip.cite-tooltip-top::before {
   top: 100%;
   border-color: var(--border-strong) transparent transparent transparent;
 }
+
 .cite-tooltip.cite-tooltip-top::after {
   top: 100%;
   border-color: var(--bg-primary) transparent transparent transparent;
@@ -8398,6 +9733,7 @@ details.chat-steps-spoiler[open] summary .spoiler-arrow {
   bottom: 100%;
   border-color: transparent transparent var(--border-strong) transparent;
 }
+
 .cite-tooltip.cite-tooltip-bottom::after {
   bottom: 100%;
   border-color: transparent transparent var(--bg-primary) transparent;
@@ -8407,11 +9743,24 @@ details.chat-steps-spoiler[open] summary .spoiler-arrow {
    Default offset di LUAR box (cocok utk segmen yg punya padding). Varian -card pakai
    offset NEGATIF (di dalam box) supaya tak ke-clip overflow:hidden .chat-citations-list
    -> outline kartu utuh akhirnya tampil di desktop, bukan cuma di popup mobile. */
-.cite-flash {
-  outline: 2px solid var(--ai-color);
-  outline-offset: 2px;
-  border-radius: 4px;
+@keyframes citeFlashPulse {
+
+  0%,
+  100% {
+    outline-color: transparent;
+  }
+
+  50% {
+    outline-color: var(--ai-color);
+  }
 }
+
+.cite-flash {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  animation: citeFlashPulse 1s ease-in-out 2;
+}
+
 .cite-flash-card {
   outline-offset: -2px;
 }
@@ -8422,26 +9771,31 @@ details.chat-steps-spoiler[open] summary .spoiler-arrow {
 .frag-backlinks-badge a.cite-backlink {
   cursor: pointer;
   margin-left: 4px;
-  color: var(--purple, #a855f7);
+  color: var(--purple-400);
   font-weight: bold;
   text-decoration: underline;
 }
-.cite-backlink:hover { text-decoration: none; }
+
+.cite-backlink:hover {
+  text-decoration: none;
+}
 
 /* Baris "Dirujuk: a b c" dipaksa ke baris baru (dulu style.flexBasis/marginTop inline). */
 .cite-backlinks-row {
   flex-basis: 100%;
   margin-top: 4px;
 }
+
 /* Varian backlink yg "membajak" .fragment-score (skor disembunyikan, jadi baris Dirujuk). */
 .fragment-score.hijacked {
   display: inline-flex;
   align-items: center;
   gap: 4px;
 }
+
 /* Redupkan ikon + label "Dirujuk:" saja — anchor tetap ungu pekat. */
-.fragment-score.hijacked > span,
-.fragment-score.hijacked > .frag-backlinks-icon {
+.fragment-score.hijacked>span,
+.fragment-score.hijacked>.frag-backlinks-icon {
   opacity: 0.7;
 }
 
@@ -8451,20 +9805,24 @@ details.chat-steps-spoiler[open] summary .spoiler-arrow {
 .mobile-ref-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--overlay);
   z-index: 9998;
   opacity: 0;
   display: none;
   transition: opacity 0.3s ease-out;
 }
-.mobile-ref-overlay.show { opacity: 1; }
+
+.mobile-ref-overlay.show {
+  opacity: 1;
+}
+
 .mobile-ref-popup {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  background: var(--bg-primary, #fff);
-  border-top: 1px solid var(--border-color);
+  background: var(--bg-primary);
+  border-top: 1px solid var(--border);
   box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
   z-index: 9999;
   max-height: 75vh;
@@ -8475,21 +9833,92 @@ details.chat-steps-spoiler[open] summary .spoiler-arrow {
   transform: translateY(100%);
   transition: transform 0.3s ease-out;
 }
-.mobile-ref-popup.show { transform: translateY(0); }
+
+.mobile-ref-popup.show {
+  transform: translateY(0);
+}
+
+/* Desktop (2026-07-11): dialog rujukan dipakai di SEMUA lebar layar (jalur expand+scroll
+   lama dihapus di handleCiteClick). Di layar lebar bottom-sheet dirombak jadi MODAL
+   TENGAH: fade+lift halus, lebar dibatasi, sudut membulat penuh. */
+@media (min-width: 769px) {
+  .mobile-ref-popup {
+    top: 50%;
+    left: 50%;
+    right: auto;
+    bottom: auto;
+    width: min(720px, calc(100vw - 48px));
+    max-height: 82vh;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+    transform: translate(-50%, calc(-50% + 14px));
+    opacity: 0;
+    transition: transform 0.22s ease-out, opacity 0.22s ease-out;
+  }
+
+  .mobile-ref-popup.show {
+    transform: translate(-50%, -50%);
+    opacity: 1;
+  }
+}
+
 .mobile-ref-popup-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  border-bottom: 1px solid color-mix(in srgb, var(--ai-color) 35%, var(--border-color));
+  border-bottom: 1px solid color-mix(in srgb, var(--ai-color) 35%, var(--border));
   color: var(--ai-color);
   background: color-mix(in srgb, var(--ai-color) 12%, var(--bg-primary));
   border-top-left-radius: 16px;
   border-top-right-radius: 16px;
 }
+
 /* Ikon book-open ikut warna aksen (var --ai-color kontras di kedua tema). */
+/* Tombol "Lihat di Daftar Rujukan" di header popup: kiri tombol ✕. Tutup popup lalu
+   jump (expand+scroll+flash) ke kartunya di daftar rujukan bawah jawaban. */
+.mobile-ref-popup-golist {
+  margin-left: auto;
+  margin-right: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  padding: 5px 10px;
+  font-size: .74rem;
+  font-weight: 600;
+  color: inherit;
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  cursor: pointer;
+  opacity: .8;
+  transition: opacity var(--transition);
+  white-space: nowrap;
+}
+
+.mobile-ref-popup-golist:hover {
+  opacity: 1;
+}
+
+.mobile-ref-popup-golist svg {
+  width: 13px !important;
+  height: 13px !important;
+}
+
+/* Layar sempit: label disembunyikan, cukup ikon (title tetap menjelaskan). */
+@media (max-width: 480px) {
+  .mobile-ref-popup-golist span {
+    display: none;
+  }
+}
+
 .mobile-ref-popup-header svg,
-.mobile-ref-popup-header i { color: var(--ai-color); }
+.mobile-ref-popup-header i {
+  color: var(--ai-color);
+}
+
 /* Judul dua baris: id sutta (kicker, aksen) di atas, nama sutta (judul) di bawah. */
 .mobile-ref-popup-titlewrap {
   display: inline-flex;
@@ -8498,12 +9927,14 @@ details.chat-steps-spoiler[open] summary .spoiler-arrow {
   min-width: 0;
   flex: 1;
 }
+
 .mobile-ref-popup-titlecol {
   display: flex;
   flex-direction: column;
   min-width: 0;
   line-height: 1.25;
 }
+
 .mobile-ref-popup-kicker {
   font-size: 0.72rem;
   font-weight: 700;
@@ -8511,7 +9942,11 @@ details.chat-steps-spoiler[open] summary .spoiler-arrow {
   color: var(--ai-color);
   /* JANGAN uppercase — id udah bener casing-nya (Snp/Ud/Iti dst); cuma DN/MN/SN/AN yg full kapital. */
 }
-.mobile-ref-popup-kicker:empty { display: none; }
+
+.mobile-ref-popup-kicker:empty {
+  display: none;
+}
+
 .mobile-ref-popup-title {
   font-weight: 700;
   font-size: 15px;
@@ -8523,6 +9958,7 @@ details.chat-steps-spoiler[open] summary .spoiler-arrow {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
 .mobile-ref-popup-close {
   background: none;
   border: none;
@@ -8535,13 +9971,489 @@ details.chat-steps-spoiler[open] summary .spoiler-arrow {
   border-radius: 8px;
   transition: background var(--transition), color var(--transition);
 }
+
 .mobile-ref-popup-close:hover {
   color: var(--text-primary);
   background: color-mix(in srgb, var(--ai-color) 14%, transparent);
 }
+
 .mobile-ref-popup-content {
   padding: 16px;
   overflow-y: auto;
   flex: 1;
 }
-.mobile-ref-popup-content .sutta-card { margin-bottom: 0; }
+
+.mobile-ref-popup-content .sutta-card {
+  margin-bottom: 0;
+}
+
+/* ================================================================
+   CHAT PANEL (kanan) + EMBEDDED CHAT
+   Chat bukan lagi dedicated page (/chat di-redirect): mesin chat.js
+   di-mount lazy ke #chat-root di dalam #chat-panel (base.html).
+   UI chat identik dgn halaman penuh dulu; hanya menu atas beda
+   (tanpa Back/Settings; + fullscreen) — lihat chat.js `embedded`.
+   ================================================================ */
+
+/* ── Panel desktop lebar (>1200px): kolom kanan in-flow, toggleable ── */
+#chat-panel {
+  display: none;
+  flex: 0 0 var(--side-panel-w);
+  min-width: 330px;
+  max-width: 560px;
+  border-left: 1px solid var(--border);
+  overflow: hidden;
+  position: relative;
+  background: var(--bg-primary);
+}
+
+#chat-panel.panel-open {
+  display: flex;
+  flex-direction: column;
+}
+
+#chat-panel.fullscreen {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  max-width: none;
+  min-width: 0;
+  /* HARUS di bawah overlay dialog rujukan (.mobile-ref-overlay z-9998) supaya scrim-nya
+     nutupin panel fullscreen -> latar ke-dim & klik-luar nutup. Dulu 9999 (≥ overlay) =
+     panel opaque nutupin overlay: di desktop-fullscreen dialog ref jadi "bukan modal"
+     (ga dim, klik luar ga nutup). Mobile aman krn drawer chat cuma z-140. */
+  z-index: 9997;
+  border: none;
+}
+
+/* Wrapper chat mengisi PANEL (bukan viewport spt halaman penuh dulu) */
+#chat-panel .chat-root {
+  flex: 1;
+  min-height: 0;
+}
+
+#chat-panel .chat-app-wrapper {
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── Embedded: tombol History & Obrolan Baru tampil di SEMUA lebar
+   (aturan desktop halaman penuh dulu menyembunyikan #btn-mobile-*) ── */
+.chat-embedded #btn-mobile-menu,
+.chat-embedded #btn-mobile-new {
+  display: flex !important;
+}
+
+/* ── Embedded: sidebar riwayat = overlay DI DALAM panel, semua lebar
+   (perilaku mobile halaman penuh dulu, kini jadi default panel) ── */
+.chat-embedded {
+  flex-direction: column;
+}
+
+.chat-embedded .chat-sidebar {
+  position: absolute;
+  top: 0;
+  left: -320px;
+  width: 280px;
+  height: 100%;
+  z-index: 120;
+  transition: left .3s ease;
+  margin: 0;
+  border: none;
+  border-right: 1px solid var(--border);
+  border-radius: 0;
+  box-shadow: var(--shadow-lg);
+}
+
+.chat-embedded .chat-sidebar.open {
+  left: 0;
+}
+
+.chat-embedded .chat-sidebar-overlay {
+  display: none;
+  position: absolute;
+  inset: 0;
+  background: var(--overlay);
+  z-index: 110;
+  opacity: 0;
+  transition: opacity .3s ease;
+  border-radius: 0;
+}
+
+.chat-embedded .chat-sidebar-overlay.show {
+  display: block;
+  opacity: 1;
+}
+
+.chat-embedded .chat-sidebar-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.chat-embedded .chat-sidebar-close:hover {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.chat-embedded .chat-widget-area {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+}
+
+.chat-embedded .chat-log {
+  padding: 64px 12px 16px;
+}
+
+.chat-embedded .chat-input-row,
+.chat-embedded .chat-disclaimer {
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+
+
+/* ── Dropdown bahasa KUSTOM di header ──────────────────────────────
+   Tombol pill setinggi theme-switcher (30px); menu popup ikut theme
+   (bg-card + border + shadow), item berlabel LENGKAP + badge kode. */
+.lang-dd {
+  position: relative;
+}
+
+.lang-dd-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  /* setara .theme-pill */
+  padding: 0 10px 0 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-strong);
+  border-radius: 20px;
+  color: var(--text-muted);
+  font-size: .78rem;
+  font-weight: 500;
+  letter-spacing: .04em;
+  cursor: pointer;
+  user-select: none;
+  transition: border-color var(--transition), color var(--transition);
+}
+
+.lang-dd-btn:hover {
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+
+.lang-dd-btn i,
+.lang-dd-btn svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+
+.lang-dd-caret {
+  transition: transform var(--transition);
+}
+
+.lang-dd.open .lang-dd-caret {
+  transform: rotate(180deg);
+}
+
+.lang-dd-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 185px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: 4px;
+  z-index: 300;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.lang-dd.open .lang-dd-menu {
+  display: flex;
+  animation: chat-msg-in 0.14s ease backwards;
+}
+
+.lang-dd-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 8px 10px;
+  font-size: .85rem;
+  color: var(--text-primary);
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s, color 0.15s;
+}
+
+.lang-dd-item:hover {
+  background: var(--bg-card-hover);
+}
+
+.lang-dd-item.active {
+  color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+.lang-dd-code {
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+/* ================================================================
+   SIDE RAIL — MOBILE (≤768px)
+   Rail desktop (strip in-flow) berubah jadi GRUP TAB NGAMBANG numpuk
+   atas-bawah di tepi kanan; rail DIAM (tidak ikut geser). Drawer
+   NEMPEL KIRI (slide dari kiri, lebar 88vw) -> gap alami tersisa di
+   kanan tempat tombol rail, jadi tombol selalu terlihat & bisa diklik.
+   ================================================================ */
+@media (max-width: 900px) {
+  #side-rail {
+    position: fixed;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    flex: none;
+    width: auto;
+    height: auto;
+    background: transparent;
+    border: none;
+    padding: 0;
+    gap: 8px;
+    z-index: 150;
+  }
+
+  /* Di atas backdrop gelap, tombol non-aktif (transparan) tak terbaca ->
+     kasih background solid saat ada panel terbuka (body-level via :has). */
+  body:has(.panel-open) #side-rail .rail-btn:not(.panel-btn-open) {
+    background: var(--bg-primary);
+  }
+
+  .rail-btn {
+    width: 26px;
+    margin: 0;
+    padding: 10px 0;
+    gap: 6px;
+    background: color-mix(in srgb, var(--bg-secondary) 30%, transparent);
+    backdrop-filter: blur(.8px);
+    -webkit-backdrop-filter: blur(.8px);
+    border: 1px solid var(--border-strong);
+    border-right: none;
+    border-radius: 8px 0 0 8px;
+    box-shadow: -3px 0 10px rgba(0, 0, 0, .15);
+    color: var(--text-muted);
+    font-size: .6rem;
+  }
+
+  .rail-btn.panel-btn-open {
+    background: var(--accent);
+    color: var(--ink);
+    border-color: var(--accent);
+  }
+
+  /* Varian AI: tint ungu (identitas Tanya AI) saat aktif */
+
+  .rail-btn-ai.panel-btn-open {
+    background: var(--ai-color);
+    color: var(--bg-primary);
+    border-color: var(--ai-color);
+  }
+
+  /* Drawer chat mobile: NEMPEL KIRI, slide dari kiri (paritas drawer Catatan) */
+  #chat-panel {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: auto;
+    bottom: 0;
+    width: calc(100vw - 34px);
+    max-width: 440px;
+    min-width: 0;
+    height: 100dvh;
+    z-index: 140;
+    border-left: none;
+    border-right: 1px solid var(--border-strong);
+    transform: translateX(-100%);
+    transition: transform .3s cubic-bezier(.4, 0, .2, 1);
+    flex: none;
+    box-shadow: var(--shadow-lg);
+  }
+
+  #chat-panel.panel-open {
+    transform: translateX(0);
+  }
+}
+
+/* ── Suttaplex: baris aksi blurb (Tanya AI + Catatan) di pojok kanan-bawah ── */
+.suttaplex-blurb-actions {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Di dalam baris aksi, btn-add-note tak lagi absolute sendiri */
+.suttaplex-blurb-actions .btn-add-note {
+  position: static;
+}
+
+/* Samakan ukuran Tanya AI dgn + Catatan di baris ini */
+.suttaplex-blurb-actions .btn-chat-ai {
+  font-size: .65rem;
+  padding: 2px 8px;
+  font-weight: 600;
+  border: 1px solid color-mix(in srgb, var(--ai-color) 40%, transparent);
+  color: var(--ai-color);
+  background: none;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Hilangkan cincin animasi border gradien agar jadi solid seperti + Catatan */
+.suttaplex-blurb-actions .btn-chat-ai::before {
+  display: none;
+}
+
+.suttaplex-blurb-actions .btn-chat-ai:hover {
+  background: color-mix(in srgb, var(--ai-color) 10%, transparent);
+  color: var(--ai-color);
+  border-color: var(--ai-color);
+}
+
+.suttaplex-blurb-actions .btn-chat-ai svg,
+.suttaplex-blurb-actions .btn-chat-ai i {
+  width: 11px;
+  height: 11px;
+}
+
+/* Hover Tooltip for References */
+.ref-tooltip {
+  position: fixed;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  z-index: 999999;
+  max-width: 350px;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  pointer-events: auto;
+  opacity: 1;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  line-height: 1.5;
+  /* Isi tooltip harus bisa di-blok & copy (override user-select:none yg mungkin di-inherit
+     dari dialog/segmen induk saat tooltip di-append ke sana). */
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+.ref-tooltip.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
+}
+
+.ref-tooltip .tooltip-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+  letter-spacing: 0.2px;
+}
+
+.ref-tooltip .tooltip-title-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Link "Lihat sutta" di ujung kanan title row: buka sutta (fungsinya = klik ref). */
+.ref-tooltip .tooltip-open {
+  flex: none;
+  font-weight: 600;
+  font-size: 0.78rem;
+  color: var(--accent);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+}
+.ref-tooltip .tooltip-open:hover {
+  border-bottom-color: var(--accent);
+}
+
+.ref-tooltip .tooltip-content {
+  max-height: 250px;
+  overflow-y: auto;
+  padding-right: 4px;
+  /* beri ruang untuk scrollbar */
+}
+
+/* Penanda batas ruas di preview multi-segmen (span §mdA-B): superscript ref ala bible
+   saat setting show-seg-ref nyala; garis ‖ saat dimatikan. */
+.ref-tooltip .tt-seg-ref {
+  font-size: .68em;
+  font-weight: 700;
+  vertical-align: super;
+  color: var(--accent);
+  margin-right: 2px;
+  white-space: nowrap;
+}
+
+.ref-tooltip .tt-seg-sep {
+  /* Aksen (bukan abu): di tooltip teksnya polos seragam, ‖ abu ketelen; samakan bahasa
+     visual dgn marker superscript (aksen). verse-sep READER tetap abu (konteks ramai). */
+  color: var(--accent);
+  opacity: .85;
+  margin: 0 4px;
+}
+
+/* Kustomisasi scrollbar mini agar tak makan tempat */
+.ref-tooltip .tooltip-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.ref-tooltip .tooltip-content::-webkit-scrollbar-thumb {
+  background-color: var(--border-strong);
+  border-radius: 4px;
+}

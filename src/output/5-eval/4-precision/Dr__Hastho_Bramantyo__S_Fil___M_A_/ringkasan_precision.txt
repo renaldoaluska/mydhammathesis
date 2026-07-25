@@ -1,0 +1,9 @@
+=== P@5 + MRR@5 (relevan grade>=2) [Dr. Hastho Bramantyo, S.Fil., M.A.] ===
+Pakar: Dr__Hastho_Bramantyo__S_Fil___M_A_
+
+   1. P@5=0.4800 MRR=0.6972 (tanpa heading)  multilingual-e5-base (B,ID)
+   2. P@5=0.4733 MRR=0.6417 (tanpa heading)  gte-multilingual-base (B,ID)
+   3. P@5=0.4467 MRR=0.6428 (tanpa heading)  gpl-gte-multilingual-base (GPL,ID)
+   4. P@5=0.4200 MRR=0.7278 (tanpa heading)  gpl-multilingual-e5-base (GPL,ID)
+   5. P@5=0.4067 MRR=0.5217 (tanpa heading)  BM25 (B,ID)
+   6. P@5=0.3586 MRR=0.5718 (tanpa heading)  bge-m3 (B,ID)

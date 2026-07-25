@@ -1,5 +1,5 @@
 /* ============================================================
-   Dhammakathika — Browse Page
+   myDhamma — Browse Page
    Shared logic (theme, source, notes, resize) lives in common.js
    ============================================================ */
 
@@ -17,6 +17,7 @@
     browseData: null,
     suttaNames: {},
     loadedPitakas: new Set(),   // piṭaka yg nama-nya sudah di-load (lazy per-piṭaka)
+    unavailable: new Set(),     // leaf id tanpa teks (rute /<id> 404) -> link di-disable
   };
 
   // Load nama untuk SATU piṭaka, lalu tempel ke node yg sudah ter-render. Dipanggil
@@ -61,17 +62,25 @@
       if (!res.ok) throw new Error("Failed to load browse tree");
       state.browseData = await res.json();
 
-      // Render tree dulu TANPA nama (payload kecil ~108KB) -> langsung tampil.
+      // Leaf tanpa teks (rute /<id> = 404) -> di-disable saat render. Non-kritis:
+      // gagal fetch = anggap semua tersedia (tree tetap render). WAJIB sebelum renderBrowseTree.
+      try {
+        const ur = await fetch("/api/browse-unavailable");
+        if (ur.ok) state.unavailable = new Set(((await ur.json()) || {}).unavailable || []);
+      } catch (_) { /* biarkan kosong */ }
+
+      // Render tree TANPA nama (payload kecil) TAPI masih HIDDEN. Deep-link (?browse=<id>)
+      // expand path-nya DI BALIK skeleton dulu -> reveal baru setelah path beneran ke-expand
+      // (+ nama piṭaka target ke-load via ensurePitakaNames), biar ga keliatan janky/lag pas
+      // expand. rAF-scroll di highlightBrowseItem fire SETELAH reveal jadi tetap nge-scroll bener.
       renderBrowseTree();
+      const browseParam = new URLSearchParams(window.location.search).get("browse");
+      if (browseParam) {
+        try { await highlightBrowseItem(decodeURIComponent(browseParam)); }
+        catch (_) { /* highlight non-kritis -> tetap reveal tree */ }
+      }
       dom.browseLoading.classList.add("hidden");
       dom.browseTree.classList.remove("hidden");
-
-      // Deep-link (?browse=<id>) cuma butuh data-browse-id buat cari & expand path —
-      // TIDAK butuh nama. Highlight jalan langsung; nama piṭaka target ke-load otomatis
-      // saat path-nya di-expand (ensurePitakaNames di renderNikaBody), jadi tetap cepat.
-      // Tanpa deep-link: nama juga lazy per-piṭaka saat manual di-expand.
-      const browseParam = new URLSearchParams(window.location.search).get("browse");
-      if (browseParam) await highlightBrowseItem(decodeURIComponent(browseParam));
     } catch (e) {
       console.error("Browse error:", e);
       const errLabel = (window.DK && window.DK.t) ? window.DK.t("error_prefix") : "Error";
@@ -112,17 +121,20 @@
       return shortK.split("-").map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join("-");
     }
 
-    // Recursively collect all leaf sutta IDs from a tree array
-    function collectLeafIds(arr) {
-      const ids = [];
-      if (!Array.isArray(arr)) return ids;
-      arr.forEach(item => {
-        if (typeof item === "string") ids.push(item);
-        else if (typeof item === "object") {
-          Object.values(item).forEach(v => ids.push(...collectLeafIds(v)));
-        }
-      });
-      return ids;
+    // Leaf TERAWAL & TERAKHIR (utk range "DN 1–34") tanpa kumpulin SEMUA leaf -> O(kedalaman),
+    // bukan O(seluruh subtree). collectLeafIds lama boros alokasi (spread rekursif) utk nikaya
+    // gede (AN ~9000 sutta) padahal range cuma butuh ujung-ujungnya.
+    function firstLeaf(n) {
+      if (Array.isArray(n)) { for (const it of n) { const r = firstLeaf(it); if (r) return r; } return null; }
+      if (typeof n === "string") return n;
+      if (n && typeof n === "object") { for (const v of Object.values(n)) { const r = firstLeaf(v); if (r) return r; } }
+      return null;
+    }
+    function lastLeaf(n) {
+      if (Array.isArray(n)) { for (let i = n.length - 1; i >= 0; i--) { const r = lastLeaf(n[i]); if (r) return r; } return null; }
+      if (typeof n === "string") return n;
+      if (n && typeof n === "object") { const vs = Object.values(n); for (let i = vs.length - 1; i >= 0; i--) { const r = lastLeaf(vs[i]); if (r) return r; } }
+      return null;
     }
 
     // Accordion: close sibling groups when opening one
@@ -138,6 +150,27 @@
       }
     }
 
+    // Anti-loncat saat expand (accordion nutup sibling di ATAS bikin konten nyusut ->
+    // node yg baru dibuka melompat, user kehilangan posisi). Expand instan (display
+    // toggle, tanpa animasi) jadi bisa dikoreksi 1 task tanpa flicker:
+    //   1) ANCHOR sinkron: batalkan pergeseran header -> loncatan tak pernah ke-paint.
+    //   2) GLIDE halus: kalau header ke-dorong ke atas viewport (<8px) atau kepepet di
+    //      bawah (>40% tinggi kontainer, anak-anak kepotong), luncurkan ke ~14px dari atas
+    //      biar node + isinya kelihatan. Kalau sudah nyaman di atas, diam (tak over-scroll).
+    // `before` = header.getBoundingClientRect().top yg DIUKUR SEBELUM mutasi buka.
+    function anchorAndGlide(header, before) {
+      const scroller = document.getElementById("search-scroll");
+      if (!scroller) return;
+      scroller.scrollTop += header.getBoundingClientRect().top - before;
+      const smooth = (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+        ? "auto" : "smooth";
+      requestAnimationFrame(() => {
+        const s = scroller.getBoundingClientRect();
+        const hTop = header.getBoundingClientRect().top - s.top;
+        if (hTop < 8 || hTop > s.height * 0.4) scroller.scrollBy({ top: hTop - 14, behavior: smooth });
+      });
+    }
+
     function buildNodes(parent, arr) {
       if (!Array.isArray(arr)) return;
       arr.forEach(item => {
@@ -151,10 +184,16 @@
             return s;
           }
 
-          // Sutta ID and Name (links to suttaplex)
-          const mainLink = document.createElement("a");
-          mainLink.className = "browse-sutta-link";
-          mainLink.href = `/${toShortId(item)}`;
+          // Sutta ID and Name (links to suttaplex). Leaf tanpa teks -> <span> non-klik (link 404).
+          const dead = state.unavailable && state.unavailable.has(item);
+          const mainLink = document.createElement(dead ? "span" : "a");
+          mainLink.className = "browse-sutta-link" + (dead ? " unavailable" : "");
+          if (dead) {
+            mainLink.setAttribute("aria-disabled", "true");
+            mainLink.title = (window.DK && window.DK.t) ? window.DK.t("browse_unavailable") : "Teks belum tersedia";
+          } else {
+            mainLink.href = `/${toShortId(item)}`;
+          }
           mainLink.innerHTML = `<span class="browse-sutta-id">${displayId(item)}</span>` + (sName ? ` <span class="browse-sutta-name">${sName}</span>` : "");
           sLink.appendChild(mainLink);
 
@@ -178,11 +217,11 @@
       }
 
       // Show range of sutta IDs
-      const leaves = collectLeafIds(childrenArr);
+      const _first = firstLeaf(childrenArr), _last = lastLeaf(childrenArr);
       let rangeHtml = "";
-      if (leaves.length > 0) {
-        const df = displayId(leaves[0]), dl = displayId(leaves[leaves.length - 1]);
-        if (leaves.length === 1) {
+      if (_first) {
+        const df = displayId(_first), dl = displayId(_last);
+        if (_first === _last) {
           rangeHtml = ` <span class="browse-vagga-range">${df}</span>`;
         } else {
           const spaceIdx = df.indexOf(" ");
@@ -213,15 +252,17 @@
         if (gBody._rendered) return;
         buildNodes(gBody, childrenArr);
         gBody._rendered = true;
-        if (window.refreshIcons) refreshIcons();
+        if (window.lucide) lucide.createIcons({ root: gBody });   // scoped: jangan re-scan seluruh dokumen
       }
       gBody._renderChildren = renderChildren;
 
       gHead.addEventListener("click", () => {
         const opening = !gHead.classList.contains("open");
+        const before = opening ? gHead.getBoundingClientRect().top : 0;
         if (opening) { closeSiblings(gEl); renderChildren(); }
         gHead.classList.toggle("open");
         gBody.classList.toggle("open");
+        if (opening) anchorAndGlide(gHead, before);
       });
       gEl.appendChild(gHead); gEl.appendChild(gBody);
       return gEl;
@@ -252,19 +293,25 @@
               if (knBody._rendered) return;
               Object.keys(children).forEach(knBook => knBody.appendChild(createGroupNode(knBook, children[knBook])));
               knBody._rendered = true;
-              if (window.refreshIcons) refreshIcons();
+              if (window.lucide) lucide.createIcons({ root: knBody });   // scoped
             }
             knBody._renderChildren = renderKnChildren;
-            knHead.addEventListener("click", () => { const opening = !knHead.classList.contains("open"); if (opening) { closeSiblings(knGroup); renderKnChildren(); } knHead.classList.toggle("open"); knBody.classList.toggle("open"); });
+            knHead.addEventListener("click", () => { const opening = !knHead.classList.contains("open"); const before = opening ? knHead.getBoundingClientRect().top : 0; if (opening) { closeSiblings(knGroup); renderKnChildren(); } knHead.classList.toggle("open"); knBody.classList.toggle("open"); if (opening) anchorAndGlide(knHead, before); });
             knGroup.appendChild(knHead); knGroup.appendChild(knBody);
             nBody.appendChild(knGroup);
           } else if (typeof children === "string") {
             const sLink = document.createElement("div"); sLink.className = "browse-sutta-row";
             sLink.dataset.browseId = children;
             const sName = (state.suttaNames || {})[children];
-            const mainLink = document.createElement("a");
-            mainLink.className = "browse-sutta-link";
-            mainLink.href = `/${String(children).trim().toLowerCase().replace(/^pli-tv-/, "").replace(/^(bu|bi)-vb-/, "$1-")}`;
+            const dead = state.unavailable && state.unavailable.has(children);
+            const mainLink = document.createElement(dead ? "span" : "a");
+            mainLink.className = "browse-sutta-link" + (dead ? " unavailable" : "");
+            if (dead) {
+              mainLink.setAttribute("aria-disabled", "true");
+              mainLink.title = (window.DK && window.DK.t) ? window.DK.t("browse_unavailable") : "Teks belum tersedia";
+            } else {
+              mainLink.href = `/${String(children).trim().toLowerCase().replace(/^pli-tv-/, "").replace(/^(bu|bi)-vb-/, "$1-")}`;
+            }
             mainLink.innerHTML = `<span class="browse-sutta-id">${displayId(children)}</span>` + (sName ? ` <span class="browse-sutta-name">${sName}</span>` : "");
             sLink.appendChild(mainLink);
             nBody.appendChild(sLink);
@@ -272,12 +319,13 @@
             nBody.appendChild(createGroupNode(book, children));
           }
         });
-        if (window.refreshIcons) refreshIcons();
+        if (window.lucide) lucide.createIcons({ root: nBody });   // scoped
       }
       nBody._renderChildren = renderNikaBody;
 
       nHead.addEventListener("click", () => {
         const opening = !nHead.classList.contains("open");
+        const before = opening ? nHead.getBoundingClientRect().top : 0;
         if (opening) {
           closeSiblings(nEl);
           if (!state.loadedPitakas.has(pitaka)) {
@@ -313,6 +361,7 @@
             nHead.classList.add("open");
             nBody.classList.add("open");
           }
+          anchorAndGlide(nHead, before);
         } else {
           nHead.classList.remove("open");
           nBody.classList.remove("open");
@@ -322,7 +371,7 @@
       nEl.appendChild(nHead); nEl.appendChild(nBody);
       dom.browseTree.appendChild(nEl);
     });
-    if (window.refreshIcons) refreshIcons();
+    if (window.lucide) lucide.createIcons({ root: dom.browseTree });   // scoped
   }
 
   // ========== Browse Highlight (from breadcrumb navigation) ==========
@@ -401,6 +450,13 @@
     }
     if (!target) return;
 
+    // Accordion: tutup SEMUA yg lagi kebuka dulu, baru buka path target. Tanpa ini,
+    // deep-link (mis. header "Telusuri" saat SUDAH di home -> client-side, tanpa reload)
+    // cuma nambah .open di path baru -> pitaka lama tetap kebuka = bisa >1 tree kebuka.
+    dom.browseTree.querySelectorAll(
+      ".browse-nikaya-header.open, .browse-vagga-header.open, .browse-nikaya-body.open, .browse-vagga-body.open"
+    ).forEach(o => o.classList.remove("open"));
+
     // Expand every ancestor (and the target itself if it's a group)
     const openNode = (node) => {
       for (const h of node.querySelectorAll(":scope > .browse-nikaya-header, :scope > .browse-vagga-header"))
@@ -445,6 +501,18 @@
       scrollContainer.scrollTo({ top: 0, behavior: "smooth" });
     });
   }
+
+  // ── Deep-link client-side dari header (tanpa reload) ──
+  // Dipanggil link "Telusuri" di header saat SUDAH di home: expand+scroll ke piṭaka
+  // langsung, tanpa full navigation ke /?browse=<id>. highlightBrowseItem sendiri sudah
+  // meng-clean URL balik ke "/" via replaceState (no-op di sini karena memang sudah di /).
+  // Balikin true kalau tree siap & ditangani; false kalau belum ke-load -> caller biarin
+  // navigasi anchor biasa (reload) sebagai fallback.
+  window.dkBrowseDeepLink = function (id) {
+    if (!id || !state.browseData) return false;
+    highlightBrowseItem(id);   // async, fire-and-forget (expand + scroll + highlight)
+    return true;
+  };
 
   loadBrowseTree();
 })();

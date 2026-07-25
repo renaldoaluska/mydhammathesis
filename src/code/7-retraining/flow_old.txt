@@ -1,0 +1,86 @@
+================================================================================
+FLOW — TAHAP 7: RETRAINING (perbaikan GPL, di-reeval LLM-judge -> 8-reeval-llm)
+Tujuan tahap: memperbaiki resep adaptasi domain (GPL ~setara base, lihat
+5-eval/rangkuman_analisis.txt) lalu mengukur apakah model eksperimen LEBIH BAIK — TANPA anotasi
+pakar baru (pakar tak diminta menilai ulang). Instrumen eval = LLM-judge yang SUDAH
+DIVALIDASI thd pakar (Cohen kappa 0.68, lihat 6-eval-llm) -> proxy yang sah.
+Input: model base (1-get-data) + data GPL beku (4-training/gpl/*) + 30 kueri pakar
+       (5-eval/queries_pakar.json, HELD-OUT) + judge (6-eval-llm).
+Jalankan: per-eksperimen (lihat di bawah). BUTUH GPU utk retrain.
+================================================================================
+
+PRINSIP TAK-BISA-DITAWAR
+  1. LATIH DARI BASE, bukan menumpuk di atas checkpoint GPL (cegah drift+forgetting
+     berlapis). gpl = "base + 1 putaran"; exp = "base + putaran yang DIPERBAIKI".
+  2. INDEPENDENSI EVALUATOR: sinyal latih != penilai. Karena eval = Claude+Gemini,
+     model exp TIDAK BOLEH dilatih pakai label relevansi Claude/Gemini (itu sirkular ->
+     "improved" palsu). Aman: tweak resep (E1/E2), atau kueri-LLM + teacher non-LLM.
+  3. HELD-OUT SUCI: 30 kueri pakar + pasasenya TAK PERNAH masuk data latih.
+  4. BEKUKAN: data hasil-generate & grade di-freeze (spt grades_*.json) -> reproducible.
+
+FOLDER INI (7-retraining) KINI INDEPENDEN
+  retrain        -> 7-retraining/run_exp1.sh / run_exp2.sh (otomatisasi pipeline)
+  (regen data)   -> 7-retraining/{2-hard-neg,3-pseudo-label}.py bila ubah negatif/teacher
+  embed korpus   -> 7-retraining/5-embed.py
+  pool retrieval -> 7-retraining/6-build-pool.py (top-10 per kueri utk model baru)
+  judge + metrik -> 8-reeval-llm/*.py (langkah terpisah; output di output/8-reeval-llm/)
+  Folder ini = ORKESTRASI + JEMBATAN (pool model-baru -> format judge) + log eksperimen.
+
+────────────────────────────────────────────────────────────────────────────────
+MENU EKSPERIMEN (urut effort; mulai termurah)
+
+E1. ABLASI HYPERPARAM  (termurah, NO data baru, NO biaya, NON-sirkular)
+  APA  : retrain dari base dgn GPL_STEPS lebih kecil (skrg 10000) / LR lebih lembut.
+         Hipotesis: GPL sedikit OVER-adapt -> "sentuhan lebih ringan" pertahankan
+         retrieval base sambil tetap dapat sebagian gain intrinsik.
+  CARA : python 7-retraining/4-train-marginmse.py --model <core> --max-steps 5000 (dst).
+  KENAPA: uji tercepat utk pertanyaan "drift?" sebelum upaya lebih mahal.
+
+E2. HARD-NEGATIVE LEBIH BERSIH  (murah, NO LLM, NON-sirkular)  [ROI tertinggi]
+  APA  : filter false-negative di 2-hard-neg (teks Buddhis byk pericope/formula
+         berulang lintas-sutta -> ke-mine sbg "negatif" padahal relevan). Tambah:
+         filter berbasis-margin (skip negatif yg skor CE-nya terlalu dekat positif),
+         de-dup near-duplicate, ambang relevansi. Regen triples -> pseudo-label -> train.
+  KENAPA: false-negative langsung mengajarkan margin SALAH -> tersangka utama regresi.
+
+E3. KUERI dari LLM BESAR  (inti; ADA biaya/manual; jaga independensi)
+  APA  : ganti GPL_QUERY_GEN (doc2query mT5-base, kecil) dgn frontier-LLM yang menulis
+         PERTANYAAN ID NATURAL dari pasase -> perbaiki mismatch kueri-sintetis vs natural
+         (paling melukai e5, lihat rangkuman §3). Teacher relevansi: tetap cross-encoder
+         (GPL_CROSS_ENCODER skrg mmMiniLM mMARCO generik -> boleh diganti reranker lebih
+         kuat) ATAU LLM, TAPI jika teacher=LLM maka penilai HARUS LLM lain (independensi).
+  RAMBU: data latih pada kueri/pasase di LUAR 30 kueri held-out. Bekukan dataset.
+  REF  : InPars/Promptagator/distilasi-LLM (lihat rangkuman [REFERENSI]).
+
+E4. EKSPANSI SINONIM/ISTILAH  (KOMPLEMENTER, search-time, BUKAN retrain)
+  APA  : thesaurus istilah Pali<->ID<->EN utk QUERY EXPANSION di hybrid search
+         (boost kaki leksikal BM25 di RRF). Sasar kueri abstrak/doktrinal (titik lemah).
+  REUSE: resolver istilah Pali (web-md chat) + glossary_entry (web-md/reader.py) ->
+         JANGAN bangun dari nol. Tambahkan sbg lapisan ekspansi, bukan latih model.
+  KENAPA: dense embedding lemah di istilah teknis langka -> sinonim = patch leksikal.
+         Bisa dikombinasikan dgn model mana pun (baik e5 maupun gte); dieval LLM-judge tanpa retrain.
+
+*CATATAN KHUSUS MODEL:*
+Seluruh eksperimen retraining (EXP1, EXP2, EXP3) dieksekusi secara berpasangan untuk dua model inti:
+1. `intfloat/multilingual-e5-base`
+2. `Alibaba-NLP/gte-multilingual-base`
+Supaya perbandingan vs GPL tetap *apple-to-apple* untuk kedua jenis model tersebut.
+
+────────────────────────────────────────────────────────────────────────────────
+PROTOKOL REEVAL (tiap model/eksperimen baru) — diorkestrasi run_exp<N>.sh lalu run_eval.sh
+  1. retrain (E1/E2/E3)            -> 7-retraining/4-train-marginmse.py -> models/gpl-exp<N>-<model>/ (mis. gpl-exp1-e5)
+  2. 7-retraining/5-embed.py       -> embedding korpus model eksperimen
+  3. 7-retraining/6-build-pool.py  -> retrieval top-K -> pool_<exp>_<label>.csv
+       (--label = identitas base-model spy base/gpl/exp sefamili di eval; --versi <exp>)
+  4. 8-reeval-llm/1-get_pasase.py --exp <exp> -> DATA_pasase_<exp>.txt (pasase BARU saja)
+       CATATAN: pasase yg sudah punya grade (anotasi-llm round-1) DIPAKAI ULANG, tak dinilai
+       lagi -> hemat + konsisten (masalah pooling IR: pasase tak-ternilai != tak-relevan).
+  5. judge Claude + Gemini (paste prompt 2-judge) -> grades_<exp>_<judge>.json
+  6. 8-reeval-llm/{3-assemble,4-run_eval} --exp <exp> -> nDCG/P@5/Spearman + plot;
+       model exp masuk ranking bareng base & gpl (sefamili, beda versi).
+  7. 8-reeval-llm/5-signifikansi.py --exp <exp> -> Wilcoxon exp vs base/gpl: "improved" harus
+       SIGNIFIKAN, bukan eyeball.
+  KREDIBILITAS: laporkan keterbatasan = peningkatan diukur via proxy LLM (tervalidasi
+  thd pakar κ=0.68), bukan pakar langsung. Klaim = "lebih baik menurut instrumen yang
+  sudah divalidasi", bukan kebenaran mutlak.
+================================================================================

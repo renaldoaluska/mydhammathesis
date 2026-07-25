@@ -1,0 +1,11 @@
+=== nDCG (LLM judge) — 2026-07-07 12:52 ===
+Judge: Gemini 3.1 Pro
+
+   1. @5=0.7731  multilingual-e5-base (B,ID)
+   2. @5=0.7182  gte-multilingual-base (B,ID)
+   3. @5=0.6994  gpl-gte-multilingual-base (GPL,ID)
+   4. @5=0.6906  BM25 (B,ID)
+   5. @5=0.6866  bge-m3 (B,ID)
+   6. @5=0.6516  gpl-multilingual-e5-base (exp3,ID)
+   7. @5=0.6466  gpl-gte-multilingual-base (exp3,ID)
+   8. @5=0.6385  gpl-multilingual-e5-base (GPL,ID)

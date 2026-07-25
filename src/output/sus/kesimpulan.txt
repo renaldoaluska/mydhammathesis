@@ -1,0 +1,40 @@
+HASIL EVALUASI SYSTEM USABILITY SCALE (SUS)
+==============================================
+Total Responden  : 32
+Skor Terendah    : 52.5
+Skor Tertinggi   : 97.5
+Median Skor      : 80.0
+RATA-RATA SKOR   : 77.11
+
+ANALISIS SKOR:
+- Grade (A-F)    : B
+- Adjective      : Good (Bagus)
+- Acceptability  : Acceptable (Dapat Diterima)
+
+KESIMPULAN AKHIR:
+Sistem sudah dinilai BAGUS dan LAYAK DIGUNAKAN. Skor berada di atas standar industri (68).
+
+Interpretasi:
+- Berdasarkan skor rata-rata 77.11, antarmuka purwarupa myDhamma dikategorikan sebagai 'Acceptable (Dapat Diterima)' dengan tingkat kebergunaan 'Good (Bagus)'.
+- Skor di atas 68 menunjukkan bahwa secara umum pengguna dapat menggunakan sistem ini tanpa masalah yang berarti.
+- Masukan kualitatif dan keluhan responden telah direkap secara terpisah pada file `rekap_keluhan.md` untuk dianalisis lebih dalam.
+- Kata kunci utama dari masukan/saran divisualisasikan pada gambar wordcloud.
+
+RINGKASAN KUALITATIF (TEMA MASUKAN PENGGUNA):
+Berdasarkan analisis teks dari saran/masukan pengguna, didapatkan pola sebagai berikut:
+
+1. Kekuatan Sistem:
+   - Navigasi dirasa sudah bagus dan lancar.
+   - Fitur pencarian AI sangat membantu memahami konteks Sutta lebih dalam.
+
+2. Kritik & Masalah UI/UX:
+   - Visual: Halaman beranda dirasa terlalu hambar. Kombinasi warna perlu diperbaiki (contoh: teks hitam di latar abu-abu sukar dibaca, hindari warna terlalu mencolok/ungu, dan font kurang besar).
+   - Discoverability: Fitur tersembunyi (seperti Mode Gelap) tidak langsung disadari, disarankan ada "guide" singkat di awal.
+   - Navigasi: Memerlukan terlalu banyak klik untuk mengakses menu tertentu.
+
+3. Permintaan Fitur (Feature Requests):
+   - Integrasi Kamus Pali & terjemahan kata-demi-kata.
+   - Penambahan kitab komentar (Atthakatha & Tika).
+   - Fitur pembacaan paralel (teks Pali dan Indonesia bersebelahan).
+   - Akses komunikasi/tanya-jawab dengan Bhikkhu Sangha.
+   - Peningkatan kecepatan respons model AI.

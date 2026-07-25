@@ -1,0 +1,32 @@
+﻿Korpus,Family,query_id,kueri,B,GPL,exp5.1,Δ(GPL-B)
+ID,multilingual-e5-base,23,penjelasan tentang pandangan terang,0.5774,-0.7255,0.2887,-1.3029
+ID,gte-multilingual-base,20,penggambaran terhadap keagungan buddha,0.0,-0.7826,,-0.7826
+ID,multilingual-e5-base,17,kewajiban seorang umat awam,0.3536,-0.3536,-0.2887,-0.7072
+ID,gte-multilingual-base,29,jenis orang yang tak boleh ditahbiskan,0.0,-0.7071,0.2236,-0.7071
+ID,gte-multilingual-base,24,apa yang terjadi pada saat pencapaian pencerahan,0.2868,-0.3536,0.6124,-0.6404
+ID,multilingual-e5-base,20,penggambaran terhadap keagungan buddha,0.3162,-0.3162,,-0.6324
+ID,multilingual-e5-base,27,jenis jenis karma buruk,0.7255,0.3536,-0.3536,-0.3719
+ID,gte-multilingual-base,1,cara mengatasi kemarahan,0.0,-0.3536,0.866,-0.3536
+ID,multilingual-e5-base,12,kewajiban seorang bhikkhu,0.0,-0.3536,,-0.3536
+ID,multilingual-e5-base,13,berbagai jenis pemberian,0.866,0.5774,0.2887,-0.2886
+ID,gte-multilingual-base,23,penjelasan tentang pandangan terang,-0.6489,-0.8885,-0.3354,-0.2396
+ID,gte-multilingual-base,9,jenis jenis kotoran batin,0.3947,0.1581,0.7071,-0.2366
+ID,gte-multilingual-base,13,berbagai jenis pemberian,0.866,0.6325,0.0,-0.2335
+ID,multilingual-e5-base,10,kriteria kesucian,-0.3536,-0.3536,-0.2887,0.0
+ID,multilingual-e5-base,4,mengapa harus membalas budi orangtua,0.3536,0.3536,0.7071,0.0
+ID,gte-multilingual-base,11,siapa yang layak disebut sebagai brahmana,0.0,0.0,0.9487,0.0
+ID,multilingual-e5-base,15,apa kualitas yang harus dimiliki oleh seorang penceramah,0.0,0.0,0.866,0.0
+ID,gte-multilingual-base,22,cara mengikis kotoran batin,0.866,0.8944,0.9487,0.0284
+ID,gte-multilingual-base,14,apa makna kekosongan,0.7071,0.7454,,0.0383
+ID,multilingual-e5-base,6,apa itu kemurahan hati,0.2236,0.2887,0.6489,0.0651
+ID,gte-multilingual-base,27,jenis jenis karma buruk,0.4472,0.5774,-0.3536,0.1302
+ID,gte-multilingual-base,6,apa itu kemurahan hati,0.7071,0.866,0.6325,0.1589
+ID,multilingual-e5-base,7,penjelasan tentang perhatian murni,-0.2887,0.0513,0.2236,0.34
+ID,multilingual-e5-base,22,cara mengikis kotoran batin,0.0,0.3536,0.9487,0.3536
+ID,multilingual-e5-base,8,manfaat pelaksaan sila,0.0,0.4104,0.6708,0.4104
+ID,gte-multilingual-base,4,mengapa harus membalas budi orangtua,0.0,0.4472,0.7071,0.4472
+ID,multilingual-e5-base,9,jenis jenis kotoran batin,-0.4588,0.4617,0.2887,0.9205
+ID,gte-multilingual-base,17,kewajiban seorang umat awam,-0.7071,0.2236,0.2887,0.9307
+ID,multilingual-e5-base,1,cara mengatasi kemarahan,-0.7255,0.2236,0.2635,0.9491
+ID,gte-multilingual-base,8,manfaat pelaksaan sila,-0.3354,0.6882,0.6708,1.0236
+ID,gte-multilingual-base,26,bersatu di kehidupan selanjutnya,-0.7071,0.7255,0.4588,1.4326

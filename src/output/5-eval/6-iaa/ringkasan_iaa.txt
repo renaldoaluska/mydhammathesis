@@ -1,0 +1,12 @@
+=== IAA (Cohen kappa quadratic) ===
+Pakar: Aryanto_Firnadi__M_A___B_Dh__, Dr__Amita_Wardhani__S_Pd_B___M_Pd_, Dr__Hastho_Bramantyo__S_Fil___M_A_, Dr__Suranto__S_Ag___M_A_
+Rata-rata kappa pasangan: 0.4576
+
+Interpretasi kappa: <0.2 buruk, 0.2-0.4 cukup, 0.4-0.6 sedang, 0.6-0.8 baik, >0.8 sangat baik.
+
+  Aryanto_Firnadi__M_A___B_Dh__ vs Dr__Amita_Wardhani__S_Pd_B___M_Pd_: kappa=0.3086, setuju=0.2524, n=614
+  Aryanto_Firnadi__M_A___B_Dh__ vs Dr__Hastho_Bramantyo__S_Fil___M_A_: kappa=0.7203, setuju=0.5977, n=614
+  Aryanto_Firnadi__M_A___B_Dh__ vs Dr__Suranto__S_Ag___M_A_: kappa=0.4994, setuju=0.3697, n=614
+  Dr__Amita_Wardhani__S_Pd_B___M_Pd_ vs Dr__Hastho_Bramantyo__S_Fil___M_A_: kappa=0.3862, setuju=0.3176, n=614
+  Dr__Amita_Wardhani__S_Pd_B___M_Pd_ vs Dr__Suranto__S_Ag___M_A_: kappa=0.3103, setuju=0.399, n=614
+  Dr__Hastho_Bramantyo__S_Fil___M_A_ vs Dr__Suranto__S_Ag___M_A_: kappa=0.5209, setuju=0.3958, n=614

@@ -1,0 +1,23 @@
+=== nDCG (LLM judge) — 2026-07-20 21:28 ===
+Judge: Claude Opus 4.8, Gemini 3.1 Pro
+
+   1. @5=0.7378  gpl-multilingual-e5-base (exp4.3,ID)
+   2. @5=0.7217  multilingual-e5-base (B,ID)
+   3. @5=0.6978  gpl-gte-multilingual-base (exp4.3,ID)
+   4. @5=0.6829  gte-multilingual-base (B,ID)
+   5. @5=0.6800  gpl-gte-multilingual-base (exp4.2,ID)
+   6. @5=0.6753  gpl-multilingual-e5-base (exp4.2,ID)
+   7. @5=0.6635  gpl-gte-multilingual-base (GPL,ID)
+   8. @5=0.6616  gpl-gte-multilingual-base (exp4,ID)
+   9. @5=0.6542  gpl-multilingual-e5-base (exp3,ID)
+  10. @5=0.6532  gpl-gte-multilingual-base (exp3,ID)
+  11. @5=0.6515  gpl-gte-multilingual-base (exp4.1,ID)
+  12. @5=0.6502  bge-m3 (B,ID)
+  13. @5=0.6461  gpl-multilingual-e5-base (exp1,ID)
+  14. @5=0.6430  gpl-gte-multilingual-base (exp1,ID)
+  15. @5=0.6302  gpl-multilingual-e5-base (exp4.1,ID)
+  16. @5=0.6261  gpl-multilingual-e5-base (exp2,ID)
+  17. @5=0.6124  gpl-multilingual-e5-base (exp4,ID)
+  18. @5=0.6120  gpl-multilingual-e5-base (GPL,ID)
+  19. @5=0.6046  BM25 (B,ID)
+  20. @5=0.5904  gpl-gte-multilingual-base (exp2,ID)

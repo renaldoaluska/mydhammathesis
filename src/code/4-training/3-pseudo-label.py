@@ -31,7 +31,7 @@ def main():
         return
     print(f"[pseudo-label] {len(triples):,} triple, cross-encoder={config.GPL_CROSS_ENCODER}")
 
-    ce = CrossEncoder(config.GPL_CROSS_ENCODER, max_length=config.GPL_MAX_SEQ)
+    ce = CrossEncoder(config.GPL_CROSS_ENCODER, max_length=config.GPL_MAX_SEQ, trust_remote_code=True)
     pos_pairs = [(t["query"], pid2text[t["pos_pid"]]) for t in triples]
     neg_pairs = [(t["query"], pid2text[t["neg_pid"]]) for t in triples]
     s_pos = ce.predict(pos_pairs, batch_size=config.GPL_BATCH_SIZE, show_progress_bar=True)

@@ -1,0 +1,83 @@
+KONFIGURASI ANOTATOR LLM — dokumentasi metodologi / reproducibility skripsi
+Tanggal: 2026-06-27
+
+================ PENILAI 1: Claude Opus 4.8 ================
+  Model id        : claude-opus-4-8   (Anthropic — "Claude Opus 4.8")
+  Antarmuka       : Claude Code Extensions (ekstensi IDE, bukan CLI resmi / SDK)
+  Mode penalaran  : extended thinking AKTIF — model bernalar bertahap sebelum memberi skor.
+  Effort          : sesi ini jalan dengan penalaran TINGGI (high / extended reasoning).
+                    >> CATATAN JUJUR: aku TIDAK punya pembacaan numerik pasti soal "effort tier"
+                       dari dalam sesi. Verifikasi persisnya di Claude Code: perintah /config
+                       (atau lihat status line). Jangan klaim angka yang tak terverifikasi di skripsi.
+  Temperature     : dikelola harness Claude Code (tidak diekspos sebagai angka di sesi ini).
+  Prosedur        : per-pasase, berbasis rubrik di PROMPT_penilai.txt; INDEPENDEN (tidak melihat
+                    grade pakar manusia); teks pasase dipotong <=480 char (SAMA utk semua penilai
+                    => adil); menilai 621 pasase UNIK lalu di-broadcast ke 897 baris.
+  Output          : src/output/5-eval/anotasi-llm/anotasi_Claude_Opus_4.8.csv
+                    (FOLDER TERPISAH dari anotasi/ pakar manusia -> tidak ke-blend di consensus)
+
+Usage: /config key=value [key=value ...]
+agentPushNotifEnabled=true|false
+autoCompact=true|false
+autoConnectIde=true|false
+checkpoints=true|false
+chrome=true|false
+copyFullResponse=true|false
+defaultToAgentsView=true|false
+editor=normal|vim
+externalEditorContext=true|false
+gitignore=true|false
+inputNeededNotifEnabled=true|false
+language=<value>
+leftArrowOpensAgents=true|false
+model=default|sonnet|opus|haiku|best|opusplan
+notifChannel=auto|iterm2|terminal_bell|iterm2_with_bell|kitty|ghostty|notifications_disabled
+outputStyle=default|Proactive|Explanatory|Learning
+permissionMode=default|plan|acceptEdits|auto|dontAsk
+prStatus=true|false
+precomputeCompactionEnabled=true|false
+progressBar=true|false
+promptSuggestionEnabled=true|false
+recap=true|false
+reduceMotion=true|false
+remoteControl=true|false|default
+switchModelsOnFlag=true|false
+theme=auto|dark|light|light-daltonized|dark-daltonized|light-ansi|dark-ansi
+thinking=true|false
+tips=true|false
+turnDuration=true|false
+useAutoModeDuringPlan=true|false
+verbose=true|false
+workflowKeywordTriggerEnabled=true|false
+workflows=true|false
+worktreeBaseRef=fresh|head
+
+================ PENILAI 2: Gemini 3.1 Pro ================
+  Model id        : gemini-3.1-pro (Google DeepMind)
+  Antarmuka       : Antigravity Extensions (IDE Extension)
+  Interface State : 
+    - Model Selection : "Gemini 3.1 Pro (High)"
+    - Agent Mode      : Default / IDE-integrated Chat
+    - Reasoning       : Standard (Sesuai kemampuan nalar model di Antigravity)
+  Temperature     : Dikelola oleh harness Antigravity (Default untuk task analitik)
+  Prosedur        : PROMPT_penilai.txt PERSIS SAMA + DATA_pasase.txt PERSIS SAMA;
+                    INDEPENDEN (tidak melihat grade penilai lain); 621 pasase UNIK.
+  Output JSON     : src/code/6-eval-llm/grades_Gemini_3.1_Pro.json
+
+================ KENAPA PROMPT & DATA HARUS IDENTIK ================
+  Supaya IAA (Cohen's kappa) antar penilai LLM dan vs pakar manusia VALID: perbedaan boleh
+  HANYA pada MODEL, bukan pada instruksi/rubrik/teks pasase. Itu inti klaim
+  "ground truth versi LLM yang lebih besar" + perbandingan pasca-training.
+
+================ PEMISAHAN FOLDER (penting) ================
+  anotasi/      = pakar MANUSIA (ground truth utama, dipakai default semua metrik)
+  anotasi-llm/  = penilai LLM (Opus/Gemini) -> judges.json = registry-nya (BUKAN nama_pakar.json)
+  -> common.load_annotations(anotasi_dir=...) bisa diarahkan ke salah satu, jadi metrik LLM
+     TIDAK pernah ngeblend grade manusia. assemble_anotasi.py otomatis nulis ke anotasi-llm/.
+
+================ ALUR LENGKAP ================
+  1. (sudah) Opus 4.8 -> anotasi-llm/anotasi_Claude_Opus_4.8.csv  (+ judges.json)
+  2. Gemini 3.1 Pro & 3.5 Flash via Antigravity -> grades_gemini-*.json
+  3. assemble_anotasi.py -> anotasi-llm/anotasi_Gemini_3.1_Pro.csv / ...3.5_Flash.csv
+  4. Metrik per ground-truth: jalankan 3-ndcg..6-iaa dgn load_annotations(anotasi_dir=anotasi-llm)
+     -> bandingkan base-vs-GPL di tiap "ground truth" (manusia vs Opus vs Gemini) + IAA antar-judge.

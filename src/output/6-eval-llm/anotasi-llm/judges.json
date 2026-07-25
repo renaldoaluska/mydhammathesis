@@ -1,0 +1,14 @@
+[
+  {
+    "corpora": [
+      "id"
+    ],
+    "name": "Claude Opus 4.8"
+  },
+  {
+    "corpora": [
+      "id"
+    ],
+    "name": "Gemini 3.1 Pro"
+  }
+]

@@ -1,0 +1,9 @@
+=== Spearman rho (cosine vs grade) [Dr. Amita Wardhani, S.Pd.B., M.Pd.] ===
+Pakar: Dr__Amita_Wardhani__S_Pd_B___M_Pd_
+
+   1. rho=0.3312 (tanpa heading)  gte-multilingual-base (B,ID)
+   2. rho=0.3157 (tanpa heading)  multilingual-e5-base (B,ID)
+   3. rho=0.3097 (tanpa heading)  gpl-multilingual-e5-base (GPL,ID)
+   4. rho=0.2498 (tanpa heading)  BM25 (B,ID)
+   5. rho=0.1353 (tanpa heading)  gpl-gte-multilingual-base (GPL,ID)
+   6. rho=0.0703 (tanpa heading)  bge-m3 (B,ID)

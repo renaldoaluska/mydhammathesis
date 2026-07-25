@@ -1,0 +1,19 @@
+=== UJI SIGNIFIKANSI exp2 vs exp3 ===
+Wilcoxon signed-rank: paired per-kueri, memperhitungkan magnitudo (scipy.stats.wilcoxon).
+Sign test: binomial p=0.5 atas jumlah menang/kalah, arah saja (scipy.stats.binomtest).
+Signifikan jika p < 0.05.
+
+=== nDCG@5 (exp3 vs exp2) ===
+  gte-multilingual-base      n=30 | exp2̄=0.5928 exp3̄=0.6534 Δ̄=+0.0606 | menang/kalah/seri=15/11/4 | Wilcoxon p=0.1183 | sign-test p=0.5572
+  multilingual-e5-base       n=30 | exp2̄=0.6265 exp3̄=0.6567 Δ̄=+0.0302 | menang/kalah/seri=18/10/2 | Wilcoxon p=0.2596 | sign-test p=0.1849
+  GABUNGAN                          | menang/kalah=33/21 (39% minus) | sign-test p=0.1337
+
+=== P@5 (exp3 vs exp2) ===
+  gte-multilingual-base      n=30 | exp2̄=0.5067 exp3̄=0.5667 Δ̄=+0.0600 | menang/kalah/seri=11/6/13 | Wilcoxon p=0.0472 | sign-test p=0.3323
+  multilingual-e5-base       n=30 | exp2̄=0.5400 exp3̄=0.6200 Δ̄=+0.0800 | menang/kalah/seri=13/7/10 | Wilcoxon p=0.1540 | sign-test p=0.2632
+  GABUNGAN                          | menang/kalah=24/13 (35% minus) | sign-test p=0.0989
+
+=== Spearman (exp3 vs exp2) ===
+  gte-multilingual-base      n=25 | exp2̄=0.1219 exp3̄=0.1887 Δ̄=+0.0669 | menang/kalah/seri=13/10/2 | Wilcoxon p=0.7380 | sign-test p=0.6776
+  multilingual-e5-base       n=27 | exp2̄=0.2390 exp3̄=0.2316 Δ̄=-0.0075 | menang/kalah/seri=14/11/2 | Wilcoxon p=0.9678 | sign-test p=0.6900
+  GABUNGAN                          | menang/kalah=27/21 (44% minus) | sign-test p=0.4709

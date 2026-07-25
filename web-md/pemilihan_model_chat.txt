@@ -1,9 +1,22 @@
 ================================================================================
-PEMILIHAN MODEL CHAT LLM — myDhamma (Ollama)
+PEMILIHAN MODEL CHAT LLM — myDhamma (Ollama lokal + API prod)
 ================================================================================
-Update terakhir : 2026-06-16
-Config          : web-md/app.py  (CHAT_MODEL, OLLAMA_URL, CHAT_NUM_CTX, _CHAT_THINK)
-Override env    : MYDHAMMA_CHAT_MODEL, OLLAMA_URL, MYDHAMMA_CHAT_NUM_CTX, MYDHAMMA_CHAT_THINK
+Update terakhir : 2026-07-12  (badan di bawah = rekam pemilihan per 2026-06-16; baca bagian 0)
+Config          : web-md/app.py  (CHAT_MODEL, OLLAMA_URL/CHAT_BACKEND, CHAT_NUM_CTX, _CHAT_THINK)
+Override env    : MYDHAMMA_CHAT_MODEL, OLLAMA_URL, CHAT_BACKEND, LLM_API_KEY, MYDHAMMA_CHAT_NUM_CTX, MYDHAMMA_CHAT_THINK
+
+--------------------------------------------------------------------------------
+0. UPDATE 2026-07-12  (BACA DULU — keadaan berubah sejak dok ini ditulis)
+--------------------------------------------------------------------------------
+  - Default chat  : gemma4:12b (Ollama lokal).  Lineage: qwen2.5:7b -> qwen3:14b -> gemma4:12b.
+  - Prod (no GPU) : backend API OpenAI-compatible (env CHAT_BACKEND=api), model gemma-4 (mis. 26B-A4B).
+                    Lihat web-md/.env.example + web-md/MIGRASI.txt.
+  - num_ctx       : 12288 (bukan 8192 lagi).     Thinking: tetap MATI (default).
+  - Temperature   : ~0.2 (decision/rewrite) / 0.1 (jawaban final) — lebih rendah dari catatan lama.
+  - Retrieval     : + stage-2 rerank CE (bge-reranker-v2-m3, resep exp5) di atas ensemble e5 + BM25.
+  - "HINDARI Gemma" di bawah = KHUSUS gemma3 (tool-call lemah + ngarang). gemma4 BEDA GENERASI
+    dan justru jadi default sekarang — JANGAN dibaca sbg anti-semua-Gemma.
+  Badan di bawah dipertahankan sbg rekam proses A/B (qwen3 vs qwen2.5 vs gemma3) per 2026-06-16.
 
 
 --------------------------------------------------------------------------------
@@ -43,7 +56,8 @@ gemma3:12b  -> DITOLAK TEGAS.
     - Tool-calling lemah -> jatuh ke forced-retrieval safety-net.
   PELAJARAN: survei yang "kelihatan lengkap" tapi PALSU lebih berbahaya daripada
   jawaban yang collapse ke satu skema tapi JUJUR. Untuk kitab suci, faithfulness
-  di atas segalanya. Gemma (semua varian) HINDARI: tool-call lemah + terbukti ngarang.
+  di atas segalanya. Gemma3 (varian yg diuji) HINDARI: tool-call lemah + terbukti ngarang.
+  [CATATAN 2026-07: KHUSUS gemma3; gemma4 beda generasi & JADI DEFAULT sekarang — lihat bagian 0.]
 
 qwen2.5:14b -> kalah dari qwen3.
   Benar & jujur, tapi sitasi lebih tipis (sering 1 sumber/item) dan kurang patuh

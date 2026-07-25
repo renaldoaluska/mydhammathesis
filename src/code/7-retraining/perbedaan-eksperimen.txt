@@ -1,0 +1,183 @@
+================================================================================
+PETA EKSPERIMEN — base → exp0(gpl) → exp1 → exp2 → exp3 → exp4.X → exp5.X
+(numbering FINAL 2026-07-02, keluarga 4.X/5.X ditambah 2026-07-08)
+Harness eval IDENTIK utk semua (30 kueri pakar held-out, top-5, korpus ID, judge LLM).
+base = e5/gte murni TANPA training (acuan). exp0 = "gpl" = adaptasi awal (4-training).
+Penamaan: "gpl" khusus exp0 (4-training); exp1..exp5 khusus 7-retraining.
+Prinsip: 1 VARIABEL per eksperimen.
+DOK INI = DESAIN/METODOLOGI SAJA (bahan bab 3). HASIL & STATUS EVAL tidak ditulis
+di sini — satu-satunya sumber: output/8-reeval-llm/rangkuman_bab4_hasil.txt.
+AWAS: nomor exp2/exp3 LAMA (bundel E2 & 4-perubahan, MATI) dipakai ulang —
+eval lamanya diarsip di output/8-reeval-llm_old/ (lihat catatan_arsip.txt).
+================================================================================
+
+TABEL — GARIS UTAMA
+
++===================+========================+========================+========================+==============================+==============================+
+| Dimensi           | base (ACUAN)           | exp0 = gpl (4-train)   | exp1 (ablasi steps)    | exp2                         | exp3                         |
++===================+========================+========================+========================+==============================+==============================+
+| Hipotesis         | tanpa adaptasi         | baseline adaptasi      | over-adapt (steps)?    | kueri mT5 mismatch?          | teacher diganti?             |
+| Generator kueri   | -                      | mT5 doc2query          | = exp0                 | LLM gemma2:2b                | = exp2                       |
+| Kueri / pasase    | -                      | 563k / 189k en+id      | = exp0                 | ~563k / 189k en+id (= exp0)  | = exp2                       |
+| Hard-neg          | -                      | vanilla                | = exp0                 | = exp0 (vanilla)             | = exp0 (vanilla)             |
+| Teacher           | -                      | mMiniLM zero-shot      | = exp0                 | = exp0 (mMiniLM)             | bge zero-shot                |
+| Contoh latih      | 0                      | 563.073                | 563.073 (= exp0)       | ~563k                        | = exp2                       |
+| Steps → epoch     | 0                      | 10k → 0.57             | 5k → 0.29              | 10k → ~0.57 (WAJIB, = exp0)  | 10k → ~0.57                  |
+| Lawan banding SAH | (acuan semua)          | base                   | exp0 (1 var: STEPS)    | exp0 (1 var: KUERI)          | exp2 (1 var: TEACHER)        |
++===================+========================+========================+========================+==============================+==============================+
+
+  Variabel yg BERUBAH per eksperimen:
+    exp0 vs base: adaptasi GPL (pipeline mT5 + mMiniLM + MarginMSE)
+    exp1 vs exp0: STEPS saja (5k vs 10k; data latih copy exp0, identik)
+    exp2 vs exp0: QUERY GENERATOR saja (gemma2 vs mT5; teacher, scope, steps IDENTIK)
+    exp3 vs exp2: TEACHER saja (bge vs mMiniLM; kueri gemma2 di-reuse)
+
+  MAPPING NAMA → DIREKTORI (jangan bingung):
+    base = model HF vanilla (tanpa artefak training)
+    exp0 = output/4-training/gpl/ + models di output/4-training/models/gpl-*
+    exp1 = output/7-retraining/gpl-exp1/ + models gpl-exp1-{e5,gte}
+           (label eval historis "exp1" di grades/anotasi/metrik/pool = SAH)
+    exp2 = output/7-retraining/gpl-exp2/ + models gpl-exp2-{e5,gte} nanti
+           (dir hasil rename dari gpl-exp3 lama; queries.jsonl gemma2 resumable)
+    exp3 = output/7-retraining/gpl-exp3/ nanti (dir baru, fresh)
+
+  LABEL EVAL LAMA (CSV metrik): Versi "B" = base, "GPL" = exp0, "exp1" = exp1. ✓
+
+FLOW KEPUTUSAN
+  exp2 vs exp0: naik → exp3 (teacher). exp3 naik → opsi lanjutan.
+  Tiap tahap gagal → berhenti, tulis negative result (temuan tetap sah:
+  base kuat tak terkalahkan resep adaptasi).
+  KEPUTUSAN GATE 2026-07-06: exp2 = NULL → garis adaptasi RESMI DITUTUP di
+  exp2. exp3 tetap dijalankan (keputusan user) sbg eksplorasi teacher
+  terisolasi, statusnya OFF-GATE (bukan lanjutan flow). Angka & analisis:
+  lihat rangkuman_bab4_hasil.txt.
+
+EXP4 — KELUARGA MODEL SOUP (garis adaptasi; EKSPANSI 2026-07-08)
+  Interpolasi bobot θ = α·base + (1−α)·gpl (Wortsman dkk. 2022 model soups;
+  WiSE-FT). Nol training. α = 0.5 DIKUNCI DI MUKA (uniform soup): TANPA sweep,
+  krn 30 kueri pakar terlalu kecil utk tuning α — sweep lalu pilih terbaik =
+  overfit test set.
+  Awalnya cuma 1 pasangan (Base ⊕ GPL 10k), tapi per 2026-07-08 diekspansi 
+  menjadi keluarga besar utk menguji semua checkpoint adaptasi:
+    exp4.0 = Base ⊕ exp0 (GPL 10k awal)
+    exp4.1 = Base ⊕ exp1 (GPL 5k)
+    exp4.2 = Base ⊕ exp2 (GPL Gemma)
+    exp4.3 = Base ⊕ exp3 (BGE Teacher)
+  Hipotesis: obat DRIFT — adaptasi merusak kueri base-kuat,
+  interpolasi mempertahankan geometri base sambil menyimpan sebagian ketajaman 
+  intrinsik GPL.
+  Artefak: 8-soup-all.py → models/gpl-exp4.0..4.3-{e5,gte} (+SOUP.txt);
+  Orkestrasi: run_exp4_all.sh (resume pasca-OOM: run_exp4_resume.sh).
+  Embedding id+en+pli dilakukan untuk seluruh keluarga.
+
+EXP5 — KELUARGA RERANK (KELAS TERPISAH; BUKAN garis adaptasi)
+  PROVENANCE RENUMBER: awalnya "exp4", di-renumber exp4→exp5 2026-07-06 dini hari,
+  kemudian diekspansi menjadi keluarga exp5.X per 2026-07-08.
+  RQ BEDA: exp0-4 = "bisakah ADAPTASI BOBOT mengalahkan base?" (jawab: TIDAK).
+  exp5 = "kalau adaptasi gagal, jalur apa yg menaikkan kualitas retrieval di
+  domain ini dgn resource lokal?" → retrieve-then-rerank (standar IR:
+  monoBERT Nogueira & Cho 2019; RocketQA Qu dkk. 2021).
+  - Arsitektur: retriever fetch top-100 kandidat → bge-reranker-v2-m3 susun ulang 
+    → top-5 masuk pool.
+  - Varian (dieksekusi batch via run_exp5_all.sh):
+    exp5.base = Reranker di atas model Base murni (e5 & gte)
+    exp5.0    = Reranker di atas exp0 (GPL 10k)
+    exp5.1    = Reranker di atas exp1 (GPL 5k)
+    exp5.2    = Reranker di atas exp2 (Gemma Query-gen)
+    exp5.3    = Reranker di atas exp3 (BGE Teacher)
+    exp5.4    = Reranker di atas exp4.0 (Model Soup awal)
+  - Lawan banding SAH: varian single-stage masing-masing (misal exp5.1 vs exp1). 
+    Tabel hasil WAJIB pisahkan kelas single-stage vs two-stage.
+  - Kenapa bge-reranker-v2-m3:
+    (a) XLM-R/M3, teruji MIRACL — bahasa INDONESIA termasuk (Chen dkk. 2024);
+    (b) alternatif kalah constraint: LLM-API tak reproducible + tak muat GPU 12GB;
+    (c) SIMETRI exp3↔exp5: CE sama dipakai 2 cara — exp3 distilasi (train-time),
+        exp5 langsung (query-time).
+  - Artefak: run_exp5_all.sh mengotomasi 7-rerank-pool.py utk semua varian.
+    Pool tersimpan sbg pool_exp5.X_*.csv.
+
+
+
+EKSPERIMEN MATI (eval diarsip di output/8-reeval-llm_old/ + catatan_arsip.txt;
+model & data latihnya sudah dihapus; kode/config lama = git history 70de808d)
+  "exp2" lama : BUNDEL 2 variabel (hard-neg dedup Jaccard + filter E2),
+                10k steps (steps TIDAK ikut berubah — cek git run_exp2.sh lama).
+                Atribusi per-komponen mustahil → dibuang dari garis utama.
+  "exp3" lama : 4 variabel sekaligus + epoch tersembunyi 9.4 → terburuk (.41-.46).
+  exp3b/gemma4: diagnostik steps-800 & query-gen gemma4 parsial, dihentikan.
+  REUSE: kueri gemma2 42.9k dari "exp3" lama → sudah in-place di gpl-exp2/queries.jsonl.
+  Plan lama E1/E2/E3 ada di flow_old.txt (sudah di-rename dari flow.txt).
+
+CATATAN
+  - Kode E2 filter & dedup Jaccard DICABUT TOTAL (2026-07-02) dari
+    7-retraining/2-hard-neg.py & 3-pseudo-label.py → identik script base
+    4-training (vanilla murni, tanpa flag). Reproduksi bundel lama = git history.
+  - Rerun ablasi-5k (2026-07-02, sempat jalan ~70 mnt sbg "gpl-exp2") DIBATALKAN:
+    tidak perlu — artefak beku gpl-exp1-* + eval label exp1 sudah sah sbg exp1.
+  - Teacher exp2 = mMiniLM (default config.py); exp3 nanti = bge via env
+    GPL_CROSS_ENCODER (satu-satunya env override yg dipakai).
+
+LANDASAN AKADEMIS PEMILIHAN KOMPONEN (resource-constrained tapi principled)
+  exp0 = REPLIKASI resep GPL (Wang dkk., NAACL 2022) apa-adanya; tiap komponen
+  dipetakan 1:1 ke padanan MULTILINGUAL-nya (korpus id+en), bukan pilihan bebas:
+  - Query-gen : GPL memakai doc2query/docTTTTTquery (Nogueira dkk., 2019) ->
+    padanan multilingualnya doc2query mT5 mMARCO-14langs (Bonifacio dkk., 2021;
+    mencakup bahasa Indonesia).
+  - Teacher   : GPL memakai CE ms-marco-MiniLM -> padanannya mmarco-mMiniLMv2
+    (dilatih di mMARCO; Bonifacio dkk., 2021).
+  - Miner     : GPL memakai dense retriever utk hard-neg -> dipakai e5-base
+    (retrieval-native multilingual terkuat yg tersedia; rincian di bawah).
+  - Student   : e5-base (Wang dkk., 2024) & gte-multilingual-base (Zhang dkk.,
+    2024, mGTE) = model retrieval-native multilingual (REGISTRY, rencana.txt §2).
+  Konsekuensi framing: exp0 = "GPL as published"; semua deviasi dari resep asli
+  baru terjadi di exp1..exp3, masing-masing SATU variabel.
+
+  Query-gen LLM kecil lokal (gemma2:2b, exp2):
+  - InPars (Bonifacio dkk., 2022) & Promptagator (Dai dkk., 2022): kueri sintetis
+    dari LLM utk melatih retriever; kualitas kueri > kuantitas.
+  - InPars-Light (Boytsov dkk., 2023): LLM OPEN KECIL (~7B) cukup utk query-gen,
+    kompetitif vs GPT-3 -> justifikasi memakai model kecil krn resource.
+  - doc2query-- (Gospodinov dkk., ECIR 2023): doc2query berhalusinasi/noisy ->
+    dasar meninggalkan mT5 doc2query (sejalan sampel junk mT5 kita).
+  - UDAPDR (Saad-Falcon dkk., 2023): adaptasi domain hemat-biaya dgn kueri LLM.
+  - Model lokal (Ollama) = reproducible (seed tetap, config.GPL_SEED) & tanpa
+    ketergantungan API; gemma2:2b muat penuh di GPU 12GB (Gemma Team, 2024).
+  Hard-negative miner (GPL_RETRIEVER = multilingual-e5-base, SEMUA exp):
+  - ANCE (Xiong dkk., ICLR 2021): hard-neg dari dense retriever >> BM25/random;
+    mining dgn model yg dilatih (self-mining) = negatif di batas kemampuan model.
+  - GPL (Wang dkk., NAACL 2022): pipeline acuan; miner dense + teacher CE.
+  - RocketQA (Qu dkk., NAACL 2021): hard-neg dense berisiko false-negative ->
+    di GPL ditangani via margin teacher CE (bukan filter; lihat CATATAN E2).
+  - Miner DIKUNCI konstan lintas exp0-exp3 -> variabel terkontrol; bias ke-e5
+    (gte dilatih dgn negatif hasil mining e5) diakui, tapi seragam di semua exp
+    sehingga tak mencemari perbandingan antar-exp.
+  CATATAN KEJUJURAN — hierarki kekuatan landasan (utk bab metodologi):
+  exp0 (replikasi, terkuat) > exp3 (arah + pilihan reranker standar + bukti
+  probe internal) > exp2 (arah kuat: InPars/Promptagator/UDAPDR; tapi
+  INSTANSIASI gemma2:2b = resource-driven — InPars-Light main di kelas ~7B,
+  2b dipilih krn muat GPU 12GB). Mitigasi exp2:
+  (a) MANIPULATION CHECK: variabel sesungguhnya = "kueri natural & on-topic";
+      gemma2 cuma instrumen -> audit kualitas kueri terkuantifikasi
+      (sampel buta mT5 vs gemma2) membuktikan instrumen menghasilkan
+      treatment yg dimaksud. (Sampel awal 5v5: mT5 4/5 nonsens, gemma2 5/5
+      natural — formalisasi menyusul.)
+  (b) SCOPE KLAIM: hasil exp2 = uji SATU instansiasi hemat-resource dari
+      LLM-query-gen (lower bound), bukan verdict pendekatannya; negatif
+      != pendekatan gagal, positif = cukup buktikan faktor kualitas kueri.
+
+  Teacher pseudo-label (exp0-exp2 = mMiniLM; exp3 = ganti ke bge, 1 var):
+  - MarginMSE (Hofstaetter dkk., 2020): student di-distilasi dari MARGIN teacher
+    CE -> kualitas student DIBATASI kualitas label teacher (distillation ceiling).
+    Ganti teacher = intervensi langsung di kualitas supervisi, data tetap beku.
+  - RocketQA (Qu dkk., 2021) & RocketQAv2 (Ren dkk., 2021): cross-encoder yang
+    lebih kuat -> label/denoising lebih baik utk melatih dense retriever.
+  - mMiniLM = CE standar mMARCO (Bonifacio dkk., 2021), dilatih MS MARCO hasil
+    TERJEMAHAN MESIN (translationese) + kecil (~118M) -> label berisik di domain
+    Buddhis id/en. bge-reranker-v2-m3 (Chen dkk., 2024, ~568M, basis XLM-R/M3)
+    unggul di benchmark multilingual (MIRACL dst.).
+  - Bukti internal (probe 1000 triple beku, 2026-07-03): margin mMiniLM vs bge
+    r=.77, sign-agreement 83.5%; pada 16.5% kasus beda-ordering, 55% adalah bge
+    "abstain" (|margin|<0.1 std) di kueri sampah yang mMiniLM nilai pede
+    (|margin| s.d. 3.6 std) -> mekanisme yang diuji exp3 = KALIBRASI label
+    (peredam noise), bukan sekadar pembalik ordering.
+================================================================================

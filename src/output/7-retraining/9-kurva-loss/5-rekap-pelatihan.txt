@@ -1,0 +1,11 @@
+Eksperimen                   Backbone  Langkah Durasi (jam)  Loss awal  Loss akhir  Loss min
+Eksperimen 0                 e5         10,000          3.1     0.0843      0.0237    0.0222
+Eksperimen 0                 gte        10,000          4.0     0.0682      0.0324    0.0304
+Penyempurna 1                e5          5,000          1.6     0.0835      0.0270    0.0245
+Penyempurna 1                gte         5,000          2.0     0.0660      0.0290    0.0276
+Penyempurna 2                e5         10,000          3.3     0.0873      0.0222    0.0215
+Penyempurna 2                gte        10,000          4.3     0.0697      0.0244    0.0238
+Penyempurna 3                e5         10,000          4.5     0.0890      0.0312    0.0312
+Penyempurna 3                gte        10,000          4.4     0.0722      0.0335    0.0330
+Ablasi Jumlah Langkah Penuh  gte       140,000         56.9     0.0668      0.0083    0.0078
+(Penyempurna 4 = interpolasi bobot, Penyempurna 5 = rerank: nol pelatihan)

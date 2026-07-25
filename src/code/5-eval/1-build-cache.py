@@ -19,6 +19,13 @@ Usage    : python src/code/5-eval/1-build-cache.py
 import os
 os.environ["HF_HUB_TRUST_REMOTE_CODE"] = "1"
 
+# REPRODUSIBILITAS lintas-mesin: cache eval di-FREEZE sekali & jadi acuan grade pakar,
+# jadi siapa pun rebuild HARUS dapat ranking identik. Skor di GPU/fp16 bisa meleset
+# ~1e-5 dari CPU/fp32 -> pasangan near-tie ke-shuffle -> pool & rank geser -> anotasi
+# lama rusak diam-diam. Paksa CPU (path numerik paling portabel; query encode cuma 30
+# kueri/model jadi murah). Override eksplisit: set EMBED_DEVICE sebelum run.
+os.environ.setdefault("EMBED_DEVICE", "cpu")
+
 import sys
 import json
 import pickle
@@ -93,7 +100,11 @@ def _build_results(flat):
     suttas = []
     for sutta, frags in by_sutta.items():
         frag_objs, best = [], 0.0
-        for e in sorted(frags, key=lambda x: -float(x.get("score", 0))):
+        # sort key pakai skor DIBULATKAN (4dp = presisi yg disimpan) + tiebreak
+        # (ref, author) deterministik: noise numerik <1e-4 lintas-mesin tak boleh
+        # ngubah urutan fragmen.
+        for e in sorted(frags, key=lambda x: (-round(float(x.get("score", 0)), 4),
+                                              (x.get("ref") or [""])[0], x.get("author", ""))):
             ref0 = (e.get("ref") or [sutta])[0]
             sc = float(e.get("score", 0))
             best = max(best, sc)
@@ -120,7 +131,9 @@ def _build_results(flat):
                        "pitaka": pit, "collection_name": coll,
                        "max_score": round(best, 4), "fragments": frag_objs})
 
-    suttas.sort(key=lambda s: -s["max_score"])
+    # max_score sudah round(4); tiebreak sutta_id supaya RANK stabil & identik tiap
+    # rebuild di mesin mana pun (kalau cuma sort skor, near-tie -> rank ke-shuffle).
+    suttas.sort(key=lambda s: (-s["max_score"], s["sutta_id"]))
     suttas = suttas[:TOP_K]
     for rank, s in enumerate(suttas, 1):
         s["rank"] = rank
@@ -135,6 +148,10 @@ def _search_model(name):
 
 
 def main():
+    import torch
+    torch.use_deterministic_algorithms(True, warn_only=True)  # crash-free kalau ada op tanpa impl deterministik
+    torch.manual_seed(0)
+    print(f"[deterministik] EMBED_DEVICE={os.environ.get('EMBED_DEVICE')}  torch={torch.__version__}")
     reader.init()          # isi _sutta_names / _SUTTA_PITAKA utk _meta()
     _build_index()
     queries = [q for q in json.loads((config.EVAL_INPUT_DIR / "queries_pakar.json").read_text(encoding="utf-8"))

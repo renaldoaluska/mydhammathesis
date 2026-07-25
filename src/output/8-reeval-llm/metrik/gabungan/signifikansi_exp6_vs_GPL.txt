@@ -1,0 +1,16 @@
+=== UJI SIGNIFIKANSI GPL vs exp6 ===
+Wilcoxon signed-rank: paired per-kueri, memperhitungkan magnitudo (scipy.stats.wilcoxon).
+Sign test: binomial p=0.5 atas jumlah menang/kalah, arah saja (scipy.stats.binomtest).
+Signifikan jika p < 0.05.
+
+=== nDCG@5 (exp6 vs GPL) ===
+  gte-multilingual-base      n=27 | GPL̄=0.6786 exp6̄=0.6117 Δ̄=-0.0669 | menang/kalah/seri=10/14/3 | Wilcoxon p=0.1161 | sign-test p=0.5413
+  GABUNGAN                          | menang/kalah=10/14 (58% minus) | sign-test p=0.5413
+
+=== P@5 (exp6 vs GPL) ===
+  gte-multilingual-base      n=27 | GPL̄=0.6148 exp6̄=0.5111 Δ̄=-0.1037 | menang/kalah/seri=3/9/15 | Wilcoxon p=0.0832 | sign-test p=0.1460
+  GABUNGAN                          | menang/kalah=3/9 (75% minus) | sign-test p=0.1460
+
+=== Spearman (exp6 vs GPL) ===
+  gte-multilingual-base      n=23 | GPL̄=0.2299 exp6̄=0.1625 Δ̄=-0.0674 | menang/kalah/seri=12/11/0 | Wilcoxon p=0.8697 | sign-test p=1.0000
+  GABUNGAN                          | menang/kalah=12/11 (48% minus) | sign-test p=1.0000

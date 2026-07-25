@@ -5,9 +5,10 @@ DOKUMEN TEKNIS CHATBOT RAG MYDHAMMA
 1. ARSITEKTUR UTAMA
 -------------------
 Pendekatan: RAG (Retrieval-Augmented Generation)
-LLM Endpoint: Ollama (Default URL: http://127.0.0.1:11434/api/chat)
-Model LLM Default: qwen2.5:7b-instruct (dipilih karena native tool-calling andal utk mode AGENTIC; gemma3:4b ditinggalkan karena tool-calling-nya lemah). Ubah via env MYDHAMMA_CHAT_MODEL.
-Model Retriever Default: Model semantik lokal (GPL-* / dari HF) atau BM25 murni jika tidak ada model semantik.
+LLM Backend: DUA mode via env CHAT_BACKEND — Ollama lokal (dev, http://127.0.0.1:11434/api/chat) atau API OpenAI-compatible (OpenRouter/DeepInfra/Gemini; prod tanpa GPU). Lihat web-md/.env.example + MIGRASI.txt.
+Model LLM Default: gemma4:12b (Ollama lokal) / model gemma-4 di OpenRouter utk prod. Ubah via env MYDHAMMA_CHAT_MODEL.
+  [Sejarah default: qwen2.5:7b -> qwen3:14b -> gemma4:12b. CATATAN: "gemma3 ditinggalkan krn tool-call lemah" itu KHUSUS gemma3; gemma4 beda generasi & jadi default sekarang.]
+Model Retriever Default: ensemble semantik lokal (e5-base) + BM25 -> RRF -> rerank CE (bge-reranker-v2-m3, resep exp5). CPU-only aman.
 
 2. DETEKSI BAHASA (LANGUAGE DETECTION)
 --------------------------------------

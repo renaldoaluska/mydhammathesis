@@ -1,0 +1,48 @@
+JUSTIFIKASI TEKNOLOGI ANTARMUKA WEB-MD (myDhamma)
+==========================================
+Untuk bab Implementasi / sub-bab "Perancangan Antarmuka".
+
+PEMILIHAN TEKNOLOGI ANTARMUKA
+=============================================================================
+Antarmuka prototipe diimplementasikan menggunakan JavaScript murni (vanilla
+JavaScript) tanpa framework SPA (seperti React, Vue, atau Svelte). Pemilihan
+ini merupakan keputusan desain yang disengaja, dengan pertimbangan:
+
+1. FOKUS PADA KONTRIBUSI INTI.
+   Kontribusi utama penelitian terletak pada mesin temu-kembali informasi
+   (model embedding hasil adaptasi domain GPL beserta evaluasinya), bukan pada
+   rekayasa antarmuka. Penggunaan vanilla JavaScript menjaga agar upaya
+   pengembangan terkonsentrasi pada bagian tersebut.
+
+2. MINIMALISASI DEPENDENSI EKSTERNAL.
+   Tanpa framework, prototipe tidak bergantung pada ekosistem package pihak
+   ketiga yang besar sehingga mengurangi risiko dependency churn dan kerentanan
+   keamanan transitif.
+
+3. PENYEDERHANAAN PROSES DEPLOYMENT.
+   Tidak adanya tahap build (transpilasi/bundling) membuat berkas statis dapat
+   langsung dilayani oleh server, menyederhanakan alur deployment publik
+   (md.renaldo.my.id) yang berjalan di balik Gunicorn dan Cloudflare Tunnel.
+
+4. KESESUAIAN DENGAN ARSITEKTUR.
+   Aplikasi mengadopsi pola server-rendered (Flask + templat Jinja2) dengan
+   peningkatan interaktivitas secara progresif (progressive enhancement) di sisi
+   klien, sehingga framework SPA yang berorientasi client-side rendering tidak
+   diperlukan.
+
+
+JAWABAN LISAN RINGKAS (bila ditanya penguji "kenapa tidak pakai framework?")
+=============================================================================
+"Frontend bukan objek penelitian; kontribusinya di model retrieval. Vanilla JS
+dipilih agar dependensi minimal dan deployment tanpa build step — arsitekturnya
+server-rendered Flask, jadi SPA tidak diperlukan."
+
+
+CATATAN STACK FRONTEND (faktual, untuk pelengkap)
+=============================================================================
+- JavaScript murni: common.js, index.js, chat.js, sutta.js, browse.js.
+- Pustaka pendukung: Lucide (ikon, self-hosted), marked.js (render markdown).
+- CSS murni (style.css); Google Fonts; tema light/dark; i18n via atribut
+  data-i18n.
+- Templat server: Jinja2 (base.html, index.html, sutta.html, suttaplex.html,
+  tentang.html, 404.html).

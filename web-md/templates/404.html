@@ -4,7 +4,10 @@
 
 {% block head_extra %}
 <style>
-    #resize-handle, #right-panel-toggle, #notes-panel { display: none !important; }
+    /* Panel Catatan + side-rail dibiarkan tampil (konsisten dgn halaman lain — Catatan
+       global, tak bergantung konteks sutta). Toggle sumber bahasa (#right-panel-toggle)
+       tetap disembunyikan: itu khusus reader sutta, tak relevan di 404. */
+    #right-panel-toggle { display: none !important; }
     #app-header { border-bottom: 1px solid var(--border); }
     #not-found-wrap {
         display: flex;
@@ -56,20 +59,22 @@
 
 {% block source_toggle %}{% endblock %}
 {% block right_panel %}{% endblock %}
+{% block side_rail %}{% endblock %}
 
 {% block main_panel %}
 <div id="not-found-wrap">
     <div class="nf-code">{{ error_code or 404 }}</div>
     {% if (error_code or 404) == 500 %}
-        <p class="nf-title">Terjadi kesalahan server</p>
-        <p class="nf-desc">Ada yang tidak beres di sisi server. Coba lagi beberapa saat.</p>
+        <p class="nf-title" data-i18n="nf_server_title">Terjadi kesalahan server</p>
+        <p class="nf-desc" data-i18n="nf_server_error">Ada yang tidak beres di sisi server. Coba lagi beberapa saat.</p>
     {% else %}
-        <p class="nf-title">Halaman tidak ditemukan</p>
-        <p class="nf-desc">URL yang kamu masukkan tidak ada atau sudah dipindahkan.</p>
+        <p class="nf-title" data-i18n="nf_not_found_title">Halaman tidak ditemukan</p>
+        <p class="nf-desc" data-i18n="nf_not_found_desc">URL yang kamu masukkan tidak ada atau sudah dipindahkan.</p>
     {% endif %}
     <div class="nf-actions">
-        <a href="/" class="btn-primary"><i data-lucide="search"></i> Cari</a>
-        <a href="/browse/sutta" class="btn-secondary"><i data-lucide="book-open"></i> Telusuri Tipiṭaka</a>
+        <a href="/#search" class="btn-primary"><i data-lucide="search"></i> <span data-i18n="title_search">Cari</span></a>
+        <a href="/browse/sutta" class="btn-secondary" style="border-color: currentColor;"><i data-lucide="book-open"></i> <span data-i18n="nav_browse">Telusuri</span></a>
+        <a href="/#chat" class="btn-chat-ai"><i data-lucide="sparkles"></i> <span data-i18n="chat_toggle_label">AI Chat</span></a>
     </div>
 </div>
 {% endblock %}

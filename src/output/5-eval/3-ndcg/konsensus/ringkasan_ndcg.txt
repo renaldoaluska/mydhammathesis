@@ -1,0 +1,14 @@
+=== nDCG [KONSENSUS] — 2026-07-01 13:40 ===
+Pakar: Aryanto_Firnadi__M_A___B_Dh__, Dr__Amita_Wardhani__S_Pd_B___M_Pd_, Dr__Hastho_Bramantyo__S_Fil___M_A_, Dr__Suranto__S_Ag___M_A_   Korpus: ID
+Kueri/Model: 30/6
+IDCG: global-pool per (korpus,kueri) — base vs GPL diadu ke ideal sama.
+
+Terbaik nDCG@5: multilingual-e5-base (B,ID) = 0.7123
+
+-- Peringkat (acuan: nDCG@5) --
+   1. @5=0.7123  multilingual-e5-base (B,ID)
+   2. @5=0.6982  gte-multilingual-base (B,ID)
+   3. @5=0.6748  gpl-gte-multilingual-base (GPL,ID)
+   4. @5=0.6475  gpl-multilingual-e5-base (GPL,ID)
+   5. @5=0.6254  bge-m3 (B,ID)
+   6. @5=0.5691  BM25 (B,ID)

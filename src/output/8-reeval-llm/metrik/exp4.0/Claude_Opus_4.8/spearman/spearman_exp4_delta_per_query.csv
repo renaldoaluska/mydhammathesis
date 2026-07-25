@@ -1,0 +1,49 @@
+﻿Korpus,Family,query_id,kueri,B,GPL,exp4,Δ(exp4-B)
+ID,multilingual-e5-base,23,penjelasan tentang pandangan terang,0.6708,-0.2294,-0.9177,-1.5885
+ID,multilingual-e5-base,13,berbagai jenis pemberian,0.3536,0.6156,-0.7071,-1.0607
+ID,gte-multilingual-base,28,berbagai jenis perbuatan baik,0.8944,-0.7071,-0.1118,-1.0062
+ID,multilingual-e5-base,26,bersatu di kehidupan selanjutnya,0.3536,,-0.5774,-0.931
+ID,gte-multilingual-base,23,penjelasan tentang pandangan terang,0.1081,-0.9177,-0.6882,-0.7963
+ID,multilingual-e5-base,12,kewajiban seorang bhikkhu,0.7906,0.5774,0.0,-0.7906
+ID,multilingual-e5-base,9,jenis jenis kotoran batin,0.0,-0.2052,-0.6842,-0.6842
+ID,multilingual-e5-base,6,apa itu kemurahan hati,0.527,-0.1026,-0.1539,-0.6809
+ID,multilingual-e5-base,28,berbagai jenis perbuatan baik,0.8944,-0.1581,0.2236,-0.6708
+ID,multilingual-e5-base,17,kewajiban seorang umat awam,0.3536,0.0527,-0.3162,-0.6698
+ID,multilingual-e5-base,11,siapa yang layak disebut sebagai brahmana,0.2895,0.7071,-0.3536,-0.6431
+ID,multilingual-e5-base,5,perumpamaan perumpamaan,0.866,0.9487,0.25,-0.616
+ID,gte-multilingual-base,30,apa itu proliferasi mental,0.866,0.2887,0.2887,-0.5773
+ID,gte-multilingual-base,22,cara mengikis kotoran batin,0.866,0.4472,0.3078,-0.5582
+ID,gte-multilingual-base,14,apa makna kekosongan,0.7071,,0.2962,-0.4109
+ID,gte-multilingual-base,11,siapa yang layak disebut sebagai brahmana,0.6325,0.4472,0.3078,-0.3247
+ID,gte-multilingual-base,1,cara mengatasi kemarahan,0.5774,,0.2887,-0.2887
+ID,gte-multilingual-base,10,kriteria kesucian,-0.6156,-0.7906,-0.866,-0.2504
+ID,gte-multilingual-base,17,kewajiban seorang umat awam,-0.2236,0.3078,-0.4472,-0.2236
+ID,gte-multilingual-base,27,jenis jenis karma buruk,0.0,0.0513,-0.1581,-0.1581
+ID,multilingual-e5-base,16,harta yang paling bernilai,-0.2108,0.7071,-0.3536,-0.1428
+ID,multilingual-e5-base,24,apa yang terjadi pada saat pencapaian pencerahan,-0.7255,0.7071,-0.73,-0.0045
+ID,multilingual-e5-base,30,apa itu proliferasi mental,0.0,0.3536,0.0,0.0
+ID,multilingual-e5-base,19,jenis jenis kemelekatan,0.7071,0.7071,0.7071,0.0
+ID,multilingual-e5-base,25,perasaan malu dan takut,0.4472,0.3536,0.4472,0.0
+ID,gte-multilingual-base,19,jenis jenis kemelekatan,0.7071,,0.7071,0.0
+ID,gte-multilingual-base,6,apa itu kemurahan hati,0.7071,0.8944,0.7071,0.0
+ID,multilingual-e5-base,4,mengapa harus membalas budi orangtua,0.3536,0.3536,0.3536,0.0
+ID,multilingual-e5-base,20,penggambaran terhadap keagungan buddha,0.3162,-0.2887,0.4472,0.131
+ID,gte-multilingual-base,15,apa kualitas yang harus dimiliki oleh seorang penceramah,0.527,0.7255,0.7071,0.1801
+ID,gte-multilingual-base,8,manfaat pelaksaan sila,-0.866,0.6882,-0.6669,0.1991
+ID,multilingual-e5-base,1,cara mengatasi kemarahan,0.7255,0.1539,0.9487,0.2232
+ID,gte-multilingual-base,9,jenis jenis kotoran batin,0.0,0.0513,0.2236,0.2236
+ID,multilingual-e5-base,7,penjelasan tentang perhatian murni,0.1054,0.7071,0.3536,0.2482
+ID,gte-multilingual-base,7,penjelasan tentang perhatian murni,0.2887,0.9487,0.5774,0.2887
+ID,multilingual-e5-base,10,kriteria kesucian,-0.3689,-0.866,0.0,0.3689
+ID,gte-multilingual-base,20,penggambaran terhadap keagungan buddha,0.3689,0.1118,0.7906,0.4217
+ID,gte-multilingual-base,25,perasaan malu dan takut,-0.2635,-0.866,0.2236,0.4871
+ID,gte-multilingual-base,16,harta yang paling bernilai,0.2887,0.3536,0.7826,0.4939
+ID,multilingual-e5-base,8,manfaat pelaksaan sila,0.1622,0.527,0.6708,0.5086
+ID,multilingual-e5-base,22,cara mengikis kotoran batin,-0.2887,0.866,0.2887,0.5774
+ID,gte-multilingual-base,12,kewajiban seorang bhikkhu,0.0,0.9487,0.5774,0.5774
+ID,multilingual-e5-base,2,cara mengatasi ngantuk,0.2052,,0.7906,0.5854
+ID,gte-multilingual-base,4,mengapa harus membalas budi orangtua,0.0,0.4472,0.7906,0.7906
+ID,multilingual-e5-base,29,jenis orang yang tak boleh ditahbiskan,0.0,0.7071,0.866,0.866
+ID,gte-multilingual-base,3,apa penyebab penderitaan,-0.7071,0.7071,0.2635,0.9706
+ID,multilingual-e5-base,3,apa penyebab penderitaan,-0.7071,,0.3536,1.0607
+ID,gte-multilingual-base,26,bersatu di kehidupan selanjutnya,-0.527,0.7255,0.7071,1.2341

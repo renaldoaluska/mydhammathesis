@@ -1,0 +1,14 @@
+=== nDCG [Dr. Suranto, S.Ag., M.A.] — 2026-07-01 13:41 ===
+Pakar: Dr__Suranto__S_Ag___M_A_   Korpus: ID
+Kueri/Model: 30/6
+IDCG: global-pool per (korpus,kueri) — base vs GPL diadu ke ideal sama.
+
+Terbaik nDCG@5: multilingual-e5-base (B,ID) = 0.7325
+
+-- Peringkat (acuan: nDCG@5) --
+   1. @5=0.7325  multilingual-e5-base (B,ID)
+   2. @5=0.7223  gte-multilingual-base (B,ID)
+   3. @5=0.6997  bge-m3 (B,ID)
+   4. @5=0.6856  gpl-gte-multilingual-base (GPL,ID)
+   5. @5=0.6681  gpl-multilingual-e5-base (GPL,ID)
+   6. @5=0.6211  BM25 (B,ID)

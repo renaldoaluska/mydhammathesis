@@ -1,0 +1,9 @@
+=== Spearman rho (cosine vs grade) [Dr. Suranto, S.Ag., M.A.] ===
+Pakar: Dr__Suranto__S_Ag___M_A_
+
+   1. rho=0.4686 (tanpa heading)  multilingual-e5-base (B,ID)
+   2. rho=0.4064 (tanpa heading)  gpl-gte-multilingual-base (GPL,ID)
+   3. rho=0.3681 (tanpa heading)  gpl-multilingual-e5-base (GPL,ID)
+   4. rho=0.3319 (tanpa heading)  gte-multilingual-base (B,ID)
+   5. rho=0.3000 (tanpa heading)  BM25 (B,ID)
+   6. rho=0.1398 (tanpa heading)  bge-m3 (B,ID)

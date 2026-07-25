@@ -1,0 +1,27 @@
+ARSIP EVAL 8-reeval-llm — NUMBERING LAMA (pra-revisi 2026-07-02)
+================================================================================
+Dipindah dari output/8-reeval-llm/ pada 2026-07-02. PENTING: label "exp2"/"exp3"
+di file-file sini memakai NUMBERING LAMA, BUKAN numbering baru di
+code/7-retraining/perbedaan-eksperimen.txt.
+
+  exp2 (lama) = BUNDEL cleaning E2 (Jaccard dedup + filter false-neg/low-pos),
+                2 variabel sekaligus -> atribusi mustahil. Dieval 2026-07-01.
+  exp3 (lama) = 4 perubahan sekaligus (kueri gemma2 id-only 15k subsample,
+                teacher bge, E2 filter) + epoch tersembunyi ~9.4 -> hasil
+                terburuk (.41-.46). Dieval 2026-07-02 (Claude saja).
+
+Alasan arsip: melanggar prinsip 1-variabel-per-eksperimen; dikeluarkan dari
+garis utama (GPL -> exp1..exp4 baru, semua vanilla). Model & data latihnya
+sudah dihapus; kode E2 dicabut dari script (repro = git commit 70de808d).
+
+Grades JSON di sini = bukti beku; item bisa di-reuse lintas-exp dengan kunci
+(qid, ref, author) bila pasase yang sama muncul lagi di pool eksperimen baru.
+
+Isi: DATA_pasase_exp{2,3}.txt, grades_exp{2,3}_*.json, anotasi/exp{2,3}/,
+metrik/exp{2,3}/.
+
+UPDATE 2026-07-02 malam: nomor exp2/exp3 DIPAKAI ULANG di garis utama baru
+(exp2 = kueri gemma2, exp3 = teacher bge; lihat perbedaan-eksperimen.txt).
+File di folder ini tetap eksperimen MATI di atas — jangan dicampur dengan
+grades/metrik exp2/exp3 baru yang akan muncul di output/8-reeval-llm/.
+================================================================================

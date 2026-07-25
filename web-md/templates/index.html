@@ -8,6 +8,16 @@
 <div id="recent-sutta-wrapper" class="hidden">
     <div class="section-divider">
         <span data-i18n="history_divider">Riwayat Anda</span>
+        <!-- Chevron kiri/kanan: kontrol gulir chips (scrollbar disembunyikan by-design;
+             tampil hanya saat chips overflow --- lihat initHistoryScrollControls index.js) -->
+        <span class="history-nav" id="history-nav" style="display:none">
+            <button type="button" id="hist-prev" class="section-divider-action history-nav-btn"
+                data-i18n-title="title_hist_prev" title="Geser riwayat ke kiri" aria-label="Geser riwayat ke kiri">
+                <i data-lucide="chevron-left"></i></button>
+            <button type="button" id="hist-next" class="section-divider-action history-nav-btn"
+                data-i18n-title="title_hist_next" title="Geser riwayat ke kanan" aria-label="Geser riwayat ke kanan">
+                <i data-lucide="chevron-right"></i></button>
+        </span>
     </div>
     <div id="recent-sutta-container" class="history-bar-chips"></div>
 </div>
@@ -21,30 +31,33 @@
 <!-- ===== BROWSE SECTION ===== -->
 <div id="browse-section">
     <div id="browse-loading" class="browse-container">
-        <div class="browse-nikaya" style="pointer-events: none; border-top: 1px solid var(--border);">
+        <!-- 3 piṭaka collapsed = identik box-model sama actual: class .browse-nikaya-header +
+             .browse-node-label dgn teks ASLI (transparan) + bg abu jadi "bar". Caret .7rem (match
+             .lucide asli). Tinggi tiap box = actual (diukur headless Chrome: 0.000px diff). -->
+        <div class="browse-nikaya" style="pointer-events: none;">
             <div class="browse-nikaya-header" style="animation: skeleton-pulse 1.5s infinite ease-in-out;">
                 <span class="caret"
-                    style="width: 16px; height: 16px; border-radius: 4px; background: var(--border-strong); display: inline-block; margin-right: 8px;"></span>
-                <span
-                    style="width: 60px; height: 14px; border-radius: 4px; background: var(--border-strong); display: inline-block;"></span>
+                    style="width: .7rem; height: .7rem; border-radius: 3px; background: var(--border-strong); display: inline-block; flex-shrink: 0;"></span>
+                <span class="browse-node-label"
+                    style="background: var(--border-strong); color: transparent; border-radius: 4px;">Suttapiṭaka</span>
             </div>
         </div>
         <div class="browse-nikaya" style="pointer-events: none;">
             <div class="browse-nikaya-header"
-                style="animation: skeleton-pulse 1.5s infinite ease-in-out; animation-delay: 0.15s;">
+                style="animation: skeleton-pulse 1.5s infinite ease-in-out; animation-delay: 0.12s;">
                 <span class="caret"
-                    style="width: 16px; height: 16px; border-radius: 4px; background: var(--border-strong); display: inline-block; margin-right: 8px;"></span>
-                <span
-                    style="width: 80px; height: 14px; border-radius: 4px; background: var(--border-strong); display: inline-block;"></span>
+                    style="width: .7rem; height: .7rem; border-radius: 3px; background: var(--border-strong); display: inline-block; flex-shrink: 0;"></span>
+                <span class="browse-node-label"
+                    style="background: var(--border-strong); color: transparent; border-radius: 4px;">Vinayapiṭaka</span>
             </div>
         </div>
         <div class="browse-nikaya" style="pointer-events: none;">
             <div class="browse-nikaya-header"
-                style="animation: skeleton-pulse 1.5s infinite ease-in-out; animation-delay: 0.3s;">
+                style="animation: skeleton-pulse 1.5s infinite ease-in-out; animation-delay: 0.24s;">
                 <span class="caret"
-                    style="width: 16px; height: 16px; border-radius: 4px; background: var(--border-strong); display: inline-block; margin-right: 8px;"></span>
-                <span
-                    style="width: 100px; height: 14px; border-radius: 4px; background: var(--border-strong); display: inline-block;"></span>
+                    style="width: .7rem; height: .7rem; border-radius: 3px; background: var(--border-strong); display: inline-block; flex-shrink: 0;"></span>
+                <span class="browse-node-label"
+                    style="background: var(--border-strong); color: transparent; border-radius: 4px;">Abhidhammapiṭaka</span>
             </div>
         </div>
     </div>
@@ -52,6 +65,10 @@
 </div>
 <div class="section-divider">
     <span data-i18n="or_search_directly">atau langsung cari</span>
+    <!-- Acak ulang 6 chip kueri rekomendasi (pool RECOMMENDED_QUERIES) -->
+    <button type="button" id="btn-refresh-recs" class="section-divider-action" data-i18n-title="title_refresh_recs"
+        title="Acak ulang rekomendasi" aria-label="Acak ulang rekomendasi">
+        <i data-lucide="refresh-cw"></i> <span data-i18n="btn_refresh_recs">Saran Lain</span></button>
 </div>
 <!-- ===== SEARCH TAB ===== -->
 <div id="tab-search">
@@ -59,14 +76,20 @@
     <div id="recommended-queries" class="recommended-queries" style="margin-bottom: 8px;"></div>
     <div id="search-bar">
         <div class="search-bar-inner">
-            <input type="text" id="search-input" data-i18n-placeholder="ph_search_semantic"
-                placeholder="Ketik topik, misal: cara mengatasi kemarahan…" autocomplete="off">
-            <button id="btn-clear-search" type="button" class="btn-clear-input hidden" title="Hapus pencarian">
+            <input type="text" id="search-input"
+                data-i18n-placeholder="ph_search_semantic" placeholder="Ketik topik, misal: cara mengatasi kemarahan…"
+                autocomplete="off">
+            <ul id="custom-title-suggestions" class="custom-autocomplete hidden"></ul>
+            <button id="btn-clear-search" type="button" class="btn-clear-input hidden"
+                data-i18n-title="title_clear_search" title="Hapus pencarian">
                 <i data-lucide="x"></i>
             </button>
-            <button id="btn-search" class="btn-primary" data-i18n-html="btn_search" title="Cari"><i
-                    data-lucide="search"></i>
-                Cari</button>
+            <button id="btn-search-ai" type="button" class="btn-chat-ai btn-chat-ai-q hidden"
+                data-i18n-title="title_ask_ai" title="Tanya AI">
+                <i data-lucide="sparkles"></i><span class="hide-mobile chat-ai-text"> AI</span>
+            </button>
+            <button id="btn-search" class="btn-primary" data-i18n-html="btn_search" data-i18n-title="title_search"
+                title="Cari"><i data-lucide="search"></i> <span class="hide-mobile">Cari</span></button>
         </div>
     </div>
     <!-- Collapsible options — progressive disclosure -->
@@ -147,17 +170,18 @@
                     </div>
                     <div class="search-actions">
                         <button type="button" id="btn-ensemble-config" class="icon-btn icon-btn-sm"
-                            title="Konfigurasi Mesin Pencari"
+                            data-i18n-title="config_search_engine" title="Konfigurasi Mesin Pencari"
                             style="width: auto; padding: 4px 8px; display: flex; align-items: center; gap: 4px; font-size: 0.75rem;"><i
-                                data-lucide="settings" style="width:14px; height:14px;"></i> <span
+                                data-lucide="sliders-horizontal" style="width:14px; height:14px;"></i> <span
                                 data-i18n="btn_config_short">Konfig Mesin</span></button>
                         <button type="button" id="btn-advanced-toggle" class="icon-btn icon-btn-sm"
-                            title="Mode Tingkat Lanjut"
+                            data-i18n-title="btn_advanced" title="Mode Tingkat Lanjut"
                             style="width: auto; padding: 4px 8px; display: flex; align-items: center; gap: 4px; font-size: 0.75rem;"><i
                                 data-lucide="settings-2" style="width:14px; height:14px;"></i> <span
                                 data-i18n="btn_advanced">Tingkat Lanjut</span></button>
                         <div style="flex-grow: 1;"></div>
-                        <button type="button" id="btn-reset-opts" class="icon-btn icon-btn-sm" title="Reset Opsi"
+                        <button type="button" id="btn-reset-opts" class="icon-btn icon-btn-sm"
+                            data-i18n-title="btn_reset_opts" title="Reset Opsi"
                             style="width: auto; padding: 4px 8px; display: flex; align-items: center; gap: 4px; font-size: 0.75rem;"><i
                                 data-lucide="rotate-ccw" style="width:14px; height:14px;"></i> <span
                                 data-i18n="btn_reset_opts">Reset Opsi</span></button>
@@ -182,7 +206,7 @@
                     <span class="control-label info-label">
                         <span>Model 1</span>
                         <button type="button" class="info-tip-btn" data-i18n-title="tt_model1"
-                            title="Pilih model pencarian utama. Anda dapat mengganti kategori (misal: base, contrastive, dll.) pada dropdown pertama dan model spesifik pada dropdown kedua.">
+                            title="Pilih model pencarian utama. Anda dapat mengganti kategori (misal: base, GPL, Refinement) pada dropdown pertama dan model spesifik pada dropdown kedua.">
                             <i data-lucide="info"></i>
                         </button>
                     </span>
@@ -299,7 +323,7 @@
                 <span
                     style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
                     <i data-lucide="sparkles" style="color: #a255ff; width: 14px; height: 14px;"></i>
-                    myDhamma AI
+                    <span class="brand-my">my</span>Dhamma <span class="chat-ai-text">AI</span>
                 </span>
                 <span style="font-size: 0.82rem; color: var(--text-muted);" data-i18n="cta_tagline">Belum menemukan
                     yang dicari?</span>
@@ -308,6 +332,7 @@
                 Tanya AI
             </a>
         </div>
+        <div id="exact-match-container"></div>
         <div id="results-container" class="hidden"></div>
         <div id="pagination" class="hidden">
             <button id="btn-prev-page" class="btn-page" disabled>← Prev</button>
@@ -316,48 +341,14 @@
         </div>
     </div>
 </div><!-- /tab-search -->
-<dialog id="ensemble-manager" class="dk-dialog"
-    style="width: 500px; max-width: 90vw; padding: 20px; border-radius: 8px; border: 1px solid var(--border-strong); background: var(--bg-primary); color: var(--text); position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); margin: 0; box-shadow: 0 16px 48px rgba(0,0,0,0.5);">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <h3 style="margin: 0; font-size: 1.1rem;"><i data-lucide="settings"
-                style="vertical-align: -2px; margin-right: 4px;"></i> <span data-i18n="config_search_engine">Konfigurasi
-                Mesin Pencari</span></h3>
-        <button class="nm-close-btn" id="btn-close-ensemble"><i data-lucide="x"
-                style="width:16px; height:16px;"></i></button>
-    </div>
-    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;" data-i18n="config_search_engine_desc">
-        Centang model yang ingin digabungkan pada pencarian biasa (bukan mode tingkat lanjut). Konfigurasi per korpus
-        (ID,
-        EN, PLI).</p>
-    <div
-        style="background-color: var(--surface-hover); border-left: 3px solid var(--accent); padding: 8px 12px; border-radius: 4px; margin-bottom: 16px; font-size: 0.8rem; color: var(--text-secondary);">
-        <i data-lucide="alert-triangle"
-            style="width: 14px; height: 14px; display: inline-block; vertical-align: -2px; margin-right: 4px; color: var(--accent);"></i>
-        <span data-i18n="hint_ensemble_warning">Ubah konfigurasi ini hanya jika Anda paham, karena akan sangat
-            memengaruhi hasil pencarian. Anda dapat mereset kapan saja, konfigurasi ini hanya tersimpan secara
-            lokal.</span>
-    </div>
-    <div id="ensemble-checkboxes"
-        style="display: flex; flex-direction: column; gap: 8px; max-height: 45vh; overflow-y: auto; padding-right: 8px; margin-bottom: 16px;">
-        <!-- Rendered via JS -->
-    </div>
-    <div
-        style="display: flex; justify-content: flex-end; align-items: center; gap: 16px; border-top: 1px solid var(--border); padding-top: 12px;">
-        <button type="button" id="btn-reset-ensemble"
-            style="background: transparent; border: none; padding: 0; color: var(--text-muted); font-size: 0.8rem; display: flex; align-items: center; gap: 4px; cursor: pointer; transition: color 0.15s;"
-            onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--text-muted)'">
-            <i data-lucide="rotate-ccw" style="width:14px; height:14px;"></i> <span data-i18n="btn_reset">Reset</span>
-        </button>
-        <button type="button" class="btn-primary" id="btn-save-ensemble" style="padding: 6px 16px;"><span
-                data-i18n="btn_save">Simpan</span></button>
-    </div>
-</dialog>
+
+
 {% endblock %}
 
 {# Scroll-to-top di overlay #search-panel (bukan #search-scroll) -> absolute thd panel,
-   jadi nempel tepi kanan AREA PENCARIAN, tak melayang ke viewport/atas panel Catatan. #}
+jadi nempel tepi kanan AREA PENCARIAN, tak melayang ke viewport/atas panel Catatan. #}
 {% block panel_overlays %}
-<button id="btn-scroll-top" class="btn-scroll-top hidden" title="Gulir ke atas">
+<button id="btn-scroll-top" class="btn-scroll-top hidden" data-i18n-title="title_scroll_top" title="Gulir ke atas">
     <i data-lucide="chevron-up"></i>
 </button>
 {% endblock %}

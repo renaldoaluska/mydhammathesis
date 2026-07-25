@@ -1,0 +1,209 @@
+================================================================================
+  RANGKUMAN ANALISIS — GPL vs BASE (asesmen pakar + silang LLM-judge)
+  Korpus ID | 30 kueri | 6 sistem | 4 pakar + 2 LLM-judge
+  Dihasilkan dari run 5-eval & 6-eval-llm (2026-07-01, anotasi pakar final 30 kueri).
+================================================================================
+
+KONVENSI SITASI: tiap klaim ditandai [sumber: <file/script:baris | metode>].
+  - Path relatif thd src/output/5-eval/ (data) atau src/code/ (kode).
+  - "metode" = library/fungsi penghitung. Referensi akademik metode di [REFERENSI].
+Angka mentah lengkap ada di folder per-metrik (lihat tiap [sumber]).
+
+REVISI 2026-07-01: dulu 3 pakar & draf lama menyimpulkan "semua metrik TIDAK
+signifikan / dalam rentang noise". Dengan 4 pakar final, TEMUAN BERUBAH: P@5
+kini SIGNIFIKAN lebih buruk utk GPL (nDCG & Spearman tetap tak signifikan).
+
+
+[1] TEMUAN INTI
+--------------------------------------------------------------------------------
+GPL MENINGKATKAN GEOMETRI EMBEDDING (intrinsik, separabilitas intra/inter-sutta)
+namun pada relevansi terjilid-pakar (ekstrinsik) GPL NETRAL-KE-LEBIH-BURUK:
+  - nDCG@5 & Spearman: arah negatif (base sedikit unggul) tetapi TIDAK signifikan.
+  - P@5: GPL SIGNIFIKAN LEBIH BURUK dari base (gte p=0.0235; gabungan p=0.0336).
+Base >= GPL di semua metrik; tidak ada satupun metrik di mana GPL unggul.
+  [sumber: sintesis §2 (signifikansi) + §6 (intrinsik); rinci di bawah]
+
+
+[2] SIGNIFIKANSI — base vs GPL, paired per-kueri (n=30, konsensus 4 pakar)
+--------------------------------------------------------------------------------
+Wilcoxon signed-rank (magnitudo) & sign-test/binomial (arah):
+  nDCG@5    gte: base=0.6982 gpl=0.6748 (Δ=-0.0234) menang/kalah 13/17  Wilcoxon p=0.5838  sign p=0.5847  -> TIDAK signifikan
+            e5 : base=0.7123 gpl=0.6475 (Δ=-0.0648) menang/kalah 10/19  Wilcoxon p=0.1982  sign p=0.1360  -> TIDAK signifikan
+  P@5       gte: base=0.4467 gpl=0.3667 (Δ=-0.0800) menang/kalah  7/11  Wilcoxon p=0.0235  sign p=0.4807  -> SIGNIFIKAN (Wilcoxon)
+            e5 : base=0.4467 gpl=0.3200 (Δ=-0.1267) menang/kalah  5/15  Wilcoxon p=0.0741  sign p=0.0414  -> SIGNIFIKAN (sign-test)
+  Spearman  gte: base=0.1280 gpl=0.0846 (Δ=-0.0434) menang/kalah 14/15  Wilcoxon p=0.8542  -> TIDAK signifikan
+            e5 : base=0.2004 gpl=0.1365 (Δ=-0.0639) menang/kalah 13/16  Wilcoxon p=0.4946  -> TIDAK signifikan
+  [sumber: signifikansi.txt via src/code/5-eval/7-signifikansi.py | scipy.stats.wilcoxon, scipy.stats.binomtest]
+  [sumber angka mean/menang-kalah: 3-ndcg|4-precision|5-spearman /konsensus/*_gpl_delta_per_query.csv]
+
+  SIGN TEST gabungan ("mayoritas kueri ber-Δ minus"):
+    nDCG@5 : 23/36 (61% minus) -> p=0.1175  -> TIDAK signifikan
+    P@5    : 12/26 (68% minus) -> p=0.0336  -> SIGNIFIKAN
+    Spearman: 27/31 (53% minus) -> p=0.6940 -> TIDAK signifikan
+    [sumber: signifikansi.txt (baris GABUNGAN) via 7-signifikansi.py | scipy.stats.binomtest]
+
+  KESIMPULAN §2: pada P@5, baik uji magnitudo (Wilcoxon gte p=0.0235) maupun
+  arah (sign-test gabungan p=0.0336) MENOLAK "GPL = base" -> GPL menurunkan precision@5
+  secara signifikan. Pada nDCG@5 & Spearman, arah konsisten negatif namun p>0.05 =
+  "belum terbukti beda" (daya uji n=30 sedang). Framing benar = "GPL tidak memperbaiki
+  relevansi; malah SIGNIFIKAN menurunkan P@5, dan cenderung (tak signifikan) menurunkan
+  nDCG/Spearman", BUKAN lagi "semua dalam rentang noise".
+
+
+[3] PER-MODEL: gpl-gte ~ base (seri); gpl-e5 yang regres tajam
+--------------------------------------------------------------------------------
+Selisih nDCG@5 (GPL - base) per keluarga, di penilai independen:
+                 gte (Δ)     e5 (Δ)
+  Pakar (4)     -0.0234     -0.0648   [sumber: 3-ndcg/konsensus/ndcg_per_model.csv]
+  LLM-konsensus -0.0203     -0.1142   [sumber: ../../6-eval-llm/metrik/konsensus/ndcg/ndcg_per_model.csv]
+  Claude        -0.0115     -0.0818   [sumber: ../../6-eval-llm/metrik/Claude_Opus_4.8/ndcg/ndcg_per_model.csv]
+  Gemini        -0.0179     -0.1355   [sumber: ../../6-eval-llm/metrik/Gemini_3.1_Pro/ndcg/ndcg_per_model.csv]
+  -> gpl-gte praktis SERI dgn base (Δ s/d -0.023).
+  -> gpl-e5 turun nyata di SEMUA penilai (Δ -0.065 s/d -0.136). Penurunan ASLI,
+     bukan artefak prefix (lihat §5).
+
+
+[4] VALIDASI SILANG LLM-JUDGE
+--------------------------------------------------------------------------------
+Ranking nDCG@5 (urut terbaik):
+  Pakar    : e5-base > gte-base > gpl-gte > gpl-e5 > bge-m3 > BM25
+  Claude   : e5-base > gte-base > gpl-gte > bge-m3 > gpl-e5 > BM25   (gpl-e5 turun 1)
+  Gemini   : e5-base > gte-base > gpl-gte > BM25 > bge-m3 > gpl-e5   (gpl-e5 TERBAWAH)
+  Konsensus: e5-base > gte-base > gpl-gte > bge-m3 > gpl-e5 > BM25
+  [sumber pakar: 3-ndcg/konsensus/ringkasan_ndcg.txt | LLM: 6-eval-llm/metrik/<judge>/ndcg/ringkasan_ndcg.txt]
+  [metode nDCG: src/code/5-eval/common.py ndcg_at_k, IDCG global-pool (param ideal_grades); lihat [[project_eval_idcg_globalpool]]]
+  -> Puncak (e5-base > gte-base > gpl-gte) SEPAKAT semua penilai. Perbedaan hanya pada
+     posisi gpl-e5 yang rendah (pakar taruh di atas bge; LLM taruh di bawah bge) -> gpl-e5
+     memang sistem terlemah di antara model neural, konsisten §3.
+
+  Reliabilitas anotator (Cohen kappa quadratic):
+    Pakar (4 manusia)        : rata-rata 0.4576  ("sedang")
+      pasangan: Aryanto-Amita 0.3086 | Aryanto-Hastho 0.7203 | Aryanto-Suranto 0.4994 |
+                Amita-Hastho 0.3862 | Amita-Suranto 0.3103 | Hastho-Suranto 0.5209
+      [sumber: 6-iaa/ringkasan_iaa.txt via src/code/5-eval/6-iaa.py | sklearn.metrics.cohen_kappa_score(weights="quadratic")]
+    LLM-judge (Claude-Gemini): 0.6143  ("baik")
+      [sumber: 6-eval-llm/metrik/konsensus/iaa/ringkasan_iaa.txt via src/code/6-eval-llm/4-run-eval.py]
+  -> LLM-judge lebih konsisten (0.61) & MEREPRODUKSI puncak ranking pakar -> kesimpulan
+     ranking kredibel meski IAA manusia hanya sedang (subjektivitas relevansi doktrinal).
+  CAVEAT distribusi grade Gemini timpang {0:223, 1:49, 2:95, 3:525} (~58% grade-3, lunak)
+  vs Claude seimbang {0:179, 1:247, 2:210, 3:256}. -> LLM-judge = triangulasi, BUKAN
+  pengganti ground-truth.
+    [sumber: src/output/6-eval-llm/anotasi-llm/anotasi_<judge>.csv (dirakit 6-eval-llm/3-assemble_anotasi.py dari grades_<judge>.json)]
+
+
+[5] AUDIT PREFIX e5 (memastikan gpl-e5 dinilai adil)
+--------------------------------------------------------------------------------
+e5 menuntut imbuhan "query: "/"passage: ". Diperiksa 4 tahap, SEMUA kepasang:
+  - Training    : with_prefix -> NEEDS_PREFIX["intfloat/multilingual-e5-base"]=True
+      [sumber: src/code/4-training/4-train-marginmse.py:63-65 ; src/code/4-training/_gpl.py:101-103 ; src/config.py:38-52 (REGISTRY needs_prefix)]
+  - Hard-neg    : with_prefix (mekanisme sama)            [sumber: src/code/4-training/2-hard-neg.py:51,54]
+  - Embed korpus: _prefixer "e5" in name -> "gpl-multilingual-e5-base" ter-tangkap -> "passage: "
+      [sumber: src/code/4-training/5-embed.py:32-33]
+  - Query saat retrieval: _needs_prefix "e5" in name -> "query: "
+      [sumber: src/code/../web/search.py:55-56,130]
+  -> Train<->inferensi KONSISTEN. Penurunan gpl-e5 BUKAN artefak prefix.
+
+
+[6] PARADOKS INTRINSIK vs EKSTRINSIK
+--------------------------------------------------------------------------------
+Gap cosine intra/inter-sutta (korpus EN; makin besar makin diskriminatif):
+  gpl-gte 0.2103 | gpl-e5 0.2033 | bge-base 0.1424 | gte-base 0.1199 | e5-base 0.0509
+  [sumber: 2-intrinsic/ringkasan_intrinsic.txt via src/code/5-eval/2-intrinsic.py ; pasangan intra=200/inter=200, seed config.GPL_SEED]
+
+GPL menang TELAK intrinsik (gap ~4x e5-base) sambil menurunkan magnitudo cosine global
+(ruang embedding "ditebar"). Objektif GPL (MarginMSE thd pseudo-label cross-encoder +
+kueri sintetis + hard-negative otomatis) MENAJAMKAN pemisahan same/different-sutta,
+tetapi proxy relevansinya MELESET dari relevansi fine-grained (grade 0-3) pakar pada
+domain Pali/Buddhis -> pada P@5 pergeseran ini cukup untuk regresi SIGNIFIKAN. Intrinsik
+mengukur separabilitas; ekstrinsik mengukur urutan relevansi -> di sini berbeda arah.
+  [sumber metode GPL/MarginMSE: REFERENSI; konfigurasi: src/config.py GPL_*]
+
+
+[7] KEPUTUSAN
+--------------------------------------------------------------------------------
+TIDAK retrain untuk versi ini. Tidak ada bug (§5); tetapi HASIL = GPL tidak
+memberi manfaat ekstrinsik dan SIGNIFIKAN menurunkan P@5. Narasi yang dipakai
+(jujur & defensible):
+  "GPL terbukti meningkatkan kualitas geometri embedding (separabilitas intra/inter-
+   sutta) secara substansial, NAMUN pada evaluasi relevansi terjilid-pakar untuk temu-
+   kembali Pali berbahasa Indonesia, GPL TIDAK memberi peningkatan: precision@5 justru
+   SIGNIFIKAN lebih rendah dari base (Wilcoxon p=0.024; sign-test gabungan p=0.034),
+   sedangkan nDCG@5 & Spearman cenderung negatif namun belum signifikan. Efeknya
+   bergantung model: gpl-gte setara base, gpl-e5 regres. Diverifikasi-silang oleh dua
+   LLM-judge yang mereproduksi peringkat pakar (kappa 0.61 vs 0.46)."
+Kontribusi tetap: sistem temu-kembali + metodologi evaluasi multi-asesor (pakar +
+LLM-judge + IAA + intrinsik) + temuan negatif yang solid (GPL apa-adanya tak cocok utk
+domain ini tanpa perbaikan resep).
+
+
+[8] JIKA INGIN IMPROVE (future work)
+--------------------------------------------------------------------------------
+(8a) DARI BASE ATAU DARI GPL? -> perbaiki RESEP lalu LATIH ULANG DARI BASE, bukan
+menumpuk di atas checkpoint GPL:
+  - GPL = "base + 1 putaran GPL"; melatih lagi di atasnya menumpuk drift sama + risiko
+    catastrophic forgetting kemampuan retrieval base.
+  - Base relevansi ekstrinsik lebih tinggi (§2) -> titik mula lebih bersih.
+  - Ablation lebih terkontrol untuk tesis.
+
+(8b) "PAKAI LABEL PAKAR JADI SUPERVISED?" -> HATI-HATI, ini risiko utama:
+  - KEBOCORAN (leakage): label pakar = test set. Melatih lalu eval pada 30 kueri yang
+    SAMA mengukur hafalan, bukan generalisasi -> klaim eval runtuh.
+  - Jika tetap supervised, WAJIB held-out di level KUERI (mis. 5-fold: latih 24, uji 6).
+    Tapi n=30 terlalu kecil -> sinyal minim, varians besar, tak meyakinkan.
+  - Juga menyabot motivasi tesis (GPL dipilih KARENA label domain langka/mahal).
+  ALTERNATIF BERSIH (disarankan): jadikan LLM-judge sinyal latih yang scalable
+  (Claude/Gemini berkorelasi pakar, kappa 0.61, §4) -> hasilkan label murah utk RATUSAN
+  kueri sebagai data latih/distilasi; 30 kueri pakar DISIMPAN sebagai test held-out
+  yang tak pernah disentuh latihan. Train/test terpisah bersih, tanpa leakage.
+
+  MEKANISME KONKRET — DATA LATIH DARI LLM BESAR (arah paling menjanjikan, v2):
+  Gunakan frontier-LLM untuk membangun data latih, menyasar 2 kelemahan terdiagnosa:
+    (i)  GENERATOR KUERI: ganti GPL_QUERY_GEN (T5 kecil) dgn LLM yang menulis pertanyaan
+         ID NATURAL dari tiap pasase. ROI tertinggi -> memperbaiki mismatch kueri-
+         sintetis vs natural yang paling melukai e5 (§3).
+    (ii) TEACHER RELEVANSI: LLM memberi grade/margin -> ganti/augment cross-encoder
+         teacher dgn penilai lebih sadar-domain.
+  Teknik baku (cf. [REFERENSI] InPars/Promptagator/distilasi LLM). RAMBU WAJIB:
+    - LEAKAGE: data latih LLM HARUS pada kueri/pasase LAIN; 30 kueri pakar + pasasenya
+      DIKECUALIKAN dari generasi -> tetap test held-out murni.
+    - BIAS 1-LLM: Gemini timpang (58% grade-3); pilih teacher terkalibrasi (Claude lebih
+      seimbang) / ensemble / skor soft.
+    - Nondeterministik + biaya: BEKUKAN dataset hasil generate (spt grades_*.json), lalu
+      LATIH ULANG DARI BASE (lihat 8a).
+  Status: eksperimen v2 (generate -> retrain -> re-eval), BUKAN tweak.
+
+(8c) CARA IMPROVE RESEP UNSUPERVISED (urut ROI; regen GPL dari base):
+  1. HARD-NEGATIVE lebih bersih (ROI tertinggi). Teks Buddhis banyak pericope/formula
+     berulang lintas-sutta -> ke-mine sbg "negatif" padahal relevan = false-negative
+     yang mengajarkan margin salah. Fix: filter berbasis margin, de-dup near-duplicate.
+     [konteks kode: src/code/4-training/2-hard-neg.py]
+  2. TEACHER lebih kuat. Cross-encoder teacher menentukan margin; bila generik & lemah
+     di Pali/Buddhis-ID -> margin berisik. [konfig: src/config.py GPL_CROSS_ENCODER]
+  3. KUERI sintetis lebih natural (khusus e5). e5 (terkondisi prefix kueri) paling
+     sensitif thd mismatch train/eval -> menjelaskan §3. [konfig: src/config.py GPL_QUERY_GEN]
+  4. HYPERPARAM lebih lembut: kurangi GPL_STEPS/LR utk batasi drift. NB: ablasi exp1
+     (5000 steps) TIDAK memulihkan base & tetap ~setara GPL -> langkah bukan pengungkit
+     utama (lihat 8-reeval/exp1). [konfig: src/config.py GPL_STEPS]
+  5. STRATEGI per-model: gpl-gte sudah ~setara base; opsi pragmatis pertahankan e5-base
+     (sistem terbaik keseluruhan) atau gpl-gte sbg representasi GPL.
+
+
+[REFERENSI] (metode — format ulang sesuai gaya sitasi tesis; verifikasi tahun/venue)
+--------------------------------------------------------------------------------
+  nDCG               : Jarvelin & Kekalainen (2002), ACM TOIS 20(4).
+  Spearman rho       : Spearman (1904).
+  Cohen kappa (quad) : Cohen (1960; berbobot 1968), Psychological Bulletin.
+  Wilcoxon signed-rank: Wilcoxon (1945), Biometrics Bulletin 1(6).
+  Sign/binomial test : uji binomial baku.
+  GPL                : Wang, Reimers, Gurevych (2022), NAACL — "GPL: Generative Pseudo
+                       Labeling for Unsupervised Domain Adaptation of Dense Retrieval"
+                       (arXiv:2112.07577).
+  MarginMSE (distil) : Hofstatter dkk. (2020), arXiv:2010.02666.
+  BM25               : Robertson & Zaragoza (2009).
+  multilingual-e5    : Wang dkk. (2024), arXiv:2402.05672.
+  mGTE / gte         : Zhang dkk. (2024), EMNLP industry (arXiv:2407.19669).
+================================================================================
+
+
+gemma2:2b
+bge-reranker-v2-m3 

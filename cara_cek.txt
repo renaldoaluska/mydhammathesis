@@ -8,6 +8,16 @@ Bye-bye tmux. Semua aplikasi sekarang jalan otomatis di background.
 --------------------------------------------------------------------
 Kalau habis merubah kode (misal app.py) atau config, WAJIB direstart.
 
+>> CEK DULU SEBELUM RESTART (ada yang lagi pakai?):
+   ss -tn state established '( sport = :5002 )'
+   - Output kosong (cuma header) = 0 koneksi aktif -> AMAN restart.
+   - Ada baris = ada request/chat SSE yang lagi jalan -> tunggu sebentar.
+   Catatan: yang cuma LAGI BACA halaman tidak terganggu restart (HTML sudah
+   di browser); yang keganggu cuma chat yang lagi streaming / klik pas boot.
+   Liat aktivitas terakhir: journalctl --user -u mydhamma-web --since "10 min ago"
+   (access log per-request nyala sejak 2026-07-14: IP asli pengunjung via header
+   CF-Connecting-IP, format: <ip> "<request>" <status> <ms>)
+
 - Web Utama:      systemctl --user restart mydhamma-web
 - Web Eval:       systemctl --user restart mydhamma-eval
 - Tunnel CF:      systemctl --user restart cloudflared
@@ -15,17 +25,24 @@ Kalau habis merubah kode (misal app.py) atau config, WAJIB direstart.
 >> GRACEFUL RELOAD (tanpa downtime) — kapan boleh, kapan TIDAK:
    - Ngedit prompts.json saja  -> TIDAK perlu restart sama sekali.
      get_prompts() di app.py auto-reload via cek mtime tiap request.
-   - Ngedit KODE app.py        -> WAJIB restart penuh (perintah di atas).
-     JANGAN andalkan "kill -HUP" / "systemctl reload": karena gunicorn
-     pakai flag --preload, app sudah di-import master SEBELUM fork, jadi
-     HUP cuma fork ulang worker dari memori LAMA -> perubahan app.py TIDAK
-     kebaca. Satu-satunya cara kode app.py kepakai = restart penuh.
+   - Ngedit KODE (app.py/reader.py/dll) -> pakai restart penuh saja
+     (perintah di atas). ATURAN PRAKTIS: satu pintu, jangan pilah-pilah.
+     Detail per-service (per 2026-07-14, cek ExecStart kalau ragu):
+       * mydhamma-web  : TANPA --preload (-w 1 --threads 4). Secara teori
+         "kill -HUP" fork ulang worker & re-import kode, TAPI env dari
+         EnvironmentFile TIDAK dibaca ulang & riwayat menunjukkan proses
+         lama bisa nyangkut pegang port -> tetap pakai restart penuh.
+       * mydhamma-eval : PAKAI --preload -> HUP cuma fork ulang worker
+         dari memori LAMA, perubahan kode TIDAK kebaca. Wajib restart.
    - Mau zero-downtime betulan utk kode? Hot-upgrade master gunicorn:
        kill -USR2 <PID_MASTER>     # spawn master+worker baru di samping
        kill -WINCH <PID_MASTER>    # matikan worker master lama (graceful)
        kill -TERM  <PID_MASTER>    # matikan master lama setelah yakin OK
      (PID master = `systemctl --user show -p MainPID mydhamma-web`)
      Tapi utk dev biasa, `systemctl --user restart` jauh lebih simpel.
+   - Kalau restart GAGAL bind ("Address already in use" di journal) =
+     ada gunicorn lama nyangkut pegang port. Obat:
+       pkill -f '127.0.0.1:5002 app:app' && systemctl --user restart mydhamma-web
 
 Cek Status (Hijau = Aman, Merah = Mati/Error):
 - systemctl --user status mydhamma-web

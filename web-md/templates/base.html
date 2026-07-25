@@ -4,12 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="view-transition" content="same-origin">
     <script>document.documentElement.setAttribute("data-theme", localStorage.getItem("dk-theme") || "light");</script>
     <meta name="description"
         content="{% block description %}myDhamma — Pencarian Tipiṭaka berbasis makna & kata kunci untuk pembabar Dhamma{% endblock %}">
     <title>{% block title %}myDhamma{% endblock %}</title>
     <link rel="icon"
-        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23a255ff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Ccircle cx='12' cy='12' r='2.5'/%3E%3Cpath d='M12 2v7.5'/%3E%3Cpath d='M12 14.5v7.5'/%3E%3Cpath d='M2 12h7.5'/%3E%3Cpath d='M14.5 12h7.5'/%3E%3Cpath d='M4.93 4.93l5.3 5.3'/%3E%3Cpath d='M13.77 13.77l5.3 5.3'/%3E%3Cpath d='M4.93 19.07l5.3-5.3'/%3E%3Cpath d='M13.77 10.23l5.3-5.3'/%3E%3C/svg%3E">
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='24' y2='24' gradientUnits='userSpaceOnUse'%3E%3Cstop offset='0%25' stop-color='%238a4a08' /%3E%3Cstop offset='50%25' stop-color='%23d98c11' /%3E%3Cstop offset='100%25' stop-color='%23f5c249' /%3E%3C/linearGradient%3E%3C/defs%3E%3Cg stroke='url(%23g)'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Ccircle cx='12' cy='12' r='2.5'/%3E%3Cpath d='M12 2v7.5'/%3E%3Cpath d='M12 14.5v7.5'/%3E%3Cpath d='M2 12h7.5'/%3E%3Cpath d='M14.5 12h7.5'/%3E%3Cpath d='M4.93 4.93l5.3 5.3'/%3E%3Cpath d='M13.77 13.77l5.3 5.3'/%3E%3Cpath d='M4.93 19.07l5.3-5.3'/%3E%3Cpath d='M13.77 10.23l5.3-5.3'/%3E%3C/g%3E%3C/svg%3E">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -21,7 +22,7 @@
 
 <body>
 
-    <div id="research-banner" data-i18n="research_banner">DALAM PENGEMBANGAN — MASIH TERBATAS UNTUK RISET</div>
+    <div id="research-banner" data-i18n="research_banner">TERBATAS UNTUK RISET — BELUM UNTUK PUBLIK</div>
 
     <!-- ==================== HEADER ==================== -->
     {% block navbar_extra %}{% endblock %}
@@ -33,8 +34,9 @@
                             fill="none" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
                             <defs>
                                 <linearGradient id="grad1" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
-                                    <stop offset="0%" stop-color="#a255ff" />
-                                    <stop offset="100%" stop-color="#B388FF" />
+                                    <stop offset="0%" stop-color="#8a4a08" />
+                                    <stop offset="50%" stop-color="#d98c11" />
+                                    <stop offset="100%" stop-color="#f5c249" />
                                 </linearGradient>
                             </defs>
                             <g stroke="url(#grad1)">
@@ -50,28 +52,135 @@
                                 <path d="M13.77 10.23l5.3-5.3" />
                             </g>
                         </svg>
-                        <judul>myDhamma</judul>
+                        <judul><span class="brand-my">my</span>Dhamma</judul>
                     </a></h1>
                 {% block header_subtitle %}{% endblock %}
             </div>
             <div class="header-right">
                 {% block source_toggle %}
                 {% endblock %}
-                {% block header_action %}
-                <a href="/chat" id="header-chat-ai" class="btn-chat-ai" title="Tanya AI">
-                    <i data-lucide="sparkles"></i> <span data-i18n="btn_chat_ai">Tanya AI</span>
-                </a>
-                {% endblock %}
-                <div id="btn-lang-toggle" class="lang-pill" title="Switch Language">
-                    <span class="lang-pill-opt" data-lang="id">ID</span>
-                    <span class="lang-pill-opt" data-lang="en">EN</span>
-                    <span class="lang-pill-slider"></span>
+                {# Tombol "Tanya AI" default DIHAPUS — chat kini panel kanan, entry =
+                   tab tepi kanan (#btn-chat-toggle). Halaman sutta/suttaplex tetap
+                   override block ini dgn tombol auto-tag. #}
+                {% block header_action %}{% endblock %}
+                
+                <div style="display: flex; gap: 6px; align-items: center;">
+                    <div class="lang-dd browse-dd" style="position: relative; display: flex; align-items: center;">
+                        <button class="lang-dd-btn" onclick="var isOp = this.parentElement.classList.contains('open'); document.querySelectorAll('.header-settings-group, .browse-dd').forEach(g => g.classList.remove('open')); if(!isOp) this.parentElement.classList.add('open'); event.stopPropagation();" data-i18n-title="nav_browse" title="Telusuri" style="display: flex; align-items: center; gap: 0.35rem;">
+                            <i data-lucide="library"></i>
+                            <span class="hide-mobile" data-i18n="nav_browse" style="font-weight: 500;">Telusuri</span>
+                            <i data-lucide="chevron-down" style="width: 14px; height: 14px; margin-left: 2px;"></i>
+                        </button>
+                        <div class="lang-dd-menu" style="left: 50%; right: auto; transform: translateX(-50%); padding: 4px; min-width: max-content;">
+                            <a href="/?browse=sutta" onclick="if((location.pathname==='/'||location.pathname==='/index.html')&&window.dkBrowseDeepLink){var dd=this.closest('.browse-dd');if(dd)dd.classList.remove('open');if(window.dkBrowseDeepLink('sutta'))return false;}" class="lang-dd-item" style="text-decoration: none; justify-content: center;">
+                                <span class="browse-badge sutta">SUTTA</span>
+                            </a>
+                            <a href="/?browse=vinaya" onclick="if((location.pathname==='/'||location.pathname==='/index.html')&&window.dkBrowseDeepLink){var dd=this.closest('.browse-dd');if(dd)dd.classList.remove('open');if(window.dkBrowseDeepLink('vinaya'))return false;}" class="lang-dd-item" style="text-decoration: none; justify-content: center;">
+                                <span class="browse-badge vinaya">VINAYA</span>
+                            </a>
+                            <a href="/?browse=abhidhamma" onclick="if((location.pathname==='/'||location.pathname==='/index.html')&&window.dkBrowseDeepLink){var dd=this.closest('.browse-dd');if(dd)dd.classList.remove('open');if(window.dkBrowseDeepLink('abhidhamma'))return false;}" class="lang-dd-item" style="text-decoration: none; justify-content: center;">
+                                <span class="browse-badge abhidhamma">ABHIDHAMMA</span>
+                            </a>
+                        </div>
+                    </div>
+                    <a href="/#search" onclick="if(window.location.pathname === '/' || window.location.pathname === '/index.html') { document.querySelectorAll('#browse-tree .open').forEach(el => el.classList.remove('open')); const s = document.getElementById('search-input'); if(s) { s.scrollIntoView({behavior: 'smooth', block: 'center'}); setTimeout(() => s.focus(), 300); } return false; }" class="lang-dd-btn" style="text-decoration: none; display: flex; align-items: center; gap: 0.35rem;" data-i18n-title="title_search" title="Cari">
+                        <i data-lucide="search"></i><span class="hide-mobile" data-i18n="title_search" style="font-weight: 500;">Cari</span>
+                    </a>
                 </div>
-                <div id="btn-theme-toggle" class="theme-pill" title="Toggle Light/Dark Mode">
-                    <span class="theme-pill-opt" data-theme="light"><i data-lucide="sun"></i></span>
-                    <span class="theme-pill-opt" data-theme="dark"><i data-lucide="moon"></i></span>
-                    <span class="theme-pill-slider"></span>
+                <script>
+                    window.addEventListener('DOMContentLoaded', () => {
+                        if (window.location.pathname === '/' || window.location.pathname === '/index.html') {
+                            if (window.location.hash === '#search') {
+                                setTimeout(() => {
+                                    document.querySelectorAll('#browse-tree .open').forEach(el => el.classList.remove('open'));
+                                    const s = document.getElementById('search-input');
+                                    if (s) { 
+                                        s.scrollIntoView({block: 'center'}); 
+                                        s.focus();
+                                    }
+                                    // Hapus #search dari URL biar kinclong
+                                    window.history.replaceState({}, "", window.location.pathname);
+                                }, 300);
+                            } else if (window.location.hash === '#chat') {
+                                setTimeout(() => {
+                                    const btn = document.getElementById('btn-chat-toggle');
+                                    if (btn) btn.click();
+                                    window.history.replaceState({}, "", window.location.pathname);
+                                }, 300);
+                            }
+                        }
+                    });
+                </script>
+
+                <div style="width: 2px; height: 22px; border-radius: 2px; background-color: var(--border-strong); margin: 0 6px; opacity: 0.75;"></div>
+
+                <style>
+                    .header-settings-group { display: flex; align-items: center; position: relative; }
+                    .mobile-settings-btn { display: none; }
+                    .header-settings-inner { display: flex; gap: 6px; align-items: center; }
+                    @media (max-width: 768px) {
+                        .mobile-settings-btn { display: flex; }
+                        .header-settings-inner {
+                            display: none; position: absolute; top: calc(100% + 12px); right: 0;
+                            background: var(--bg-card); padding: 8px; border-radius: var(--radius-md);
+                            border: 1px solid var(--border-strong); box-shadow: var(--shadow-lg);
+                            flex-direction: column; align-items: stretch; z-index: 1000; gap: 8px;
+                        }
+                        .header-settings-group.open .header-settings-inner { display: flex; }
+                        
+                        /* Make theme toggle fill the width and center its icons perfectly */
+                        .header-settings-inner #btn-theme-toggle { justify-content: space-between; }
+                        .header-settings-inner .theme-pill-opt { flex: 1; display: flex; justify-content: center; align-items: center; }
+                    }
+                    /* Browse dropdown badges (matches ID/EN badges but with pitaka colors) */
+                    .browse-badge { font-size: .68rem; font-weight: 700; letter-spacing: .04em; padding: 2px 6px; border-radius: 6px; flex-shrink: 0; }
+                    .browse-badge.sutta { background-color: rgba(52, 152, 219, 0.15); color: #2980b9; border: 1px solid rgba(52, 152, 219, 0.3); }
+                    .browse-badge.vinaya { background-color: rgba(231, 76, 60, 0.15); color: #c0392b; border: 1px solid rgba(231, 76, 60, 0.3); }
+                    .browse-badge.abhidhamma { background-color: rgba(39, 174, 96, 0.15); color: #1e8449; border: 1px solid rgba(39, 174, 96, 0.3); }
+                    [data-theme="dark"] .browse-badge.sutta { color: #5dade2; }
+                    [data-theme="dark"] .browse-badge.vinaya { color: #e74c3c; }
+                    [data-theme="dark"] .browse-badge.abhidhamma { color: #58d68d; }
+                    
+                    @keyframes browse-dd-in {
+                        from { opacity: 0; transform: translate(-50%, 10px) scale(0.97); }
+                        to { opacity: 1; transform: translateX(-50%); }
+                    }
+                    .browse-dd.open .lang-dd-menu {
+                        animation: browse-dd-in 0.14s ease backwards;
+                    }
+                </style>
+                <div class="header-settings-group">
+                    <button class="lang-dd-btn mobile-settings-btn" onclick="var grp = document.querySelector('.header-settings-group'); var isOp = grp.classList.contains('open'); document.querySelectorAll('.header-settings-group, .browse-dd').forEach(g => g.classList.remove('open')); if(!isOp) grp.classList.add('open'); event.stopPropagation();" title="Settings">
+                        <i data-lucide="settings"></i>
+                    </button>
+                    <div class="header-settings-inner">
+                        {# Dropdown bahasa KUSTOM (bukan <select> native — popup-nya tak bisa
+                           di-style): tombol pill setinggi theme-switcher, menu ikut theme. #}
+                        <div id="lang-select" class="lang-dd" data-i18n-title="title_lang_select" title="Bahasa Antarmuka">
+                            <button type="button" id="lang-dd-btn" class="lang-dd-btn" aria-haspopup="listbox"
+                                aria-expanded="false" aria-label="Bahasa Antarmuka">
+                                <i data-lucide="globe"></i><span id="lang-dd-label">ID</span>
+                                <i data-lucide="chevron-down" class="lang-dd-caret"></i>
+                            </button>
+                            {# Item dropdown dibangun otomatis oleh common.js dari Object.keys(DK_I18N).
+                               Nambah bahasa UI = tambah sub-dict di i18n.js + key lang_name_<code>. #}
+                            <div id="lang-dd-menu" class="lang-dd-menu" role="listbox"></div>
+                        </div>
+                        <div id="btn-theme-toggle" class="theme-pill" title="Toggle Light/Dark Mode">
+                            <span class="theme-pill-opt" data-theme="light"><i data-lucide="sun"></i></span>
+                            <span class="theme-pill-opt" data-theme="dark"><i data-lucide="moon"></i></span>
+                            <span class="theme-pill-slider"></span>
+                        </div>
+                    </div>
                 </div>
+                <script>
+                    document.addEventListener('click', function(e) {
+                        var grp = document.querySelector('.header-settings-group');
+                        if (grp && !grp.contains(e.target)) grp.classList.remove('open');
+                        var browseGrp = document.querySelector('.browse-dd');
+                        if (browseGrp && !browseGrp.contains(e.target)) browseGrp.classList.remove('open');
+                    });
+                </script>
                 <script>
                     (function () {
                         var theme = localStorage.getItem("dk-theme") || "light";
@@ -83,18 +192,15 @@
                                 o.classList.toggle("active", o.dataset.theme === theme);
                             });
                         }
-                        var lp = document.getElementById("btn-lang-toggle");
-                        if (lp) {
-                            lp.setAttribute("data-active", lang);
-                            lp.querySelectorAll(".lang-pill-opt").forEach(function (o) {
-                                o.classList.toggle("active", o.dataset.lang === lang);
-                            });
-                        }
-                        var savedW = localStorage.getItem("dk-notes-width");
+                        var lbl = document.getElementById("lang-dd-label");
+                        if (lbl) lbl.textContent = lang.toUpperCase();
+                        // Lebar panel samping (SATU aturan utk Catatan & AI Chat) —
+                        // di-restore sedini mungkin biar tak flash saat load.
+                        var savedW = localStorage.getItem("dk-side-width");
                         if (savedW && window.innerWidth >= 769) {
                             var w = parseInt(savedW);
-                            if (w >= 280 && w <= 600) {
-                                document.documentElement.style.setProperty("--notes-panel-w", w + "px");
+                            if (w >= 370 && w <= 560) {
+                                document.documentElement.style.setProperty("--side-panel-w", w + "px");
                             }
                         }
                     })();
@@ -104,13 +210,6 @@
     </header>
 
     <!-- ==================== MAIN LAYOUT ==================== -->
-    <button id="btn-panel-toggle" class="panel-toggle-btn" aria-label="Toggle panel Catatan">
-        <i data-lucide="{% block panel_toggle_icon %}pen-line{% endblock %}" class="panel-toggle-icon"></i>
-        <span class="panel-toggle-label" data-i18n-html="notes_title_mobile">
-            {% block panel_toggle_label %}Catatan{% endblock %}
-        </span>
-        <i data-lucide="chevron-left" class="panel-toggle-chevron"></i>
-    </button>
     <div id="panel-backdrop"></div>
     <main id="app-main">
         <!-- ========= LEFT: SEARCH/READER PANEL ========= -->
@@ -158,6 +257,64 @@
                     </div>
                 </footer>
             </div>
+
+            <!-- Overlay skeleton transisi navigasi (suttaplex/reader). Ditampilkan saat
+                 klik link menuju halaman konten (body.is-navigating, di-set common.js);
+                 nutup panel selama nunggu halaman baru ke-load -> feedback instan di
+                 jaringan real. Progressive-enhancement: JS mati -> nav biasa tetap jalan. -->
+            <div id="nav-skeleton" aria-hidden="true">
+                <!-- Bar breadcrumb full-width NEMPEL pojok atas (mirror .suttaplex-breadcrumbs
+                     yg bleed keluar padding #search-scroll: bg-secondary + border-bottom) -->
+                <div class="nav-sk-crumbbar" style="min-height: 38px;">
+                    <div class="nav-sk-crumb" style="width:78px"></div>
+                    <span class="nav-sk-sep"><i data-lucide="chevron-right" style="width:14px; height:14px; color:var(--text-muted); opacity:0.5;"></i></span>
+                    <div class="nav-sk-crumb" style="width:110px"></div>
+                    <span class="nav-sk-sep"><i data-lucide="chevron-right" style="width:14px; height:14px; color:var(--text-muted); opacity:0.5;"></i></span>
+                    <div class="nav-sk-crumb" style="width:96px"></div>
+                    <span class="nav-sk-sep"><i data-lucide="chevron-right" style="width:14px; height:14px; color:var(--text-muted); opacity:0.5;"></i></span>
+                    <div class="nav-sk-crumb" style="width:170px"></div>
+                </div>
+                <div class="nav-sk-scroll">
+                    <div class="nav-sk-wrap">
+                        <div class="nav-sk-header">
+                            <div class="nav-sk-idrow">
+                                <div class="nav-sk-back"></div>
+                                <div class="nav-sk-bar" style="width:84px;height:18px;margin:0"></div>
+                            </div>
+                            <div class="nav-sk-bar" style="width:46%;max-width:360px;height:30px;margin:0"></div>
+                        </div>
+                        
+                        <!-- blurb -->
+                        <div class="nav-sk-blurb">
+                            <div class="nav-sk-bar" style="width:100%;height:14px;margin:0"></div>
+                            <div class="nav-sk-bar" style="width:92%;height:14px;margin:0"></div>
+                            <div class="nav-sk-bar" style="width:68%;height:14px;margin:0"></div>
+                        </div>
+
+                        <!-- langs -->
+                        <div class="nav-sk-langs">
+                            <div class="nav-sk-srcrow">
+                                <div class="nav-sk-srcgroup" style="flex:1 1 46%">
+                                    <div class="nav-sk-bar nav-sk-label" style="width:150px"></div>
+                                    <div class="nav-sk-grid">
+                                        <div class="nav-sk-chip" style="width:100%;max-width:520px"></div>
+                                    </div>
+                                    <!-- legend -->
+                                    <div class="nav-sk-bar" style="width:280px;height:12px;margin:10px 0 0 0"></div>
+                                </div>
+                                <div class="nav-sk-srcgroup" style="flex:1 1 46%">
+                                    <div class="nav-sk-bar nav-sk-label" style="width:82px"></div>
+                                    <div class="nav-sk-grid">
+                                        <div class="nav-sk-chip locked"></div>
+                                        <div class="nav-sk-chip locked"></div>
+                                        <div class="nav-sk-chip locked"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             {% block panel_overlays %}{% endblock %}
         </section>
 
@@ -170,14 +327,14 @@
             <div class="notes-header glass-panel">
                 <div class="notes-header-top">
                     <h2 data-i18n-html="notes_title"><i data-lucide="pen-line"></i> Catatan</h2>
-                    <button id="btn-fullscreen-notes" class="icon-btn" title="Layar Penuh"><i data-lucide="maximize"
+                    <button id="btn-fullscreen-notes" class="icon-btn" data-i18n-title="title_fullscreen" title="Layar Penuh"><i data-lucide="maximize"
                             class="icon-expand"></i>
                         <!-- <i data-lucide="minimize" class="icon-collapse" style="display:none"></i> -->
                     </button>
                     <button id="btn-manage-notes" class="btn-secondary btn-sm" data-i18n="btn_manage_notes"
-                        title="Kelola catatan" disabled>Kelola</button>
+                        data-i18n-title="title_manage_notes" title="Kelola catatan" disabled>Kelola</button>
                     <button id="btn-new-note" class="btn-secondary btn-sm" data-i18n="btn_new_note"
-                        title="Buat catatan baru">+ Baru</button>
+                        data-i18n-title="title_new_note" title="Buat catatan baru">+ Baru</button>
                 </div>
                 <div id="notes-list" class="notes-list"></div>
             </div>
@@ -187,24 +344,24 @@
                     <input type="text" id="note-title-input" class="note-title-input"
                         data-i18n-placeholder="ph_note_title" placeholder="Judul catatan…" value="">
                     <div class="note-title-actions">
-                        <button id="btn-copy-note" class="icon-btn" title="Salin catatan"><i
+                        <button id="btn-copy-note" class="icon-btn" data-i18n-title="title_copy_note" title="Salin catatan"><i
                                 data-lucide="clipboard-list"></i></button>
-                        <button id="btn-download-note" class="icon-btn" title="Unduh sebagai PDF"><i
+                        <button id="btn-download-note" class="icon-btn" data-i18n-title="title_download_pdf" title="Unduh sebagai PDF"><i
                                 data-lucide="download"></i></button>
-                        <button id="btn-delete-note" class="icon-btn danger" title="Hapus catatan"><i
+                        <button id="btn-delete-note" class="icon-btn danger" data-i18n-title="title_delete_note" title="Hapus catatan"><i
                                 data-lucide="trash-2"></i></button>
                     </div>
                 </div>
                 <div id="note-meta-dates" class="note-meta-dates"></div>
                 <div id="note-blocks" class="note-blocks"></div>
-                <button id="btn-add-text-block" class="btn-ghost" data-i18n="btn_add_text" title="Tambah blok teks">+
+                <button id="btn-add-text-block" class="btn-ghost" data-i18n="btn_add_text" data-i18n-title="title_add_text_block" title="Tambah blok teks">+
                     Ketik Teks Sendiri</button>
                 <div id="paste-block-container"
                     style="display:none; align-items: center; gap: 8px; width: 100%; margin-top: 8px;">
-                    <button id="btn-paste-block" class="btn-ghost" title="Tempel Blok"
+                    <button id="btn-paste-block" class="btn-ghost" data-i18n-title="title_paste_block" title="Tempel Blok"
                         style="margin-top: 0; flex: 1;"><i data-lucide="clipboard"></i> <span
                             data-i18n="btn_paste_block">Tempel Blok</span></button>
-                    <button id="btn-clear-paste" class="btn-ghost danger" title="Hapus Salinan"
+                    <button id="btn-clear-paste" class="btn-ghost danger" data-i18n-title="title_clear_paste" title="Hapus Salinan"
                         style="margin-top: 0; width: auto; padding: 8px 12px;"><i data-lucide="x"></i></button>
                 </div>
                 <div
@@ -223,9 +380,38 @@
                 <p data-i18n-html="notes_empty">Pilih atau buat catatan baru<br>untuk mulai menyusun pembabaran Dhamma.
                 </p>
                 <button id="btn-empty-new-note" class="btn-secondary btn-sm" data-i18n="btn_empty_new_note"
-                    title="Buat catatan baru">+ Buat Catatan Baru</button>
+                    data-i18n-title="title_new_note" title="Buat catatan baru">+ Buat Catatan Baru</button>
             </div>
         </section>
+        {% endblock %}
+
+        {# ========= CHAT PANEL (kanan; lazy-mount oleh DK.openChat) =========
+           Urutan VISUAL diatur CSS `order` di #app-main (notes tampil kiri di
+           desktop tanpa memindah DOM): notes(0) resize(1) search(2) chat(3). #}
+        {% block chat_panel %}
+        <section id="chat-panel" aria-label="AI Chat">
+            <div id="chat-root" class="chat-root"></div>
+        </section>
+        {% endblock %}
+
+        {# ========= SIDE RAIL (ribbon ala Office/VS Code): menu vertikal PERMANEN
+           di tepi kanan — klik item = buka panelnya (saling eksklusif); klik item
+           aktif = tutup panel (rail tetap ada). #}
+        {% block side_rail %}
+        <nav id="side-rail" aria-label="Panel samping">
+            <button id="btn-panel-toggle" class="rail-btn" aria-label="Toggle panel Catatan">
+                <i data-lucide="{% block panel_toggle_icon %}pen-line{% endblock %}" class="rail-btn-icon"></i>
+                <span class="rail-btn-label" data-i18n-html="notes_title_mobile">
+                    {% block panel_toggle_label %}Catatan{% endblock %}
+                </span>
+            </button>
+            {% block chat_toggle %}
+            <button id="btn-chat-toggle" class="rail-btn rail-btn-ai" aria-label="Toggle panel AI Chat">
+                <i data-lucide="sparkles" class="rail-btn-icon"></i>
+                <span class="rail-btn-label" data-i18n="chat_toggle_label">AI Chat</span>
+            </button>
+            {% endblock %}
+        </nav>
         {% endblock %}
 
     </main>
@@ -258,9 +444,24 @@
             </div>
         </div>
         <div class="sutta-dialog-body">
-            <div id="sutta-dialog-loading" class="empty-state hidden">
-                <div class="spinner"></div>
-                <p>Memuat teks…</p>
+            <div id="sutta-dialog-loading" class="sutta-skeleton hidden">
+                <div class="sk-para">
+                    <div class="sk-line" style="width:100%"></div>
+                    <div class="sk-line" style="width:100%"></div>
+                    <div class="sk-line" style="width:90%"></div>
+                    <div class="sk-line" style="width:85%"></div>
+                </div>
+                <div class="sk-para">
+                    <div class="sk-line" style="width:100%"></div>
+                    <div class="sk-line" style="width:95%"></div>
+                    <div class="sk-line" style="width:100%"></div>
+                    <div class="sk-line" style="width:60%"></div>
+                </div>
+                <div class="sk-para">
+                    <div class="sk-line" style="width:100%"></div>
+                    <div class="sk-line" style="width:80%"></div>
+                    <div class="sk-line" style="width:90%"></div>
+                </div>
             </div>
             <div id="sutta-dialog-error" class="empty-state hidden">
                 <div class="empty-icon"><i data-lucide="triangle-alert"></i></div>
@@ -396,19 +597,7 @@
                 autocomplete="off"
                 style="flex: 1; min-width: 0; padding: 8px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-strong); background: var(--bg-tertiary); color: var(--text); font-size: 0.9rem;">
         </div>
-        <div
-            style="display: flex; align-items: center; text-align: center; margin: 12px 0; color: var(--text-muted); font-size: 0.75rem;">
-            <hr style="flex: 1; border: none; border-top: 1px solid var(--border); margin-right: 8px;">
-            <span data-i18n="goto_or">atau</span>
-            <hr style="flex: 1; border: none; border-top: 1px solid var(--border); margin-left: 8px;">
-        </div>
-        <div>
-            <input type="text" id="goto-title" data-i18n-placeholder="goto_title_ph"
-                placeholder="Cari berdasarkan judul..." autocomplete="off"
-                style="width: 100%; padding: 8px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-strong); background: var(--bg-tertiary); color: var(--text); font-size: 0.9rem;">
-        </div>
-        <hr style="border: none; border-top: 1px solid var(--border); margin: 14px 0 10px 0;">
-        <div id="goto-preview" style="min-height: 1.3em; font-size: 0.85rem; color: var(--text-muted);"></div>
+        <div id="goto-preview" style="min-height: 1.3em; font-size: 0.85rem; color: var(--text-muted); margin-top: 14px;"></div>
         <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
             <button type="button" class="btn-primary" id="btn-goto-go" style="padding: 6px 18px;"><span
                     data-i18n="goto_btn_open">Buka</span></button>
@@ -418,13 +607,68 @@
     <script id="dk-bilara-author-names" type="application/json">{{ bilara_author_names | tojson }}</script>
     <script id="dk-edition-author-names" type="application/json">{{ edition_author_names | tojson }}</script>
     <script id="dk-lang-names" type="application/json">{{ lang_names | tojson }}</script>
+    {# Peta istilah (Sanskerta/typo -> Pali) SATU SUMBER dari TERM_MAP app.py — dipakai
+       enforceTheravadaTerms chat.js saat streaming, identik dgn penegakan final backend. #}
+    <script id="dk-term-map" type="application/json">{{ term_map | tojson }}</script>
     <script>
         window.DK_BILARA_AUTHOR_NAMES = JSON.parse(document.getElementById('dk-bilara-author-names').textContent);
         window.DK_EDITION_AUTHOR_NAMES = JSON.parse(document.getElementById('dk-edition-author-names').textContent);
         window.DK_LANG_NAMES = JSON.parse(document.getElementById('dk-lang-names').textContent);
+        window.DK_TERM_MAP = JSON.parse(document.getElementById('dk-term-map').textContent);
     </script>
     <script src="{{ versioned_static('lucide.min.js') }}"></script>
+    <script src="{{ versioned_static('i18n.js') }}"></script>
     <script src="{{ versioned_static('common.js') }}"></script>
+    <script src="{{ versioned_static('chat.js') }}"></script>
+
+    <!-- ==================== ENSEMBLE MANAGER DIALOG (shared across all pages) ==================== -->
+    <!-- max-height + flex column (via CSS #ensemble-manager[open]): di layar pendek dialog
+         tak boleh meluber ke bawah viewport --- dulu footer (reranker + Reset/Simpan) kedorong
+         keluar layar & tak terjangkau. Area scroll = #ensemble-checkboxes saja. -->
+    <dialog id="ensemble-manager" class="dk-dialog"
+        style="width: 500px; max-width: 90vw; padding: 20px; border-radius: 8px; border: 1px solid var(--border-strong); background: var(--bg-primary); color: var(--text); position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); margin: 0; box-shadow: 0 16px 48px rgba(0,0,0,0.5);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h3 style="margin: 0; font-size: 1.1rem;"><i data-lucide="sliders-horizontal"
+                    style="vertical-align: -2px; margin-right: 4px;"></i> <span data-i18n="config_search_engine">Konfigurasi
+                    Mesin Pencari</span></h3>
+            <button class="nm-close-btn" id="btn-close-ensemble"><i data-lucide="x"
+                    style="width:16px; height:16px;"></i></button>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px; flex: 1 1 auto; min-height: 0; overflow-y: auto; padding-right: 8px; margin-bottom: 16px;">
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0 0 8px 0;" data-i18n="config_search_engine_desc">
+                Centang model yang ingin digabungkan pada pencarian biasa (bukan mode tingkat lanjut). Konfigurasi per korpus
+                (ID,
+                EN, PLI).</p>
+            <div
+                style="background-color: var(--surface-hover); border-left: 3px solid var(--accent); padding: 8px 12px; border-radius: 4px; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-secondary);">
+                <i data-lucide="alert-triangle"
+                    style="width: 14px; height: 14px; display: inline-block; vertical-align: -2px; margin-right: 4px; color: var(--accent);"></i>
+                <span data-i18n="hint_ensemble_warning">Ubah konfigurasi ini hanya jika Anda paham, karena akan sangat
+                    memengaruhi hasil pencarian. Anda dapat mereset kapan saja, konfigurasi ini hanya tersimpan secara
+                    lokal.</span>
+            </div>
+            <div id="ensemble-checkboxes" style="display: flex; flex-direction: column; gap: 8px;">
+                <!-- Rendered via JS -->
+            </div>
+        </div>
+        <div
+            style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px 16px; border-top: 1px solid var(--border); padding-top: 12px; flex-shrink: 0;">
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem;">
+                <input type="checkbox" id="chk-enable-rerank" style="accent-color: var(--accent); cursor: pointer;" checked>
+                <label for="chk-enable-rerank" style="cursor: pointer; color: var(--text-primary);"><i data-lucide="zap" style="width: 14px; height: 14px; vertical-align: -2px; margin-right: 2px;"></i> <span data-i18n="lbl_use_reranker">Gunakan Reranker (exp5)</span></label>
+            </div>
+            <div style="display: flex; align-items: center; gap: 16px; margin-left: auto;">
+                <button type="button" id="btn-reset-ensemble"
+                    style="background: transparent; border: none; padding: 0; color: var(--text-muted); font-size: 0.8rem; display: flex; align-items: center; gap: 4px; cursor: pointer; transition: color 0.15s;"
+                    onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--text-muted)'">
+                    <i data-lucide="rotate-ccw" style="width:14px; height:14px;"></i> <span data-i18n="btn_reset">Reset</span>
+                </button>
+                <button type="button" class="btn-primary" id="btn-save-ensemble" style="padding: 6px 16px;"><span
+                        data-i18n="btn_save">Simpan</span></button>
+            </div>
+        </div>
+    </dialog>
+
     {% block scripts %}{% endblock %}
 </body>
 

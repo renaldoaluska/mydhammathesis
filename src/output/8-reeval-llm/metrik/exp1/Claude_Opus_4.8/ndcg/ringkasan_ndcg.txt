@@ -1,0 +1,11 @@
+=== nDCG (LLM judge) — 2026-07-09 11:46 ===
+Judge: Claude Opus 4.8
+
+   1. @5=0.6727  multilingual-e5-base (B,ID)
+   2. @5=0.6569  gte-multilingual-base (B,ID)
+   3. @5=0.6402  gpl-multilingual-e5-base (exp1,ID)
+   4. @5=0.6296  bge-m3 (B,ID)
+   5. @5=0.6282  gpl-gte-multilingual-base (GPL,ID)
+   6. @5=0.6177  gpl-gte-multilingual-base (exp1,ID)
+   7. @5=0.6002  gpl-multilingual-e5-base (GPL,ID)
+   8. @5=0.5102  BM25 (B,ID)

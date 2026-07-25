@@ -13,9 +13,32 @@ from pathlib import Path
 
 import pandas as pd
 from sklearn.metrics import cohen_kappa_score
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import load_annotations, figdir  # noqa: E402
+from common import load_annotations, figdir, nama_display  # noqa: E402
+
+def _save_heatmap(df, val_col, title, outfile):
+    sns.set_theme(style="white")
+    pakars = sorted(list(set(df["Pakar A"]).union(set(df["Pakar B"]))))
+    matrix = pd.DataFrame(index=pakars, columns=pakars, dtype=float)
+    for _, row in df.iterrows():
+        a, b, val = row["Pakar A"], row["Pakar B"], row[val_col]
+        matrix.loc[a, b] = matrix.loc[b, a] = val
+    for p in pakars:
+        matrix.loc[p, p] = 1.0
+    # rapikan label sumbu jadi nama pakar bergelar (bukan underscore)
+    matrix.index = [nama_display(p) for p in matrix.index]
+    matrix.columns = [nama_display(p) for p in matrix.columns]
+    fig, ax = plt.subplots(figsize=(7, 6))
+    sns.heatmap(matrix, annot=True, fmt=".2f", cmap="YlGnBu", vmin=-1, vmax=1, ax=ax)
+    ax.set_title(title)
+    fig.tight_layout()
+    fig.savefig(outfile, dpi=150, bbox_inches="tight")
+    plt.close(fig)
 
 
 def main():
@@ -58,6 +81,8 @@ def main():
 
     res = pd.DataFrame(rows)
     res.to_csv(OUT / "iaa_pairwise.csv", index=False, encoding="utf-8-sig")
+    if len(res) > 0:
+        _save_heatmap(res, "Kappa(quad)", "IAA (Cohen's Kappa)", OUT / "plot_iaa.png")
     print("\n" + res.to_string(index=False))
 
     valid = res["Kappa(quad)"].dropna()

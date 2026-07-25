@@ -1,0 +1,61 @@
+﻿Korpus,Family,query_id,kueri,B,GPL,exp6,Δ(GPL-B)
+ID,multilingual-e5-base,24,apa yang terjadi pada saat pencapaian pencerahan,1.0,0.0,,-1.0
+ID,multilingual-e5-base,14,apa makna kekosongan,1.0,0.0,,-1.0
+ID,gte-multilingual-base,7,penjelasan tentang perhatian murni,1.0,0.2,0.6,-0.8
+ID,multilingual-e5-base,1,cara mengatasi kemarahan,1.0,0.2,,-0.8
+ID,multilingual-e5-base,11,siapa yang layak disebut sebagai brahmana,0.6,0.0,,-0.6
+ID,multilingual-e5-base,27,jenis jenis karma buruk,0.8,0.2,,-0.6
+ID,gte-multilingual-base,26,bersatu di kehidupan selanjutnya,0.8,0.2,0.2,-0.6
+ID,gte-multilingual-base,11,siapa yang layak disebut sebagai brahmana,0.8,0.2,0.4,-0.6
+ID,multilingual-e5-base,23,penjelasan tentang pandangan terang,0.8,0.4,,-0.4
+ID,multilingual-e5-base,5,perumpamaan perumpamaan,1.0,0.6,,-0.4
+ID,gte-multilingual-base,24,apa yang terjadi pada saat pencapaian pencerahan,0.8,0.6,0.6,-0.2
+ID,gte-multilingual-base,17,kewajiban seorang umat awam,0.8,0.6,0.6,-0.2
+ID,gte-multilingual-base,16,harta yang paling bernilai,1.0,0.8,0.4,-0.2
+ID,gte-multilingual-base,15,apa kualitas yang harus dimiliki oleh seorang penceramah,1.0,0.8,0.4,-0.2
+ID,gte-multilingual-base,4,mengapa harus membalas budi orangtua,0.8,0.6,0.6,-0.2
+ID,gte-multilingual-base,2,cara mengatasi ngantuk,0.2,0.0,0.0,-0.2
+ID,multilingual-e5-base,9,jenis jenis kotoran batin,0.6,0.4,,-0.2
+ID,multilingual-e5-base,8,manfaat pelaksaan sila,0.4,0.2,,-0.2
+ID,multilingual-e5-base,7,penjelasan tentang perhatian murni,0.4,0.2,,-0.2
+ID,multilingual-e5-base,19,jenis jenis kemelekatan,1.0,0.8,,-0.2
+ID,multilingual-e5-base,25,perasaan malu dan takut,1.0,0.8,,-0.2
+ID,multilingual-e5-base,29,jenis orang yang tak boleh ditahbiskan,0.2,0.0,,-0.2
+ID,multilingual-e5-base,28,berbagai jenis perbuatan baik,1.0,0.8,,-0.2
+ID,multilingual-e5-base,21,jenis jenis manusia,1.0,0.8,,-0.2
+ID,gte-multilingual-base,12,kewajiban seorang bhikkhu,1.0,0.8,0.8,-0.2
+ID,gte-multilingual-base,27,jenis jenis karma buruk,0.6,0.4,0.4,-0.2
+ID,gte-multilingual-base,30,apa itu proliferasi mental,1.0,1.0,0.4,0.0
+ID,gte-multilingual-base,29,jenis orang yang tak boleh ditahbiskan,0.0,0.0,0.2,0.0
+ID,gte-multilingual-base,14,apa makna kekosongan,0.8,0.8,,0.0
+ID,gte-multilingual-base,13,berbagai jenis pemberian,0.4,0.4,0.4,0.0
+ID,gte-multilingual-base,5,perumpamaan perumpamaan,1.0,1.0,1.0,0.0
+ID,gte-multilingual-base,3,apa penyebab penderitaan,1.0,1.0,1.0,0.0
+ID,multilingual-e5-base,26,bersatu di kehidupan selanjutnya,0.0,0.0,,0.0
+ID,multilingual-e5-base,22,cara mengikis kotoran batin,0.4,0.4,,0.0
+ID,multilingual-e5-base,17,kewajiban seorang umat awam,0.8,0.8,,0.0
+ID,multilingual-e5-base,18,penyebab gempa bumi,1.0,1.0,,0.0
+ID,multilingual-e5-base,13,berbagai jenis pemberian,0.4,0.4,,0.0
+ID,multilingual-e5-base,12,kewajiban seorang bhikkhu,0.8,0.8,,0.0
+ID,multilingual-e5-base,10,kriteria kesucian,0.2,0.2,,0.0
+ID,multilingual-e5-base,15,apa kualitas yang harus dimiliki oleh seorang penceramah,0.8,0.8,,0.0
+ID,multilingual-e5-base,20,penggambaran terhadap keagungan buddha,0.4,0.4,,0.0
+ID,gte-multilingual-base,18,penyebab gempa bumi,1.0,1.0,1.0,0.0
+ID,gte-multilingual-base,20,penggambaran terhadap keagungan buddha,0.2,0.2,0.2,0.0
+ID,gte-multilingual-base,19,jenis jenis kemelekatan,1.0,1.0,0.8,0.0
+ID,gte-multilingual-base,25,perasaan malu dan takut,1.0,1.0,0.4,0.0
+ID,gte-multilingual-base,22,cara mengikis kotoran batin,0.6,0.6,0.4,0.0
+ID,multilingual-e5-base,3,apa penyebab penderitaan,1.0,1.0,,0.0
+ID,multilingual-e5-base,4,mengapa harus membalas budi orangtua,0.8,0.8,,0.0
+ID,multilingual-e5-base,30,apa itu proliferasi mental,1.0,1.0,,0.0
+ID,gte-multilingual-base,6,apa itu kemurahan hati,0.2,0.4,,0.2
+ID,multilingual-e5-base,16,harta yang paling bernilai,0.8,1.0,,0.2
+ID,multilingual-e5-base,6,apa itu kemurahan hati,0.2,0.4,,0.2
+ID,gte-multilingual-base,9,jenis jenis kotoran batin,0.2,0.4,0.4,0.2
+ID,gte-multilingual-base,10,kriteria kesucian,0.0,0.2,,0.2
+ID,gte-multilingual-base,21,jenis jenis manusia,0.8,1.0,1.0,0.2
+ID,gte-multilingual-base,28,berbagai jenis perbuatan baik,0.8,1.0,0.8,0.2
+ID,gte-multilingual-base,8,manfaat pelaksaan sila,0.0,0.4,0.2,0.4
+ID,multilingual-e5-base,2,cara mengatasi ngantuk,0.6,1.0,,0.4
+ID,gte-multilingual-base,23,penjelasan tentang pandangan terang,0.0,0.4,0.4,0.4
+ID,gte-multilingual-base,1,cara mengatasi kemarahan,0.4,1.0,0.2,0.6

@@ -1,0 +1,466 @@
+================================================================================
+  RANGKUMAN HASIL LENGKAP — BAHAN BAB 4 (HASIL) TUGAS AKHIR
+  "Sistem Temu Balik Informasi untuk Pencarian Semantik Multibahasa pada
+   Kanon Pali dengan Adaptasi Domain Model Bahasa Berbasis Transformer"
+  Disusun 2026-07-07; diperbarui 2026-07-09 (keluarga soup exp4.0-4.3 +
+  exp5.0 selesai dinilai 2 judge). CAKUPAN: SELURUH alur hasil — sistem &
+  data, adaptasi GPL (exp0) vs base (asesmen pakar 5-eval), validasi
+  LLM-judge (6-eval-llm), dan seluruh eksperimen lanjutan exp1-exp5
+  (7-retraining + 8-reeval-llm).
+================================================================================
+
+KONVENSI SITASI: tiap klaim ditandai [sumber: <file | metode>], path relatif
+thd src/output/ (data) atau src/code/ (kode). Dokumen detail per-tahap:
+  - 5-eval/rangkuman_analisis.txt            (detail base vs GPL, pakar + LLM)
+  - 8-reeval-llm/metrik/exp1/rangkuman_analisis_exp1.txt  (detail exp1)
+  - code/7-retraining/perbedaan-eksperimen.txt (peta desain, pre-registration,
+    landasan akademis pemilihan komponen)
+  - 8-reeval-llm/metrik/<exp>/signifikansi*.txt (uji statistik per eksperimen)
+File ini = SINTESIS; angka diambil apa adanya dari artefak run di atas.
+
+--------------------------------------------------------------------------------
+[0] DESAIN EKSPERIMEN & HARNESS EVALUASI
+--------------------------------------------------------------------------------
+Harness IDENTIK untuk semua sistem: 30 kueri pakar held-out (bahasa Indonesia),
+korpus ID, top-5 per sistem, rubrik relevansi 0-3 (gaya TREC), pool pasase unik
+di-dedup by (query, ref, author); grade pasase BEKU dan di-reuse lintas
+eksperimen (pasase sama tidak dinilai ulang -> konsistensi + hemat biaya);
+pasase kembar-teks (isi identik utk kueri yang sama pada segmen berbeda)
+mewarisi grade yang sama saat perakitan anotasi.
+  [sumber: code/8-reeval-llm/1-get_pasase.py (docstring) & 3-assemble.py;
+   7-retraining/pool/*.csv]
+
+Penilai: 4 pakar manusia (tahap base vs GPL) + 2 LLM-judge (Claude Opus 4.8,
+Gemini 3.1 Pro) sebagai instrumen tervalidasi-silang untuk seluruh eksperimen
+lanjutan. Konsensus antar-judge dipakai sebagai angka utama.
+
+Peta eksperimen (prinsip: SATU variabel per eksperimen; numbering final):
+  base = e5/gte murni tanpa training (acuan)
+  exp0 = "GPL" = replikasi resep GPL as-published (kueri sintetis doc2query-mT5
+         + teacher mmarco-mMiniLMv2 + MarginMSE; 563.073 contoh; 10.000 steps)
+  exp1 = ablasi steps 10k->5k          (vs exp0; 1 var: STEPS)
+  exp2 = query generator mT5->gemma2:2b (vs exp0; 1 var: KUERI)
+  exp3 = teacher /mo (vs exp2; 1 var: TEACHER; off-gate)
+  exp4.0-4.3 = KELUARGA MODEL SOUP θ=0.5·base+0.5·<ckpt>, tanpa training:
+           4.0 base⊕exp0, 4.1 base⊕exp1, 4.2 base⊕exp2, 4.3 base⊕exp3
+           (awalnya 1 titik "exp4"=4.0; diekspansi jadi keluarga 2026-07-08;
+           label lama "exp4" pada anotasi/metrik beku = exp4.0)
+  exp5.base = KELAS SISTEM: base retriever + rerank bge-reranker-v2-m3 (vs base)
+           (= "exp5" lama; di-rename saat keluarga 5.X diperluas 2026-07-07)
+  exp5.0-5.4 = rerank IDENTIK di atas retriever hasil adaptasi: 5.0 atas exp0,
+           5.1 atas exp1, 5.2 atas exp2, 5.3 atas exp3, 5.4 atas exp4.0
+           (vs GPL & vs base)
+  [sumber: code/7-retraining/perbedaan-eksperimen.txt (tabel garis utama,
+   pre-registration exp4/exp5, provenance renumber exp4->exp5 pra-judging)]
+
+--------------------------------------------------------------------------------
+[1] SISTEM & DATA (ringkas; detail arsitektur di bab 3)
+--------------------------------------------------------------------------------
+Korpus SuttaCentral tiga bahasa; indeks chunk hasil praproses:
+  id: 52.707 | en: 355.066 | pli: 443.145 chunk
+  (sumber dokumen: 7.289 bilara + 6.326 html + 24.291 nama + 22.762 pitaka
+   + 5.560 blurb)
+  [sumber: log build pool 7-retraining/exp*.log baris [reader]/[index]]
+Data adaptasi GPL: ~189K pasase (id+en) -> 563.073 contoh latih (3 kueri
+sintetis per pasase, sesuai rumus QPP paper GPL untuk |C|=189K).
+  [sumber: 7-retraining/gpl-exp2/{passages,queries,triples}.jsonl;
+   konformitas resep: perbedaan-eksperimen.txt LANDASAN AKADEMIS]
+Model student: multilingual-e5-base (Wang dkk. 2024) & gte-multilingual-base
+(mGTE, Zhang dkk. 2024) — model retrieval-native multilingual (registry §2
+rencana.txt); baseline pembanding: BM25 dan bge-m3.
+
+--------------------------------------------------------------------------------
+[2] HASIL TAHAP ADAPTASI: GPL (exp0) vs BASE — ASESMEN PAKAR (n=30, 4 pakar)
+--------------------------------------------------------------------------------
+GPL TIDAK memperbaiki relevansi ekstrinsik; P@5 malah SIGNIFIKAN lebih buruk:
+  nDCG@5  : gte base .6982 vs gpl .6748 (Δ-.0234, ns p=.58)
+            e5  base .7123 vs gpl .6475 (Δ-.0648, ns p=.20)
+  P@5     : gte Δ-.0800 Wilcoxon p=.0235 SIG ; e5 Δ-.1267 sign-test p=.0414 SIG
+            gabungan 68% kueri minus, sign-test p=.0336 SIG
+  Spearman: arah negatif, ns.
+Base >= GPL di SEMUA metrik; tidak ada satu metrik pun GPL unggul.
+  [sumber: 5-eval/rangkuman_analisis.txt §1-2; signifikansi via
+   code/5-eval/7-signifikansi.py | scipy wilcoxon/binomtest]
+
+PARADOKS INTRINSIK vs EKSTRINSIK: GPL menang telak pada geometri embedding —
+gap cosine intra/inter-sutta gpl-gte .2103 / gpl-e5 .2033 vs e5-base .0509
+(~4x) — namun kalah pada relevansi terjilid-pakar. Objektif MarginMSE menajamkan
+separabilitas antar-sutta, tetapi proxy relevansinya meleset dari relevansi
+fine-grained domain Pali/Buddhis.
+  [sumber: 5-eval/rangkuman_analisis.txt §6; 5-eval/2-intrinsic/]
+
+Audit keadilan: pipeline prefix e5 ("query: "/"passage: ") diverifikasi
+konsisten train<->inferensi di 4 titik; regresi gpl-e5 BUKAN artefak teknis.
+  [sumber: 5-eval/rangkuman_analisis.txt §5]
+
+--------------------------------------------------------------------------------
+[3] VALIDITAS INSTRUMEN: LLM-JUDGE SEBAGAI PROXY PAKAR
+--------------------------------------------------------------------------------
+- IAA pakar (4 manusia, kappa quadratic rata-rata): 0.4576 ("sedang") —
+  mencerminkan subjektivitas relevansi doktrinal.
+- IAA LLM-judge (Claude vs Gemini): 0.6143 ("baik") pada tahap base/GPL;
+  stabil 0.62-0.65 di seluruh eksperimen lanjutan (exp1 .6440, exp2 .6460,
+  exp3 .6534*, exp4.0 .6340*, exp5.base .6247*; keluarga 2026-07-09:
+  exp4.1 .6326, exp4.2 .6316, exp4.3 .6394, exp5.0 .6295; n pasase 659-737).
+  (*) urutan file per dir; lihat metrik/<exp>/konsensus/iaa/ringkasan_iaa.txt.
+- LLM-judge MEREPRODUKSI puncak ranking pakar (e5-base > gte-base > gpl-gte)
+  dan menempatkan gpl-e5 rendah, konsisten dengan pakar.
+- CAVEAT: distribusi grade Gemini timpang (cenderung lunak); konsensus 2 judge
+  dipakai untuk meredam gaya individual. LLM-judge = TRIANGULASI instrumen,
+  bukan pengganti ground-truth pakar.
+  [sumber: 5-eval/rangkuman_analisis.txt §4; 8-reeval-llm/metrik/*/konsensus/iaa/]
+
+--------------------------------------------------------------------------------
+[4] EKSPERIMEN PERBAIKAN RESEP ADAPTASI (exp1-exp3) — KONSENSUS 2 LLM-JUDGE
+--------------------------------------------------------------------------------
+exp1 — STEPS 10k->5k (hipotesis: over-adaptation karena langkah berlebih)
+  nDCG@5: e5 .6104, gte .5927 (base .7199/.6796 di harness yang sama).
+  vs base: e5 SIG lebih buruk (nDCG p=.0118, P@5 p=.0033); P@5 gabungan
+  SIG (p=.0115). vs exp0: mixed — gte malah SIG di bawah exp0 (p=.048).
+  KESIMPULAN: hipotesis TIDAK terdukung; jumlah langkah bukan pengungkit.
+  [sumber: metrik/exp1/rangkuman_analisis_exp1.txt; metrik/exp1/signifikansi.txt]
+
+exp2 — KUERI SINTETIS mT5 -> LLM gemma2:2b (hipotesis: kueri mT5 junk/mismatch)
+  nDCG@5: e5 .6242, gte .5969 (base .7272/.6888).
+  vs exp0 (lawan sah): e5 +.010 ns; gte -.072 p=.055; menang/kalah gabungan
+  27/27, sign-test p=1.0 -> NULL. P@5 gte SIG turun (p=.045).
+  KESIMPULAN: mengganti generator kueri TIDAK menyelamatkan adaptasi;
+  garis flow keputusan adaptasi DITUTUP di titik ini.
+  Catatan scope (pre-registered): gemma2:2b = instansiasi hemat-resource
+  (lower bound), hasil negatif ≠ verdict seluruh pendekatan LLM-query-gen.
+  [sumber: metrik/exp2/signifikansi.txt; perbedaan-eksperimen.txt STATUS
+   2026-07-06 + CATATAN KEJUJURAN]
+
+exp3 — TEACHER mMiniLM -> bge-reranker-v2-m3 (off-gate; hipotesis: kalibrasi
+  label distilasi; bukti probe internal: bge "abstain" di kueri sampah yang
+  mMiniLM nilai pede)
+  nDCG@5: e5 .6499, gte .6397 (base .7272/.6888).
+  vs exp2 (lawan sah, 1 var TEACHER): arah POSITIF dua keluarga
+  (nDCG e5 +.026 / gte +.043, keduanya ns p=.26-.50); P@5 gabungan menang
+  25/12 sign-test p=.047 (satu-satunya yang nominal signifikan); Spearman flat.
+  vs base: tetap jauh di bawah (Δ nDCG -.077/-.049).
+  KESIMPULAN: teacher lebih terkalibrasi memperbaiki SEDIKIT (arah konsisten,
+  signifikan 1 dari 3 metrik), tetapi kalibrasi teacher BUKAN bottleneck utama.
+  [sumber: metrik/exp3/signifikansi_vs_exp2.txt (banding sah; dirakit dari
+   konsensus per-query exp2+exp3 dgn fungsi analisa() 5-signifikansi.py);
+   metrik/exp3/signifikansi.txt (vs GPL); probe teacher:
+   perbedaan-eksperimen.txt (probe 1000 triple beku, r=.77, sign-agree 83.5%)]
+
+--------------------------------------------------------------------------------
+[5] exp4.0-4.3 — KELUARGA MODEL SOUP (uji "obat drift" tanpa training)
+--------------------------------------------------------------------------------
+Desain (pre-registered SEBELUM hasil; diekspansi jadi keluarga 2026-07-08):
+θ = 0.5·base + 0.5·<checkpoint adaptasi> per parameter (uniform soup;
+Wortsman dkk. 2022 model soups / WiSE-FT). α=0.5 DIKUNCI di muka — tanpa
+sweep, karena tuning α pada 30 kueri = overfit test set. Empat pasangan,
+satu per checkpoint garis adaptasi: 4.0 base⊕exp0, 4.1 base⊕exp1,
+4.2 base⊕exp2, 4.3 base⊕exp3. Dinilai penuh 2 judge 2026-07-09.
+  [sumber: perbedaan-eksperimen.txt blok EXP4; models/gpl-exp4.*/SOUP.txt]
+
+HASIL exp4.0 (titik awal; bahan exp0): hipotesis GAGAL — soup mendarat di
+kinerja exp0, BUKAN di antara base dan exp0:
+  nDCG@5: e5 .6177 (exp0 .6181; base .7322) | gte .6719 (exp0 .6735; base .6938)
+  vs exp0: flat total (Δ̄ -.0004/-.0016; p>.74).
+  vs base: e5 SIG lebih buruk (nDCG Wilcoxon p=.0029, sign-test p=.0081);
+  gabungan nDCG menang/kalah 21/37, sign-test p=.0479.
+  [sumber: metrik/exp4.0/signifikansi.txt (vs GPL) & signifikansi_vsB.txt (vs base);
+   metrik/exp4.0/konsensus/ndcg/ndcg_per_model.csv; label dir "exp4" = exp4.0]
+
+HASIL KELUARGA 4.1-4.3 (nDCG@5 konsensus, dir per-exp):
+  exp4.1 (bahan exp1): e5 .6325, gte .6590 — vs exp0 ns (gab p=.79);
+    vs base e5 SIG lebih buruk (nDCG W p=.0058, sign p=.0241; P@5 W p=.0090).
+  exp4.2 (bahan exp2): e5 .6869, gte .6825 — vs exp0 arah plus ns
+    (e5 nDCG W p=.076); vs base masih di bawah (gab nDCG sign p=.0440).
+  exp4.3 (bahan exp3): e5 .7403, gte .6973 — vs exp0 e5 SIG LEBIH BAIK
+    (nDCG W p=.0086; P@5 W p=.0063, sign p=.0044; gab P@5 p=.0351);
+    vs base SERI STATISTIK: gab nDCG menang/kalah 28/28 (p=1.0), P@5 18/19
+    (p=1.0); titik-estimasi tipis di atas base (Δ e5 +.015, gte +.011, ns).
+  Intra-keluarga (eval gabungan, apple-to-apple): 4.1≈4.2≈4.0 (ns semua);
+  4.3 > 4.2 SIG (gab nDCG p=.0078, P@5 p=.0081) dan 4.3 > 4.0 SIG
+  (gab nDCG p=.0032; e5 W p=.0005, menang/kalah 23/6).
+  [sumber: metrik/exp4.{1..3}/signifikansi.txt (vs GPL) & signifikansi_vsB.txt;
+   metrik/gabungan/signifikansi_exp4.{1,2,3}_vs_exp4.0.txt, _exp4.2_vs_exp4.1,
+   _exp4.3_vs_exp4.2]
+
+INTERPRETASI (dua lapis, keduanya didukung data):
+(a) Untuk bahan exp0/exp1 (drift terdalam), temuan exp4.0 tetap berdiri:
+    kerusakan geometri tidak "tertawar" linear oleh interpolasi bobot.
+(b) Kualitas soup MONOTON mengikuti kualitas bahan adaptasinya
+    (4.0≈4.1 < 4.2 < 4.3 — persis urutan bahan exp0/1 < exp2 < exp3),
+    dan lompatan soup-di-atas-bahannya membesar seiring bahan membaik
+    (deskriptif, papan gabungan: exp4.0 .612 vs exp0 .611 flat;
+    exp4.3 .739 vs exp3 .654). Soup terbaik (4.3) MENYAMAI base —
+    titik pertama garis adaptasi yang menyentuh level base — tetapi
+    TIDAK memberi nilai tambah teruji di atasnya (nDCG seri, P@5 flat,
+    Spearman e5 arah minus ns). Cara membacanya JUJUR: perbaikan datang
+    dari KEMBALI mendekat ke base, bukan dari nilai tambah adaptasi;
+    klaim "soup mengalahkan base" TIDAK diambil.
+
+--------------------------------------------------------------------------------
+[6] exp5.base — RETRIEVE-THEN-RERANK (KELAS SISTEM; bukan adaptasi bobot)
+--------------------------------------------------------------------------------
+Desain (pre-registered; renumber exp4->exp5 dilakukan PRA-judging, provenance
+didokumentasikan): retriever base (bobot TAK disentuh) mengambil top-100
+kandidat -> cross-encoder bge-reranker-v2-m3 (~568M, XLM-R/M3, teruji MIRACL
+termasuk bahasa Indonesia) menyusun ulang -> top-5 dievaluasi pada harness
+identik. Anti-leakage: reranker dipilih dari benchmark publik + probe pada
+triples LATIHAN; 30 kueri pakar tidak pernah dipakai memilih komponen.
+  [sumber: perbedaan-eksperimen.txt blok EXP5; pool_exp5_*.csv]
+
+HASIL: satu-satunya konfigurasi di atas base, konsisten dua keluarga:
+  nDCG@5: e5 .7522 (base .7290; Δ+.023) | gte .7360 (base .6912; Δ+.045)
+  Gabungan menang/kalah 35/21, sign-test p=.081; per keluarga Wilcoxon
+  p=.21 (gte) / p=.43 (e5) -> BELUM SIGNIFIKAN (n=30, underpowered).
+  Pola metrik: nDCG/MRR naik, P@5 flat (gte -.007, e5 -.013 ns) -> perbaikan
+  terjadi pada URUTAN, bukan recall — persis mekanisme reranking, koheren.
+KLAIM JUJUR: "arah menjanjikan; titik-estimasi di atas base pada dua model" —
+BUKAN "signifikan mengalahkan base". Biaya: inferensi CE 568M x 100 kandidat
+per kueri (vs ANN murni) -> kontribusi SISTEM; tabel hasil WAJIB memisahkan
+kelas single-stage vs two-stage.
+  [sumber: metrik/exp5.base/signifikansi.txt; metrik/exp5.base/konsensus/*/]
+
+SIMETRI exp3<->exp5 (dirancang di muka): CE yang sama dipakai dua cara —
+exp3 distilasi (train-time) GAGAL menyelamatkan; exp5 langsung (query-time)
+NAIK => bottleneck = TRANSFER DISTILASI, bukan kualitas CE-nya.
+  [sumber: perbedaan-eksperimen.txt EXP5 poin (d); hasil §4 & §6 file ini]
+
+--------------------------------------------------------------------------------
+[6b] exp5.0-5.4 — RERANK DI ATAS RETRIEVER ADAPTASI (perluasan keluarga exp5)
+--------------------------------------------------------------------------------
+Desain: pipeline rerank exp5.base IDENTIK (top-100 kandidat -> bge-reranker-v2-m3
+-> top-5; CE & parameter tidak diubah), first-stage diganti retriever hasil
+adaptasi: exp5.0 atas exp0 (GPL 10k; dinilai 2026-07-09), exp5.1 atas exp1
+(GPL 5k-steps), exp5.2 atas exp2 (kueri gemma2), exp5.3 atas exp3 (teacher
+bge), exp5.4 atas exp4.0 (soup awal). Menjawab: apakah
+kegagalan adaptasi bobot (§7 kelas 1) tetap terlihat setelah stage rerank —
+alias apakah kualitas first-stage masih menentukan dalam sistem two-stage.
+CATATAN PROVENANCE (jujur): varian 5.1-5.4 dibangun 2026-07-07 tanpa dokumen
+desain tertulis; pemetaan varian->checkpoint direkonstruksi 2026-07-08 dari
+overlap pool (5.1<->exp1 146/300, 5.2<->exp2 137/300, 5.3<->exp3 132/300,
+5.4<->exp4 143/300; selalu maksimum di diagonal) + konfirmasi penulis.
+Dinilai penuh 2 judge (Claude Opus 4.8 + Gemini 3.1 Pro) 2026-07-08.
+  [sumber: 7-retraining/pool/pool_exp5.{1..4}_*.csv; anotasi/exp5.{1..4}/]
+
+HASIL (nDCG@5 konsensus; lawan banding dua sisi):
+  vs GPL-nya sendiri — SIGNIFIKAN SEMUA (rerank "menyelamatkan" adaptasi):
+    5.0: gte .668->.718 (W p=.238 ns), e5 .614->.769 (W p<.0001); gab 42/11
+         p<.0001 (P@5 e5 W p=.0018, sign p=.0003; gab P@5 p=.0005)
+    5.1: gte .672->.742 (W p=.027), e5 .617->.781 (W p<.0001); gab 43/13 p=.0001
+    5.2: gte .672->.780 (W p=.005), e5 .617->.772 (W p=.0004); gab 43/14 p=.0002
+    5.3: gte .671->.767 (W p=.022), e5 .616->.770 (W p=.0002); gab 40/17 p=.0032
+    5.4: gte .673->.743 (W p=.097 ns), e5 .617->.757 (W p=.0003); gab 39/16 p=.0027
+  vs BASE — titik-estimasi DI ATAS base pada SEMUA 10 sel (Δ+.026 s.d +.088),
+  nominal signifikan hanya pada sign-test gabungan dua varian (Wilcoxon ns
+  semua; n=30 underpowered):
+    gab. sign-test: 5.0 p=.0086 (40/19; e5 sign p=.0241, W p=.086),
+    5.1 p=.036; 5.2 p=.435; 5.3 p=.067; 5.4 p=.118. P@5 vs base
+    flat/negatif (ns) — konsisten mekanisme rerank: memperbaiki URUTAN,
+    bukan recall.
+  [sumber: metrik/exp5.{0..4}/signifikansi.txt (vs GPL) &
+   signifikansi_vsB.txt (vs base); metrik/exp5.{0..4}/konsensus/ndcg/]
+
+INTERPRETASI:
+(a) CE MENYERAGAMKAN: spread single-stage yang lebar (base .73 vs GPL .62 e5)
+    menciut jadi .74-.78 pasca-rerank. Kualitas first-stage nyaris tidak lagi
+    menentukan skor akhir — kerusakan geometri akibat adaptasi (§8) tertutupi
+    oleh CE selama pasase relevan masih lolos top-100 kandidat.
+(b) Titik-estimasi tertinggi keluarga: 5.1-e5 .781 dan 5.2-gte .780, di atas
+    exp5.base (.752/.736). Beda antar-varian DIUJI pada eval gabungan (satu
+    anotasi/pool/IDCG utk SEMUA sistem, grade dikanonkan per pasase;
+    metrik/gabungan/): TIDAK ada varian yang mengalahkan exp5.base (nDCG gab
+    sign-test p=.50-1.00; 5.1 vs 5.2 p=.88; 5.0 vs 5.base p=.50) — seluruh
+    kelas two-stage SERI statistik. Banding 5.1 vs 5.0 malah kontradiktif
+    antar metrik (nDCG seri p=1.0; P@5 5.0 unggul p=.039; Spearman 5.1
+    unggul p=.043) — bukti tambahan bahwa urutan antar-varian = noise.
+    Pada papan gabungan urutan internal juga bergeser (5.1-gte turun ke
+    bawah exp5.base-gte). Klaim "varian terbaik" TIDAK diambil; klaim
+    defensible: KELAS two-stage (5.base + 5.0-5.4) menempati seluruh
+    puncak peringkat & rerank menghapus selisih base-vs-adaptasi.
+    [sumber: metrik/gabungan/konsensus/ndcg/ringkasan_ndcg.txt;
+     metrik/gabungan/signifikansi_exp5.{0..4}_vs_exp5.base.txt,
+     _exp5.1_vs_exp5.2, _exp5.1_vs_exp5.0]
+(c) Konsekuensi RQ: jalur peningkatan kualitas = SISTEM (rerank), bukan
+    adaptasi bobot; adaptasi bahkan tidak lagi merugikan setelah rerank —
+    tetapi juga tidak memberi keuntungan yang teruji melebihi base+rerank,
+    dengan biaya training penuh. Rekomendasi tetap: base + rerank (exp5.base)
+    sebagai konfigurasi termurah di kelas teratas.
+Tabel hasil tetap WAJIB memisahkan kelas single-stage vs two-stage.
+
+--------------------------------------------------------------------------------
+[7] PERINGKAT AKHIR (nDCG@5 konsensus 2 judge, korpus ID, 30 kueri)
+--------------------------------------------------------------------------------
+Catatan pembacaan: angka base/GPL bergeser tipis antar-dir metrik (IDCG
+global-pool membesar saat pasase ter-judge bertambah; base e5 .7199-.7322).
+Delta selalu dihitung vs base pada dir yang sama (apple-to-apple).
+
+KELAS 1 — SINGLE-STAGE (bobot retriever saja; termasuk keluarga soup 4.X):
+  keluarga e5 :  exp4.3 .740 ≈ base .725-.732  >  exp4.2 .687  >  exp3 .650
+                 >  exp4.1 .633  >  exp2 .624  >  exp0 .618  ≈ exp4.0 .618
+                 >  exp1 .610
+  keluarga gte:  exp4.3 .697 ≈ base .687-.694  ≈  exp4.2 .683  >  exp0 .674
+                 ≈  exp4.0 .672  >  exp4.1 .659  >  exp3 .640  >  exp2 .597
+                 ≈  exp1 .593
+  baseline lain (dir exp4): bge-m3 .661 ; BM25 .615
+  -> base TIDAK TERKALAHKAN oleh SEMUA delapan varian adaptasi/soup pada dua
+     keluarga: tak satu pun signifikan di atas base; satu-satunya yang
+     MENYAMAI base = exp4.3 (seri statistik; "≈" di atas = seri, bukan unggul).
+  -> urutan internal garis adaptasi murni (exp0-3) BERBEDA antar keluarga
+     (e5: exp3 teratas; gte: exp0 teratas) -> tidak ada resep adaptasi yang
+     unggul seragam. Keluarga soup 4.X justru KONSISTEN dua keluarga:
+     monoton mengikuti kualitas bahan (4.0/4.1 < 4.2 < 4.3; lihat §5).
+
+KELAS 2 — TWO-STAGE (sistem + rerank; semua titik-estimasi di atas base):
+  keluarga e5 :  5.1 .781 > 5.2 .772 > 5.3 .770 ≈ 5.0 .769 > 5.4 .757
+                 > 5.base .752
+  keluarga gte:  5.2 .780 > 5.3 .767 > 5.4 .743 ≈ 5.1 .742 > 5.base .736
+                 > 5.0 .718
+  vs base: nominal <.05 hanya sign-test gabungan 5.0 (p=.0086) & 5.1
+  (p=.036); Wilcoxon ns semua; per-keluarga ns.
+  beda antar-varian DIUJI di eval gabungan -> SERI semua (§6b(b));
+  jangan dibaca sebagai urutan keras.
+  vs GPL-nya masing-masing: 5.0-5.4 semuanya SIGNIFIKAN (lihat §6b).
+  [sumber: metrik/exp{1..3,4.0..4.3,5.0..5.4}/konsensus/{ndcg,precision,
+   spearman}/*_per_model.csv; metrik/exp5.{0..4}/signifikansi{,_vsB}.txt]
+
+--------------------------------------------------------------------------------
+[8] ANALISIS MEKANISME — MENGAPA ADAPTASI KALAH
+--------------------------------------------------------------------------------
+(a) Pola per-kueri: adaptasi = perturbasi net-negatif. Gain hanya muncul di
+    kueri yang base-nya lemah (headroom); pada kueri base-kuat adaptasi
+    merusak lebih dalam (magnitudo kekalahan 1.5-1.9x kemenangan; monoton
+    lintas tercile kekuatan-base). Penjelasan alternatif (redundansi topik /
+    pericope) DIUJI dan DITOLAK (korelasi r≈0).
+    [sumber: perbedaan-eksperimen.txt TEMUAN LINTAS-EKSPERIMEN; data mentah:
+     metrik/*/konsensus/*/ *_delta_per_query.csv]
+(b) Paradoks intrinsik-ekstrinsik (§2): GPL menajamkan separabilitas
+    antar-sutta 4x, tetapi memindahkan geometri menjauh dari relevansi
+    fine-grained pakar -> "lebih terstruktur" ≠ "lebih relevan".
+(c) Supervisi sintetis = sumber noise: kueri mT5 tidak natural (audit sampel
+    buta: mT5 4/5 nonsens vs gemma2 5/5 natural), teacher mMiniLM kecil +
+    translationese; namun memperbaiki masing-masing (exp2, exp3) tidak
+    memulihkan -> noise bukan satu-satunya masalah; transfer distilasi
+    itu sendiri bottleneck (simetri exp3<->exp5, §6).
+(d) Drift tidak reversibel-linear untuk checkpoint drift-terdalam
+    (exp4.0/4.1, §5); interpolasi baru "menyembuhkan" ketika bahannya
+    sendiri lebih dekat ke base (exp4.2-4.3), dan puncak pemulihannya pun
+    hanya MENYAMAI base, tidak melampauinya — konsisten headroom (i).
+
+(e) ELIMINASI PENYEBAB — apa yang terbukti BUKAN penyebabnya (diuji langsung):
+    - BUG IMPLEMENTASI: audit prefix e5 lolos di 4 titik (train, hard-neg,
+      embed, query); harness & grade beku apple-to-apple; cache retrieval
+      deterministik (dua build independen sha256-identik).
+      [sumber: 5-eval/rangkuman_analisis.txt §5; code/5-eval/1-build-cache.py]
+    - PRAPROSES/CHUNKING: indeks dan chunk yang SAMA dipakai SEMUA sistem —
+      base menang di atas praproses yang sama persis, sehingga cacat
+      praproses tidak dapat menjelaskan kekalahan adaptasi RELATIF terhadap
+      base (ia hanya bisa menggeser skor absolut semua sistem serentak).
+      Penjelasan berbasis properti korpus (redundansi pericope/topik) juga
+      diuji pada level per-kueri dan DITOLAK (korelasi r≈0, lihat (a)).
+      Kualitas praproses terverifikasi positif: seluruh level heading h1-h6
+      tertangkap chunker (h4=4.221, h5=1.991, h6=3.975 unit) dan junk
+      tersisa = 0.
+      [sumber: 3-praproses/verdict.txt [B]; 3-praproses/2-statistik.txt]
+    - MISMATCH ISTILAH PENERJEMAH (kueri pakar vs idiolek terjemahan
+      korpus; diuji 2026-07-07): lima kueri memakai istilah yang jarang/
+      absen di korpus id — "membalas budi" (0 kemunculan), "proliferasi
+      mental" (0 sebagai frasa; korpus memakai "proliferasi pikiran/
+      konseptual"), "perhatian murni" (2), "penceramah" (2), "ngantuk"
+      (38; korpus lebih sering "kantuk", 186). Hasil: base justru SEDIKIT
+      LEBIH TINGGI pada kelima kueri tsb (nDCG@5 rata-rata .759 vs .704
+      pada 25 kueri lain) — retrieval dense MENJEMBATANI kesenjangan
+      kosakata (contoh ekstrem: Q30 "proliferasi mental" base e5 .956 /
+      gte .970 padahal frasa persisnya tidak ada di korpus). Degradasi
+      GPL juga TIDAK berbeda antara kueri mismatch (Δ̄ -.064) vs lainnya
+      (Δ̄ -.068) -> mismatch istilah BUKAN penyebab kekalahan adaptasi;
+      sebaliknya temuan ini MENEGASKAN nilai pencarian semantik atas
+      leksikal (deskriptif, n=5, bukan uji formal).
+      [sumber: grep korpus 3-praproses/{bilara,html}/id/*.jsonl;
+       metrik/exp4.0/konsensus/ndcg/ndcg_per_query.csv]
+    - JUMLAH LANGKAH (exp1), GENERATOR KUERI (exp2), TEACHER (exp3), dan
+      IRREVERSIBILITAS LINEAR (exp4): masing-masing diuji TERISOLASI
+      satu-variabel; tidak satu pun memulihkan kinerja base.
+
+KESIMPULAN MEKANISME (standing explanation, didukung data):
+  (i) HEADROOM MINIM: e5/gte dilatih pada data multilingual masif dan
+      terjemahan Kanon Pali beredar publik di web — domain ini kemungkinan
+      besar sudah tercakup distribusi pretraining base. GPL pada paper
+      aslinya memberi gain justru di domain yang JAUH dari distribusi base
+      (BEIR out-of-domain); prasyarat itu tidak terpenuhi di sini, sehingga
+      ruang perbaikan tersisa kecil dan adaptasi bekerja sebagai perturbasi
+      net-negatif (pola headroom/tercile di (a)).
+ (ii) DISTILLATION CEILING: student MarginMSE dibatasi kualitas label
+      teacher atas kueri sintetis (Hofstaetter dkk. 2020). Rantai supervisi
+      sintetis (kueri + margin) membawa noise lebih besar daripada sinyal
+      yang ditambahkannya ke model yang sudah kuat; simetri exp3<->exp5
+      mengunci diagnosis pada TRANSFER DISTILASI-nya (CE yang sama berguna
+      dipakai langsung, gagal dipakai sebagai teacher distilasi).
+  Ringkas: adaptasi kalah BUKAN karena data/praproses/bug, melainkan karena
+  kombinasi (i) base sudah in-distribution + (ii) supervisi sintetis yang
+  ceiling-nya di bawah kemampuan base — konsisten dengan seluruh 5 titik
+  eksperimen dan paradoks intrinsik-ekstrinsik (b).
+
+--------------------------------------------------------------------------------
+[9] SINTESIS & FRAMING KLAIM (untuk bab 4-5)
+--------------------------------------------------------------------------------
+Narasi hasil yang jujur & defensible:
+  "Adaptasi domain unsupervised gaya GPL — direplikasi apa-adanya (exp0) dan
+   diperbaiki sistematis satu-variabel-per-eksperimen pada langkah (exp1),
+   generator kueri (exp2), teacher (exp3), serta interpolasi bobot
+   (keluarga soup exp4.0-4.3) — TIDAK mengungguli model multilingual base
+   pada temu-kembali semantik berbahasa Indonesia atas Kanon Pali: tidak
+   satu pun dari delapan varian signifikan di atas base pada dua keluarga
+   model (dengan regresi P@5 yang signifikan pada asesmen pakar untuk
+   exp0); varian terbaiknya (soup base⊕exp3, exp4.3) hanya MENYAMAI base
+   secara statistik. Peningkatan kualitas justru dicapai pada tataran
+   SISTEM: retrieve-then-rerank dengan cross-encoder multilingual
+   (exp5.base + 5.0-5.4) menghasilkan titik-estimasi nDCG@5 tertinggi dan
+   konsisten di atas base pada kedua keluarga (nominal signifikan hanya
+   pada sign-test gabungan dua varian; belum tegak pada Wilcoxon, n=30)."
+
+Relasi dengan judul TA: judul menyebut "dengan adaptasi domain" sebagai
+PERLAKUAN YANG DITELITI — dan diteliti tuntas: 1 replikasi + 4 varian
+perbaikan, semua dievaluasi multi-asesor dengan uji statistik berpasangan.
+Hasil negatif yang kokoh adalah HASIL PENELITIAN yang sah; kontribusi TA:
+  (1) sistem temu-balik multibahasa fungsional atas Kanon Pali (single-stage
+      base, opsional two-stage rerank sebagai konfigurasi terbaik);
+  (2) metodologi evaluasi multi-asesor: 4 pakar + 2 LLM-judge + IAA +
+      intrinsik + uji signifikansi berpasangan, dengan grade beku reusable;
+  (3) temuan negatif terdiagnosis MENGAPA-nya (mekanisme §8) — adaptasi GPL
+      tidak diperlukan untuk domain yang masih tercakup distribusi model
+      multilingual modern;
+  (4) jalur positif: reranking inference-time sebagai alternatif adaptasi.
+Scope klaim: instansiasi hemat-resource (GPU 12GB, model lokal); bukan
+verdict atas semua bentuk adaptasi domain (mis. supervised fine-tune dengan
+label pakar skala besar tidak diuji — lihat 5-eval/rangkuman_analisis.txt §8).
+
+--------------------------------------------------------------------------------
+[10] KETERBATASAN
+--------------------------------------------------------------------------------
+- n=30 kueri pakar -> daya uji sedang; p>0.05 = "belum terbukti beda",
+  bukan bukti kesetaraan; klaim exp5 dibatasi "arah menjanjikan".
+- Banyak uji pada test set 30 kueri yang sama (14 konfigurasi x 3 metrik,
+  2 keluarga) -> risiko multiple-testing MEMBESAR seiring keluarga 4.X/5.X
+  ditambah; ditangani dengan pre-registration desain/α, lawan-banding sah
+  1-variabel, dan TIDAK mengklaim hasil nominal-sig tunggal (mis. exp3 P@5
+  p=.047; sign-test-saja exp5.0 p=.0086 / exp5.1 p=.036 saat Wilcoxon ns)
+  sebagai temuan kuat. Klaim exp4.3 dibatasi "menyamai base" (seri), bukan
+  "mengalahkan".
+- Eksperimen lanjutan dinilai PROXY LLM-judge (kappa antar-judge 0.62-0.65,
+  tervalidasi thd pakar di tahap base/GPL), bukan pakar langsung.
+- Korpus evaluasi berbahasa Indonesia saja (en/pli tidak dievaluasi pakar).
+- Baseline bge-m3 mengembalikan 0 hasil utk Q5 "perumpamaan perumpamaan" di
+  korpus ID (beku di search_cache; entri EN normal) -> mean bge-m3 dihitung
+  atas 29 kueri, bukan 30; perlakuan seragam semua judge/dir dan justru
+  menguntungkan bge-m3 (baseline), bukan model eksperimen.
+  [sumber: 5-eval/search_cache.pkl (kueri Q5 x bge-m3 x id)]
+- Grade Gemini cenderung lunak (distribusi timpang); diredam konsensus.
+- exp2: instansiasi query-gen 2B (lower bound pendekatan LLM-query-gen).
+- exp5 menambah biaya inferensi CE 568M x 100 kandidat/kueri; klaim = level
+  sistem, bukan "retriever lebih baik".
+- Kenop resep yang BELUM teruji terisolasi (temuan negatif berlaku untuk
+  varian yang DIUJI, bukan seluruh ruang resep): pembersihan hard-negative
+  (false-negative pericope — dulu hanya pernah jalan dalam bundel multi-
+  variabel yang dibuang karena konfounded), query-gen kelas ~7B
+  (InPars-Light), dan jalur label-LLM sebagai data latih berskala dengan
+  test set pakar tetap held-out (5-eval/rangkuman_analisis.txt §8b-8c).
+================================================================================

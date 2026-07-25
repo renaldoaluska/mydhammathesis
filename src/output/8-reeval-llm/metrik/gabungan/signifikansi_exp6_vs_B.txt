@@ -1,0 +1,16 @@
+=== UJI SIGNIFIKANSI B vs exp6 ===
+Wilcoxon signed-rank: paired per-kueri, memperhitungkan magnitudo (scipy.stats.wilcoxon).
+Sign test: binomial p=0.5 atas jumlah menang/kalah, arah saja (scipy.stats.binomtest).
+Signifikan jika p < 0.05.
+
+=== nDCG@5 (exp6 vs B) ===
+  gte-multilingual-base      n=27 | B̄=0.7011 exp6̄=0.6117 Δ̄=-0.0894 | menang/kalah/seri=10/17/0 | Wilcoxon p=0.0859 | sign-test p=0.2478
+  GABUNGAN                          | menang/kalah=10/17 (63% minus) | sign-test p=0.2478
+
+=== P@5 (exp6 vs B) ===
+  gte-multilingual-base      n=27 | B̄=0.6741 exp6̄=0.5111 Δ̄=-0.1630 | menang/kalah/seri=5/16/6 | Wilcoxon p=0.0103 | sign-test p=0.0266
+  GABUNGAN                          | menang/kalah=5/16 (76% minus) | sign-test p=0.0266
+
+=== Spearman (exp6 vs B) ===
+  gte-multilingual-base      n=23 | B̄=0.1966 exp6̄=0.2086 Δ̄=+0.0120 | menang/kalah/seri=12/9/2 | Wilcoxon p=0.8757 | sign-test p=0.6636
+  GABUNGAN                          | menang/kalah=12/9 (43% minus) | sign-test p=0.6636

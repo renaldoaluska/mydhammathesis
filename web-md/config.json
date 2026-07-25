@@ -1,6 +1,11 @@
 {
-  "_doc": "Konfigurasi mesin web-md (APP produk). Format FLAT {target:[models]} (target=korpus id/en/pli). Dimensi bahasa kueri dibuang — semua model mydhamma multilingual (warisan dhammakathika yg punya model spesifik bahasa). Ini DEFAULT server; user bisa override per browser via dialog Konfigurasi Mesin Pencari (localStorage, dikirim sebagai ensemble_config tiap request). Model = nama HF / nama folder GPL (gpl-<short>). DEFAULT = ensemble 2 model domain-adapted (gpl-multilingual-e5-base + gpl-gte-multilingual-base) digabung via RRF — beda arsitektur, sama-sama di-GPL utk korpus Tipiṭaka. Engine retrieval = web/search.py (semantic emb-cache + BM25 + RRF). PATH dari src/config.py.",
-  "id": ["gpl-multilingual-e5-base", "gpl-gte-multilingual-base"],
-  "en": ["gpl-multilingual-e5-base", "gpl-gte-multilingual-base"],
-  "pli": ["gpl-multilingual-e5-base", "gpl-gte-multilingual-base"]
+  "id": [
+    "intfloat/multilingual-e5-base"
+  ],
+  "en": [
+    "intfloat/multilingual-e5-base"
+  ],
+  "pli": [
+    "intfloat/multilingual-e5-base"
+  ]
 }

@@ -34,10 +34,33 @@ def short_versi(v): return _VERSI_SHORT.get(str(v), str(v))
 def short_model(m): return str(m).rstrip("/").split("/")[-1]
 
 
-def ndcg_at_k(grades, k=10):
-    """NDCG@k untuk satu kueri (grades terurut menurut rank model)."""
+def _sanitize(s):
+    """Sama dgn sanitasi web saat bikin nama file anotasi (non-alnum -> '_')."""
+    return "".join(c if c.isalnum() else "_" for c in str(s))
+
+
+# peta nama-file(underscore) -> nama pakar rapi (dengan gelar) dari nama_pakar.json
+_NAMA_FILE = Path(__file__).resolve().parent / "nama_pakar.json"
+_NAMA_MAP = {}
+if _NAMA_FILE.exists():
+    for _e in json.loads(_NAMA_FILE.read_text(encoding="utf-8")):
+        _NAMA_MAP[_sanitize(_e["name"])] = _e["name"]
+
+
+def nama_display(sanitized):
+    """Nama pakar rapi (bergelar) utk LABEL grafik; fallback '_'->spasi bila tak ada."""
+    s = str(sanitized)
+    return _NAMA_MAP.get(s, s.replace("_", " ").strip())
+
+
+def ndcg_at_k(grades, k=10, ideal_grades=None):
+    """NDCG@k satu kueri. grades = terurut menurut rank model.
+    ideal_grades = pool grade utk IDCG; default None = IDCG lokal (ideal dari grades
+    sendiri). Isi pool global-pool (union passage dinilai lintas model) biar base vs
+    GPL diadu ke ideal yang SAMA (lebih adil, gaya BEIR)."""
+    pool = grades if ideal_grades is None else ideal_grades
     dcg  = sum(g / math.log2(i + 2) for i, g in enumerate(grades[:k]))
-    ideal = sorted(grades, reverse=True)[:k]
+    ideal = sorted(pool, reverse=True)[:k]
     idcg = sum(g / math.log2(i + 2) for i, g in enumerate(ideal))
     return dcg / idcg if idcg > 0 else 0.0
 
@@ -56,24 +79,26 @@ def figdir(name=None):
     return d
 
 
-def load_annotations(verbose=True, exclude=None, consensus=True):
+def load_annotations(verbose=True, exclude=None, consensus=True, anotasi_dir=None):
     """Baca + filter semua CSV anotasi -> satu DataFrame siap-metrik.
 
+    - anotasi_dir: folder anotasi (default ANOTASI_DIR = pakar manusia).
     - skip pakar di `exclude` (default demo/parsial)
     - honor completed_<pakar>.json (kombinasi query_id_db yang selesai)
     - dedup baris ganda (autosave/re-submit) per (expert,query_id,model,versi,db,rank,ref)
     - consensus=True: rata-rata grade antar pakar per (query_id, ref) bila >1 pakar
     Return (df, included_experts) atau (None, []).
     """
+    adir = Path(anotasi_dir) if anotasi_dir else ANOTASI_DIR
     if exclude is None:
         exclude = EXCLUDE_EXPERTS
-    if not ANOTASI_DIR.exists() or not list(ANOTASI_DIR.glob("anotasi_*.csv")):
+    if not adir.exists() or not list(adir.glob("anotasi_*.csv")):
         if verbose:
-            print(f"Anotasi belum ada di: {ANOTASI_DIR}")
+            print(f"Anotasi belum ada di: {adir}")
         return None, []
 
     dfs, included = [], []
-    for csv_file in sorted(ANOTASI_DIR.glob("anotasi_*.csv")):
+    for csv_file in sorted(adir.glob("anotasi_*.csv")):
         name = csv_file.stem[len("anotasi_"):]
         if any(x.lower() in name.lower() for x in exclude):
             if verbose:
@@ -85,7 +110,7 @@ def load_annotations(verbose=True, exclude=None, consensus=True):
             if verbose:
                 print(f"  gagal baca {csv_file.name}: {e}")
             continue
-        comp = ANOTASI_DIR / f"completed_{name}.json"
+        comp = adir / f"completed_{name}.json"
         if comp.exists() and "query_id" in d.columns and "db" in d.columns:
             try:
                 done = set(json.loads(comp.read_text(encoding="utf-8")))

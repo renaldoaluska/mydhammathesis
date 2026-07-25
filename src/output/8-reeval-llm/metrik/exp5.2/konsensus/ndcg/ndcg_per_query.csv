@@ -1,0 +1,240 @@
+﻿query_id,kueri,Model,Versi,Korpus,nDCG@5
+1,cara mengatasi kemarahan,BM25,B,ID,0.4808
+2,cara mengatasi ngantuk,BM25,B,ID,0.0
+3,apa penyebab penderitaan,BM25,B,ID,0.8294
+4,mengapa harus membalas budi orangtua,BM25,B,ID,0.0681
+5,perumpamaan perumpamaan,BM25,B,ID,0.9142
+6,apa itu kemurahan hati,BM25,B,ID,0.8437
+7,penjelasan tentang perhatian murni,BM25,B,ID,0.0
+8,manfaat pelaksaan sila,BM25,B,ID,0.7699
+9,jenis jenis kotoran batin,BM25,B,ID,0.0
+10,kriteria kesucian,BM25,B,ID,0.9527
+11,siapa yang layak disebut sebagai brahmana,BM25,B,ID,1.0
+12,kewajiban seorang bhikkhu,BM25,B,ID,0.3437
+13,berbagai jenis pemberian,BM25,B,ID,0.7926
+14,apa makna kekosongan,BM25,B,ID,0.1588
+15,apa kualitas yang harus dimiliki oleh seorang penceramah,BM25,B,ID,0.7765
+16,harta yang paling bernilai,BM25,B,ID,0.8769
+17,kewajiban seorang umat awam,BM25,B,ID,0.8768
+18,penyebab gempa bumi,BM25,B,ID,0.8835
+19,jenis jenis kemelekatan,BM25,B,ID,0.928
+20,penggambaran terhadap keagungan buddha,BM25,B,ID,0.5044
+21,jenis jenis manusia,BM25,B,ID,0.3018
+22,cara mengikis kotoran batin,BM25,B,ID,0.3056
+23,penjelasan tentang pandangan terang,BM25,B,ID,0.6556
+24,apa yang terjadi pada saat pencapaian pencerahan,BM25,B,ID,0.699
+25,perasaan malu dan takut,BM25,B,ID,0.7267
+26,bersatu di kehidupan selanjutnya,BM25,B,ID,0.732
+27,jenis jenis karma buruk,BM25,B,ID,0.7409
+28,berbagai jenis perbuatan baik,BM25,B,ID,0.6625
+29,jenis orang yang tak boleh ditahbiskan,BM25,B,ID,0.6287
+30,apa itu proliferasi mental,BM25,B,ID,0.9585
+1,cara mengatasi kemarahan,bge-m3,B,ID,0.6521
+2,cara mengatasi ngantuk,bge-m3,B,ID,0.7227
+3,apa penyebab penderitaan,bge-m3,B,ID,0.7738
+4,mengapa harus membalas budi orangtua,bge-m3,B,ID,0.7174
+6,apa itu kemurahan hati,bge-m3,B,ID,0.8361
+7,penjelasan tentang perhatian murni,bge-m3,B,ID,0.856
+8,manfaat pelaksaan sila,bge-m3,B,ID,0.5531
+9,jenis jenis kotoran batin,bge-m3,B,ID,0.1992
+10,kriteria kesucian,bge-m3,B,ID,0.3439
+11,siapa yang layak disebut sebagai brahmana,bge-m3,B,ID,0.524
+12,kewajiban seorang bhikkhu,bge-m3,B,ID,0.5698
+13,berbagai jenis pemberian,bge-m3,B,ID,0.9105
+14,apa makna kekosongan,bge-m3,B,ID,0.7738
+15,apa kualitas yang harus dimiliki oleh seorang penceramah,bge-m3,B,ID,0.8718
+16,harta yang paling bernilai,bge-m3,B,ID,0.4879
+17,kewajiban seorang umat awam,bge-m3,B,ID,0.5896
+18,penyebab gempa bumi,bge-m3,B,ID,0.9499
+19,jenis jenis kemelekatan,bge-m3,B,ID,0.7016
+20,penggambaran terhadap keagungan buddha,bge-m3,B,ID,0.6011
+21,jenis jenis manusia,bge-m3,B,ID,0.6072
+22,cara mengikis kotoran batin,bge-m3,B,ID,0.5392
+23,penjelasan tentang pandangan terang,bge-m3,B,ID,0.6314
+24,apa yang terjadi pada saat pencapaian pencerahan,bge-m3,B,ID,0.9381
+25,perasaan malu dan takut,bge-m3,B,ID,0.7387
+26,bersatu di kehidupan selanjutnya,bge-m3,B,ID,0.1958
+27,jenis jenis karma buruk,bge-m3,B,ID,0.7882
+28,berbagai jenis perbuatan baik,bge-m3,B,ID,0.8933
+29,jenis orang yang tak boleh ditahbiskan,bge-m3,B,ID,0.2686
+30,apa itu proliferasi mental,bge-m3,B,ID,0.8938
+1,cara mengatasi kemarahan,gpl-gte-multilingual-base,exp5.2,ID,0.8577
+2,cara mengatasi ngantuk,gpl-gte-multilingual-base,exp5.2,ID,0.9781
+3,apa penyebab penderitaan,gpl-gte-multilingual-base,exp5.2,ID,0.91
+4,mengapa harus membalas budi orangtua,gpl-gte-multilingual-base,exp5.2,ID,1.0
+5,perumpamaan perumpamaan,gpl-gte-multilingual-base,exp5.2,ID,0.9717
+6,apa itu kemurahan hati,gpl-gte-multilingual-base,exp5.2,ID,0.7882
+7,penjelasan tentang perhatian murni,gpl-gte-multilingual-base,exp5.2,ID,0.5668
+8,manfaat pelaksaan sila,gpl-gte-multilingual-base,exp5.2,ID,0.6442
+9,jenis jenis kotoran batin,gpl-gte-multilingual-base,exp5.2,ID,0.8226
+10,kriteria kesucian,gpl-gte-multilingual-base,exp5.2,ID,0.4292
+11,siapa yang layak disebut sebagai brahmana,gpl-gte-multilingual-base,exp5.2,ID,0.8542
+12,kewajiban seorang bhikkhu,gpl-gte-multilingual-base,exp5.2,ID,0.7954
+13,berbagai jenis pemberian,gpl-gte-multilingual-base,exp5.2,ID,0.8867
+14,apa makna kekosongan,gpl-gte-multilingual-base,exp5.2,ID,0.7738
+15,apa kualitas yang harus dimiliki oleh seorang penceramah,gpl-gte-multilingual-base,exp5.2,ID,0.6666
+16,harta yang paling bernilai,gpl-gte-multilingual-base,exp5.2,ID,0.8331
+17,kewajiban seorang umat awam,gpl-gte-multilingual-base,exp5.2,ID,0.7963
+18,penyebab gempa bumi,gpl-gte-multilingual-base,exp5.2,ID,1.0
+19,jenis jenis kemelekatan,gpl-gte-multilingual-base,exp5.2,ID,1.0
+20,penggambaran terhadap keagungan buddha,gpl-gte-multilingual-base,exp5.2,ID,0.2773
+21,jenis jenis manusia,gpl-gte-multilingual-base,exp5.2,ID,0.9078
+22,cara mengikis kotoran batin,gpl-gte-multilingual-base,exp5.2,ID,0.7909
+23,penjelasan tentang pandangan terang,gpl-gte-multilingual-base,exp5.2,ID,0.8174
+24,apa yang terjadi pada saat pencapaian pencerahan,gpl-gte-multilingual-base,exp5.2,ID,0.5835
+25,perasaan malu dan takut,gpl-gte-multilingual-base,exp5.2,ID,0.7549
+26,bersatu di kehidupan selanjutnya,gpl-gte-multilingual-base,exp5.2,ID,0.5817
+27,jenis jenis karma buruk,gpl-gte-multilingual-base,exp5.2,ID,0.6325
+28,berbagai jenis perbuatan baik,gpl-gte-multilingual-base,exp5.2,ID,1.0
+29,jenis orang yang tak boleh ditahbiskan,gpl-gte-multilingual-base,exp5.2,ID,0.5316
+30,apa itu proliferasi mental,gpl-gte-multilingual-base,exp5.2,ID,0.9541
+1,cara mengatasi kemarahan,gpl-gte-multilingual-base,GPL,ID,0.691
+2,cara mengatasi ngantuk,gpl-gte-multilingual-base,GPL,ID,0.0
+3,apa penyebab penderitaan,gpl-gte-multilingual-base,GPL,ID,0.933
+4,mengapa harus membalas budi orangtua,gpl-gte-multilingual-base,GPL,ID,0.7557
+5,perumpamaan perumpamaan,gpl-gte-multilingual-base,GPL,ID,0.9361
+6,apa itu kemurahan hati,gpl-gte-multilingual-base,GPL,ID,0.6925
+7,penjelasan tentang perhatian murni,gpl-gte-multilingual-base,GPL,ID,0.3822
+8,manfaat pelaksaan sila,gpl-gte-multilingual-base,GPL,ID,0.4522
+9,jenis jenis kotoran batin,gpl-gte-multilingual-base,GPL,ID,0.6753
+10,kriteria kesucian,gpl-gte-multilingual-base,GPL,ID,0.1857
+11,siapa yang layak disebut sebagai brahmana,gpl-gte-multilingual-base,GPL,ID,0.2261
+12,kewajiban seorang bhikkhu,gpl-gte-multilingual-base,GPL,ID,0.8568
+13,berbagai jenis pemberian,gpl-gte-multilingual-base,GPL,ID,0.8772
+14,apa makna kekosongan,gpl-gte-multilingual-base,GPL,ID,0.6755
+15,apa kualitas yang harus dimiliki oleh seorang penceramah,gpl-gte-multilingual-base,GPL,ID,0.758
+16,harta yang paling bernilai,gpl-gte-multilingual-base,GPL,ID,0.9026
+17,kewajiban seorang umat awam,gpl-gte-multilingual-base,GPL,ID,0.7336
+18,penyebab gempa bumi,gpl-gte-multilingual-base,GPL,ID,1.0
+19,jenis jenis kemelekatan,gpl-gte-multilingual-base,GPL,ID,1.0
+20,penggambaran terhadap keagungan buddha,gpl-gte-multilingual-base,GPL,ID,0.1899
+21,jenis jenis manusia,gpl-gte-multilingual-base,GPL,ID,0.9781
+22,cara mengikis kotoran batin,gpl-gte-multilingual-base,GPL,ID,0.8405
+23,penjelasan tentang pandangan terang,gpl-gte-multilingual-base,GPL,ID,0.6798
+24,apa yang terjadi pada saat pencapaian pencerahan,gpl-gte-multilingual-base,GPL,ID,0.6902
+25,perasaan malu dan takut,gpl-gte-multilingual-base,GPL,ID,0.8795
+26,bersatu di kehidupan selanjutnya,gpl-gte-multilingual-base,GPL,ID,0.5245
+27,jenis jenis karma buruk,gpl-gte-multilingual-base,GPL,ID,0.4896
+28,berbagai jenis perbuatan baik,gpl-gte-multilingual-base,GPL,ID,0.8869
+29,jenis orang yang tak boleh ditahbiskan,gpl-gte-multilingual-base,GPL,ID,0.3039
+30,apa itu proliferasi mental,gpl-gte-multilingual-base,GPL,ID,0.9585
+1,cara mengatasi kemarahan,gpl-multilingual-e5-base,exp5.2,ID,0.7292
+2,cara mengatasi ngantuk,gpl-multilingual-e5-base,exp5.2,ID,0.9781
+3,apa penyebab penderitaan,gpl-multilingual-e5-base,exp5.2,ID,0.9075
+4,mengapa harus membalas budi orangtua,gpl-multilingual-e5-base,exp5.2,ID,0.9513
+5,perumpamaan perumpamaan,gpl-multilingual-e5-base,exp5.2,ID,1.0
+6,apa itu kemurahan hati,gpl-multilingual-e5-base,exp5.2,ID,0.5502
+7,penjelasan tentang perhatian murni,gpl-multilingual-e5-base,exp5.2,ID,0.5212
+8,manfaat pelaksaan sila,gpl-multilingual-e5-base,exp5.2,ID,0.7663
+9,jenis jenis kotoran batin,gpl-multilingual-e5-base,exp5.2,ID,0.838
+10,kriteria kesucian,gpl-multilingual-e5-base,exp5.2,ID,0.425
+11,siapa yang layak disebut sebagai brahmana,gpl-multilingual-e5-base,exp5.2,ID,0.4789
+12,kewajiban seorang bhikkhu,gpl-multilingual-e5-base,exp5.2,ID,0.9528
+13,berbagai jenis pemberian,gpl-multilingual-e5-base,exp5.2,ID,0.8052
+14,apa makna kekosongan,gpl-multilingual-e5-base,exp5.2,ID,0.6831
+15,apa kualitas yang harus dimiliki oleh seorang penceramah,gpl-multilingual-e5-base,exp5.2,ID,0.7481
+16,harta yang paling bernilai,gpl-multilingual-e5-base,exp5.2,ID,0.8149
+17,kewajiban seorang umat awam,gpl-multilingual-e5-base,exp5.2,ID,0.8035
+18,penyebab gempa bumi,gpl-multilingual-e5-base,exp5.2,ID,1.0
+19,jenis jenis kemelekatan,gpl-multilingual-e5-base,exp5.2,ID,1.0
+20,penggambaran terhadap keagungan buddha,gpl-multilingual-e5-base,exp5.2,ID,0.8279
+21,jenis jenis manusia,gpl-multilingual-e5-base,exp5.2,ID,0.8513
+22,cara mengikis kotoran batin,gpl-multilingual-e5-base,exp5.2,ID,0.736
+23,penjelasan tentang pandangan terang,gpl-multilingual-e5-base,exp5.2,ID,0.6044
+24,apa yang terjadi pada saat pencapaian pencerahan,gpl-multilingual-e5-base,exp5.2,ID,0.5242
+25,perasaan malu dan takut,gpl-multilingual-e5-base,exp5.2,ID,0.7871
+26,bersatu di kehidupan selanjutnya,gpl-multilingual-e5-base,exp5.2,ID,0.7501
+27,jenis jenis karma buruk,gpl-multilingual-e5-base,exp5.2,ID,0.6325
+28,berbagai jenis perbuatan baik,gpl-multilingual-e5-base,exp5.2,ID,1.0
+29,jenis orang yang tak boleh ditahbiskan,gpl-multilingual-e5-base,exp5.2,ID,0.5372
+30,apa itu proliferasi mental,gpl-multilingual-e5-base,exp5.2,ID,0.9541
+1,cara mengatasi kemarahan,gpl-multilingual-e5-base,GPL,ID,0.4535
+2,cara mengatasi ngantuk,gpl-multilingual-e5-base,GPL,ID,1.0
+3,apa penyebab penderitaan,gpl-multilingual-e5-base,GPL,ID,0.8737
+4,mengapa harus membalas budi orangtua,gpl-multilingual-e5-base,GPL,ID,0.8907
+5,perumpamaan perumpamaan,gpl-multilingual-e5-base,GPL,ID,0.6588
+6,apa itu kemurahan hati,gpl-multilingual-e5-base,GPL,ID,0.6242
+7,penjelasan tentang perhatian murni,gpl-multilingual-e5-base,GPL,ID,0.4609
+8,manfaat pelaksaan sila,gpl-multilingual-e5-base,GPL,ID,0.4702
+9,jenis jenis kotoran batin,gpl-multilingual-e5-base,GPL,ID,0.5058
+10,kriteria kesucian,gpl-multilingual-e5-base,GPL,ID,0.1288
+11,siapa yang layak disebut sebagai brahmana,gpl-multilingual-e5-base,GPL,ID,0.1448
+12,kewajiban seorang bhikkhu,gpl-multilingual-e5-base,GPL,ID,0.7456
+13,berbagai jenis pemberian,gpl-multilingual-e5-base,GPL,ID,0.7369
+14,apa makna kekosongan,gpl-multilingual-e5-base,GPL,ID,0.0
+15,apa kualitas yang harus dimiliki oleh seorang penceramah,gpl-multilingual-e5-base,GPL,ID,0.8249
+16,harta yang paling bernilai,gpl-multilingual-e5-base,GPL,ID,0.9563
+17,kewajiban seorang umat awam,gpl-multilingual-e5-base,GPL,ID,0.7951
+18,penyebab gempa bumi,gpl-multilingual-e5-base,GPL,ID,1.0
+19,jenis jenis kemelekatan,gpl-multilingual-e5-base,GPL,ID,0.8907
+20,penggambaran terhadap keagungan buddha,gpl-multilingual-e5-base,GPL,ID,0.3719
+21,jenis jenis manusia,gpl-multilingual-e5-base,GPL,ID,0.8304
+22,cara mengikis kotoran batin,gpl-multilingual-e5-base,GPL,ID,0.6542
+23,penjelasan tentang pandangan terang,gpl-multilingual-e5-base,GPL,ID,0.6885
+24,apa yang terjadi pada saat pencapaian pencerahan,gpl-multilingual-e5-base,GPL,ID,0.3495
+25,perasaan malu dan takut,gpl-multilingual-e5-base,GPL,ID,0.7846
+26,bersatu di kehidupan selanjutnya,gpl-multilingual-e5-base,GPL,ID,0.3917
+27,jenis jenis karma buruk,gpl-multilingual-e5-base,GPL,ID,0.3603
+28,berbagai jenis perbuatan baik,gpl-multilingual-e5-base,GPL,ID,0.763
+29,jenis orang yang tak boleh ditahbiskan,gpl-multilingual-e5-base,GPL,ID,0.2334
+30,apa itu proliferasi mental,gpl-multilingual-e5-base,GPL,ID,0.9111
+1,cara mengatasi kemarahan,gte-multilingual-base,B,ID,0.5982
+2,cara mengatasi ngantuk,gte-multilingual-base,B,ID,0.214
+3,apa penyebab penderitaan,gte-multilingual-base,B,ID,0.7448
+4,mengapa harus membalas budi orangtua,gte-multilingual-base,B,ID,0.8587
+5,perumpamaan perumpamaan,gte-multilingual-base,B,ID,1.0
+6,apa itu kemurahan hati,gte-multilingual-base,B,ID,0.4538
+7,penjelasan tentang perhatian murni,gte-multilingual-base,B,ID,0.9425
+8,manfaat pelaksaan sila,gte-multilingual-base,B,ID,0.1514
+9,jenis jenis kotoran batin,gte-multilingual-base,B,ID,0.4532
+10,kriteria kesucian,gte-multilingual-base,B,ID,0.2616
+11,siapa yang layak disebut sebagai brahmana,gte-multilingual-base,B,ID,0.8164
+12,kewajiban seorang bhikkhu,gte-multilingual-base,B,ID,0.9321
+13,berbagai jenis pemberian,gte-multilingual-base,B,ID,0.9649
+14,apa makna kekosongan,gte-multilingual-base,B,ID,0.8136
+15,apa kualitas yang harus dimiliki oleh seorang penceramah,gte-multilingual-base,B,ID,0.9409
+16,harta yang paling bernilai,gte-multilingual-base,B,ID,0.8973
+17,kewajiban seorang umat awam,gte-multilingual-base,B,ID,0.6335
+18,penyebab gempa bumi,gte-multilingual-base,B,ID,0.9781
+19,jenis jenis kemelekatan,gte-multilingual-base,B,ID,0.9781
+20,penggambaran terhadap keagungan buddha,gte-multilingual-base,B,ID,0.2839
+21,jenis jenis manusia,gte-multilingual-base,B,ID,0.7473
+22,cara mengikis kotoran batin,gte-multilingual-base,B,ID,0.8003
+23,penjelasan tentang pandangan terang,gte-multilingual-base,B,ID,0.3411
+24,apa yang terjadi pada saat pencapaian pencerahan,gte-multilingual-base,B,ID,0.6479
+25,perasaan malu dan takut,gte-multilingual-base,B,ID,0.8591
+26,bersatu di kehidupan selanjutnya,gte-multilingual-base,B,ID,0.7741
+27,jenis jenis karma buruk,gte-multilingual-base,B,ID,0.7094
+28,berbagai jenis perbuatan baik,gte-multilingual-base,B,ID,0.8663
+29,jenis orang yang tak boleh ditahbiskan,gte-multilingual-base,B,ID,0.1367
+30,apa itu proliferasi mental,gte-multilingual-base,B,ID,0.9704
+1,cara mengatasi kemarahan,multilingual-e5-base,B,ID,0.8333
+2,cara mengatasi ngantuk,multilingual-e5-base,B,ID,0.6893
+3,apa penyebab penderitaan,multilingual-e5-base,B,ID,0.7448
+4,mengapa harus membalas budi orangtua,multilingual-e5-base,B,ID,0.8783
+5,perumpamaan perumpamaan,multilingual-e5-base,B,ID,0.9538
+6,apa itu kemurahan hati,multilingual-e5-base,B,ID,0.5535
+7,penjelasan tentang perhatian murni,multilingual-e5-base,B,ID,0.3552
+8,manfaat pelaksaan sila,multilingual-e5-base,B,ID,0.5343
+9,jenis jenis kotoran batin,multilingual-e5-base,B,ID,0.5589
+10,kriteria kesucian,multilingual-e5-base,B,ID,0.2162
+11,siapa yang layak disebut sebagai brahmana,multilingual-e5-base,B,ID,0.7094
+12,kewajiban seorang bhikkhu,multilingual-e5-base,B,ID,0.8083
+13,berbagai jenis pemberian,multilingual-e5-base,B,ID,0.9044
+14,apa makna kekosongan,multilingual-e5-base,B,ID,0.9611
+15,apa kualitas yang harus dimiliki oleh seorang penceramah,multilingual-e5-base,B,ID,0.7809
+16,harta yang paling bernilai,multilingual-e5-base,B,ID,0.7564
+17,kewajiban seorang umat awam,multilingual-e5-base,B,ID,0.8478
+18,penyebab gempa bumi,multilingual-e5-base,B,ID,1.0
+19,jenis jenis kemelekatan,multilingual-e5-base,B,ID,0.9781
+20,penggambaran terhadap keagungan buddha,multilingual-e5-base,B,ID,0.6206
+21,jenis jenis manusia,multilingual-e5-base,B,ID,0.8333
+22,cara mengikis kotoran batin,multilingual-e5-base,B,ID,0.648
+23,penjelasan tentang pandangan terang,multilingual-e5-base,B,ID,0.882
+24,apa yang terjadi pada saat pencapaian pencerahan,multilingual-e5-base,B,ID,0.7219
+25,perasaan malu dan takut,multilingual-e5-base,B,ID,0.9206
+26,bersatu di kehidupan selanjutnya,multilingual-e5-base,B,ID,0.2244
+27,jenis jenis karma buruk,multilingual-e5-base,B,ID,0.7105
+28,berbagai jenis perbuatan baik,multilingual-e5-base,B,ID,0.9319
+29,jenis orang yang tak boleh ditahbiskan,multilingual-e5-base,B,ID,0.3932
+30,apa itu proliferasi mental,multilingual-e5-base,B,ID,0.9559

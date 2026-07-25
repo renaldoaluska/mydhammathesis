@@ -1,13 +1,6 @@
 [
   {
     "corpora": [
-      "id",
-      "en"
-    ],
-    "name": "Demo Asesmen Pakar"
-  },
-  {
-    "corpora": [
       "id"
     ],
     "name": "Aryanto Firnadi, M.A. (B.Dh.)"
@@ -22,12 +15,6 @@
     "corpora": [
       "id"
     ],
-    "name": "Kustiani, S.Ag., M.A., Ph.D."
-  },
-  {
-    "corpora": [
-      "id"
-    ],
     "name": "Dr. Hastho Bramantyo, S.Fil., M.A."
   },
   {
@@ -35,23 +22,5 @@
       "id"
     ],
     "name": "Dr. Suranto, S.Ag., M.A."
-  },
-  {
-    "corpora": [
-      "id"
-    ],
-    "name": "Widiyono, M.A."
-  },
-  {
-    "corpora": [
-      "id"
-    ],
-    "name": "Bhikkhu Tri Saputra Medhacitto, M.A."
-  },
-  {
-    "corpora": [
-      "id"
-    ],
-    "name": "Bhikkhu Thitayanno Mahathera"
   }
 ]

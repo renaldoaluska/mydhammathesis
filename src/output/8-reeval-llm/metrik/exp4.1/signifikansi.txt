@@ -1,0 +1,19 @@
+=== UJI SIGNIFIKANSI GPL vs exp4.1 ===
+Wilcoxon signed-rank: paired per-kueri, memperhitungkan magnitudo (scipy.stats.wilcoxon).
+Sign test: binomial p=0.5 atas jumlah menang/kalah, arah saja (scipy.stats.binomtest).
+Signifikan jika p < 0.05.
+
+=== nDCG@5 (exp4.1 vs GPL) ===
+  gte-multilingual-base      n=30 | GPL̄=0.6729 exp4.1̄=0.6590 Δ̄=-0.0139 | menang/kalah/seri=12/16/2 | Wilcoxon p=0.1943 | sign-test p=0.5716
+  multilingual-e5-base       n=30 | GPL̄=0.6177 exp4.1̄=0.6325 Δ̄=+0.0148 | menang/kalah/seri=15/14/1 | Wilcoxon p=0.9053 | sign-test p=1.0000
+  GABUNGAN                          | menang/kalah=27/30 (53% minus) | sign-test p=0.7914
+
+=== P@5 (exp4.1 vs GPL) ===
+  gte-multilingual-base      n=30 | GPL̄=0.6000 exp4.1̄=0.5667 Δ̄=-0.0333 | menang/kalah/seri=6/10/14 | Wilcoxon p=0.3203 | sign-test p=0.4545
+  multilingual-e5-base       n=30 | GPL̄=0.5133 exp4.1̄=0.5667 Δ̄=+0.0533 | menang/kalah/seri=12/6/12 | Wilcoxon p=0.5530 | sign-test p=0.2379
+  GABUNGAN                          | menang/kalah=18/16 (47% minus) | sign-test p=0.8642
+
+=== Spearman (exp4.1 vs GPL) ===
+  gte-multilingual-base      n=25 | GPL̄=0.2164 exp4.1̄=0.1469 Δ̄=-0.0695 | menang/kalah/seri=10/14/1 | Wilcoxon p=0.5485 | sign-test p=0.5413
+  multilingual-e5-base       n=23 | GPL̄=0.2665 exp4.1̄=0.1621 Δ̄=-0.1044 | menang/kalah/seri=12/10/1 | Wilcoxon p=0.7089 | sign-test p=0.8318
+  GABUNGAN                          | menang/kalah=22/24 (52% minus) | sign-test p=0.8830

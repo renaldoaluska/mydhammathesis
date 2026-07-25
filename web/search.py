@@ -15,6 +15,7 @@ os.environ["HF_HUB_TRUST_REMOTE_CODE"] = "1"
 import sys
 import re
 import pickle
+import threading
 import unicodedata
 from pathlib import Path
 
@@ -39,6 +40,8 @@ PHRASE_CAP  = 3     # saturasi: frasa berulang >3× tak nambah skor
 _model_cache: dict = {}
 _emb_cache: dict = {}      # (clean_model, lang) -> (corpus, embeddings)
 _bm25_cache: dict = {}     # lang -> (corpus, bm25)
+_load_lock = threading.Lock()  # serialize cold-load lintas thread (gunicorn --threads):
+                               # tanpa ini 2 request bisa dobel-load model yg sama -> spike VRAM/OOM
 
 
 # ── teks util ──────────────────────────────────────────────────────────────
@@ -79,12 +82,16 @@ def _ok(entry, include_titles, include_blurb):
 
 # ── loaders (cached) ─────────────────────────────────────────────────────────
 def _load_model(name):
-    if name not in _model_cache:
-        # EMBED_DEVICE (mis. "cpu") -> taruh embedding di CPU; default biarkan ST auto-pilih
-        # (cuda kalau ada). web-md set "cpu" supaya GPU 12GB dipakai penuh chat LLM 14b.
-        _dev = os.environ.get("EMBED_DEVICE")
-        _kw = {"device": _dev} if _dev else {}
-        _model_cache[name] = config.load_st_model(name, **_kw)
+    m = _model_cache.get(name)
+    if m is not None:
+        return m
+    with _load_lock:                       # re-check di dalam lock (double-checked)
+        if name not in _model_cache:
+            # EMBED_DEVICE (mis. "cpu") -> taruh embedding di CPU; default biarkan ST auto-pilih
+            # (cuda kalau ada). web-md set "cpu" supaya GPU 12GB dipakai penuh chat LLM 14b.
+            _dev = os.environ.get("EMBED_DEVICE")
+            _kw = {"device": _dev} if _dev else {}
+            _model_cache[name] = config.load_st_model(name, **_kw)
     return _model_cache[name]
 
 
@@ -93,30 +100,36 @@ def _load_semantic(model_clean, lang):
     key = (model_clean, lang)
     if key in _emb_cache:
         return _emb_cache[key]
-    emb_p  = EMB_DIR / f"embed_{lang}_{model_clean}.pt"
-    meta_p = EMB_DIR / f"meta_{lang}_{model_clean}.pkl"
-    if not (emb_p.exists() and meta_p.exists()):
-        _emb_cache[key] = (None, None)
-        return None, None
-    import torch
-    emb = torch.load(emb_p, map_location="cpu")
-    with open(meta_p, "rb") as f:
-        corpus = pickle.load(f)
-    _emb_cache[key] = (corpus, emb)
-    return corpus, emb
+    with _load_lock:
+        if key in _emb_cache:
+            return _emb_cache[key]
+        emb_p  = EMB_DIR / f"embed_{lang}_{model_clean}.pt"
+        meta_p = EMB_DIR / f"meta_{lang}_{model_clean}.pkl"
+        if not (emb_p.exists() and meta_p.exists()):
+            _emb_cache[key] = (None, None)
+            return None, None
+        import torch
+        emb = torch.load(emb_p, map_location="cpu")
+        with open(meta_p, "rb") as f:
+            corpus = pickle.load(f)
+        _emb_cache[key] = (corpus, emb)
+        return corpus, emb
 
 
 def _load_bm25(lang):
     if lang in _bm25_cache:
         return _bm25_cache[lang]
-    from rank_bm25 import BM25Okapi
-    corpus = load_corpus(lang)
-    bm25 = BM25Okapi([_tok(c["text"]) for c in corpus]) if corpus else None
-    # teks ter-normalisasi (lower/no-diakritik/1-spasi) utk substring frasa & cek kata.
-    # keyword_search() murni tak memakainya; cuma keyword_search_phrase (web-md).
-    stripped = [_strip(c["text"]) for c in corpus]
-    _bm25_cache[lang] = (corpus, bm25, stripped)
-    return corpus, bm25, stripped
+    with _load_lock:
+        if lang in _bm25_cache:
+            return _bm25_cache[lang]
+        from rank_bm25 import BM25Okapi
+        corpus = load_corpus(lang)
+        bm25 = BM25Okapi([_tok(c["text"]) for c in corpus]) if corpus else None
+        # teks ter-normalisasi (lower/no-diakritik/1-spasi) utk substring frasa & cek kata.
+        # keyword_search() murni tak memakainya; cuma keyword_search_phrase (web-md).
+        stripped = [_strip(c["text"]) for c in corpus]
+        _bm25_cache[lang] = (corpus, bm25, stripped)
+        return corpus, bm25, stripped
 
 
 # ── metode ───────────────────────────────────────────────────────────────────
