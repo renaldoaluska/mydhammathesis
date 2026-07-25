@@ -87,4 +87,4 @@ mydhamma/
 - **Hugging Face Hub** (`renaldoaluska`): Menyimpan 17 model biner AI (GPL & Model Soups) serta *precomputed embeddings* (`mydhamma-cache`).
 
 ---
-*Dibuat untuk kelengkapan Tesis & Replikasi Eksperimen myDhamma.*
+*Dibuat untuk kelengkapan Tugas Akhir & Replikasi Eksperimen myDhamma.*
