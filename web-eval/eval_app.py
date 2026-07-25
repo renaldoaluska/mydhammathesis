@@ -644,4 +644,4 @@ if __name__ == "__main__":
     print(f"  Web (own) : {APP_DIR}/(templates,static)")
     # bind localhost: diakses via Cloudflare Tunnel (service: localhost:5001) saja.
     # 127.0.0.1 nutup akses LAN langsung — lindungi data grade pakar dari sabotase.
-    app.run(host="127.0.0.1", port=5001, debug=False)
+    app.run(host="0.0.0.0", port=5001, debug=False)
