@@ -85,19 +85,37 @@ def push_models(dry, force=False):
             print(f"    done: https://huggingface.co/{repo}")
 
 
-def push_dataset_dir(local_dir, path_in_repo, label, dry):
+def hub_files(path_in_repo):
+    """Nama file (relatif thd path_in_repo) yang sudah ada di dataset cache."""
+    try:
+        prefix = f"{path_in_repo}/"
+        return {f[len(prefix):] for f in HfApi().list_repo_files(
+            config.HF_CACHE_REPO, repo_type="dataset") if f.startswith(prefix)}
+    except Exception:
+        return set()                    # repo belum ada -> semua dianggap baru
+
+
+def push_dataset_dir(local_dir, path_in_repo, label, dry, force=False):
     print(f"=== {label} ===")
     if not local_dir.exists():
         print(f"  {local_dir} tidak ada, skip.")
         return
     print(f"  {local_dir} -> {config.HF_CACHE_REPO}/{path_in_repo}/")
-    if not dry:
-        api = HfApi()
-        api.create_repo(repo_id=config.HF_CACHE_REPO, repo_type="dataset",
-                        private=config.HF_PRIVATE, exist_ok=True)
-        api.upload_folder(folder_path=str(local_dir), path_in_repo=path_in_repo,
-                          repo_id=config.HF_CACHE_REPO, repo_type="dataset")
-        print(f"    done: https://huggingface.co/datasets/{config.HF_CACHE_REPO}")
+    local = sorted(p for p in local_dir.rglob("*") if p.is_file())
+    on = hub_files(path_in_repo)
+    todo = [p for p in local if force or p.relative_to(local_dir).as_posix() not in on]
+    print(f"  {len(local)} file lokal | {len(local) - len(todo)} sudah di Hub | {len(todo)} akan di-push")
+    if dry or not todo:
+        return
+    api = HfApi()
+    api.create_repo(repo_id=config.HF_CACHE_REPO, repo_type="dataset",
+                    private=config.HF_PRIVATE, exist_ok=True)
+    for p in todo:
+        rel = p.relative_to(local_dir).as_posix()
+        print(f"  [push] {rel} ({p.stat().st_size / 1048576:.0f} MB)")
+        api.upload_file(path_or_fileobj=str(p), path_in_repo=f"{path_in_repo}/{rel}",
+                        repo_id=config.HF_CACHE_REPO, repo_type="dataset")
+    print(f"    done: https://huggingface.co/datasets/{config.HF_CACHE_REPO}")
 
 
 def push_dataset_file(local_file, path_in_repo, label, dry):
@@ -157,7 +175,7 @@ def main():
     if a.m or a.a or dry:
         push_models(dry, force=a.force)
     if a.e or a.a or dry:
-        push_dataset_dir(config.EMBEDDINGS_DIR, "embeddings", "EMBEDDINGS", dry)
+        push_dataset_dir(config.EMBEDDINGS_DIR, "embeddings", "EMBEDDINGS", dry, force=a.force)
     if a.c or a.a or dry:
         push_dataset_file(config.EVAL_DIR / "search_cache.pkl", "cache/search_cache.pkl", "SEARCH CACHE", dry)
     if a.d or a.a or dry:

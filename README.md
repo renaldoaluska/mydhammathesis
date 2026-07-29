@@ -28,7 +28,7 @@ python src/code/sync-hf/2-pull-hf.py --a
 
 > ℹ️ **Catatan**: Skrip ini bersifat *idempotent* (hanya mengunduh file yang belum ada di disk lokal, tidak mengunduh ulang file yang sudah ada).
 
-> 🔒 **Akses**: seluruh repo Hugging Face proyek ini (`mydhamma-*`) berstatus **private** (`config.HF_PRIVATE = True`). Langkah ini hanya berhasil bila Anda login dengan token akun `renaldoaluska`; pengguna lain akan menerima galat 401/403. Untuk replikasi oleh pihak ketiga, repo terkait perlu diubah menjadi publik terlebih dahulu.
+> 🔒 **Akses**: seluruh repo Hugging Face proyek ini (`mydhamma-*`) berstatus **private** (`config.HF_PRIVATE = True`). Tanpa token yang sudah diberi akses, langkah ini gagal dengan galat 401/403. Lihat [Cara Mendapatkan & Memasang Token](#-cara-mendapatkan--memasang-token-hugging-face) di bawah.
 
 ---
 
@@ -111,7 +111,44 @@ python src/code/sync-hf/1-push-hf.py --d        # upload train.jsonl saja
 python src/code/sync-hf/2-pull-hf.py --d        # tarik train.jsonl ke lokasi aslinya
 ```
 
-> ⚠️ `1-push-hf.py --a` mengunggah ulang **seluruh** folder embeddings (±28 GB) karena bagian itu belum punya logika lewati-jika-sudah-ada. Untuk update rutin, pakai flag spesifik (`--m` / `--c` / `--d`) yang sudah melewati file yang sudah ada di Hub.
+> ℹ️ Semua flag push melewati file yang sudah ada di Hub, jadi `--a` aman dipanggil berulang (tidak mengunggah ulang 28 GB embeddings). Pakai `--force` bila memang ingin menimpa versi di Hub.
+
+---
+
+## 🔑 Cara Mendapatkan & Memasang Token Hugging Face
+
+Repo model & dataset proyek ini **private**, jadi butuh dua hal: **(a)** akun Anda diberi akses, lalu **(b)** token akun itu dipasang di mesin.
+
+### 1️⃣ Minta akses
+
+Kirim email ke **renaldoaluska@gmail.com** dengan menyertakan **username Hugging Face** Anda (bukan email HF-nya), serta keperluan singkat (mis. pengujian/replikasi Tugas Akhir). Setelah diberi akses, username Anda ditambahkan sebagai kolaborator pada repo yang diperlukan.
+
+### 2️⃣ Buat token
+
+Buka **https://huggingface.co/settings/tokens** → **Create new token** → tipe **Read** (cukup untuk mengunduh; tipe *Write* hanya perlu bila Anda ikut mem-*push*). Salin token yang muncul — nilainya hanya ditampilkan sekali.
+
+### 3️⃣ Pasang token (pilih salah satu)
+
+**Opsi A — login via CLI (disarankan, sekali seumur mesin):**
+```bash
+hf auth login          # tempel token saat diminta
+```
+Token disimpan di `~/.cache/huggingface/token` dan otomatis dipakai semua skrip `sync-hf/`.
+
+**Opsi B — variabel environment** (praktis untuk server/CI):
+```bash
+export HF_TOKEN=hf_xxxxxxxxxxxxxxxxxxxx
+```
+Agar permanen, tambahkan baris itu ke `~/.bashrc`, atau simpan di file `.env` yang **tidak** ikut ter-commit.
+
+### 4️⃣ Verifikasi
+
+```bash
+hf auth whoami                                  # harus mencetak username Anda
+python src/code/sync-hf/2-pull-hf.py --c        # uji tarik file kecil (search cache)
+```
+
+> ⚠️ **Jangan pernah commit token ke git.** Token setara kata sandi. Bila tidak sengaja ter-commit atau terekspos, segera cabut lewat halaman *Settings → Tokens*. Berkas `web-md/.env` sudah masuk `.gitignore` justru karena memuat rahasia semacam ini.
 
 ---
 *Dibuat untuk kelengkapan Tugas Akhir & Replikasi Eksperimen myDhamma.*
