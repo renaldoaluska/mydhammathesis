@@ -28,6 +28,8 @@ python src/code/sync-hf/2-pull-hf.py --a
 
 > ℹ️ **Catatan**: Skrip ini bersifat *idempotent* (hanya mengunduh file yang belum ada di disk lokal, tidak mengunduh ulang file yang sudah ada).
 
+> 🔒 **Akses**: seluruh repo Hugging Face proyek ini (`mydhamma-*`) berstatus **private** (`config.HF_PRIVATE = True`). Langkah ini hanya berhasil bila Anda login dengan token akun `renaldoaluska`; pengguna lain akan menerima galat 401/403. Untuk replikasi oleh pihak ketiga, repo terkait perlu diubah menjadi publik terlebih dahulu.
+
 ---
 
 ## 🌐 Menjalankan Aplikasi Web (`web-md` & `web-eval`)
@@ -68,8 +70,8 @@ mydhamma/
 │       ├── 7-retraining/           # Eksperimen retrain & model soups (exp1 - exp6)
 │       ├── 8-reeval-llm/           # Re-evaluasi komprehensif LLM & konsensus
 │       └── sync-hf/
-│           ├── 1-push-hf.py        # Upload model & cache ke Hugging Face Hub
-│           └── 2-pull-hf.py        # Download model & cache dari Hugging Face Hub
+│           ├── 1-push-hf.py        # Upload model, embeddings, cache, & data GPL ke HF Hub
+│           └── 2-pull-hf.py        # Download model, embeddings, cache, & data GPL dari HF Hub
 ├── web-md/                         # Aplikasi Web Pencarian Semantik & Chatbot RAG
 │   ├── app.py                      # Server Flask backend
 │   ├── reader.py                   # Parser & viewer teks Sutta
@@ -83,8 +85,33 @@ mydhamma/
 
 ## 🤝 Hubungan GitHub vs Hugging Face Hub
 
-- **GitHub** (`mydhammathesis`): Menyimpan seluruh kode sumber, skrip pipeline, konfigurasi, antarmuka web, dan laporan evaluasi teks/grafik.
-- **Hugging Face Hub** (`renaldoaluska`): Menyimpan 17 model biner AI (GPL & Model Soups) serta *precomputed embeddings* (`mydhamma-cache`).
+Pembagiannya berdasarkan **batas 100 MB per file yang diberlakukan GitHub**: apa pun yang lolos batas itu disimpan di git, sisanya di HF Hub.
+
+- **GitHub** (`mydhammathesis`): Seluruh kode sumber, skrip pipeline, konfigurasi, antarmuka web, laporan evaluasi teks/grafik, **dan artefak `src/output/`** — termasuk data antara GPL (`queries.jsonl`, `triples.jsonl`, `passages.jsonl`), anotasi pakar & LLM, serta seluruh plot metrik.
+- **Hugging Face Hub** (`renaldoaluska`): Tiga hal yang terlalu besar untuk git —
+  - 17 model biner AI (GPL & Model Soups), repo `mydhamma-gpl-*`;
+  - *precomputed embeddings* & search cache, dataset `mydhamma-cache`;
+  - **`train.jsonl` GPL (±400 MB/eksperimen)**, dataset `mydhamma-cache` subfolder `gpl-data/<eksperimen>/`.
+
+`train.jsonl` sendiri adalah artefak turunan — dihasilkan `3-pseudo-label.py` dari `triples.jsonl` + `passages.jsonl` yang keduanya ada di git — jadi rantai reproduksinya tetap utuh meski file ini ditarik terpisah.
+
+Sinkronisasi dua arah lewat `sync-hf/`, dengan flag yang sama di kedua skrip:
+
+| flag | artefak |
+|---|---|
+| `--m` | model GPL |
+| `--e` | embeddings |
+| `--c` | search cache |
+| `--d` | data GPL (`train.jsonl`) |
+| `--a` | semua |
+
+```bash
+python src/code/sync-hf/1-push-hf.py            # DRY-RUN: lihat dulu apa yang akan naik
+python src/code/sync-hf/1-push-hf.py --d        # upload train.jsonl saja
+python src/code/sync-hf/2-pull-hf.py --d        # tarik train.jsonl ke lokasi aslinya
+```
+
+> ⚠️ `1-push-hf.py --a` mengunggah ulang **seluruh** folder embeddings (±28 GB) karena bagian itu belum punya logika lewati-jika-sudah-ada. Untuk update rutin, pakai flag spesifik (`--m` / `--c` / `--d`) yang sudah melewati file yang sudah ada di Hub.
 
 ---
 *Dibuat untuk kelengkapan Tugas Akhir & Replikasi Eksperimen myDhamma.*

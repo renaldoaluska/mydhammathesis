@@ -10,7 +10,7 @@ cd "$(dirname "$0")"
 PY="${PY:-python3}"
 
 # Log otomatis ke output/4-training/gpl-train.log (+ tetap tampil di terminal)
-LOG_DIR="../../src/output/4-training"
+LOG_DIR="../../output/4-training"
 mkdir -p "$LOG_DIR"
 LOG_FILE="$LOG_DIR/gpl-train.log"
 exec > >(tee -a "$LOG_FILE") 2>&1

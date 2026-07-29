@@ -4,6 +4,7 @@
   --m  model GPL (repo mydhamma-gpl-*)  -> output/4-training/models/gpl-*
   --e  embeddings                        -> output/embeddings/
   --c  search cache                      -> output/5-eval/search_cache.pkl
+  --d  data GPL (gpl-data/train.jsonl)   -> output/4-training/gpl/ & 7-retraining/gpl-exp*/
   --a  semua
 
 Aman diulang: snapshot_download hanya menarik file yang belum ada.
@@ -86,16 +87,49 @@ def pull_cache():
         print(f"  gagal: {e}")
 
 
+def gpl_data_target(exp):
+    """gpl-exp* -> 7-retraining/, sisanya (gpl = exp0) -> 4-training/. Cermin push."""
+    if exp.startswith("gpl-exp"):
+        return config.OUTPUT_DIR / "7-retraining" / exp
+    return config.TRAINING_DIR / exp
+
+
+def pull_gpl_data():
+    print("=== DATA GPL ===")
+    api = HfApi()
+    try:
+        files = [f for f in api.list_repo_files(config.HF_CACHE_REPO, repo_type="dataset")
+                 if f.startswith("gpl-data/")]
+    except Exception as e:
+        print(f"  gagal list: {e}")
+        return
+    if not files:
+        print("  Tidak ada data GPL di Hub (push dulu: 1-push-hf.py --d).")
+        return
+    for f in files:
+        _, exp, fname = f.split("/", 2)
+        target = gpl_data_target(exp) / fname
+        print(f"  > {exp}/{fname} -> {target} ...", end=" ", flush=True)
+        try:
+            cached = hf_hub_download(repo_id=config.HF_CACHE_REPO, repo_type="dataset", filename=f)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(cached, target)
+            print("done.")
+        except Exception as e:
+            print(f"gagal: {e}")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--m", action="store_true", help="model GPL")
     ap.add_argument("--e", action="store_true", help="embeddings")
     ap.add_argument("--c", action="store_true", help="search cache")
+    ap.add_argument("--d", action="store_true", help="data GPL (train.jsonl)")
     ap.add_argument("--a", action="store_true", help="semua")
     a = ap.parse_args()
 
-    if not (a.m or a.e or a.c or a.a):
-        print("Pilih: --a (semua) | --m (model) | --e (embeddings) | --c (cache)")
+    if not (a.m or a.e or a.c or a.d or a.a):
+        print("Pilih: --a (semua) | --m (model) | --e (embeddings) | --c (cache) | --d (data GPL)")
         return
     ensure_login()
 
@@ -105,6 +139,8 @@ def main():
         pull_dataset("embeddings", config.EMBEDDINGS_DIR, "EMBEDDINGS")
     if a.c or a.a:
         pull_cache()
+    if a.d or a.a:
+        pull_gpl_data()
     print("\nSelesai.")
 
 

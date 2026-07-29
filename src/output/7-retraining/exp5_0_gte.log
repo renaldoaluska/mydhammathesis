@@ -1,0 +1,36 @@
+Loading weights:   0%|          | 0/393 [00:00<?, ?it/s]Loading weights:  74%|███████▎  | 289/393 [00:00<00:00, 2887.69it/s]Loading weights: 100%|██████████| 393/393 [00:00<00:00, 3415.78it/s]
+[reader] 7,289 bilara, 6,326 html, 24,291 nama, 22,762 pitaka, 5,560 blurb (0.57s)
+[index] {lang: chunks} = id:52,707, en:355,066, pli:443,145
+Loading weights:   0%|          | 0/136 [00:00<?, ?it/s]Loading weights: 100%|██████████| 136/136 [00:00<00:00, 3893.95it/s]
+  [config.load_st_model] buffer RoPE gte di-materialize ulang (/home/paps21/palisemantic5026221144/mydhamma/src/output/4-training/models/gpl-gte-multilingual-base; kompat transformers v5)
+[Q1] cara mengatasi kemarahan                           kandidat=13 -> top5 CE max=0.434
+[Q2] cara mengatasi ngantuk                             kandidat=5 -> top5 CE max=0.001
+[Q3] apa penyebab penderitaan                           kandidat=30 -> top5 CE max=0.976
+[Q4] mengapa harus membalas budi orangtua               kandidat=16 -> top5 CE max=0.601
+[Q5] perumpamaan perumpamaan                            kandidat=11 -> top5 CE max=0.959
+[Q6] apa itu kemurahan hati                             kandidat=18 -> top5 CE max=0.931
+[Q7] penjelasan tentang perhatian murni                 kandidat=15 -> top5 CE max=0.606
+[Q8] manfaat pelaksaan sila                             kandidat=18 -> top5 CE max=0.542
+[Q9] jenis jenis kotoran batin                          kandidat=13 -> top5 CE max=0.549
+[Q10] kriteria kesucian                                  kandidat=15 -> top5 CE max=0.022
+[Q11] siapa yang layak disebut sebagai brahmana          kandidat=25 -> top5 CE max=0.941
+[Q12] kewajiban seorang bhikkhu                          kandidat=21 -> top5 CE max=0.993
+[Q13] berbagai jenis pemberian                           kandidat=18 -> top5 CE max=0.962
+[Q14] apa makna kekosongan                               kandidat=17 -> top5 CE max=0.393
+[Q15] apa kualitas yang harus dimiliki oleh seorang penc kandidat=14 -> top5 CE max=0.412
+[Q16] harta yang paling bernilai                         kandidat=21 -> top5 CE max=0.616
+[Q17] kewajiban seorang umat awam                        kandidat=31 -> top5 CE max=0.874
+[Q18] penyebab gempa bumi                                kandidat=56 -> top5 CE max=0.983
+[Q19] jenis jenis kemelekatan                            kandidat=32 -> top5 CE max=0.999
+[Q20] penggambaran terhadap keagungan buddha             kandidat=14 -> top5 CE max=0.370
+[Q21] jenis jenis manusia                                kandidat=20 -> top5 CE max=0.962
+[Q22] cara mengikis kotoran batin                        kandidat=13 -> top5 CE max=0.551
+[Q23] penjelasan tentang pandangan terang                kandidat=17 -> top5 CE max=0.889
+[Q24] apa yang terjadi pada saat pencapaian pencerahan   kandidat=12 -> top5 CE max=0.263
+[Q25] perasaan malu dan takut                            kandidat=17 -> top5 CE max=0.946
+[Q26] bersatu di kehidupan selanjutnya                   kandidat=13 -> top5 CE max=0.225
+[Q27] jenis jenis karma buruk                            kandidat=31 -> top5 CE max=0.959
+[Q28] berbagai jenis perbuatan baik                      kandidat=23 -> top5 CE max=0.970
+[Q29] jenis orang yang tak boleh ditahbiskan             kandidat=82 -> top5 CE max=0.700
+[Q30] apa itu proliferasi mental                         kandidat=19 -> top5 CE max=0.689
+[pool] 150 baris (30 kueri x top5) -> /home/paps21/palisemantic5026221144/mydhamma/src/output/7-retraining/pool/pool_exp5.0_gpl-gte-multilingual-base.csv
